@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  mc-postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: mc-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_DB: mission_control
+      POSTGRES_USER: mcadmin
+      POSTGRES_PASSWORD: ${MC_PG_PASSWORD}
+    volumes:
+      - mc-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mcadmin -d mission_control"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mc-postgres-data:
+    external: true

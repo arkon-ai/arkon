@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+:root {
+  --background: #05050f;
+  --foreground: #e2e8f0;
+  --bg-deep: #05050f;
+  --bg-card: #0d0d1a;
+  --border: #1a2a4a;
+  --cyan: #06d6a0;
+  --purple: #8b5cf6;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --green: #22c55e;
+  --text: #e2e8f0;
+  --text-dim: #64748b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-bg-deep: var(--bg-deep);
+  --color-bg-card: var(--bg-card);
+  --color-border: var(--border);
+  --color-cyan: var(--cyan);
+  --color-purple: var(--purple);
+  --color-amber: var(--amber);
+  --color-red: var(--red);
+  --color-green: var(--green);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --font-sans: "Avenir Next", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg-deep);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at top, rgba(139, 92, 246, 0.12), transparent 28%),
+    radial-gradient(circle at 20% 20%, rgba(6, 214, 160, 0.1), transparent 20%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+::selection {
+  background: rgba(6, 214, 160, 0.28);
+  color: var(--text);
+}
+
+.markdown-body {
+  color: #cbd5e1;
+}
+
+.markdown-body h1 {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #1a2a4a;
+  padding-bottom: 0.5rem;
+  font-size: 2rem;
+  color: #fff;
+}
+
+.markdown-body h2 {
+  margin: 2rem 0 1rem;
+  font-size: 1.5rem;
+  color: #e2e8f0;
+}
+
+.markdown-body h3 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.25rem;
+  color: #e2e8f0;
+}
+
+.markdown-body p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+  color: #cbd5e1;
+}
+
+.markdown-body code {
+  border-radius: 4px;
+  background: #0d0d1a;
+  padding: 2px 6px;
+  color: #06d6a0;
+}
+
+.markdown-body pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.markdown-body th {
+  background: #1a2a4a;
+  padding: 8px 12px;
+  text-align: left;
+  color: #e2e8f0;
+}
+
+.markdown-body td {
+  border-bottom: 1px solid #1a2a4a;
+  padding: 8px 12px;
+  color: #cbd5e1;
+}
+
+.markdown-body blockquote {
+  margin: 1rem 0;
+  border-left: 4px solid #8b5cf6;
+  padding: 0.5rem 1rem;
+  color: #94a3b8;
+}
+
+.markdown-body a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.markdown-body li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-body input[type="checkbox"] {
+  margin-right: 0.5rem;
+  accent-color: #22c55e;
+}
+
+.markdown-body hr {
+  border-color: #1a2a4a;
+}
+
+/* ═══════════════════════════════════════
+   Phase 7 — Visual Upgrade Utilities
+═══════════════════════════════════════ */
+
+/* Glassmorphism */
+.glass-card {
+  background: rgba(13, 13, 26, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Glow utilities */
+.glow-cyan  { box-shadow: 0 0 24px rgba(6, 214, 160, 0.18), 0 0 48px rgba(6, 214, 160, 0.07); }
+.glow-purple{ box-shadow: 0 0 24px rgba(139, 92, 246, 0.18), 0 0 48px rgba(139, 92, 246, 0.07); }
+.glow-amber { box-shadow: 0 0 24px rgba(245, 158, 11, 0.18), 0 0 48px rgba(245, 158, 11, 0.07); }
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #06d6a0, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #0d0d1a 25%,
+    #1a2a4a 50%,
+    #0d0d1a 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: 8px;
+}
+
+/* Subtle grid background */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(26, 42, 74, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 42, 74, 0.25) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Recharts custom tooltip */
+.recharts-tooltip-wrapper:focus { outline: none; }

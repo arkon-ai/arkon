@@ -1,0 +1,360 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { ShellHeader, Card } from "./dashboard";
+import { SkeletonCard } from "./charts";
+
+/* ─── Types ─────────────────────────────────────────────── */
+type IntakeSubmission = {
+  id: number;
+  full_name: string;
+  email: string | null;
+  client_label: string | null;
+  processed: boolean;
+  submitted_at: string;
+  priorities: string | null;
+  automation_wish: string | null;
+  channels: string[] | null;
+  ssh_comfort: string | null;
+  exec_access: string | null;
+  payload?: Record<string, unknown>;
+};
+
+/* ─── Auth ───────────────────────────────────────────────── */
+function getHeaders(csrf = false): Record<string, string> {
+  const token = typeof document !== "undefined"
+    ? (document.cookie.match(/mc_auth=([^;]+)/)?.[1] ?? "")
+    : "";
+  const csrfToken = typeof document !== "undefined"
+    ? (document.cookie.match(/mc_csrf=([^;]+)/)?.[1] ?? "") : "";
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) h["Authorization"] = `Bearer ${token}`;
+  if (csrf && csrfToken) h["x-csrf-token"] = csrfToken;
+  return h;
+}
+
+/* ─── Helpers ────────────────────────────────────────────── */
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleString("en-ZA", {
+    timeZone: "Africa/Johannesburg",
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
+const channelEmoji: Record<string, string> = {
+  telegram: "📱", whatsapp: "💬", discord: "🎮", signal: "🔒",
+};
+
+/* ─── Full payload modal ─────────────────────────────────── */
+// Human-readable labels for known payload keys
+const FIELD_LABELS: Record<string, string> = {
+  full_name: "Full Name",
+  email: "Email",
+  client: "Client / Org",
+  client_label: "Client Label",
+  submitted_at: "Submitted",
+  channels: "Channels",
+  ssh_comfort: "SSH Comfort",
+  exec_access: "Exec Access",
+  priorities: "Top Priorities",
+  automation_wish: "Automation Wish",
+  role: "Role",
+  team: "Team Size",
+  tools: "Current Tools",
+  faith: "Faith",
+  family: "Family",
+  personality: "Personality",
+  comm_style: "Comm Style",
+  great_day: "Great Day Looks Like",
+  assistant_name: "Assistant Name",
+  assistant_vibe: "Assistant Vibe",
+  hated_tasks: "Most Hated Tasks",
+  data_limits: "Data Limits",
+};
+
+// Ordered display — show these first, then everything else from payload
+const FIELD_ORDER = [
+  "full_name","email","client","assistant_name","assistant_vibe",
+  "role","team","family","faith","personality","comm_style",
+  "tools","channels","hated_tasks","great_day","priorities",
+  "automation_wish","data_limits","ssh_comfort","exec_access",
+];
+
+function PayloadModal({ sub, onClose }: { sub: IntakeSubmission; onClose: () => void }) {
+  // Merge typed fields with raw payload
+  const raw: Record<string, unknown> = {
+    ...(sub.payload ?? {}),
+    full_name: sub.full_name,
+    email: sub.email,
+    client_label: sub.client_label,
+    channels: sub.channels,
+    ssh_comfort: sub.ssh_comfort,
+    exec_access: sub.exec_access,
+    priorities: sub.priorities,
+    automation_wish: sub.automation_wish,
+  };
+
+  // Build ordered list
+  const seen = new Set<string>();
+  const fields: [string, string][] = [];
+
+  const addField = (k: string) => {
+    if (seen.has(k)) return;
+    seen.add(k);
+    const v = raw[k];
+    if (v == null || v === "" || v === "—") return;
+    const label = FIELD_LABELS[k] ?? k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    const display = Array.isArray(v) ? v.join(", ") : String(v).slice(0, 600);
+    fields.push([label, display]);
+  };
+
+  // First: ordered known fields
+  for (const k of FIELD_ORDER) addField(k);
+  // Then: any remaining payload fields
+  for (const k of Object.keys(raw)) addField(k);
+  // Add submitted_at last
+  fields.push(["Submitted", fmtDate(sub.submitted_at)]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 40 }}
+        className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl border border-[#1a2a4a] bg-[#0a0a14] p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base font-bold text-[#e2e8f0]">{sub.full_name}</h3>
+          <button onClick={onClose} className="text-[#64748b] hover:text-[#e2e8f0] transition text-xl">×</button>
+        </div>
+
+        <div className="space-y-3">
+          {fields.map(([label, value]) => (
+            <div key={label}>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748b]">{label}</p>
+              <p className="mt-0.5 text-sm text-[#e2e8f0] whitespace-pre-wrap">{value}</p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ─── Submission Card ────────────────────────────────────── */
+function SubmissionCard({ sub, onProcessed, onExpand }: {
+  sub: IntakeSubmission;
+  onProcessed: () => void;
+  onExpand: () => void;
+}) {
+  const [marking, setMarking] = useState(false);
+
+  const markProcessed = async () => {
+    setMarking(true);
+    try {
+      const res = await fetch(`/api/intake?id=${sub.id}`, {
+        method: "PATCH",
+        headers: getHeaders(true),
+        body: JSON.stringify({ processed: true }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      toast.success("Marked as processed");
+      onProcessed();
+    } catch {
+      toast.error("Failed to update");
+    } finally {
+      setMarking(false);
+    }
+  };
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`rounded-2xl border px-4 py-4 transition ${sub.processed ? "border-[#1a2a4a]/50 bg-[#05050f]/40 opacity-70" : "border-[#06d6a0]/30 bg-[#05050f]/80"}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            {!sub.processed && (
+              <span className="rounded-full bg-[#06d6a0]/20 px-2 py-0.5 text-[10px] font-bold text-[#06d6a0] animate-pulse">
+                NEW
+              </span>
+            )}
+            <span className="text-sm font-semibold text-[#e2e8f0]">{sub.full_name}</span>
+            {sub.email && <span className="text-xs text-[#64748b]">{sub.email}</span>}
+          </div>
+          <p className="mt-0.5 text-xs text-[#475569]">{fmtDate(sub.submitted_at)}</p>
+          {sub.client_label && (
+            <p className="mt-0.5 text-xs text-[#8b5cf6]">{sub.client_label}</p>
+          )}
+        </div>
+
+        <div className="flex shrink-0 gap-1.5">
+          <button
+            onClick={onExpand}
+            className="rounded-xl border border-[#1a2a4a] px-3 py-1.5 text-xs text-[#64748b] hover:text-[#e2e8f0] transition"
+          >
+            View All
+          </button>
+          {!sub.processed && (
+            <button
+              onClick={() => void markProcessed()}
+              disabled={marking}
+              className="rounded-xl bg-[#06d6a0] px-3 py-1.5 text-xs font-semibold text-[#05050f] hover:opacity-90 disabled:opacity-50 transition"
+            >
+              {marking ? "…" : "✓ Done"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Key fields preview */}
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {sub.channels && sub.channels.length > 0 && (
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748b]">Channels</p>
+            <p className="mt-0.5 text-xs text-[#94a3b8]">
+              {(sub.channels as string[]).map(c => `${channelEmoji[c.toLowerCase()] ?? "💬"} ${c}`).join(" · ")}
+            </p>
+          </div>
+        )}
+        {sub.ssh_comfort && (
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748b]">Technical</p>
+            <p className="mt-0.5 text-xs text-[#94a3b8]">{sub.ssh_comfort}</p>
+          </div>
+        )}
+        {sub.priorities && (
+          <div className="sm:col-span-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748b]">Top Priorities</p>
+            <p className="mt-0.5 line-clamp-2 text-xs text-[#94a3b8]">{sub.priorities}</p>
+          </div>
+        )}
+        {sub.automation_wish && (
+          <div className="sm:col-span-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748b]">Automation Wish</p>
+            <p className="mt-0.5 line-clamp-2 text-xs text-[#94a3b8]">{sub.automation_wish}</p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Main ───────────────────────────────────────────────── */
+export function IntakeViewer() {
+  const [submissions, setSubmissions] = useState<IntakeSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "new" | "processed">("all");
+  const [expanded, setExpanded] = useState<IntakeSubmission | null>(null);
+
+  const fetchSubmissions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/intake", { headers: getHeaders() });
+      const data = await res.json() as { submissions: IntakeSubmission[] };
+      setSubmissions(data.submissions ?? []);
+    } catch {
+      toast.error("Failed to load submissions");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void fetchSubmissions(); }, [fetchSubmissions]);
+
+  const filtered = submissions.filter((s) => {
+    if (filter === "new") return !s.processed;
+    if (filter === "processed") return s.processed;
+    return true;
+  });
+
+  const newCount = submissions.filter((s) => !s.processed).length;
+
+  if (loading) return <div className="space-y-4 pb-24"><SkeletonCard /><SkeletonCard /></div>;
+
+  return (
+    <div className="space-y-5 pb-24">
+      <ShellHeader
+        title="Intake Submissions"
+        subtitle="DFY client onboarding form responses"
+        action={
+          <div className="text-right text-xs text-[#64748b]">
+            <div>{submissions.length} total</div>
+            {newCount > 0 && (
+              <div className="text-[#06d6a0] font-semibold">{newCount} unprocessed</div>
+            )}
+          </div>
+        }
+      />
+
+      {submissions.length === 0 ? (
+        <Card>
+          <div className="py-16 text-center">
+            <p className="text-4xl mb-3">📋</p>
+            <p className="text-sm font-semibold text-[#e2e8f0]">No submissions yet</p>
+            <p className="mt-2 text-xs text-[#64748b]">
+              Share the intake form with your client:
+            </p>
+            <a
+              href="https://transformateai.com/openclaw-intake.html"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 block text-xs text-[#06d6a0] hover:underline"
+            >
+              transformateai.com/openclaw-intake.html
+            </a>
+          </div>
+        </Card>
+      ) : (
+        <>
+          {/* Filter tabs */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { key: "all", label: `All (${submissions.length})` },
+              { key: "new", label: `New (${newCount})`, highlight: newCount > 0 },
+              { key: "processed", label: `Processed (${submissions.filter(s => s.processed).length})` },
+            ].map(({ key, label, highlight }) => (
+              <button
+                key={key}
+                onClick={() => setFilter(key as typeof filter)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  filter === key
+                    ? "bg-[#06d6a0] text-[#05050f]"
+                    : highlight
+                    ? "border border-[#06d6a0]/40 text-[#06d6a0] animate-pulse"
+                    : "border border-[#1a2a4a] text-[#64748b] hover:text-[#e2e8f0]"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            {filtered.map((sub) => (
+              <SubmissionCard
+                key={sub.id}
+                sub={sub}
+                onProcessed={fetchSubmissions}
+                onExpand={() => setExpanded(sub)}
+              />
+            ))}
+            {filtered.length === 0 && (
+              <div className="py-8 text-center text-sm text-[#64748b]">No submissions match this filter</div>
+            )}
+          </div>
+        </>
+      )}
+
+      <AnimatePresence>
+        {expanded && <PayloadModal sub={expanded} onClose={() => setExpanded(null)} />}
+      </AnimatePresence>
+    </div>
+  );
+}
