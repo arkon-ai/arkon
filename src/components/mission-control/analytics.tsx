@@ -16,6 +16,7 @@ import {
 import { CardEntranceWrapper, SkeletonCard, StatCountUp } from "@/components/mission-control/charts";
 import { ShellHeader } from "@/components/mission-control/dashboard";
 import { formatCompact, timeAgo, usePollingFetch } from "@/components/mission-control/api";
+import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -520,6 +521,12 @@ export function AnalyticsScreen() {
           </div>
         }
       />
+
+      <SectionDescription id="anomaly-detection">
+        Anomaly detection monitors your agent event rates and alerts you when something unusual
+        happens &mdash; sudden spikes in activity, unexpected silence, or abnormal token consumption
+        compared to the baseline.
+      </SectionDescription>
 
       {/* Summary Cards */}
       <SummaryCards totals={totals} sessionStats={sessionStats} />

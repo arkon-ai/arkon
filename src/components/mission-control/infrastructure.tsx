@@ -17,6 +17,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
+import { SectionDescription } from "./dashboard-clarity";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface InfraNode {
@@ -658,6 +659,11 @@ export function InfrastructureTopology() {
 
   return (
     <div>
+      <SectionDescription id="infrastructure">
+        Monitor CPU, memory, disk, and service health across all your servers. Add nodes via
+        the Admin Panel &mdash; the collector checks each server every minute and reports status here.
+      </SectionDescription>
+
       {/* Header */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>

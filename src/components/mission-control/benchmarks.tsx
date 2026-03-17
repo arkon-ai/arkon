@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { Gauge, Scale } from "lucide-react";
 import { EmptyCard } from "./ui-cards";
+import { SectionDescription } from "./dashboard-clarity";
 
 const C = {
   green: "#06d6a0", purple: "#8b5cf6", amber: "#f59e0b",
@@ -122,6 +123,11 @@ export function BenchmarksDashboard() {
 
   return (
     <div className="space-y-6">
+      <SectionDescription id="benchmarks">
+        Compare agent performance across models, response times, and cost efficiency.
+        Use this to identify which models deliver the best value for different task types.
+      </SectionDescription>
+
       {/* Header + range selector */}
       <div className="flex items-center justify-between">
         <div className="flex gap-2">

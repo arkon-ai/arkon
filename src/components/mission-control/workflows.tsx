@@ -5,6 +5,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { CardEntranceWrapper, SkeletonCard, StatCountUp } from "./charts";
 import { ShellHeader } from "./dashboard";
+import { EmptyState, WorkflowsEmpty } from "./empty-states";
+import { SectionDescription } from "./dashboard-clarity";
+import { Workflow as WorkflowIcon } from "lucide-react";
 import { WorkflowBuilder, type WorkflowDefinition } from "./workflow-builder";
 import { toast } from "sonner";
 
@@ -274,6 +277,12 @@ export function WorkflowsScreen() {
           eyebrow="Operate"
         />
 
+        <SectionDescription id="workflows">
+          Workflows let you automate responses to events in your AI infrastructure.
+          For example: automatically pause an agent when a critical threat is detected,
+          send a daily cost report, or check server health every 5 minutes.
+        </SectionDescription>
+
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-2">
             {["all", "draft", "active", "paused", "archived"].map((s) => (
@@ -304,10 +313,7 @@ export function WorkflowsScreen() {
             <SkeletonCard />
           </div>
         ) : workflows.length === 0 ? (
-          <div className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] p-8 text-center">
-            <p className="text-lg text-slate-400 mb-2">No workflows yet</p>
-            <p className="text-sm text-slate-500">Create your first workflow to automate multi-step operations.</p>
-          </div>
+          <WorkflowsEmpty />
         ) : (
           <div className="space-y-3">
             {workflows.map((wf, i) => (
@@ -565,10 +571,12 @@ export function WorkflowsScreen() {
         </div>
 
         {runs.length === 0 ? (
-          <div className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] p-8 text-center">
-            <p className="text-slate-400 mb-1">No runs yet</p>
-            <p className="text-sm text-slate-500">Execute this workflow to see results here.</p>
-          </div>
+          <EmptyState
+            icon={WorkflowIcon}
+            title="No runs yet"
+            description="Execute this workflow to see results here."
+            compact
+          />
         ) : (
           <div className="space-y-3">
             {runs.map((run, i) => (

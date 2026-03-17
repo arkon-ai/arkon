@@ -2,6 +2,8 @@
 
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { CostsEmpty } from "./empty-states";
+import { SectionDescription } from "./dashboard-clarity";
 import {
   AreaChart, Area, BarChart, Bar, CartesianGrid,
   ResponsiveContainer, Tooltip, XAxis, YAxis, Cell,
@@ -205,6 +207,11 @@ export default function CostsScreen() {
         <RangeSelector value={range} onChange={setRange} />
       </div>
 
+      <SectionDescription id="costs">
+        Track how much your AI agents are spending across all model providers. See daily burn rate,
+        per-agent breakdown, and per-model costs. Set budget limits to prevent overspending.
+      </SectionDescription>
+
       {error && (
         <div className="rounded-[16px] border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-400">{error}</div>
       )}
@@ -277,7 +284,7 @@ function OverviewTab({ overview, dailyBurn, projected }: {
         <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5">
           <h3 className="text-sm font-medium text-[#94a3b8] mb-4">Top Agents by Cost</h3>
           {by_agent.length === 0 ? (
-            <p className="text-sm text-[#475569]">No cost data yet</p>
+            <CostsEmpty />
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={by_agent.slice(0, 6)} layout="vertical">
@@ -350,7 +357,7 @@ function AgentsTab({ agents, loading }: { agents: AgentDetailRow[] | null; loadi
   }
 
   if (agents.length === 0) {
-    return <p className="text-center text-sm text-[#475569] py-12">No agent cost data yet</p>;
+    return <CostsEmpty />;
   }
 
   return (
@@ -407,7 +414,7 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
   }
 
   if (models.length === 0) {
-    return <p className="text-center text-sm text-[#475569] py-12">No model usage data yet</p>;
+    return <CostsEmpty />;
   }
 
   const paid = models.filter((m) => !m.is_free);

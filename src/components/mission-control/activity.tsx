@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ShellHeader, Card, SectionTitle } from "./dashboard";
 import { SkeletonCard } from "./charts";
+import { ActivityEmpty } from "./empty-states";
+import { SectionDescription } from "./dashboard-clarity";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type FeedEvent = {
@@ -247,6 +249,12 @@ export function ActivityFeed() {
         }
       />
 
+      <SectionDescription id="activity">
+        The activity feed shows every event your agents generate in real-time &mdash; messages sent
+        and received, tool calls, errors, and more. Use the filters and search to narrow down to
+        specific agents, event types, or time ranges.
+      </SectionDescription>
+
       {/* ── Quick stats ── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
@@ -303,9 +311,7 @@ export function ActivityFeed() {
         <div className="space-y-2">
           <AnimatePresence mode="popLayout">
             {filtered.length === 0 ? (
-              <div className="py-12 text-center text-sm text-[#64748b]">
-                No events match your filters. Install the Mission Logger hook to start capturing live data.
-              </div>
+              <ActivityEmpty />
             ) : (
               filtered.map((event) => (
                 <EventRow

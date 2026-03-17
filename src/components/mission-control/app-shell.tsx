@@ -44,7 +44,7 @@ import { ActiveRunBanner } from "./active-run-banner";
 import { QuickKillDialog } from "./quick-kill-dialog";
 
 const pageLabels: Record<string, string> = {
-  "/": "Overview",
+  "/": "Dashboard",
   "/tools": "Tools",
   "/tools/approvals": "Approvals",
   "/tools/docs": "Docs",
@@ -54,16 +54,16 @@ const pageLabels: Record<string, string> = {
   "/workflows": "Workflows",
   "/tools/command": "Command",
   "/security": "ThreatGuard",
-  "/analytics": "Analytics",
-  "/costs": "Cost Tracker",
+  "/analytics": "Anomaly Detection",
+  "/costs": "Costs",
   "/agents": "Agents",
-  "/systems": "Systems",
+  "/systems": "Infrastructure",
   "/confessions": "Confessions",
   "/visuals": "Visuals",
   "/actions": "Actions",
-  "/activity": "Activity Feed",
+  "/activity": "Activity",
   "/tools/crons": "Cron Jobs",
-  "/tools/intake": "Intake Submissions",
+  "/tools/intake": "Client Intake",
   "/tools/mcp": "MCP Servers",
   "/tools/mcp-gateway": "MCP Gateway",
   "/admin": "Admin Panel",
@@ -80,6 +80,7 @@ const pageLabels: Record<string, string> = {
 type NavItem = {
   href: string;
   label: string;
+  subtitle?: string;
   icon: LucideIcon;
 };
 
@@ -91,11 +92,11 @@ const mobileTabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
 ];
 
 const moreSheetItems: NavItem[] = [
-  { href: "/systems", label: "Systems", icon: Server },
-  { href: "/activity", label: "Activity Feed", icon: Radio },
+  { href: "/infrastructure", label: "Infrastructure", icon: Network },
+  { href: "/activity", label: "Activity", icon: Radio },
   { href: "/tools/crons", label: "Cron Jobs", icon: Clock },
   { href: "/tools/command", label: "Command", icon: Terminal },
-  { href: "/tools/intake", label: "Intake", icon: Inbox },
+  { href: "/tools/intake", label: "Client Intake", icon: Inbox },
   { href: "/tools/mcp", label: "MCP Servers", icon: Plug },
   { href: "/admin", label: "Admin Panel", icon: Lock },
 ];
@@ -105,52 +106,51 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     label: "Monitor",
     key: "monitor",
     items: [
-      { href: "/", label: "Overview", icon: LayoutDashboard },
-      { href: "/activity", label: "Activity Feed", icon: Radio },
-      { href: "/agents", label: "Agents", icon: Bot },
-      { href: "/systems", label: "Systems", icon: Server },
-      { href: "/infrastructure", label: "Infrastructure", icon: Network },
-      { href: "/security", label: "ThreatGuard", icon: ShieldCheck },
-      { href: "/analytics", label: "Analytics", icon: BarChart3 },
-      { href: "/costs", label: "Cost Tracker", icon: Wallet },
+      { href: "/", label: "Dashboard", subtitle: "Overview & health score", icon: LayoutDashboard },
+      { href: "/activity", label: "Activity", subtitle: "Real-time event stream", icon: Radio },
+      { href: "/agents", label: "Agents", subtitle: "Manage your AI agents", icon: Bot },
+      { href: "/infrastructure", label: "Infrastructure", subtitle: "Monitor your servers", icon: Network },
+      { href: "/security", label: "ThreatGuard", subtitle: "Detect threats in agent activity", icon: ShieldCheck },
+      { href: "/analytics", label: "Anomaly Detection", subtitle: "Rate spike & silence alerts", icon: BarChart3 },
+      { href: "/costs", label: "Costs", subtitle: "Track spending by agent & model", icon: Wallet },
     ],
   },
   {
     label: "Operate",
     key: "operate",
     items: [
-      { href: "/tools/command", label: "Command", icon: Terminal },
-      { href: "/tools/approvals", label: "Approvals", icon: CheckCircle },
-      { href: "/tools/tasks", label: "Tasks", icon: ListTodo },
-      { href: "/tools/crons", label: "Cron Jobs", icon: Clock },
-      { href: "/tools/agents-live", label: "Live Agents", icon: Activity },
-      { href: "/workflows", label: "Workflows", icon: Workflow },
+      { href: "/tools/command", label: "Command", subtitle: "Run agent commands", icon: Terminal },
+      { href: "/tools/approvals", label: "Approvals", subtitle: "Review pending agent requests", icon: CheckCircle },
+      { href: "/tools/tasks", label: "Tasks", subtitle: "Track action items", icon: ListTodo },
+      { href: "/tools/crons", label: "Cron Jobs", subtitle: "Scheduled automations", icon: Clock },
+      { href: "/tools/agents-live", label: "Live Agents", subtitle: "Active agent sessions", icon: Activity },
+      { href: "/workflows", label: "Workflows", subtitle: "Automate operations", icon: Workflow },
     ],
   },
   {
     label: "Configure",
     key: "configure",
     items: [
-      { href: "/tools/docs", label: "Docs", icon: FileText },
-      { href: "/tools/mcp", label: "MCP Servers", icon: Plug },
-      { href: "/tools/mcp-gateway", label: "MCP Gateway", icon: Globe },
-      { href: "/tools/intake", label: "Intake", icon: Inbox },
-      { href: "/tools/calendar", label: "Calendar", icon: Calendar },
+      { href: "/tools/docs", label: "Docs", subtitle: "Agent documentation", icon: FileText },
+      { href: "/tools/mcp", label: "MCP Servers", subtitle: "Manage tool providers", icon: Plug },
+      { href: "/tools/mcp-gateway", label: "MCP Gateway", subtitle: "Secure external tools", icon: Globe },
+      { href: "/tools/intake", label: "Client Intake", subtitle: "Client onboarding forms", icon: Inbox },
+      { href: "/tools/calendar", label: "Calendar", subtitle: "Schedule & events", icon: Calendar },
     ],
   },
   {
     label: "Analyze",
     key: "analyze",
     items: [
-      { href: "/benchmarks", label: "Benchmarks", icon: Gauge },
-      { href: "/compliance", label: "Compliance", icon: Shield },
+      { href: "/benchmarks", label: "Benchmarks", subtitle: "Compare agent performance", icon: Gauge },
+      { href: "/compliance", label: "Compliance", subtitle: "Audit logs & data export", icon: Shield },
     ],
   },
   {
     label: "Admin",
     key: "admin",
     items: [
-      { href: "/admin", label: "Admin Panel", icon: Lock },
+      { href: "/admin", label: "Admin Panel", subtitle: "System configuration", icon: Lock },
     ],
   },
 ];
@@ -415,7 +415,12 @@ export function NotionShell({ children }: { children: ReactNode }) {
                         }`}
                       >
                         <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#06d6a0]" : "text-[#64748b]"}`} />
-                        <span className="flex-1">{item.label}</span>
+                        <div className="min-w-0 flex-1">
+                          <span>{item.label}</span>
+                          {item.subtitle && (
+                            <span className="block truncate text-[10px] font-normal text-[#475569]">{item.subtitle}</span>
+                          )}
+                        </div>
                         {item.href === "/tools/approvals" && pendingCount && pendingCount > 0 ? (
                           <span className="rounded-full bg-[#f59e0b] px-1.5 py-0.5 text-[9px] font-bold text-[#050510]">
                             {pendingCount > 9 ? "9+" : pendingCount}

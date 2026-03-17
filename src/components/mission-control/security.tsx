@@ -16,6 +16,8 @@ import {
 import { CardEntranceWrapper, PulsingDot, SkeletonCard, StatCountUp } from "@/components/mission-control/charts";
 import { ShellHeader } from "@/components/mission-control/dashboard";
 import { formatCompact, timeAgo, usePollingFetch } from "@/components/mission-control/api";
+import { ThreatGuardEmpty } from "./empty-states";
+import { SectionDescription } from "./dashboard-clarity";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -911,6 +913,12 @@ export function SecurityScreen() {
         }
       />
 
+      <SectionDescription id="threatguard">
+        ThreatGuard scans every message your agents send and receive for three types of threats:
+        prompt injection attempts, dangerous shell commands, and credential leaks. When a threat
+        is detected, you&apos;ll see it here with a severity rating and recommended actions.
+      </SectionDescription>
+
       {/* Severity Cards */}
       <SeverityCards data={severityBreakdown} />
 
@@ -1008,13 +1016,7 @@ export function SecurityScreen() {
           </p>
         </div>
         {events.length === 0 ? (
-          <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-8 text-center">
-            <p className="text-3xl">&#x1F6E1;</p>
-            <p className="mt-2 text-sm font-semibold text-text">All Clear</p>
-            <p className="mt-1 text-xs text-text-dim">
-              {showDismissed ? "No threats in this period" : "No active threats detected in this period"}
-            </p>
-          </div>
+          <ThreatGuardEmpty />
         ) : (
           <div className="space-y-2">
             {events.map((event) => (

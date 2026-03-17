@@ -33,6 +33,8 @@ import { Bot, AlertTriangle, ChevronDown, OctagonX } from "lucide-react";
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "./kill-confirm-modal";
 import { StatCard as UiStatCard } from "./ui-cards";
+import { StatusSummary, HealthGauge, MetricTooltip } from "./dashboard-clarity";
+import { computeHealthScore } from "@/lib/health-score";
 
 export function ShellHeader({
   title,
@@ -135,6 +137,7 @@ export function StatCard({
   sparkColor,
   delta,
   hero = false,
+  tooltip,
 }: {
   label: string;
   value: string;
@@ -144,13 +147,15 @@ export function StatCard({
   sparkColor?: string;
   delta?: number | null;
   hero?: boolean;
+  tooltip?: string;
 }) {
   return (
     <Card className={`bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))] ${hero ? "p-5" : ""}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim">
             {label}
+            {tooltip && <MetricTooltip text={tooltip} />}
           </div>
           <div className={`${hero ? "mt-2 text-4xl font-extrabold tracking-[-0.04em]" : "mt-1 text-3xl font-bold"} ${accent}`}>
             {Number.isFinite(parseFloat(value)) && !/[a-zA-Z]/.test(value)
@@ -427,6 +432,18 @@ function OverviewContent() {
   const tokensDelta = calcDelta(tokensSparkData);
   const toolsDelta = calcDelta(toolsSparkData);
 
+  // Compute health score
+  const health = computeHealthScore({
+    totalAgents: metrics.totalAgents,
+    activeAgents: metrics.activeAgents,
+    highestThreat: "none", // will be enriched when security data is available
+    threatCount: 0,
+    monthSpend: 0,
+    budgetLimit: 0,
+    totalNodes: 0,
+    onlineNodes: 0,
+  });
+
   return (
     <div className="space-y-5">
       <ShellHeader
@@ -441,6 +458,19 @@ function OverviewContent() {
         }
       />
 
+      {/* Health gauge + Status summary */}
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+        <HealthGauge score={health.score} color={health.color} breakdown={health.breakdown} />
+        <div className="min-w-0 flex-1">
+          <StatusSummary
+            totalAgents={metrics.totalAgents}
+            activeAgents={metrics.activeAgents}
+            eventsToday={metrics.events24h}
+            threatCount={0}
+          />
+        </div>
+      </div>
+
       {/* Row 1: 4 Stat Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard
@@ -451,6 +481,7 @@ function OverviewContent() {
           sparkData={eventsSparkData}
           sparkColor="#06d6a0"
           delta={eventsDelta}
+          tooltip="Messages your agents sent and received in the last 24 hours."
         />
         <StatCard
           label="Tokens 24H"
@@ -460,6 +491,7 @@ function OverviewContent() {
           sparkData={tokensSparkData}
           sparkColor="#f59e0b"
           delta={tokensDelta}
+          tooltip="Total input + output tokens consumed. This drives your cost."
         />
         <StatCard
           label="Agents"
@@ -469,9 +501,13 @@ function OverviewContent() {
           sparkData={toolsSparkData}
           sparkColor="#8b5cf6"
           delta={toolsDelta}
+          tooltip="Registered agents across all tenants. 'Live' means active in the last hour."
         />
         <Card className="!p-3 flex flex-col justify-center">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim mb-1.5">System Pulse</div>
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim mb-1.5">
+            System Pulse
+            <MetricTooltip text="Ratio of active vs idle agents. Green = most agents reporting, red = errors detected." />
+          </div>
           <PulseBar percentage={pulse} />
           <div className="mt-2 flex gap-3 text-[10px]">
             <span className="text-green">{metrics.activeAgents} live</span>

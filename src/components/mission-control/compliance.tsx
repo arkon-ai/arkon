@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Shield, AlertTriangle } from "lucide-react";
 import { EmptyCard } from "./ui-cards";
+import { SectionDescription } from "./dashboard-clarity";
 
 const C = {
   green: "#06d6a0", purple: "#8b5cf6", amber: "#f59e0b",
@@ -39,6 +40,11 @@ export function ComplianceDashboard() {
 
   return (
     <div className="space-y-6">
+      <SectionDescription id="compliance">
+        Review every action taken in your Arkon instance. Export data for compliance reporting
+        or use GDPR purge to permanently delete user data and associated events.
+      </SectionDescription>
+
       <div className="flex gap-2">
         {([
           ["audit", "Audit Log"],
