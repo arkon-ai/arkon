@@ -31,6 +31,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# Install wget for health checks
+RUN apk add --no-cache wget
+
 # Create non-root user
 RUN addgroup --system --gid 1001 arkon && \
     adduser --system --uid 1001 arkon
@@ -45,8 +48,8 @@ COPY migrations/ migrations/
 COPY scripts/migrate.ts scripts/migrate.ts
 COPY package.json ./
 
-# Install tsx for migration runner (minimal addition)
-RUN npm install --no-save tsx pg
+# Install tsx for migration runner + web-push for VAPID notifications
+RUN npm install --no-save tsx pg web-push
 
 # Copy entrypoint
 COPY docker-entrypoint.sh /docker-entrypoint.sh

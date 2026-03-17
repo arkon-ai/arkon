@@ -27,14 +27,14 @@ cd arkon
 ## Step 2: Configure Environment
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Edit `.env.local` with your preferred editor. The required variables are:
+Edit `.env` with your preferred editor. At minimum, set these:
 
 ```bash
-# Database (Docker Compose default — change the password)
-DATABASE_URL=postgresql://arkon:your-secure-password@db:5432/arkon
+# Database password (also used by Docker Compose to create the DB)
+POSTGRES_PASSWORD=your-secure-password
 
 # Admin login passphrase (min 12 characters)
 MC_ADMIN_TOKEN=your-admin-passphrase-here
@@ -117,7 +117,7 @@ Schedule with cron: `* * * * * /path/to/reporter.sh`
 
 **Option B: SSH-based collection**
 
-Configure `MC_CRON_KEY_PATH` in `.env.local` and register nodes with SSH credentials via the API.
+Configure `MC_CRON_KEY_PATH` in `.env` and register nodes with SSH credentials via the API.
 
 ---
 
@@ -128,7 +128,7 @@ Configure `MC_CRON_KEY_PATH` in `.env.local` and register nodes with SSH credent
 ```bash
 # Check what's using the port
 lsof -i :3000
-# Or change the port in .env.local and docker-compose.yml
+# Or change the port in .env and docker-compose.yml
 ```
 
 ### Database connection refused

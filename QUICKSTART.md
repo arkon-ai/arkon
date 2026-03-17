@@ -8,11 +8,11 @@ Get Arkon running in 5 minutes. Three commands, one agent, one test event.
 
 ```bash
 git clone https://github.com/your-org/arkon.git && cd arkon
-cp .env.example .env.local
+cp .env.example .env
 docker compose up -d
 ```
 
-Edit `.env.local` first — at minimum set `MC_ADMIN_TOKEN` to a passphrase you'll remember.
+Edit `.env` first — at minimum set `MC_ADMIN_TOKEN` to a passphrase you'll remember.
 
 ## 2. Run the Setup Wizard
 
