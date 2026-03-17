@@ -78,6 +78,7 @@ const pageLabels: Record<string, string> = {
   "/client/events": "Client Events",
   "/client/costs": "Client Costs",
   "/settings": "Settings",
+  "/help/glossary": "Glossary",
 };
 
 type NavItem = {
