@@ -1,24 +1,40 @@
-version: '3.8'
-
 services:
-  mc-postgres:
-    image: timescale/timescaledb:latest-pg16
-    container_name: mc-postgres
+  arkon:
+    build: .
+    container_name: arkon
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5432:5432"
+      - "${PORT:-3000}:3000"
+    env_file: .env
     environment:
-      POSTGRES_DB: mission_control
-      POSTGRES_USER: mcadmin
-      POSTGRES_PASSWORD: ${MC_PG_PASSWORD}
-    volumes:
-      - mc-postgres-data:/var/lib/postgresql/data
+      DATABASE_URL: postgresql://${POSTGRES_USER:-arkon}:${POSTGRES_PASSWORD:-arkon}@db:5432/${POSTGRES_DB:-arkon}
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mcadmin -d mission_control"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/setup/status"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 30s
+
+  db:
+    image: timescale/timescaledb:latest-pg15
+    container_name: arkon-db
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-arkon}
+      POSTGRES_USER: ${POSTGRES_USER:-arkon}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-arkon}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arkon} -d ${POSTGRES_DB:-arkon}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  mc-postgres-data:
-    external: true
+  pgdata:
