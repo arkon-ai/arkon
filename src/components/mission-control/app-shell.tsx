@@ -42,6 +42,7 @@ import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
 import { NotificationDropdown } from "./notification-dropdown";
 import { ActiveRunBanner } from "./active-run-banner";
+import { MobileKillBar } from "./mobile-kill-bar";
 import { QuickKillDialog } from "./quick-kill-dialog";
 import { GuidedTour } from "./guided-tour";
 import { HelpPanel } from "./help-panel";
@@ -587,6 +588,9 @@ export function NotionShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       ) : null}
+
+      {/* Mobile kill bar — above bottom nav when active run exists */}
+      <MobileKillBar />
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1a2a4a]/50 bg-[#080810]/95 backdrop-blur md:hidden">
