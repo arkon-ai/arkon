@@ -7,8 +7,8 @@ import { ServiceWorkerRegistration } from "@/components/mission-control/service-
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Arkon",
-  description: "Mobile-first monitoring dashboard for agents, systems, and live operations.",
+  title: "Arkon — AI Control Plane",
+  description: "Monitor, govern, and manage your AI agent infrastructure. Best with OpenClaw/NemoClaw. Works with anything.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -22,6 +22,10 @@ export const metadata: Metadata = {
     ],
     apple: "/icon-192.svg",
   },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +35,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#05050f" />
+      </head>
       <body className="bg-bg-deep text-text antialiased">
         <ServiceWorkerRegistration />
         <Toaster
