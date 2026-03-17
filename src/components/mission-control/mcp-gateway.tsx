@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SectionDescription } from "./dashboard-clarity";
 
 interface GatewayStats {
   range: string;
@@ -90,6 +91,9 @@ export function McpGateway() {
 
   return (
     <div className="space-y-6">
+      <SectionDescription id="mcp-gateway">
+        The MCP Gateway proxies and secures your agents&apos; access to external tools via the Model Context Protocol. Register MCP servers, control which agents can use which tools, and monitor usage, latency, and errors.
+      </SectionDescription>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white">MCP Gateway</h1>

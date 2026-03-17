@@ -14,6 +14,7 @@ import {
   ShellHeader,
   StatCard,
 } from "./dashboard";
+import { SectionDescription } from "./dashboard-clarity";
 
 type FetchState<T> = {
   data: T | null;
@@ -447,6 +448,9 @@ export function ApprovalsToolScreen() {
         subtitle="Review, approve, or reject agent content. Swipe or use buttons. Add notes for audit trail."
         action={<Badge tone="amber">{data?.pendingCount ?? 0} pending</Badge>}
       />
+      <SectionDescription id="approvals">
+        Review and act on pending approval requests from your agents. When agents request permission for sensitive actions — spending over a threshold, executing commands, or accessing restricted tools — the requests appear here for your review.
+      </SectionDescription>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {["all", "pending", "approved", "rejected", "expired"].map((tab) => (

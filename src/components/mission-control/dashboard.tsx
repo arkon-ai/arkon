@@ -33,7 +33,7 @@ import { Bot, AlertTriangle, ChevronDown, OctagonX } from "lucide-react";
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "./kill-confirm-modal";
 import { StatCard as UiStatCard } from "./ui-cards";
-import { StatusSummary, HealthGauge, MetricTooltip } from "./dashboard-clarity";
+import { StatusSummary, HealthGauge, MetricTooltip, SectionDescription } from "./dashboard-clarity";
 import { computeHealthScore } from "@/lib/health-score";
 
 export function ShellHeader({
@@ -810,6 +810,9 @@ function AgentsContent() {
         title="Agents"
         subtitle="Sub-agent status cards focused on freshness, model context, and recent workload."
       />
+      <SectionDescription id="agents">
+        Manage all registered AI agents. Each card shows the agent&apos;s status, framework, recent cost, and threat count. Click any agent to see its full profile with identity, security, performance, and activity details.
+      </SectionDescription>
       {agents.length === 0 ? (
         <EmptyState
           icon={Bot}

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { ShellHeader, Card } from "./dashboard";
 import { SkeletonCard } from "./charts";
+import { SectionDescription } from "./dashboard-clarity";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type IntakeSubmission = {
@@ -292,6 +293,9 @@ export function IntakeViewer() {
           </div>
         }
       />
+      <SectionDescription id="intake">
+        Manage client onboarding submissions. When new clients fill out the intake form, their information appears here for review. Process submissions to provision new tenants and agents.
+      </SectionDescription>
 
       {submissions.length === 0 ? (
         <Card>
