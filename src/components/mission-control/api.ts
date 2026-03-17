@@ -20,6 +20,8 @@ export interface OverviewAgent {
   events_7d: string;
   events_total: string;
   tokens_24h: string;
+  threats_30d: string;
+  cost_30d: string;
 }
 
 export interface TodayStat {
