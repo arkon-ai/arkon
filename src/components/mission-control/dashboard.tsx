@@ -401,7 +401,7 @@ function MobileDashboardView({
   metrics,
   agents,
 }: {
-  health: { score: number; color: string; breakdown: Array<{ label: string; score: number; max: number }> };
+  health: { score: number; color: string; breakdown: { agents: number; threats: number; budget: number; infra: number } };
   metrics: ReturnType<typeof getOverviewMetrics>;
   agents: Array<{ id: string; name: string; last_active: string | null; events_24h: string }>;
 }) {
