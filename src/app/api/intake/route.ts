@@ -90,10 +90,10 @@ export async function POST(req: NextRequest) {
       `INSERT INTO events (agent_id, session_key, event_type, content, metadata, created_at)
        VALUES ($1, $2, $3, $4, $5, NOW())`,
       [
-        "brynn",
+        "system",
         "intake-form",
         "note",
-        `New DFY Intake Submission from ${fullName}${email ? ` (${email})` : ""}${clientLabel ? ` -- ${clientLabel}` : ""}`,
+        `New Intake Submission from ${fullName}${email ? ` (${email})` : ""}${clientLabel ? ` -- ${clientLabel}` : ""}`,
         JSON.stringify({ source: "intake-form", intake_id: id, full_name: fullName, email, client: clientLabel }),
       ]
     );
@@ -110,14 +110,14 @@ export async function POST(req: NextRequest) {
         const priorities = ((body.priorities as string) ?? "").slice(0, 300) || "not provided";
         const wish = ((body.automation_wish as string) ?? "").slice(0, 300) || "not provided";
         const tgMsg =
-          `*New DFY Intake Submission*\n\n` +
+          `*New Intake Submission*\n\n` +
           `*Name:* ${fullName}\n` +
           `*Email:* ${email ?? "not provided"}\n` +
           `*Client:* ${clientLabel ?? "unknown"}\n` +
           `*Channels:* ${channels}\n` +
           `*Top priorities:* ${priorities}\n` +
           `*Automation wish:* ${wish}\n\n` +
-          `View: https://mc.transformateai.com/tools/intake`;
+          `View: ${process.env.ARKON_BASE_URL ?? "http://localhost:3000"}/tools/intake`;
         await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -130,9 +130,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Gateway wake
-    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://100.99.150.81:18789";
+    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "";
     const hookToken = process.env.GATEWAY_HOOK_TOKEN ?? "";
-    try {
+    if (gatewayUrl) try {
       await fetch(`${gatewayUrl}/hooks/wake`, {
         method: "POST",
         headers: {
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
           Authorization: `Bearer ${hookToken}`,
         },
         body: JSON.stringify({
-          text: `[DFY Intake Form Submitted] Name: ${fullName} | Email: ${email ?? "n/a"} | Client: ${clientLabel ?? "unknown"} | View: https://mc.transformateai.com/tools/intake`,
+          text: `[Intake Form Submitted] Name: ${fullName} | Email: ${email ?? "n/a"} | Client: ${clientLabel ?? "unknown"} | View: ${process.env.ARKON_BASE_URL ?? "http://localhost:3000"}/tools/intake`,
           mode: "now",
         }),
         signal: AbortSignal.timeout(4000),

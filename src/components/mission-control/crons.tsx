@@ -90,7 +90,7 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
       });
       const data = await res.json() as { ok?: boolean; error?: string };
       if (!res.ok) throw new Error(data.error ?? "Send failed");
-      toast.success("Message logged — Lumina will see it in the Activity Feed and action it");
+      toast.success("Message logged — Agent will see it in the Activity Feed and action it");
       onClose();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to send");
@@ -108,7 +108,7 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
         className="w-full max-w-lg rounded-3xl border border-[#1a2a4a] bg-[#0a0a14] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="mb-1 text-base font-bold text-[#e2e8f0]">Message Lumina</h3>
+        <h3 className="mb-1 text-base font-bold text-[#e2e8f0]">Message Agent</h3>
         <p className="mb-4 text-xs text-[#64748b]">
           About: <span className="text-[#06d6a0]">{job.name ?? job.id}</span> · {scheduleLabel(job)}
         </p>
@@ -129,7 +129,7 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={3}
-          placeholder="What would you like Lumina to do with this cron job?"
+          placeholder="What would you like Agent to do with this cron job?"
           className="w-full resize-none rounded-xl border border-[#1a2a4a] bg-[#05050f] px-3 py-2.5 text-sm text-[#e2e8f0] outline-none focus:border-[#06d6a0] transition"
           onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) void send(); }}
         />
@@ -141,7 +141,7 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
             disabled={busy || !text.trim()}
             className="flex-1 rounded-xl bg-[#06d6a0] px-4 py-2.5 text-sm font-semibold text-[#05050f] hover:opacity-90 disabled:opacity-50 transition"
           >
-            {busy ? "Sending…" : "Send to Lumina"}
+            {busy ? "Sending…" : "Send to Agent"}
           </button>
           <button onClick={onClose} className="rounded-xl border border-[#1a2a4a] px-4 py-2.5 text-sm text-[#64748b] hover:text-[#e2e8f0] transition">
             Cancel
@@ -185,7 +185,7 @@ function CronCard({ job, onMessage, onAction }: {
             onClick={onMessage}
             className="rounded-xl border border-[#06d6a0]/30 px-3 py-1.5 text-xs font-semibold text-[#06d6a0] hover:bg-[rgba(6,214,160,0.08)] transition"
           >
-            Message Lumina
+            Message Agent
           </button>
         </div>
       </div>
@@ -307,7 +307,7 @@ export function CronManager() {
       });
       const data = await res.json() as { ok?: boolean; error?: string };
       if (!res.ok) throw new Error(data.error ?? "Action failed");
-      toast.success(`"${action}" instruction logged — Lumina will pick it up from the Activity Feed`);
+      toast.success(`"${action}" instruction logged — Agent will pick it up from the Activity Feed`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Action failed");
     }

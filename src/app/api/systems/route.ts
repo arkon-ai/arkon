@@ -1,15 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as net from "net";
+import { query } from "@/lib/db";
 import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
 
-const SERVICES = [
-  { name: "Arkon", host: "127.0.0.1", port: 4000, group: "Hetzner" },
-  { name: "PostgreSQL", host: "127.0.0.1", port: 5432, group: "Hetzner" },
-  { name: "Grafana", host: "127.0.0.1", port: 3001, group: "Hetzner" },
-  { name: "OpenClaw Gateway", host: "100.99.150.81", port: 18789, group: "Dell" },
-  { name: "Ollama", host: "100.99.150.81", port: 11434, group: "Dell" },
-  { name: "n8n", host: "100.99.150.81", port: 5678, group: "Dell" },
-];
+interface ServiceDef {
+  name: string;
+  host: string;
+  port: number;
+  group: string;
+}
+
+/** Load service check definitions from infra_nodes metadata */
+async function loadServices(): Promise<ServiceDef[]> {
+  const result = await query(
+    `SELECT id, name, ip, metadata FROM infra_nodes ORDER BY id`
+  );
+  const services: ServiceDef[] = [];
+  for (const row of result.rows as Array<Record<string, unknown>>) {
+    const meta = (row.metadata ?? {}) as Record<string, unknown>;
+    const svcList = (meta.services ?? []) as Array<{ name: string; port: number }>;
+    const nodeName = row.name as string;
+    const ip = row.ip as string;
+    const isLocal = meta.is_local === true;
+    for (const svc of svcList) {
+      services.push({
+        name: svc.name,
+        host: isLocal ? "127.0.0.1" : ip,
+        port: svc.port,
+        group: nodeName,
+      });
+    }
+  }
+  return services;
+}
 
 function checkPort(host: string, port: number, timeoutMs = 2000): Promise<{ latencyMs: number | null; online: boolean }> {
   return new Promise((resolve) => {
@@ -31,6 +54,8 @@ export async function GET(req: NextRequest) {
   if (!validateAdmin(req)) {
     return unauthorized();
   }
+
+  const SERVICES = await loadServices();
 
   const results = await Promise.all(
     SERVICES.map(async (svc) => {

@@ -4,25 +4,36 @@ import { unauthorized, validateAdmin } from "@/app/api/tools/_utils";
 
 export const dynamic = "force-dynamic";
 
-// Tailscale mesh connections between nodes
-const CONNECTIONS = [
-  { from: "dell-g5-5587", to: "hetzner-eu", label: "Primary ↔ Failover" },
-  { from: "dell-g5-5587", to: "hetzner-na", label: "Primary ↔ Static" },
-  { from: "dell-g5-5587", to: "contabo-hofmi", label: "Primary ↔ DFY" },
-  { from: "dell-g5-5587", to: "brynns-laptop", label: "Primary ↔ Workstation" },
-  { from: "hetzner-eu", to: "hetzner-na", label: "EU ↔ NA" },
-  { from: "hetzner-eu", to: "contabo-hofmi", label: "EU ↔ DFY" },
-  { from: "brynns-laptop", to: "hetzner-eu", label: "Workstation ↔ EU" },
-];
+/** Generate mesh connections between all registered nodes */
+function generateMeshConnections(nodes: Array<{ id: string; name: string }>): Array<{ from: string; to: string; label: string }> {
+  const connections: Array<{ from: string; to: string; label: string }> = [];
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      connections.push({
+        from: nodes[i].id,
+        to: nodes[j].id,
+        label: `${nodes[i].name} ↔ ${nodes[j].name}`,
+      });
+    }
+  }
+  return connections;
+}
 
-// Node positions for the topology layout
-const POSITIONS: Record<string, { x: number; y: number }> = {
-  "dell-g5-5587": { x: 200, y: 280 },
-  "hetzner-eu":   { x: 600, y: 180 },
-  "hetzner-na":   { x: 100, y: 520 },
-  "contabo-hofmi":{ x: 650, y: 500 },
-  "brynns-laptop":{ x: 380, y: 60 },
-};
+/** Derive positions from metadata or auto-layout in a grid */
+function derivePositions(nodes: Array<{ id: string; metadata: Record<string, unknown> }>): Record<string, { x: number; y: number }> {
+  const positions: Record<string, { x: number; y: number }> = {};
+  nodes.forEach((node, idx) => {
+    const pos = node.metadata.topology_position as { x: number; y: number } | undefined;
+    if (pos) {
+      positions[node.id] = pos;
+    } else {
+      const col = idx % 3;
+      const row = Math.floor(idx / 3);
+      positions[node.id] = { x: 150 + col * 250, y: 150 + row * 200 };
+    }
+  });
+  return positions;
+}
 
 export async function GET(req: NextRequest) {
   if (!validateAdmin(req)) return unauthorized();
@@ -51,7 +62,12 @@ export async function GET(req: NextRequest) {
 
   const agents = agentsResult.rows as Array<Record<string, unknown>>;
 
-  const nodes = nodesResult.rows.map((row: Record<string, unknown>) => {
+  const nodeRows = nodesResult.rows as Array<Record<string, unknown>>;
+  const positions = derivePositions(
+    nodeRows.map((r) => ({ id: r.id as string, metadata: (r.metadata || {}) as Record<string, unknown> }))
+  );
+
+  const nodes = nodeRows.map((row) => {
     const meta = (row.metadata || {}) as Record<string, unknown>;
     const lastCollected = row.last_collected as string | null;
     const isStale = lastCollected
@@ -71,7 +87,7 @@ export async function GET(req: NextRequest) {
       os: row.os,
       tenantId: row.tenant_id,
       metadata: meta,
-      position: POSITIONS[row.id as string] || { x: 400, y: 300 },
+      position: positions[row.id as string] || { x: 400, y: 300 },
       status: isStale ? "unknown" : (row.live_status || "unknown"),
       metrics: row.last_collected ? {
         cpu: row.cpu_percent,
@@ -91,7 +107,8 @@ export async function GET(req: NextRequest) {
     };
   });
 
-  // Build edges with latency from metrics
+  // Build edges — generate mesh connections from registered nodes
+  const CONNECTIONS = generateMeshConnections(nodes.map((n) => ({ id: n.id, name: n.name as string })));
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
   const edges = CONNECTIONS.map((conn) => {
     const fromNode = nodeMap.get(conn.from);
@@ -110,7 +127,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     nodes,
     edges,
-    hub: { label: "Tailscale Mesh", x: 420, y: 310 },
+    hub: { label: "Network Mesh", x: 420, y: 310 },
     timestamp: new Date().toISOString(),
   });
 }

@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       server_type: string; gateway_enabled: boolean; gateway_token: string;
     }>;
 
-    const gatewayBase = process.env.MC_GATEWAY_URL || "https://mc.transformateai.com";
+    const gatewayBase = process.env.MC_GATEWAY_URL || process.env.ARKON_BASE_URL || "http://localhost:3000";
 
     if (format === "claude-code" || format === "cursor") {
       const mcpServers: Record<string, Record<string, unknown>> = {};

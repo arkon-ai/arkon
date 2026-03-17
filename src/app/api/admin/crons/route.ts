@@ -32,12 +32,14 @@ interface CronJob {
 /** Send an instruction to the OpenClaw gateway via /hooks/agent.
  *  Falls back to storing a note event in the MC database. */
 async function sendToGateway(text: string, meta: Record<string, unknown>): Promise<{ sent: boolean; method: string }> {
-  const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://100.99.150.81:18789";
+  const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "";
   const hookToken = process.env.GATEWAY_HOOK_TOKEN ?? process.env.NEXT_PUBLIC_GATEWAY_TOKEN ?? "";
-  const hooksBase = process.env.GATEWAY_HOOKS_URL ?? `${gatewayUrl}/hooks`;
+  const hooksBase = process.env.GATEWAY_HOOKS_URL ?? (gatewayUrl ? `${gatewayUrl}/hooks` : "");
 
   // Attempt 1: /hooks/agent — isolated agent turn, bypasses heartbeat model
-  try {
+  if (!hooksBase) {
+    // No gateway configured — fall through to DB fallback
+  } else try {
     const res = await fetch(`${hooksBase}/agent`, {
       method: "POST",
       headers: {
@@ -98,8 +100,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ jobs: result.rows, count: result.rowCount });
 }
 
-// POST /api/admin/crons — sync jobs from Dell (called by sync script)
-// Also used to send a message to Lumina about a specific cron job
+// POST /api/admin/crons — sync jobs from gateway (called by sync script)
+// Also used to send a message to the agent about a specific cron job
 export async function POST(req: NextRequest) {
   if (!validateAdmin(req)) return unauthorized();
 

@@ -76,7 +76,9 @@ async function executeHttpRequest(data: Record<string, unknown>, context: Record
   // Auto-inject Bearer token for internal MC API calls
   if (!headers["authorization"] && !headers["Authorization"]) {
     const mcToken = process.env.MC_ADMIN_TOKEN;
-    if (mcToken && (url.includes("mc.transformateai.com") || url.startsWith("http://127.0.0.1:4000"))) {
+    const arkonBase = process.env.ARKON_BASE_URL ?? "";
+    const isInternalUrl = (arkonBase && url.includes(new URL(arkonBase).host)) || url.startsWith("http://127.0.0.1:") || url.startsWith("http://localhost:");
+    if (mcToken && isInternalUrl) {
       headers["authorization"] = `Bearer ${mcToken}`;
     }
   }

@@ -468,11 +468,11 @@ export function AdminPanel() {
       {sessionRole === "owner" && <AdminSection
         icon="➕"
         title="Create New Agent"
-        description="Register a new agent in Arkon. Each agent gets a unique token they use to send data. Use this when setting up a new AI assistant (e.g. Matt's assistant) or a client deployment. The token is shown ONCE — copy it immediately and store it safely."
+        description="Register a new agent in Arkon. Each agent gets a unique token they use to send data. Use this when setting up a new AI assistant or a client deployment. The token is shown ONCE — copy it immediately and store it safely."
       >
         <div className="space-y-3">
-          <Input label="Agent ID (slug — no spaces)" value={newId} onChange={(e) => setNewId(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="e.g. matt, client-01, test-agent" />
-          <Input label="Display Name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Matt van der Merwe" />
+          <Input label="Agent ID (slug — no spaces)" value={newId} onChange={(e) => setNewId(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="e.g. my-agent, client-01, test-agent" />
+          <Input label="Display Name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. My Assistant" />
           <Select label="Role" value={newRole} onChange={(e) => setNewRole(e.target.value)}>
             <option value="owner">owner — full control (use with caution)</option>
             <option value="admin">admin — can intervene, can't destroy</option>

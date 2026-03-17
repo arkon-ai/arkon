@@ -38,7 +38,7 @@ function buildAlertText(ctx: AlertContext, threat: ThreatResult): string {
     `Time: ${new Date(ctx.createdAt).toLocaleTimeString("en-ZA", { timeZone: "Africa/Johannesburg", hour: "2-digit", minute: "2-digit" })} SAST`,
     ctx.sessionKey ? `Session: ${ctx.sessionKey.slice(0, 16)}…` : null,
     ``,
-    `→ Review: ${process.env.NEXT_PUBLIC_MC_URL ?? "https://mc.transformateai.com"}/agent/${ctx.agentId}`,
+    `→ Review: ${process.env.ARKON_BASE_URL ?? "http://localhost:3000"}/agent/${ctx.agentId}`,
   ].filter(Boolean);
 
   return lines.join("\n");
@@ -138,7 +138,7 @@ function buildApprovalAlertText(ctx: ApprovalAlertContext): string {
     ``,
     `Preview: ${ctx.contentPreview}${ctx.contentPreview.length >= 120 ? "\u2026" : ""}`,
     ``,
-    `\u2192 Review: ${process.env.NEXT_PUBLIC_MC_URL ?? "https://mc.transformateai.com"}/tools/approvals`,
+    `\u2192 Review: ${process.env.ARKON_BASE_URL ?? "http://localhost:3000"}/tools/approvals`,
   ].filter(Boolean);
   return lines.join("\n");
 }

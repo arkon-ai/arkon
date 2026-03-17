@@ -301,14 +301,9 @@ export function IntakeViewer() {
             <p className="mt-2 text-xs text-[#64748b]">
               Share the intake form with your client:
             </p>
-            <a
-              href="https://transformateai.com/openclaw-intake.html"
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 block text-xs text-[#06d6a0] hover:underline"
-            >
-              transformateai.com/openclaw-intake.html
-            </a>
+            <p className="mt-2 text-xs text-[#64748b]">
+              Configure your intake form URL in Settings.
+            </p>
           </div>
         </Card>
       ) : (

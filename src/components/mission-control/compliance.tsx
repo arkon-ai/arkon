@@ -332,7 +332,7 @@ function PurgeTab() {
           <div>
             <label className="block text-xs text-slate-500 mb-1">{scope === "tenant" ? "Tenant ID" : "Agent ID"}</label>
             <input type="text" value={scopeId} onChange={(e) => setScopeId(e.target.value)}
-              placeholder={scope === "tenant" ? "e.g. hofmi" : "e.g. agent_abc123"}
+              placeholder={scope === "tenant" ? "e.g. my-client" : "e.g. agent_abc123"}
               className="w-full rounded-xl border border-[#1a2a4a] bg-[#0a0a14] px-3 py-2 text-sm text-white" />
           </div>
           <div className="flex items-end gap-3">

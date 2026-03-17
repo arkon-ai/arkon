@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 30000,
   reporter: [["list"], ["html", { open: "never", outputFolder: "playwright-report" }]],
   use: {
-    baseURL: "https://mc.transformateai.com",
+    baseURL: process.env.ARKON_BASE_URL ?? "http://localhost:3000",
     screenshot: "only-on-failure",
     video: "off",
     trace: "retain-on-failure",

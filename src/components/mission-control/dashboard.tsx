@@ -274,32 +274,7 @@ const visuals = [
   { slug: "heatmap", label: "Heatmap", tone: "text-green", note: "Activity intensity" },
 ];
 
-const systems = [
-  {
-    name: "Dell G5 5587",
-    host: "100.99.150.81",
-    location: "Witbank",
-    accent: "border-cyan/40",
-    services: [
-      { port: 18789, label: "OpenClaw Gateway", state: "Live" },
-      { port: 5678, label: "n8n", state: "Standby" },
-      { port: 11434, label: "Ollama", state: "Live" },
-      { port: 3000, label: "Grafana local", state: "Standby" },
-    ],
-  },
-  {
-    name: "Hetzner VPS",
-    host: "100.108.57.71",
-    location: "Core cloud",
-    accent: "border-purple/40",
-    services: [
-      { port: 4000, label: "Arkon API", state: "Live" },
-      { port: 5432, label: "PostgreSQL", state: "Live" },
-      { port: 443, label: "Nginx SSL proxy", state: "Live" },
-      { port: 8083, label: "Moodle LMS", state: "Warm" },
-    ],
-  },
-];
+// Systems data is loaded from /api/systems (database-driven, no hardcoded IPs)
 
 /* --- Helper: get agent status key --- */
 function agentStatusKey(lastActive: string | null): "live" | "warm" | "idle" | "error" {
@@ -682,8 +657,8 @@ function HealthContent() {
             <SectionTitle title="Ride Summary" note="400km goal" bar />
             <div className="rounded-2xl bg-bg-deep/70 p-4">
               <div className="mb-3 flex items-center justify-between text-sm">
-                <span className="text-text-dim">Witbank</span>
-                <span className="text-text-dim">Clarens</span>
+                <span className="text-text-dim">Start</span>
+                <span className="text-text-dim">Goal</span>
               </div>
               <div className="h-3 rounded-full bg-border">
                 <div
@@ -861,7 +836,7 @@ function SystemsContent() {
     <div className="space-y-5">
       <ShellHeader
         title="Systems"
-        subtitle="Live TCP port checks across Dell and Hetzner infrastructure. Auto-refreshes every 30s."
+        subtitle="Live TCP port checks across your infrastructure. Auto-refreshes every 30s."
         action={sysData ? (
           <div className="rounded-2xl border border-border bg-bg-card px-3 py-2 text-right text-xs text-text-dim">
             <div className="text-[10px] uppercase tracking-[0.2em]">Last Check</div>

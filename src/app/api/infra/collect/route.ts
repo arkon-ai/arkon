@@ -18,15 +18,24 @@ interface NodeConfig {
   selfReport?: boolean; // node pushes its own stats
 }
 
-const SSH_KEY = "~/.ssh/mc_cron_key";
+const SSH_KEY = process.env.MC_CRON_KEY_PATH ?? "~/.ssh/mc_cron_key";
 
-const NODES: NodeConfig[] = [
-  { id: "dell-g5-5587", ip: "100.99.150.81", sshUser: null, isLocal: false, selfReport: true },
-  { id: "hetzner-eu", ip: "100.108.57.71", sshUser: null, isLocal: true },
-  { id: "hetzner-na", ip: "100.66.164.114", sshUser: "root", isLocal: false },
-  { id: "contabo-hofmi", ip: "100.93.154.15", sshUser: "root", isLocal: false },
-  { id: "hofmi-app-1", ip: "100.105.87.117", sshUser: "root", isLocal: false },
-];
+/** Load node configs from infra_nodes table instead of hardcoding */
+async function loadNodes(): Promise<NodeConfig[]> {
+  const result = await query(
+    `SELECT id, ip, ssh_user, metadata FROM infra_nodes ORDER BY id`
+  );
+  return result.rows.map((row: Record<string, unknown>) => {
+    const meta = (row.metadata ?? {}) as Record<string, unknown>;
+    return {
+      id: row.id as string,
+      ip: row.ip as string,
+      sshUser: (row.ssh_user as string) ?? null,
+      isLocal: meta.is_local === true,
+      selfReport: meta.self_report === true,
+    };
+  });
+}
 
 async function runCmd(cmd: string, timeoutMs = 10000): Promise<string> {
   try {
@@ -155,9 +164,8 @@ async function collectServices(node: NodeConfig): Promise<Array<{ name: string; 
     return result.trim() === "UP";
   };
 
-  if (node.id === "dell-g5-5587") {
-    // Dell can't be SSH'd to from EU (Tailscale SSH only).
-    // Read services from latest self-reported metric in DB.
+  if (node.selfReport) {
+    // Self-reporting nodes push their own service status. Read from DB.
     const latest = await query(
       `SELECT services FROM node_metrics WHERE node_id = $1
        AND services IS NOT NULL AND services != '[]'::jsonb
@@ -167,21 +175,19 @@ async function collectServices(node: NodeConfig): Promise<Array<{ name: string; 
     if (latest.rows.length > 0 && Array.isArray(latest.rows[0].services)) {
       return latest.rows[0].services;
     }
-    // No self-reported services yet — return unknown
-    services.push({ name: "OpenClaw Gateway", active: false, port: 18789 });
-    services.push({ name: "Ollama", active: false, port: 11434 });
-  } else if (node.id === "hetzner-eu") {
-    services.push({ name: "Arkon", active: await checkPortLocal(4000), port: 4000 });
-    services.push({ name: "TimescaleDB", active: await checkPortLocal(5432), port: 5432 });
-    services.push({ name: "Grafana", active: await checkPortLocal(3000), port: 3000 });
-    services.push({ name: "n8n", active: await checkPortLocal(5678), port: 5678 });
-  } else if (node.id === "hetzner-na") {
-    services.push({ name: "Nginx", active: await checkPortSSH(node, 80), port: 80 });
-  } else if (node.id === "contabo-hofmi") {
-    services.push({ name: "OpenClaw Gateway", active: await checkPortSSH(node, 18789), port: 18789 });
-  } else if (node.id === "hofmi-app-1") {
-    services.push({ name: "Coolify", active: await checkPortSSH(node, 8000), port: 8000 });
-    services.push({ name: "Traefik", active: await checkPortSSH(node, 443), port: 443 });
+    return services;
+  }
+
+  // Read service definitions from infra_nodes metadata
+  const nodeRow = await query(`SELECT metadata FROM infra_nodes WHERE id = $1`, [node.id]);
+  const meta = (nodeRow.rows[0]?.metadata ?? {}) as Record<string, unknown>;
+  const servicesDef = (meta.services ?? []) as Array<{ name: string; port: number }>;
+
+  for (const svc of servicesDef) {
+    const active = node.isLocal
+      ? await checkPortLocal(svc.port)
+      : await checkPortSSH(node, svc.port);
+    services.push({ name: svc.name, active, port: svc.port });
   }
 
   return services;
@@ -196,6 +202,7 @@ export async function POST(req: NextRequest) {
 
   if (!isValidCron && !isAdmin) return unauthorized("Cron secret or admin token required");
 
+  const NODES = await loadNodes();
   const now = new Date();
   const results = await Promise.all(NODES.map(async (node) => {
     const [stats, services] = await Promise.all([

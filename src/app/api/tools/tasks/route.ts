@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         agent_id, title, description, status, priority, assignee, category, due_date,
         completed_at, sort_order, metadata
       )
-      VALUES ($1, $2, $3, COALESCE($4, 'todo'), COALESCE($5, 'P3'), COALESCE($6, 'lumina'),
+      VALUES ($1, $2, $3, COALESCE($4, 'todo'), COALESCE($5, 'P3'), COALESCE($6, 'agent'),
               $7, $8, $9, $10, $11)
       RETURNING *`,
       [
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
         body.description ?? null,
         body.status ?? "todo",
         body.priority ?? "P3",
-        body.assignee ?? "lumina",
+        body.assignee ?? "agent",
         body.category ?? null,
         body.due_date ?? null,
         body.completed_at ? new Date(body.completed_at) : null,

@@ -39,7 +39,7 @@ test.describe("Ingest API (agent auth)", () => {
         Authorization: `Bearer ${AGENT_TOKEN}`,
       },
       data: {
-        agent_id: "brynn",
+        agent_id: "test-agent",
         event_type: "message_sent",
         content: "playwright smoke test",
         session_key: "pw-test",
@@ -52,7 +52,7 @@ test.describe("Ingest API (agent auth)", () => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
       headers: { "Content-Type": "application/json" },
       data: {
-        agent_id: "brynn",
+        agent_id: "test-agent",
         event_type: "message_sent",
         content: "no auth test",
       },

@@ -340,10 +340,10 @@ function EmptyState({ label }: { label: string }) {
 const toolLinks = [
   { href: "/tools/approvals", title: "Approvals Queue", note: "Review drafted content and approve or reject from the phone.", tone: "green" as const },
   { href: "/tools/docs", title: "Docs Viewer", note: "Searchable archive of specs, reports, logs, and plans.", tone: "cyan" as const },
-  { href: "/tools/tasks", title: "Task Board", note: "Kanban board for Brynn and Lumina priorities.", tone: "amber" as const },
+  { href: "/tools/tasks", title: "Task Board", note: "Kanban board for task and agent priorities.", tone: "amber" as const },
   { href: "/tools/calendar", title: "Content Calendar", note: "Week-first content schedule with day drill-down.", tone: "purple" as const },
   { href: "/tools/agents-live", title: "Sub-Agent Live", note: "Real-time status, logs, tokens, and kill controls.", tone: "green" as const },
-  { href: "/tools/command", title: "Quick Command", note: "Chat-like command surface for direct requests to Lumina.", tone: "cyan" as const },
+  { href: "/tools/command", title: "Quick Command", note: "Chat-like command surface for direct agent requests.", tone: "cyan" as const },
   { href: "/actions", title: "Actions", note: "Existing action list remains available from the hub.", tone: "slate" as const },
   { href: "/confessions", title: "Confessions", note: "Mission-aligned declarations and scriptures.", tone: "purple" as const },
   { href: "/visuals", title: "Visuals", note: "Visual briefing and live diagrams.", tone: "amber" as const },
@@ -883,7 +883,7 @@ export function TasksToolScreen() {
         body: JSON.stringify({
           title: quickTitle,
           priority: quickPriority,
-          assignee: "brynn",
+          assignee: "owner",
           status: "todo",
         }),
       });
@@ -1333,7 +1333,7 @@ export function CommandToolScreen() {
       await fetchJson("/api/tools/commands", {
         method: "POST",
         body: JSON.stringify({
-          agent_id: "lumina",
+          agent_id: "default",
           command: command.trim(),
           status: "sent",
         }),
@@ -1353,7 +1353,7 @@ export function CommandToolScreen() {
             },
             body: JSON.stringify({ text: command.trim(), mode: "now" }),
           });
-          toast.success("Command sent to Lumina");
+          toast.success("Command sent to agent");
         } catch {
           toast("Command saved — gateway unreachable", { icon: "⚠️" });
         }
@@ -1385,7 +1385,7 @@ export function CommandToolScreen() {
                   {entry.command}
                 </div>
                 <div className="max-w-[88%] rounded-[22px] rounded-bl-md border border-border bg-bg-deep/80 px-4 py-3 text-sm text-text">
-                  {entry.response ?? "Awaiting response from Lumina."}
+                  {entry.response ?? "Awaiting response from agent."}
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-text-dim">
                   <Badge tone={entry.status === "completed" ? "green" : entry.status === "processing" ? "amber" : "slate"}>
@@ -1423,7 +1423,7 @@ export function CommandToolScreen() {
               rows={1}
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="Send a command to Lumina"
+              placeholder="Send a command to your agent"
               className="min-h-11 flex-1 resize-none rounded-2xl border border-border bg-bg-deep/80 px-4 py-3 text-sm text-text outline-none"
             />
             <button

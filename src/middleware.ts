@@ -35,7 +35,7 @@ export function middleware(request: NextRequest) {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob:",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "connect-src 'self' wss: ws: https://mc.transformateai.com",
+      `connect-src 'self' wss: ws: ${process.env.ARKON_BASE_URL ?? ""}`.trim(),
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",
     ].join("; ")
