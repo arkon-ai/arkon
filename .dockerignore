@@ -1,0 +1,55 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.*
+.yarn
+
+# Build output
+.next
+out
+build
+dist
+
+# Environment files (use docker-compose env_file or --env-file)
+.env
+.env.local
+.env.*.local
+
+# Database
+pgdata
+
+# Testing
+coverage
+test-results
+playwright-report
+tests
+
+# Logs
+logs
+*.log
+
+# IDE
+.vscode
+.idea
+
+# Git
+.git
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives
+*.tar.gz
+*.tgz
+
+# Docs (not needed in image)
+*.md
+!README.md
+LICENSE
+
+# Misc
+*.bak
+*.pem
+.vercel
