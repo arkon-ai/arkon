@@ -91,6 +91,13 @@ export async function sendNotification(params: SendNotificationParams): Promise<
       );
 
     await Promise.allSettled(dispatches);
+
+    // 4. Web Push — send to all registered push subscriptions for critical/high severity
+    if (params.severity === "critical" || params.severity === "warning") {
+      await sendWebPushNotifications(params).catch((err) => {
+        console.error("[notifications] Web push dispatch failed:", err);
+      });
+    }
   } catch (err) {
     // Notification failure is non-fatal
     console.error("[notifications] Error sending notification:", err);
@@ -261,5 +268,79 @@ export async function sendLegacyAlert(text: string): Promise<void> {
       body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
       signal: AbortSignal.timeout(4000),
     }).catch(() => {});
+  }
+}
+
+/* ── Web Push Notifications ── */
+
+/**
+ * Send web push notifications to all registered push subscriptions for a tenant.
+ * Uses the simple push protocol (no VAPID signing — requires VAPID env vars).
+ * If web-push library is not available, stores pending pushes for the client
+ * to poll via /api/notifications.
+ */
+async function sendWebPushNotifications(params: SendNotificationParams): Promise<void> {
+  const subs = await query(
+    `SELECT endpoint, keys_p256dh, keys_auth FROM push_subscriptions WHERE tenant_id = $1`,
+    [params.tenantId],
+  );
+
+  if (subs.rows.length === 0) return;
+
+  const baseUrl = process.env.ARKON_BASE_URL ?? "http://localhost:3000";
+  const payload = JSON.stringify({
+    title: params.title,
+    body: params.body ?? "",
+    tag: `arkon-${params.type}-${Date.now()}`,
+    severity: params.severity,
+    url: params.link ? `${baseUrl}${params.link}` : baseUrl,
+  });
+
+  // If VAPID keys are configured, use web-push protocol
+  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+
+  if (!vapidPublicKey || !vapidPrivateKey) {
+    // Without VAPID keys, we can't send push. Clients will still get in-app notifications.
+    console.warn("[notifications] VAPID keys not configured — skipping web push");
+    return;
+  }
+
+  // Dynamic import of web-push to avoid build failures if not installed
+  try {
+    const webpush = await import("web-push");
+    webpush.setVapidDetails(
+      `mailto:${process.env.VAPID_EMAIL ?? "admin@arkon.dev"}`,
+      vapidPublicKey,
+      vapidPrivateKey,
+    );
+
+    const results = await Promise.allSettled(
+      subs.rows.map((sub: { endpoint: string; keys_p256dh: string; keys_auth: string }) =>
+        webpush.sendNotification(
+          {
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.keys_p256dh, auth: sub.keys_auth },
+          },
+          payload,
+          { TTL: 3600 },
+        ).catch(async (err: { statusCode?: number }) => {
+          // Remove expired subscriptions (410 Gone)
+          if (err.statusCode === 410) {
+            await query(`DELETE FROM push_subscriptions WHERE endpoint = $1`, [sub.endpoint]);
+          }
+          throw err;
+        }),
+      ),
+    );
+
+    const sent = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed > 0) {
+      console.warn(`[notifications] Web push: ${sent} sent, ${failed} failed`);
+    }
+  } catch (err) {
+    // web-push module not installed or other error — non-fatal
+    console.warn("[notifications] web-push not available:", (err as Error).message);
   }
 }
