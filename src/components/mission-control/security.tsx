@@ -96,6 +96,55 @@ const CLASS_COLORS: Record<string, string> = {
   credential_leak: "#8b5cf6",
 };
 
+/* ── Threat Class Explainers (Step 6.1) ── */
+
+const CLASS_EXPLAINERS: Record<string, { title: string; description: string; icon: string }> = {
+  prompt_injection: {
+    title: "Prompt Injection",
+    icon: "\uD83C\uDFAF",
+    description:
+      "Someone (or something) tried to trick your agent into ignoring its instructions. This could be a deliberate attack or accidental input that resembles one. Common patterns include: \"ignore previous instructions\", \"you are now DAN\", or text that tries to override the agent's persona.",
+  },
+  shell_command: {
+    title: "Dangerous Shell Command",
+    icon: "\u26A0\uFE0F",
+    description:
+      "Your agent attempted to run a potentially dangerous system command that could delete files, open network connections, or compromise your server. Examples: \"rm -rf /\", reverse shell commands, or downloading and executing unknown scripts.",
+  },
+  credential_leak: {
+    title: "Credential Leak",
+    icon: "\uD83D\uDD10",
+    description:
+      "Your agent exposed a password, API key, or other secret in a message or output. This could allow unauthorized access to your systems if the message was seen by others. Immediate action: purge the message and rotate the credential.",
+  },
+};
+
+/* ── Recommended Actions per Threat Class (Step 6.2) ── */
+
+type RecommendedAction = {
+  text: string;
+  actionType?: "purge" | "kill" | "dismiss" | "link";
+  href?: string;
+};
+
+const RECOMMENDED_ACTIONS: Record<string, RecommendedAction[]> = {
+  credential_leak: [
+    { text: "Purge this message immediately", actionType: "purge" },
+    { text: "Rotate the exposed credential" },
+    { text: "Check if the credential was used by unauthorized parties" },
+  ],
+  shell_command: [
+    { text: "Review what the agent was trying to accomplish" },
+    { text: "Check if the command actually executed on the server" },
+    { text: "Consider adding this pattern to your agent's deny list" },
+  ],
+  prompt_injection: [
+    { text: "Review the source of this input" },
+    { text: "Check if the agent's behavior was affected" },
+    { text: "Consider strengthening the agent's instruction guardrails" },
+  ],
+};
+
 function parseJsonField<T>(value: string | T): T {
   if (typeof value === "string") {
     try { return JSON.parse(value); } catch { return [] as unknown as T; }
@@ -552,6 +601,104 @@ function ThreatHealthBar({ total, threats }: { total: number; threats: number })
   );
 }
 
+/* ─── Threat Class Explainers (collapsible, Step 6.1) ──── */
+
+const EXPLAINERS_KEY = "arkon-threat-explainers-seen";
+
+function ThreatClassExplainers() {
+  const [open, setOpen] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return !localStorage.getItem(EXPLAINERS_KEY);
+  });
+
+  function handleToggle() {
+    setOpen((prev) => {
+      if (!prev === false) localStorage.setItem(EXPLAINERS_KEY, "1");
+      return !prev;
+    });
+  }
+
+  return (
+    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a]">
+      <button
+        type="button"
+        onClick={handleToggle}
+        className="flex w-full items-center justify-between px-4 py-3 text-left"
+      >
+        <span className="text-sm font-semibold text-text">What do these threat types mean?</span>
+        <span className="text-xs text-text-dim">{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && (
+        <div className="grid gap-3 border-t border-[#1a2a4a] px-4 py-4 sm:grid-cols-3">
+          {Object.entries(CLASS_EXPLAINERS).map(([key, info]) => (
+            <div
+              key={key}
+              className="rounded-xl border border-[#1a2a4a] bg-white/[0.02] p-3"
+              style={{ borderTopColor: CLASS_COLORS[key], borderTopWidth: 2 }}
+            >
+              <p className="text-sm font-semibold text-text">
+                <span className="mr-1.5">{info.icon}</span>
+                {info.title}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-text-dim">{info.description}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Recommended Actions (shown in expanded event, Step 6.2) ── */
+
+function RecommendedActionsPanel({
+  event,
+  onPurge,
+}: {
+  event: ThreatEvent;
+  onPurge: (e: ThreatEvent) => void;
+}) {
+  const classes = parseJsonField<string[]>(event.threat_classes);
+  // Collect unique actions from all matched classes
+  const actions: RecommendedAction[] = [];
+  const seen = new Set<string>();
+  for (const cls of classes) {
+    for (const action of RECOMMENDED_ACTIONS[cls] ?? []) {
+      if (!seen.has(action.text)) {
+        seen.add(action.text);
+        actions.push(action);
+      }
+    }
+  }
+  if (actions.length === 0) return null;
+
+  return (
+    <div className="mt-3 rounded-xl border border-cyan/20 bg-cyan/[0.03] px-3 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-cyan">Recommended Actions</p>
+      <ul className="mt-2 space-y-1.5">
+        {actions.map((action, i) => (
+          <li key={i} className="flex items-center gap-2 text-xs text-text-dim">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-cyan/30 text-[9px] font-bold text-cyan">
+              {i + 1}
+            </span>
+            {action.actionType === "purge" ? (
+              <button
+                type="button"
+                onClick={() => onPurge(event)}
+                className="font-semibold text-red hover:underline"
+              >
+                {action.text}
+              </button>
+            ) : (
+              <span>{action.text}</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /* ─── Threat Event Row (with action menu + checkbox) ───── */
 
 function ThreatEventRow({
@@ -574,14 +721,23 @@ function ThreatEventRow({
   const classes = parseJsonField<string[]>(event.threat_classes);
   const matches = parseJsonField<Array<{ class: string; pattern: string; excerpt: string }>>(event.threat_matches);
 
+  // Determine primary threat class for contextual actions
+  const primaryClass = classes[0] ?? "";
+  const isCritical = event.threat_level === "critical";
+  const isHigh = event.threat_level === "high";
+
   return (
     <div
       className={`rounded-xl border transition ${
         event.dismissed
           ? "border-[#1a2a4a]/50 bg-[#0d0d1a]/50 opacity-60"
-          : selected
-            ? "border-cyan/40 bg-cyan/[0.03]"
-            : "border-[#1a2a4a] bg-[#0d0d1a] card-hover"
+          : isCritical
+            ? selected
+              ? "border-red/50 bg-red/[0.06]"
+              : "border-red/30 bg-red/[0.03] card-hover"
+            : selected
+              ? "border-cyan/40 bg-cyan/[0.03]"
+              : "border-[#1a2a4a] bg-[#0d0d1a] card-hover"
       }`}
     >
       <div className="flex items-center gap-2 px-2 py-3 sm:px-4">
@@ -601,17 +757,17 @@ function ThreatEventRow({
           onClick={() => setExpanded(!expanded)}
           className="flex min-w-0 flex-1 items-center gap-3 text-left"
         >
-          <PulsingDot status={event.threat_level === "critical" ? "error" : event.threat_level === "high" ? "warm" : "idle"} />
+          <PulsingDot status={isCritical ? "error" : isHigh ? "warm" : "idle"} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
+                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${isCritical ? "ring-pulse-fast" : ""}`}
                 style={{ background: config.bg, color: config.color }}
               >
                 {config.label}
               </span>
               {classes.map((cls) => (
-                <span key={cls} className="text-[10px] text-text-dim">
+                <span key={cls} className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: (CLASS_COLORS[cls] ?? "#64748b") + "15", color: CLASS_COLORS[cls] ?? "#64748b" }}>
                   {CLASS_LABELS[cls] ?? cls}
                 </span>
               ))}
@@ -637,6 +793,37 @@ function ThreatEventRow({
           <span className="hidden shrink-0 text-xs text-text-dim sm:inline">{timeAgo(event.created_at)}</span>
           <span className="shrink-0 text-text-dim">{expanded ? "\u25B2" : "\u25BC"}</span>
         </button>
+
+        {/* Contextual one-click actions (Step 6.3) — different per threat class */}
+        <div className="hidden items-center gap-1.5 sm:flex" onClick={(e) => e.stopPropagation()}>
+          {primaryClass === "credential_leak" && (
+            <button
+              type="button"
+              onClick={() => onPurge(event)}
+              className="rounded-lg bg-red/15 px-2.5 py-1 text-[11px] font-semibold text-red hover:bg-red/25 transition"
+            >
+              Purge
+            </button>
+          )}
+          {primaryClass === "shell_command" && (
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="rounded-lg bg-amber/15 px-2.5 py-1 text-[11px] font-semibold text-amber hover:bg-amber/25 transition"
+            >
+              Details
+            </button>
+          )}
+          {primaryClass === "prompt_injection" && (
+            <button
+              type="button"
+              onClick={() => onDismiss(event)}
+              className="rounded-lg bg-white/8 px-2.5 py-1 text-[11px] font-semibold text-text-dim hover:bg-white/12 hover:text-text transition"
+            >
+              Dismiss
+            </button>
+          )}
+        </div>
 
         {/* Action menu */}
         <ActionMenu event={event} onPurge={onPurge} onRedact={onRedact} onDismiss={onDismiss} />
@@ -666,6 +853,10 @@ function ThreatEventRow({
               {event.content || "(empty)"}
             </pre>
           </div>
+
+          {/* Recommended Actions (Step 6.2) */}
+          <RecommendedActionsPanel event={event} onPurge={onPurge} />
+
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap gap-4 text-[11px] text-text-dim">
               <span>ID: {event.id}</span>
@@ -939,6 +1130,9 @@ export function SecurityScreen() {
       <CardEntranceWrapper index={7}>
         <TopAgentsCard data={topAgents} />
       </CardEntranceWrapper>
+
+      {/* Threat Class Explainers (Step 6.1) */}
+      <ThreatClassExplainers />
 
       {/* Filters + Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
