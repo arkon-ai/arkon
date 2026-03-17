@@ -459,8 +459,10 @@ function OverviewContent() {
       />
 
       {/* Health gauge + Status summary */}
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-        <HealthGauge score={health.score} color={health.color} breakdown={health.breakdown} />
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center" data-tour="dashboard">
+        <div data-tour="health-gauge">
+          <HealthGauge score={health.score} color={health.color} breakdown={health.breakdown} />
+        </div>
         <div className="min-w-0 flex-1">
           <StatusSummary
             totalAgents={metrics.totalAgents}

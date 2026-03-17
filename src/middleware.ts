@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 // Routes that are server-to-server only (exempt from CSRF and auth redirect)
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
-const PUBLIC_PATHS = ["/login", "/api/auth/init", "/api/health", "/api/intake", "/docs/"];
+const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/health", "/api/intake", "/api/setup", "/docs/"];
 
 function isDashboardApiRoute(pathname: string): boolean {
   return pathname.startsWith("/api/");

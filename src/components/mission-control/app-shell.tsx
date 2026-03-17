@@ -42,6 +42,7 @@ import { CommandPalette } from "./command-palette";
 import { NotificationDropdown } from "./notification-dropdown";
 import { ActiveRunBanner } from "./active-run-banner";
 import { QuickKillDialog } from "./quick-kill-dialog";
+import { GuidedTour } from "./guided-tour";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -204,6 +205,15 @@ function getAuthHeaders(): Record<string, string> {
   return headers;
 }
 
+/* ── Tour target IDs for guided tour ── */
+const TOUR_IDS: Record<string, string> = {
+  "/": "dashboard",
+  "/agents": "nav-agents",
+  "/security": "nav-threatguard",
+  "/costs": "nav-costs",
+  "/workflows": "nav-workflows",
+};
+
 function isRouteActive(pathname: string | null, href: string) {
   if (!pathname) return false;
   if (href === "/") return pathname === "/";
@@ -222,9 +232,24 @@ export function NotionShell({ children }: { children: ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [quickKillOpen, setQuickKillOpen] = useState(false);
 
-  if (pathname === "/login") {
+  // Skip shell chrome for login and setup pages
+  if (pathname === "/login" || pathname?.startsWith("/setup")) {
     return <>{children}</>;
   }
+
+  // First-run detection: redirect to setup wizard if not completed
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/setup/status")
+      .then((r) => r.json())
+      .then((data: { needs_setup?: boolean }) => {
+        if (mounted && data.needs_setup) {
+          router.replace("/setup");
+        }
+      })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, [router]);
 
   const toggleGroup = useCallback((key: string) => {
     setCollapsedGroups((prev) => {
@@ -408,6 +433,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                         key={item.href}
                         href={item.href}
                         onClick={handleNavSelect}
+                        data-tour={TOUR_IDS[item.href]}
                         className={`flex min-h-9 items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium transition ${
                           active
                             ? "bg-[rgba(6,214,160,0.08)] text-[#06d6a0]"
@@ -642,6 +668,9 @@ export function NotionShell({ children }: { children: ReactNode }) {
 
       {/* Quick Kill Dialog (Ctrl+Shift+K) */}
       <QuickKillDialog open={quickKillOpen} onClose={() => setQuickKillOpen(false)} />
+
+      {/* Guided Tour (activated by ?tour=1 after setup wizard) */}
+      <GuidedTour />
     </div>
   );
 }

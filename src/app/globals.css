@@ -367,3 +367,17 @@ pre {
 .chart-glow-amber {
   filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));
 }
+
+/* ═══════════════════════════════════════
+   Setup Wizard Animations
+═══════════════════════════════════════ */
+
+@keyframes confetti {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(120px) rotate(720deg); opacity: 0; }
+}
+
+@keyframes tour-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(6, 214, 160, 0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(6, 214, 160, 0); }
+}
