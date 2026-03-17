@@ -259,11 +259,11 @@ export default function NotificationPreferencesPage() {
 
   return (
     <div className="space-y-6">
-      <SectionDescription
-        id="notifications"
-        title="Notification Preferences"
-        description="Choose how you want to be alerted when important events happen in your AI infrastructure. Configure multiple channels and control which notification types go where."
-      />
+      <SectionDescription id="notifications">
+        Choose how you want to be alerted when important events happen in your AI
+        infrastructure. Configure multiple channels and control which notification
+        types go where.
+      </SectionDescription>
 
       {/* In-app always on */}
       <div className="rounded-2xl border border-[#1a2a4a] bg-[#0a0a1a] p-5">
