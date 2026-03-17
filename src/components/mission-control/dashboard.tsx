@@ -29,7 +29,7 @@ import {
 import { TrendCharts } from "./trend-charts";
 import { TenantCards } from "./tenant-cards";
 import { EmptyState, FirstRunBanner } from "./empty-states";
-import { Bot, AlertTriangle, ChevronDown, OctagonX } from "lucide-react";
+import { Bot, AlertTriangle, ChevronDown, OctagonX, Shield, Wallet, Users, Radio } from "lucide-react";
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "./kill-confirm-modal";
 import { StatCard as UiStatCard } from "./ui-cards";
@@ -386,6 +386,167 @@ function ShieldCheckIcon({ className }: { className?: string }) {
   );
 }
 
+/* ── Mobile Dashboard — simplified layout for small screens ── */
+
+interface RecentEvent {
+  id: string;
+  agent_name: string;
+  event_type: string;
+  content: string;
+  created_at: string;
+}
+
+function MobileDashboardView({
+  health,
+  metrics,
+  agents,
+}: {
+  health: { score: number; color: string; breakdown: Array<{ label: string; score: number; max: number }> };
+  metrics: ReturnType<typeof getOverviewMetrics>;
+  agents: Array<{ id: string; name: string; last_active: string | null; events_24h: string }>;
+}) {
+  const { data: recentData } = usePollingFetch<{ events: RecentEvent[] }>(
+    "/api/dashboard/overview/recent?limit=5",
+    15000
+  );
+  const recentEvents = recentData?.events ?? [];
+
+  return (
+    <div className="space-y-4 md:hidden">
+      {/* Health Score — large centered */}
+      <div className="flex flex-col items-center gap-2 py-2">
+        <HealthGauge score={health.score} color={health.color} breakdown={health.breakdown} size="lg" />
+        <StatusSummary
+          totalAgents={metrics.totalAgents}
+          activeAgents={metrics.activeAgents}
+          eventsToday={metrics.events24h}
+          threatCount={0}
+        />
+      </div>
+
+      {/* Quick stats grid — 2x2 */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <MobileStatTile
+          icon={<Shield className="h-4 w-4 text-red" />}
+          label="Threats"
+          value="0"
+          href="/security"
+          accent="text-green"
+        />
+        <MobileStatTile
+          icon={<Wallet className="h-4 w-4 text-amber" />}
+          label="Cost Today"
+          value={`${formatCompact(metrics.tokens24h)} tok`}
+          href="/costs"
+          accent="text-amber"
+        />
+        <MobileStatTile
+          icon={<Users className="h-4 w-4 text-cyan" />}
+          label="Agents"
+          value={`${metrics.activeAgents}/${metrics.totalAgents}`}
+          href="/agents"
+          accent="text-cyan"
+        />
+        <MobileStatTile
+          icon={<Radio className="h-4 w-4 text-purple" />}
+          label="Events 24h"
+          value={formatCompact(metrics.events24h)}
+          href="/activity"
+          accent="text-purple"
+        />
+      </div>
+
+      {/* Alerts banner (compact) */}
+      <AlertsBanner />
+
+      {/* Last 5 events */}
+      <Card>
+        <SectionTitle title="Recent Events" note="Last 5" bar />
+        {recentEvents.length === 0 ? (
+          <p className="py-4 text-center text-xs text-text-dim">No recent events</p>
+        ) : (
+          <div className="space-y-1.5">
+            {recentEvents.map((evt) => (
+              <div
+                key={evt.id}
+                className="flex items-center gap-2.5 rounded-xl bg-bg-deep/70 px-3 py-2"
+              >
+                <div className="flex-shrink-0">
+                  <span className={`inline-block h-2 w-2 rounded-full ${
+                    evt.event_type === "error" ? "bg-red" :
+                    evt.event_type === "tool_call" ? "bg-purple" :
+                    evt.event_type === "sent" ? "bg-cyan" : "bg-text-dim"
+                  }`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-text">{evt.agent_name}</span>
+                    <span className="text-[10px] text-text-muted">{evt.event_type.replace("_", " ")}</span>
+                  </div>
+                  <p className="truncate text-[11px] text-text-dim">{evt.content}</p>
+                </div>
+                <span className="flex-shrink-0 text-[10px] text-text-muted">{timeAgo(evt.created_at)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <Link href="/activity" className="mt-2 inline-flex text-xs font-semibold text-cyan btn-press">
+          View all activity &rarr;
+        </Link>
+      </Card>
+
+      {/* Active agents (compact) */}
+      <Card>
+        <SectionTitle title="Agents" note="Active" bar />
+        <div className="space-y-1.5">
+          {agents.slice(0, 5).map((agent) => {
+            const status = activityStatus(agent.last_active);
+            const statusKey = agentStatusKey(agent.last_active);
+            return (
+              <Link
+                key={agent.id}
+                href={`/agent/${agent.id}`}
+                className="flex items-center gap-2.5 rounded-xl bg-bg-deep/70 px-3 py-2 transition hover:bg-white/[0.02]"
+              >
+                <StatusRing status={statusKey} size={20} />
+                <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-text">{agent.name}</span>
+                <span className={`text-[11px] font-semibold ${status.tone}`}>{status.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function MobileStatTile({
+  icon,
+  label,
+  value,
+  href,
+  accent,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  href: string;
+  accent: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="card-hover rounded-2xl border border-border bg-bg-card p-3 transition active:scale-[0.97]"
+    >
+      <div className="flex items-center gap-2 mb-1.5">
+        {icon}
+        <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-text-dim">{label}</span>
+      </div>
+      <div className={`text-xl font-bold ${accent}`}>{value}</div>
+    </Link>
+  );
+}
+
 function OverviewContent() {
   const { data, error, loading } = useOverviewData();
   const { data: trendData } = useTrendData("7d");
@@ -445,127 +606,133 @@ function OverviewContent() {
   });
 
   return (
-    <div className="space-y-5">
-      <ShellHeader
-        title="Overview"
-        subtitle="Live agent activity, token flow, and system pulse at a glance."
-        gradient
-        action={
-          <div className="rounded-2xl border border-border bg-bg-card px-3 py-2 text-right text-xs text-text-dim">
-            <div className="text-[10px] uppercase tracking-[0.2em]">Updated</div>
-            <div className="mt-1 text-sm text-text">{getUpdatedAtLabel(data?.timestamp)}</div>
-          </div>
-        }
-      />
+    <>
+      {/* Mobile-optimized dashboard — simplified layout */}
+      <MobileDashboardView health={health} metrics={metrics} agents={agents} />
 
-      {/* Health gauge + Status summary */}
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center" data-tour="dashboard">
-        <div data-tour="health-gauge">
-          <HealthGauge score={health.score} color={health.color} breakdown={health.breakdown} />
+      {/* Desktop dashboard — full layout */}
+      <div className="hidden md:block space-y-5">
+        <ShellHeader
+          title="Overview"
+          subtitle="Live agent activity, token flow, and system pulse at a glance."
+          gradient
+          action={
+            <div className="rounded-2xl border border-border bg-bg-card px-3 py-2 text-right text-xs text-text-dim">
+              <div className="text-[10px] uppercase tracking-[0.2em]">Updated</div>
+              <div className="mt-1 text-sm text-text">{getUpdatedAtLabel(data?.timestamp)}</div>
+            </div>
+          }
+        />
+
+        {/* Health gauge + Status summary */}
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center" data-tour="dashboard">
+          <div data-tour="health-gauge">
+            <HealthGauge score={health.score} color={health.color} breakdown={health.breakdown} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <StatusSummary
+              totalAgents={metrics.totalAgents}
+              activeAgents={metrics.activeAgents}
+              eventsToday={metrics.events24h}
+              threatCount={0}
+            />
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <StatusSummary
-            totalAgents={metrics.totalAgents}
-            activeAgents={metrics.activeAgents}
-            eventsToday={metrics.events24h}
-            threatCount={0}
+
+        {/* Row 1: 4 Stat Cards */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard
+            label="Events 24H"
+            value={formatCompact(metrics.events24h)}
+            accent="text-cyan"
+            sublabel={`${metrics.toolsToday} tools fired`}
+            sparkData={eventsSparkData}
+            sparkColor="#06d6a0"
+            delta={eventsDelta}
+            tooltip="Messages your agents sent and received in the last 24 hours."
           />
+          <StatCard
+            label="Tokens 24H"
+            value={formatCompact(metrics.tokens24h)}
+            accent="text-amber"
+            sublabel={`${metrics.errorsToday} errors`}
+            sparkData={tokensSparkData}
+            sparkColor="#f59e0b"
+            delta={tokensDelta}
+            tooltip="Total input + output tokens consumed. This drives your cost."
+          />
+          <StatCard
+            label="Agents"
+            value={String(metrics.totalAgents)}
+            accent="text-cyan"
+            sublabel={`${metrics.activeAgents} live now`}
+            sparkData={toolsSparkData}
+            sparkColor="#8b5cf6"
+            delta={toolsDelta}
+            tooltip="Registered agents across all tenants. 'Live' means active in the last hour."
+          />
+          <Card className="!p-3 flex flex-col justify-center">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim mb-1.5">
+              System Pulse
+              <MetricTooltip text="Ratio of active vs idle agents. Green = most agents reporting, red = errors detected." />
+            </div>
+            <PulseBar percentage={pulse} />
+            <div className="mt-2 flex gap-3 text-[10px]">
+              <span className="text-green">{metrics.activeAgents} live</span>
+              <span className="text-amber">{Math.max(metrics.totalAgents - metrics.activeAgents, 0)} idle</span>
+              <span className="text-red">{metrics.errorsToday} err</span>
+            </div>
+          </Card>
         </div>
-      </div>
 
-      {/* Row 1: 4 Stat Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard
-          label="Events 24H"
-          value={formatCompact(metrics.events24h)}
-          accent="text-cyan"
-          sublabel={`${metrics.toolsToday} tools fired`}
-          sparkData={eventsSparkData}
-          sparkColor="#06d6a0"
-          delta={eventsDelta}
-          tooltip="Messages your agents sent and received in the last 24 hours."
-        />
-        <StatCard
-          label="Tokens 24H"
-          value={formatCompact(metrics.tokens24h)}
-          accent="text-amber"
-          sublabel={`${metrics.errorsToday} errors`}
-          sparkData={tokensSparkData}
-          sparkColor="#f59e0b"
-          delta={tokensDelta}
-          tooltip="Total input + output tokens consumed. This drives your cost."
-        />
-        <StatCard
-          label="Agents"
-          value={String(metrics.totalAgents)}
-          accent="text-cyan"
-          sublabel={`${metrics.activeAgents} live now`}
-          sparkData={toolsSparkData}
-          sparkColor="#8b5cf6"
-          delta={toolsDelta}
-          tooltip="Registered agents across all tenants. 'Live' means active in the last hour."
-        />
-        <Card className="!p-3 flex flex-col justify-center">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim mb-1.5">
-            System Pulse
-            <MetricTooltip text="Ratio of active vs idle agents. Green = most agents reporting, red = errors detected." />
-          </div>
-          <PulseBar percentage={pulse} />
-          <div className="mt-2 flex gap-3 text-[10px]">
-            <span className="text-green">{metrics.activeAgents} live</span>
-            <span className="text-amber">{Math.max(metrics.totalAgents - metrics.activeAgents, 0)} idle</span>
-            <span className="text-red">{metrics.errorsToday} err</span>
-          </div>
-        </Card>
-      </div>
+        {/* Row 2: Alerts banner (collapsible) */}
+        <AlertsBanner />
 
-      {/* Row 2: Alerts banner (collapsible) */}
-      <AlertsBanner />
-
-      {/* Row 3: Trend Charts */}
-      <Card>
-        <TrendCharts />
-      </Card>
-
-      {/* Row 4: Clients + Agents — 2-column compact */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <TenantCards data={data} />
+        {/* Row 3: Trend Charts */}
         <Card>
-          <SectionTitle title="Agents" note="Live feed" bar />
-          <div className="space-y-2">
-            {agents.slice(0, 5).map((agent, agentIdx) => {
-              const status = activityStatus(agent.last_active);
-              const statusKey = agentStatusKey(agent.last_active);
-              return (
-                <Link
-                  key={agent.id}
-                  href={`/agent/${agent.id}`}
-                  className="flex items-center gap-3 rounded-xl bg-bg-deep/70 px-3 py-2.5 transition hover:bg-white/[0.02]"
-                >
-                  <StatusRing status={statusKey} size={24} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-text">{agent.name}</div>
-                    <div className="text-[10px] text-text-dim">{timeAgo(agent.last_active)}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-text">{formatCompact(asNumber(agent.events_24h))}</div>
-                    <div className="text-[10px] text-text-dim">events</div>
-                  </div>
-                  <span className={`text-xs font-semibold ${status.tone}`}>{status.label}</span>
-                </Link>
-              );
-            })}
-            {agents.length > 5 ? (
-              <Link href="/agents" className="mt-1 inline-flex text-sm font-semibold text-cyan btn-press">
-                View all {agents.length} agents &rarr;
-              </Link>
-            ) : null}
-          </div>
+          <TrendCharts />
         </Card>
-      </div>
 
-      {error ? <ErrorState error={error} /> : null}
-    </div>
+        {/* Row 4: Clients + Agents — 2-column compact */}
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <TenantCards data={data} />
+          <Card>
+            <SectionTitle title="Agents" note="Live feed" bar />
+            <div className="space-y-2">
+              {agents.slice(0, 5).map((agent, agentIdx) => {
+                const status = activityStatus(agent.last_active);
+                const statusKey = agentStatusKey(agent.last_active);
+                return (
+                  <Link
+                    key={agent.id}
+                    href={`/agent/${agent.id}`}
+                    className="flex items-center gap-3 rounded-xl bg-bg-deep/70 px-3 py-2.5 transition hover:bg-white/[0.02]"
+                  >
+                    <StatusRing status={statusKey} size={24} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold text-text">{agent.name}</div>
+                      <div className="text-[10px] text-text-dim">{timeAgo(agent.last_active)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold text-text">{formatCompact(asNumber(agent.events_24h))}</div>
+                      <div className="text-[10px] text-text-dim">events</div>
+                    </div>
+                    <span className={`text-xs font-semibold ${status.tone}`}>{status.label}</span>
+                  </Link>
+                );
+              })}
+              {agents.length > 5 ? (
+                <Link href="/agents" className="mt-1 inline-flex text-sm font-semibold text-cyan btn-press">
+                  View all {agents.length} agents &rarr;
+                </Link>
+              ) : null}
+            </div>
+          </Card>
+        </div>
+
+        {error ? <ErrorState error={error} /> : null}
+      </div>
+    </>
   );
 }
 

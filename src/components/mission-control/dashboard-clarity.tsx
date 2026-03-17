@@ -36,15 +36,25 @@ export function HealthGauge({
   score,
   color,
   breakdown,
+  size = "md",
 }: {
   score: number;
   color: string;
   breakdown: { agents: number; threats: number; budget: number; infra: number };
+  size?: "md" | "lg";
 }) {
   const [hover, setHover] = useState(false);
-  const radius = 42;
+  const isLg = size === "lg";
+  const svgSize = isLg ? 150 : 110;
+  const center = svgSize / 2;
+  const radius = isLg ? 58 : 42;
+  const strokeW = isLg ? 10 : 8;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
+  const scoreFontSize = isLg ? "36px" : "26px";
+  const labelFontSize = isLg ? "11px" : "9px";
+  const scoreY = isLg ? 68 : 50;
+  const labelY = isLg ? 90 : 68;
 
   const gradeLabel =
     score >= 80 ? "Healthy" : score >= 50 ? "Needs Attention" : "Critical";
@@ -55,47 +65,47 @@ export function HealthGauge({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <svg width="110" height="110" viewBox="0 0 110 110" className="drop-shadow-lg">
+      <svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`} className="drop-shadow-lg">
         {/* Background ring */}
         <circle
-          cx="55"
-          cy="55"
+          cx={center}
+          cy={center}
           r={radius}
           fill="none"
           stroke="#1a2a4a"
-          strokeWidth="8"
+          strokeWidth={strokeW}
         />
         {/* Score arc */}
         <circle
-          cx="55"
-          cy="55"
+          cx={center}
+          cy={center}
           r={radius}
           fill="none"
           stroke={color}
-          strokeWidth="8"
+          strokeWidth={strokeW}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          transform="rotate(-90 55 55)"
+          transform={`rotate(-90 ${center} ${center})`}
           className="transition-all duration-700 ease-out"
           style={{ filter: `drop-shadow(0 0 6px ${color}40)` }}
         />
         {/* Score text */}
         <text
-          x="55"
-          y="50"
+          x={center}
+          y={scoreY}
           textAnchor="middle"
-          className="fill-[#e2e8f0] text-2xl font-bold"
-          style={{ fontSize: "26px", fontWeight: 800 }}
+          className="fill-[#e2e8f0] font-bold"
+          style={{ fontSize: scoreFontSize, fontWeight: 800 }}
         >
           {score}
         </text>
         <text
-          x="55"
-          y="68"
+          x={center}
+          y={labelY}
           textAnchor="middle"
-          className="fill-[#64748b] text-[10px] uppercase tracking-widest"
-          style={{ fontSize: "9px", letterSpacing: "0.15em" }}
+          className="fill-[#64748b] uppercase tracking-widest"
+          style={{ fontSize: labelFontSize, letterSpacing: "0.15em" }}
         >
           {gradeLabel}
         </text>
