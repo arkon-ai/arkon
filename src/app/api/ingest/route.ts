@@ -8,6 +8,7 @@ import { fireAlert } from "@/lib/alert-fire";
 import { broadcast } from "@/lib/event-bus";
 import { estimateCost } from "@/lib/pricing-cache";
 import { checkBudgetThreshold } from "@/lib/budget-check";
+import { getRunsByAgent, updateRunAction } from "@/lib/active-runs";
 
 interface IngestPayload {
   event_type: "message_received" | "message_sent" | "tool_call" | "error" | "cron" | "system" | "note";
@@ -150,7 +151,21 @@ export async function POST(request: NextRequest) {
       void checkBudgetThreshold(agentId, resolvedTenantId);
     }
 
-    // 14. SSE broadcast to connected dashboard clients
+    // 14. Update active run tracker (if agent has a running session)
+    const agentRuns = getRunsByAgent(agentId);
+    if (agentRuns.length > 0 && safeContent) {
+      const actionDesc =
+        body.event_type === "tool_call"
+          ? `Tool: ${safeContent.slice(0, 80)}`
+          : body.event_type === "message_sent"
+          ? `Sent: ${safeContent.slice(0, 80)}`
+          : safeContent.slice(0, 80);
+      for (const run of agentRuns) {
+        updateRunAction(run.run_id, actionDesc);
+      }
+    }
+
+    // 15. SSE broadcast to connected dashboard clients
     broadcast({
       type: "event",
       payload: {

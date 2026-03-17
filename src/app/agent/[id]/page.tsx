@@ -9,6 +9,9 @@ import {
 } from "recharts";
 import { ShellHeader, Card, SectionTitle } from "@/components/mission-control/dashboard";
 import { CardEntranceWrapper, SkeletonCard } from "@/components/mission-control/charts";
+import { useActiveRuns } from "@/hooks/use-active-runs";
+import { KillConfirmModal } from "@/components/mission-control/kill-confirm-modal";
+import { OctagonX, Pause, Play } from "lucide-react";
 
 /* ─── Types ─────────────────────────────────────────────── */
 interface Event {
@@ -125,6 +128,8 @@ export default function AgentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const { runs: agentRuns, killRun, pauseRun, resumeRun } = useActiveRuns(agentId);
+  const [killTarget, setKillTarget] = useState<typeof agentRuns[0] | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -199,9 +204,51 @@ export default function AgentDetailPage() {
                 {data.agent.role}
               </span>
             )}
+            {agentRuns.length > 0 && (
+              <>
+                {agentRuns[0].status === "running" ? (
+                  <button
+                    type="button"
+                    onClick={() => pauseRun(agentRuns[0].run_id)}
+                    className="flex h-8 items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 text-xs font-semibold text-amber-300 transition hover:bg-amber-500/20"
+                  >
+                    <Pause className="h-3.5 w-3.5" />
+                    Pause
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => resumeRun(agentRuns[0].run_id)}
+                    className="flex h-8 items-center gap-1.5 rounded-xl border border-green-500/30 bg-green-500/10 px-3 text-xs font-semibold text-green-300 transition hover:bg-green-500/20"
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    Resume
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setKillTarget(agentRuns[0])}
+                  className="flex h-8 items-center gap-1.5 rounded-xl border border-red-500/40 bg-red-600/20 px-3 text-xs font-bold uppercase text-red-200 transition hover:bg-red-600/40"
+                >
+                  <OctagonX className="h-3.5 w-3.5" />
+                  Emergency Stop
+                </button>
+              </>
+            )}
           </div>
         }
       />
+
+      {killTarget ? (
+        <KillConfirmModal
+          run={killTarget}
+          onConfirm={async (reason) => {
+            await killRun(killTarget.run_id, reason);
+            setKillTarget(null);
+          }}
+          onCancel={() => setKillTarget(null)}
+        />
+      ) : null}
 
       {/* ── 7-day summary pills ── */}
       <CardEntranceWrapper>

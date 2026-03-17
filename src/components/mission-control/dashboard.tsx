@@ -29,7 +29,9 @@ import {
 import { TrendCharts } from "./trend-charts";
 import { TenantCards } from "./tenant-cards";
 import { EmptyState, FirstRunBanner } from "./empty-states";
-import { Bot, AlertTriangle, ChevronDown } from "lucide-react";
+import { Bot, AlertTriangle, ChevronDown, OctagonX } from "lucide-react";
+import { useActiveRuns } from "@/hooks/use-active-runs";
+import { KillConfirmModal } from "./kill-confirm-modal";
 import { StatCard as UiStatCard } from "./ui-cards";
 
 export function ShellHeader({
@@ -750,10 +752,19 @@ function ProgressRing({ progress }: { progress: number }) {
 
 function AgentsContent() {
   const { data, error, loading } = useOverviewData();
+  const { runs: activeRuns, killRun } = useActiveRuns();
+  const [killTarget, setKillTarget] = useState<typeof activeRuns[0] | null>(null);
+
   if (loading && !data) return <LoadingState label="Loading agents" />;
   if (error && !data) return <ErrorState error={error} />;
 
   const agents = data?.agents ?? [];
+
+  // Build a set of agent IDs with active runs for quick lookup
+  const agentsWithRuns = new Map<string, typeof activeRuns[0]>();
+  for (const run of activeRuns) {
+    if (!agentsWithRuns.has(run.agent_id)) agentsWithRuns.set(run.agent_id, run);
+  }
 
   return (
     <div className="space-y-5">
@@ -778,6 +789,7 @@ function AgentsContent() {
             statusKey === "live" ? "agent-accent-live" :
             statusKey === "warm" ? "agent-accent-warm" :
             statusKey === "error" ? "agent-accent-error" : "agent-accent-idle";
+          const activeRun = agentsWithRuns.get(agent.id);
 
           return (
             <Card key={agent.id} className={`${status.panel} ${accentClass}`}>
@@ -789,9 +801,22 @@ function AgentsContent() {
                     <p className="mt-0.5 text-xs text-text-dim">{agent.id}</p>
                   </div>
                 </div>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status.tone} bg-white/5`}>
-                  {status.label}
-                </span>
+                <div className="flex items-center gap-2">
+                  {activeRun && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); setKillTarget(activeRun); }}
+                      className="flex h-7 items-center gap-1 rounded-lg border border-red-500/30 bg-red-600/15 px-2 text-[11px] font-semibold text-red-300 transition hover:bg-red-600/30"
+                      title="Stop active run"
+                    >
+                      <OctagonX className="h-3 w-3" />
+                      Stop
+                    </button>
+                  )}
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status.tone} bg-white/5`}>
+                    {status.label}
+                  </span>
+                </div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                 <MiniMetric label="model" value={getAgentModel(agent)} />
@@ -807,6 +832,17 @@ function AgentsContent() {
         })}
       </div>
       {error ? <ErrorState error={error} /> : null}
+
+      {killTarget ? (
+        <KillConfirmModal
+          run={killTarget}
+          onConfirm={async (reason) => {
+            await killRun(killTarget.run_id, reason);
+            setKillTarget(null);
+          }}
+          onCancel={() => setKillTarget(null)}
+        />
+      ) : null}
     </div>
   );
 }

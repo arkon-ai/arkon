@@ -96,6 +96,26 @@ function AuditLogTab() {
 
   return (
     <div className="space-y-4">
+      {/* Quick filters */}
+      <div className="flex flex-wrap gap-2">
+        {(["", "agent.kill", "agent.pause", "agent.resume"] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => { setActionFilter(f); setOffset(0); }}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+              actionFilter === f
+                ? f === "agent.kill"
+                  ? "bg-red-500/15 text-red-400"
+                  : "bg-[rgba(6,214,160,0.15)] text-[#06d6a0]"
+                : "text-slate-500 hover:text-slate-300"
+            }`}
+          >
+            {f === "" ? "All" : f === "agent.kill" ? "Kills" : f === "agent.pause" ? "Pauses" : "Resumes"}
+          </button>
+        ))}
+      </div>
+
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <select value={actionFilter} onChange={(e) => { setActionFilter(e.target.value); setOffset(0); }}
@@ -138,6 +158,9 @@ function AuditLogTab() {
                   <td className="px-4 py-2.5 text-white">{e.actor}</td>
                   <td className="px-4 py-2.5">
                     <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+                      e.action === "agent.kill" ? "bg-red-500/15 text-red-400 font-semibold" :
+                      e.action === "agent.pause" ? "bg-amber-500/15 text-amber-400" :
+                      e.action === "agent.resume" ? "bg-green-500/15 text-green-400" :
                       e.action.includes("delete") || e.action.includes("purge") ? "bg-red-500/10 text-red-400" :
                       e.action.includes("create") ? "bg-[rgba(6,214,160,0.1)] text-[#06d6a0]" :
                       "bg-[#1a2a4a] text-slate-300"

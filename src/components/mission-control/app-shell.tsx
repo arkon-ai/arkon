@@ -40,6 +40,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
 import { NotificationDropdown } from "./notification-dropdown";
+import { ActiveRunBanner } from "./active-run-banner";
+import { QuickKillDialog } from "./quick-kill-dialog";
 
 const pageLabels: Record<string, string> = {
   "/": "Overview",
@@ -218,6 +220,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => loadCollapsedGroups());
   const [pinnedDocs, setPinnedDocs] = useState<PinnedDoc[]>([]);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [quickKillOpen, setQuickKillOpen] = useState(false);
 
   if (pathname === "/login") {
     return <>{children}</>;
@@ -315,10 +318,13 @@ export function NotionShell({ children }: { children: ReactNode }) {
     return () => { mounted = false; };
   }, []);
 
-  // Cmd+K listener
+  // Cmd+K listener (command palette) + Ctrl+Shift+K (quick kill)
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "K") {
+        e.preventDefault();
+        setQuickKillOpen((prev) => !prev);
+      } else if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setPaletteOpen((prev) => !prev);
       }
@@ -503,6 +509,8 @@ export function NotionShell({ children }: { children: ReactNode }) {
             </div>
           </header>
 
+          <ActiveRunBanner />
+
           <main className="min-w-0 flex-1 px-4 pb-[calc(84px+env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:pt-6 md:pb-6">
             <div className="mx-auto w-full max-w-6xl">
               <PageTransitionWrapper pathname={pathname ?? "/"}>
@@ -619,7 +627,16 @@ export function NotionShell({ children }: { children: ReactNode }) {
       </nav>
 
       {/* Command Palette */}
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onAction={(action) => {
+          if (action === "quick-kill") setQuickKillOpen(true);
+        }}
+      />
+
+      {/* Quick Kill Dialog (Ctrl+Shift+K) */}
+      <QuickKillDialog open={quickKillOpen} onClose={() => setQuickKillOpen(false)} />
     </div>
   );
 }

@@ -8,5 +8,11 @@ export async function register() {
     const { startScheduler } = await import("@/lib/workflow-scheduler");
     console.log("[instrumentation] Starting workflow cron scheduler...");
     startScheduler();
+
+    // Hydrate active runs from DB so kill switch works immediately
+    const { hydrateFromDb } = await import("@/lib/active-runs");
+    const { query } = await import("@/lib/db");
+    console.log("[instrumentation] Hydrating active runs...");
+    await hydrateFromDb(query);
   }
 }

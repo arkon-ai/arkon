@@ -27,6 +27,7 @@ import {
   Shield,
   Lock,
   Search,
+  OctagonX,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -35,8 +36,9 @@ type PaletteItem = {
   label: string;
   href: string;
   icon: LucideIcon;
-  category: "page" | "agent" | "workflow";
+  category: "page" | "agent" | "workflow" | "action";
   keywords?: string;
+  action?: string;
 };
 
 const staticPages: PaletteItem[] = [
@@ -63,6 +65,7 @@ const staticPages: PaletteItem[] = [
   { id: "p-benchmarks", label: "Benchmarks", href: "/benchmarks", icon: Gauge, category: "page", keywords: "benchmark model compare" },
   { id: "p-compliance", label: "Compliance", href: "/compliance", icon: Shield, category: "page", keywords: "audit export purge gdpr" },
   { id: "p-admin", label: "Admin Panel", href: "/admin", icon: Lock, category: "page" },
+  { id: "a-kill", label: "Kill Active Agent", href: "", icon: OctagonX, category: "action", keywords: "kill stop emergency agent", action: "quick-kill" },
 ];
 
 function getAuthHeaders(): Record<string, string> {
@@ -110,6 +113,7 @@ function highlightMatch(text: string, query: string): React.ReactNode {
 }
 
 const categoryLabels: Record<string, string> = {
+  action: "Actions",
   page: "Pages",
   agent: "Agents",
   workflow: "Workflows",
@@ -118,9 +122,11 @@ const categoryLabels: Record<string, string> = {
 export function CommandPalette({
   open,
   onClose,
+  onAction,
 }: {
   open: boolean;
   onClose: () => void;
+  onAction?: (action: string) => void;
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -212,9 +218,13 @@ export function CommandPalette({
   const select = useCallback(
     (item: PaletteItem) => {
       onClose();
-      router.push(item.href);
+      if (item.action && onAction) {
+        onAction(item.action);
+      } else if (item.href) {
+        router.push(item.href);
+      }
     },
-    [onClose, router]
+    [onClose, router, onAction]
   );
 
   const onKeyDown = useCallback(
