@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     const range = req.nextUrl.searchParams.get("range") ?? "7d";
     const severity = req.nextUrl.searchParams.get("severity");
     const threatClass = req.nextUrl.searchParams.get("class");
+    const showDismissed = req.nextUrl.searchParams.get("show_dismissed") === "true";
 
     const days = range === "30d" ? 30 : range === "24h" ? 1 : 7;
     const interval = `${days} days`;
@@ -73,7 +74,9 @@ export async function GET(req: NextRequest) {
         e.id, e.agent_id, a.name as agent_name,
         e.event_type, e.direction, e.channel_id, e.sender,
         e.content, e.threat_level, e.threat_classes, e.threat_matches,
-        e.created_at
+        e.created_at, e.content_redacted,
+        COALESCE(e.dismissed, false) as dismissed,
+        e.dismissed_at, e.dismissed_by
       FROM events e
       LEFT JOIN agents a ON a.id = e.agent_id
       WHERE e.threat_level IS NOT NULL
@@ -93,6 +96,10 @@ export async function GET(req: NextRequest) {
       eventsQuery += ` AND e.threat_classes::text LIKE $${paramIdx}`;
       params.push(`%${threatClass}%`);
       paramIdx++;
+    }
+
+    if (!showDismissed) {
+      eventsQuery += ` AND COALESCE(e.dismissed, false) = false`;
     }
 
     eventsQuery += ` ORDER BY e.created_at DESC LIMIT 100`;
