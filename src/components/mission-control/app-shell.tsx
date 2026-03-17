@@ -44,6 +44,7 @@ import { NotificationDropdown } from "./notification-dropdown";
 import { ActiveRunBanner } from "./active-run-banner";
 import { QuickKillDialog } from "./quick-kill-dialog";
 import { GuidedTour } from "./guided-tour";
+import { HelpPanel } from "./help-panel";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -511,6 +512,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
                   </kbd>
                 </button>
+                <HelpPanel />
                 <NotificationDropdown />
               </div>
             </div>
