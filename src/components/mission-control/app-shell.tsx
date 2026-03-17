@@ -36,6 +36,7 @@ import {
   ChevronDown,
   Star,
   Search,
+  Settings,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
@@ -137,6 +138,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
       { href: "/tools/mcp-gateway", label: "MCP Gateway", subtitle: "Secure external tools", icon: Globe },
       { href: "/tools/intake", label: "Client Intake", subtitle: "Client onboarding forms", icon: Inbox },
       { href: "/tools/calendar", label: "Calendar", subtitle: "Schedule & events", icon: Calendar },
+      { href: "/settings", label: "Settings", subtitle: "Notifications & preferences", icon: Settings },
     ],
   },
   {
@@ -224,7 +226,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [pendingCount, setPendingCount] = useState<number | null>(null);
-  const [alertCount, setAlertCount] = useState<number>(0);
+  // alertCount removed — NotificationDropdown now self-manages via /api/notifications
   const [isOpen, setIsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => loadCollapsedGroups());
@@ -303,33 +305,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
     return () => { mounted = false; window.clearInterval(timer); };
   }, []);
 
-  // Fetch alert count
-  useEffect(() => {
-    let mounted = true;
-    const run = async () => {
-      try {
-        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        const response = await fetch(`/api/dashboard/activity?limit=50&since=${since}`, {
-          headers: getAuthHeaders(),
-          cache: "no-store",
-        });
-        if (!response.ok) return;
-        const payload = (await response.json()) as {
-          events: Array<{ threat_level: string | null }>;
-        };
-        if (!mounted) return;
-        const threats = payload.events.filter(
-          (e) => e.threat_level && e.threat_level !== "none"
-        );
-        setAlertCount(threats.length);
-      } catch {
-        // Silent
-      }
-    };
-    run();
-    const timer = window.setInterval(run, 30000);
-    return () => { mounted = false; window.clearInterval(timer); };
-  }, []);
+  // Alert count polling removed — NotificationDropdown self-manages via /api/notifications
 
   // Fetch pinned docs (max 3 for Quick Access)
   useEffect(() => {
@@ -535,7 +511,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
                   </kbd>
                 </button>
-                <NotificationDropdown alertCount={alertCount} />
+                <NotificationDropdown />
               </div>
             </div>
           </header>
