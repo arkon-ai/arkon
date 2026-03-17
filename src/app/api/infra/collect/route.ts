@@ -265,7 +265,7 @@ export async function POST(req: NextRequest) {
           tenantId: "default",
           type: "infra_offline",
           severity: "critical",
-          title: `Infrastructure node offline: ${node?.label ?? r.nodeId}`,
+          title: `Infrastructure node offline: ${node?.id ?? r.nodeId}`,
           body: `Node ${r.nodeId} is unreachable. Status: ${r.status}`,
           link: "/infrastructure",
           metadata: { nodeId: r.nodeId, status: r.status },
