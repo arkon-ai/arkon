@@ -59,6 +59,39 @@ export async function GET(req: NextRequest) {
       [interval]
     );
 
+    // Last month total (for comparison)
+    const lastMonth = await query(
+      `SELECT COALESCE(SUM(estimated_cost_usd), 0) as cost
+       FROM daily_stats ds
+       WHERE day >= date_trunc('month', CURRENT_DATE) - interval '1 month'
+         AND day < date_trunc('month', CURRENT_DATE)
+         ${tenantFilter}`,
+      params
+    );
+
+    // 7-day average cost per agent (for anomaly detection)
+    const agentAvg7d = await query(
+      `SELECT agent_id,
+              COALESCE(AVG(estimated_cost_usd), 0) as avg_daily_cost
+       FROM daily_stats ds
+       WHERE day >= CURRENT_DATE - interval '7 days'
+         AND day < CURRENT_DATE
+         ${tenantFilter}
+       GROUP BY agent_id`,
+      params
+    );
+
+    // Today's cost per agent (for anomaly comparison)
+    const agentToday = await query(
+      `SELECT agent_id,
+              COALESCE(SUM(estimated_cost_usd), 0) as today_cost
+       FROM daily_stats ds
+       WHERE day = CURRENT_DATE
+         ${tenantFilter}
+       GROUP BY agent_id`,
+      params
+    );
+
     // Budget status
     const budgets = await query(
       `SELECT bl.*,
@@ -97,6 +130,27 @@ export async function GET(req: NextRequest) {
         tokens: parseInt(r.tokens),
       })),
       budgets: budgets.rows,
+      last_month_cost: parseFloat(lastMonth.rows[0]?.cost || "0"),
+      agent_anomalies: (() => {
+        const avgMap: Record<string, number> = {};
+        for (const r of agentAvg7d.rows) avgMap[r.agent_id] = parseFloat(r.avg_daily_cost);
+        const anomalies: Array<{ agent_id: string; agent_name: string; today_cost: number; avg_7d: number; ratio: number }> = [];
+        for (const r of agentToday.rows) {
+          const todayCost = parseFloat(r.today_cost);
+          const avg = avgMap[r.agent_id] || 0;
+          if (avg > 0 && todayCost > avg * 2) {
+            const agentRow = byAgent.rows.find((a: Record<string, string>) => a.agent_id === r.agent_id);
+            anomalies.push({
+              agent_id: r.agent_id,
+              agent_name: agentRow?.agent_name || r.agent_id,
+              today_cost: todayCost,
+              avg_7d: avg,
+              ratio: todayCost / avg,
+            });
+          }
+        }
+        return anomalies.sort((a, b) => b.ratio - a.ratio);
+      })(),
     });
   } catch (err) {
     console.error("[costs/overview] Error:", err);
