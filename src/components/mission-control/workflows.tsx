@@ -7,9 +7,175 @@ import { CardEntranceWrapper, SkeletonCard, StatCountUp } from "./charts";
 import { ShellHeader } from "./dashboard";
 import { EmptyState, WorkflowsEmpty } from "./empty-states";
 import { SectionDescription } from "./dashboard-clarity";
-import { Workflow as WorkflowIcon } from "lucide-react";
+import {
+  Workflow as WorkflowIcon,
+  HeartPulse,
+  ShieldAlert,
+  BarChart3,
+  Activity,
+  Wallet,
+  Bell,
+  LayoutGrid,
+  ChevronRight,
+  Info,
+} from "lucide-react";
 import { WorkflowBuilder, type WorkflowDefinition } from "./workflow-builder";
 import { toast } from "sonner";
+
+// ── Workflow Templates ───────────────────────────────────────────────────────
+
+interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  color: string;
+  trigger_type: "cron" | "manual";
+  trigger_config: { cron_expression?: string } | null;
+  definition: WorkflowDefinition;
+  customizationHints: string[];
+}
+
+const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
+  {
+    id: "health-check",
+    name: "Health Check",
+    description: "Monitor your servers every 5 minutes. Get alerted if anything goes down.",
+    icon: HeartPulse,
+    color: "#06d6a0",
+    trigger_type: "cron",
+    trigger_config: { cron_expression: "*/5 * * * *" },
+    definition: {
+      nodes: [
+        { id: "1", type: "cron-trigger", position: { x: 250, y: 30 }, data: { label: "Every 5 Minutes", cron_expression: "*/5 * * * *" } },
+        { id: "2", type: "http-request", position: { x: 250, y: 180 }, data: { label: "Check Infrastructure", method: "GET", url: "{{ARKON_BASE_URL}}/api/infra/status", headers: {}, timeout: 15000 } },
+        { id: "3", type: "condition", position: { x: 250, y: 340 }, data: { label: "All Healthy?", field: "status", operator: "eq", value: "200" } },
+        { id: "4", type: "notify", position: { x: 80, y: 500 }, data: { label: "Alert: Server Down", channel: "telegram", message: "Server health check failed. Status: {{status}}. Check infrastructure page for details." } },
+      ],
+      edges: [
+        { id: "e1-2", source: "1", target: "2" },
+        { id: "e2-3", source: "2", target: "3" },
+        { id: "e3-4", source: "3", target: "4", sourceHandle: "false" },
+      ],
+    },
+    customizationHints: ["Adjust check frequency in the cron trigger", "Change notification channel (Telegram/Log)", "Customize the alert message"],
+  },
+  {
+    id: "threat-auto-response",
+    name: "Threat Auto-Response",
+    description: "Automatically pause an agent when a critical threat is detected.",
+    icon: ShieldAlert,
+    color: "#ef4444",
+    trigger_type: "cron",
+    trigger_config: { cron_expression: "*/5 * * * *" },
+    definition: {
+      nodes: [
+        { id: "1", type: "cron-trigger", position: { x: 250, y: 30 }, data: { label: "Check Every 5 Min", cron_expression: "*/5 * * * *" } },
+        { id: "2", type: "http-request", position: { x: 250, y: 180 }, data: { label: "Get Recent Threats", method: "GET", url: "{{ARKON_BASE_URL}}/api/security/overview?hours=1", headers: {}, timeout: 10000 } },
+        { id: "3", type: "condition", position: { x: 250, y: 340 }, data: { label: "Critical Threats?", field: "body", operator: "contains", value: "critical" } },
+        { id: "4", type: "http-request", position: { x: 80, y: 500 }, data: { label: "Pause Agent", method: "POST", url: "{{ARKON_BASE_URL}}/api/tools/agents-live/default/pause", headers: {}, timeout: 10000 } },
+        { id: "5", type: "notify", position: { x: 80, y: 660 }, data: { label: "Alert: Agent Paused", channel: "telegram", message: "Critical threat detected. Agent auto-paused. Review threats in ThreatGuard." } },
+      ],
+      edges: [
+        { id: "e1-2", source: "1", target: "2" },
+        { id: "e2-3", source: "2", target: "3" },
+        { id: "e3-4", source: "3", target: "4", sourceHandle: "true" },
+        { id: "e4-5", source: "4", target: "5" },
+      ],
+    },
+    customizationHints: ["Set the agent ID to pause in the HTTP Request node", "Adjust threat severity threshold in the condition", "Customize the notification message and channel"],
+  },
+  {
+    id: "daily-cost-report",
+    name: "Daily Cost Report",
+    description: "Get a daily summary of agent spending sent to your preferred channel.",
+    icon: BarChart3,
+    color: "#3b82f6",
+    trigger_type: "cron",
+    trigger_config: { cron_expression: "0 6 * * *" },
+    definition: {
+      nodes: [
+        { id: "1", type: "cron-trigger", position: { x: 250, y: 30 }, data: { label: "Daily at 8am SAST", cron_expression: "0 6 * * *" } },
+        { id: "2", type: "http-request", position: { x: 250, y: 180 }, data: { label: "Get Cost Summary", method: "GET", url: "{{ARKON_BASE_URL}}/api/costs/overview", headers: {}, timeout: 10000 } },
+        { id: "3", type: "notify", position: { x: 250, y: 340 }, data: { label: "Send Cost Report", channel: "telegram", message: "Daily Cost Report\nTotal today: {{body}}\nCheck the Costs page for a full breakdown." } },
+      ],
+      edges: [
+        { id: "e1-2", source: "1", target: "2" },
+        { id: "e2-3", source: "2", target: "3" },
+      ],
+    },
+    customizationHints: ["Change report time in the cron trigger", "Switch notification channel", "Customize the report message format"],
+  },
+  {
+    id: "client-heartbeat",
+    name: "Client Heartbeat",
+    description: "Alert you if a client's agent goes silent for more than 30 minutes.",
+    icon: Activity,
+    color: "#f59e0b",
+    trigger_type: "cron",
+    trigger_config: { cron_expression: "*/30 * * * *" },
+    definition: {
+      nodes: [
+        { id: "1", type: "cron-trigger", position: { x: 250, y: 30 }, data: { label: "Every 30 Minutes", cron_expression: "*/30 * * * *" } },
+        { id: "2", type: "http-request", position: { x: 250, y: 180 }, data: { label: "Check Agent Activity", method: "GET", url: "{{ARKON_BASE_URL}}/api/agents/overview", headers: {}, timeout: 10000 } },
+        { id: "3", type: "condition", position: { x: 250, y: 340 }, data: { label: "Any Agents Silent?", field: "body", operator: "contains", value: "offline" } },
+        { id: "4", type: "notify", position: { x: 80, y: 500 }, data: { label: "Alert: Agent Silent", channel: "telegram", message: "Agent heartbeat missed. One or more agents haven't reported in 30+ minutes. Check the Agents page." } },
+      ],
+      edges: [
+        { id: "e1-2", source: "1", target: "2" },
+        { id: "e2-3", source: "2", target: "3" },
+        { id: "e3-4", source: "3", target: "4", sourceHandle: "true" },
+      ],
+    },
+    customizationHints: ["Adjust silence threshold in the cron trigger", "Target specific agent IDs in the API call", "Change notification channel and message"],
+  },
+  {
+    id: "budget-alert",
+    name: "Budget Alert",
+    description: "Notify you when spending hits 80% of your budget limit.",
+    icon: Wallet,
+    color: "#8b5cf6",
+    trigger_type: "cron",
+    trigger_config: { cron_expression: "0 * * * *" },
+    definition: {
+      nodes: [
+        { id: "1", type: "cron-trigger", position: { x: 250, y: 30 }, data: { label: "Hourly", cron_expression: "0 * * * *" } },
+        { id: "2", type: "http-request", position: { x: 250, y: 180 }, data: { label: "Get Cost Summary", method: "GET", url: "{{ARKON_BASE_URL}}/api/costs/overview", headers: {}, timeout: 10000 } },
+        { id: "3", type: "condition", position: { x: 250, y: 340 }, data: { label: "Over 80% Budget?", field: "body", operator: "contains", value: "warning" } },
+        { id: "4", type: "notify", position: { x: 80, y: 500 }, data: { label: "Budget Warning", channel: "telegram", message: "Budget alert: Spending has reached 80% of your limit. Review costs and consider pausing non-essential agents." } },
+      ],
+      edges: [
+        { id: "e1-2", source: "1", target: "2" },
+        { id: "e2-3", source: "2", target: "3" },
+        { id: "e3-4", source: "3", target: "4", sourceHandle: "true" },
+      ],
+    },
+    customizationHints: ["Adjust budget threshold in the condition node", "Change check frequency (hourly, every 30 min, etc.)", "Customize the alert message"],
+  },
+  {
+    id: "new-threat-alert",
+    name: "New Threat Alert",
+    description: "Send immediate notification when any HIGH+ threat is detected.",
+    icon: Bell,
+    color: "#f97316",
+    trigger_type: "cron",
+    trigger_config: { cron_expression: "*/5 * * * *" },
+    definition: {
+      nodes: [
+        { id: "1", type: "cron-trigger", position: { x: 250, y: 30 }, data: { label: "Every 5 Minutes", cron_expression: "*/5 * * * *" } },
+        { id: "2", type: "http-request", position: { x: 250, y: 180 }, data: { label: "Get Recent Threats", method: "GET", url: "{{ARKON_BASE_URL}}/api/security/overview?hours=1", headers: {}, timeout: 10000 } },
+        { id: "3", type: "condition", position: { x: 250, y: 340 }, data: { label: "High+ Threats?", field: "body", operator: "contains", value: "high" } },
+        { id: "4", type: "notify", position: { x: 80, y: 500 }, data: { label: "Threat Alert", channel: "telegram", message: "New HIGH+ severity threat detected in the last hour. Review immediately in ThreatGuard." } },
+      ],
+      edges: [
+        { id: "e1-2", source: "1", target: "2" },
+        { id: "e2-3", source: "2", target: "3" },
+        { id: "e3-4", source: "3", target: "4", sourceHandle: "true" },
+      ],
+    },
+    customizationHints: ["Change severity threshold in the condition", "Adjust polling frequency", "Route alerts to different channels per severity"],
+  },
+];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -114,6 +280,9 @@ export function WorkflowsScreen() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
+  const [templateStep, setTemplateStep] = useState<"gallery" | "customize">("gallery");
+  const [selectedTemplate, setSelectedTemplate] = useState<WorkflowTemplate | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<WorkflowTemplate | null>(null);
 
   // Fetch workflows
   const fetchWorkflows = useCallback(async () => {
@@ -153,7 +322,7 @@ export function WorkflowsScreen() {
 
   // Create workflow
   const handleCreate = async () => {
-    if (!newName.trim()) return;
+    if (!newName.trim() || !newDesc.trim()) return;
     try {
       const res = await fetch("/api/workflows", {
         method: "POST",
@@ -179,6 +348,50 @@ export function WorkflowsScreen() {
     } catch {
       toast.error("Failed to create workflow");
     }
+  };
+
+  // Install from template
+  const handleInstallTemplate = async (asDraft: boolean) => {
+    if (!selectedTemplate || !newName.trim() || !newDesc.trim()) return;
+    try {
+      const res = await fetch("/api/workflows", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...getAuthHeaders() },
+        body: JSON.stringify({
+          name: newName.trim(),
+          description: newDesc.trim(),
+          definition: selectedTemplate.definition,
+          status: asDraft ? "draft" : "active",
+          trigger_type: selectedTemplate.trigger_type,
+          trigger_config: selectedTemplate.trigger_config,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create workflow");
+      const data = (await res.json()) as { workflow: Workflow };
+      toast.success(`Workflow "${data.workflow.name}" created from template`);
+      closeTemplateModal();
+      setSelectedWorkflow(data.workflow);
+      setView("editor");
+      fetchWorkflows();
+    } catch {
+      toast.error("Failed to create workflow from template");
+    }
+  };
+
+  const closeTemplateModal = () => {
+    setShowNewModal(false);
+    setNewName("");
+    setNewDesc("");
+    setTemplateStep("gallery");
+    setSelectedTemplate(null);
+    setPreviewTemplate(null);
+  };
+
+  const selectTemplate = (tmpl: WorkflowTemplate) => {
+    setSelectedTemplate(tmpl);
+    setNewName(tmpl.name);
+    setNewDesc(tmpl.description);
+    setTemplateStep("customize");
   };
 
   // Save workflow definition
@@ -330,8 +543,10 @@ export function WorkflowsScreen() {
                         </button>
                         <StatusBadge status={wf.status} />
                       </div>
-                      {wf.description && (
+                      {wf.description ? (
                         <p className="text-sm text-slate-400 line-clamp-1 mb-2">{wf.description}</p>
+                      ) : (
+                        <p className="text-sm text-amber-400/50 italic mb-2">No description</p>
                       )}
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500">
                         <span>
@@ -375,51 +590,200 @@ export function WorkflowsScreen() {
           </div>
         )}
 
-        {/* New Workflow Modal */}
+        {/* Template Gallery / New Workflow Modal */}
         {showNewModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] p-6 shadow-2xl">
-              <h3 className="text-lg font-bold text-white mb-4">New Workflow</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Name</label>
-                  <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="e.g. Daily Health Check"
-                    className="w-full rounded-lg border border-[#1a2a4a] bg-[#0a0a14] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[#06d6a0] focus:outline-none"
-                    autoFocus
-                    onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
-                  />
+            {templateStep === "gallery" ? (
+              /* ── Template Gallery ── */
+              <div className="w-full max-w-3xl max-h-[85vh] rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] shadow-2xl flex flex-col">
+                <div className="flex items-center justify-between p-6 pb-4 border-b border-[#1a2a4a]">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">New Workflow</h3>
+                    <p className="text-sm text-slate-400 mt-1">Start from a template or build from scratch</p>
+                  </div>
+                  <button onClick={closeTemplateModal} className="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
                 </div>
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Description (optional)</label>
-                  <textarea
-                    value={newDesc}
-                    onChange={(e) => setNewDesc(e.target.value)}
-                    rows={2}
-                    placeholder="What does this workflow do?"
-                    className="w-full rounded-lg border border-[#1a2a4a] bg-[#0a0a14] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[#06d6a0] focus:outline-none resize-none"
-                  />
+
+                <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-3">
+                  {WORKFLOW_TEMPLATES.map((tmpl) => {
+                    const Icon = tmpl.icon;
+                    return (
+                      <div
+                        key={tmpl.id}
+                        className="group rounded-xl border border-[#1a2a4a] bg-[#0a0a14] p-4 hover:border-[#2a3a5a] transition cursor-pointer"
+                        onClick={() => selectTemplate(tmpl)}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div
+                            className="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg"
+                            style={{ background: `${tmpl.color}15`, border: `1px solid ${tmpl.color}30` }}
+                          >
+                            <Icon className="w-5 h-5" style={{ color: tmpl.color }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-semibold text-white group-hover:text-[#06d6a0] transition">{tmpl.name}</span>
+                              <span
+                                className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                                style={{ background: `${tmpl.color}15`, color: tmpl.color }}
+                              >
+                                {tmpl.trigger_type}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-400">{tmpl.description}</p>
+                            <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500">
+                              <span>{tmpl.definition.nodes.length} nodes</span>
+                              {tmpl.trigger_config?.cron_expression && (
+                                <span className="font-mono text-cyan-400/70">{tmpl.trigger_config.cron_expression}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="shrink-0 flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewTemplate(previewTemplate?.id === tmpl.id ? null : tmpl);
+                              }}
+                              className="rounded-lg border border-[#1a2a4a] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#2a3a5a] transition"
+                            >
+                              Preview
+                            </button>
+                            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-[#06d6a0] transition" />
+                          </div>
+                        </div>
+
+                        {/* Inline Preview */}
+                        {previewTemplate?.id === tmpl.id && (
+                          <div className="mt-3 rounded-lg border border-[#1a2a4a] overflow-hidden" style={{ height: 220 }}>
+                            <WorkflowBuilder definition={tmpl.definition} onChange={() => {}} readOnly />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* Blank Canvas Option */}
+                  <div
+                    className="group rounded-xl border border-dashed border-[#1a2a4a] bg-[#0a0a14] p-4 hover:border-[#2a3a5a] transition cursor-pointer"
+                    onClick={() => {
+                      setSelectedTemplate(null);
+                      setNewName("");
+                      setNewDesc("");
+                      setTemplateStep("customize");
+                    }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg border border-[#1a2a4a] bg-[#0d0d1a]">
+                        <LayoutGrid className="w-5 h-5 text-slate-500" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition">Blank Canvas</span>
+                        <p className="text-sm text-slate-500">Start from scratch with an empty workflow</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-white transition" />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-end gap-3 mt-5">
-                <button
-                  onClick={() => { setShowNewModal(false); setNewName(""); setNewDesc(""); }}
-                  className="rounded-lg px-4 py-2 text-sm text-slate-400 hover:text-white transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreate}
-                  disabled={!newName.trim()}
-                  className="rounded-lg bg-[#06d6a0] px-4 py-2 text-sm font-semibold text-[#0a0a14] hover:bg-[#06d6a0]/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Create
-                </button>
+            ) : (
+              /* ── Customize / Create Step ── */
+              <div className="w-full max-w-lg rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] p-6 shadow-2xl">
+                <div className="flex items-center gap-3 mb-5">
+                  <button
+                    onClick={() => { setTemplateStep("gallery"); setSelectedTemplate(null); setNewName(""); setNewDesc(""); }}
+                    className="text-slate-400 hover:text-white transition text-sm"
+                  >
+                    &larr; Back
+                  </button>
+                  <h3 className="text-lg font-bold text-white">
+                    {selectedTemplate ? `Install: ${selectedTemplate.name}` : "New Workflow"}
+                  </h3>
+                </div>
+
+                {selectedTemplate && (
+                  <div className="mb-4 rounded-lg border border-[#1a2a4a] bg-[#0a0a14] p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Info className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-[11px] uppercase tracking-wider text-slate-500 font-medium">Customize before activating</span>
+                    </div>
+                    <ul className="space-y-1">
+                      {selectedTemplate.customizationHints.map((hint, i) => (
+                        <li key={i} className="text-xs text-slate-400 flex items-start gap-2">
+                          <span className="text-slate-600 mt-0.5">&#8226;</span>
+                          <span>{hint}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">
+                      Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder="e.g. Daily Health Check"
+                      className="w-full rounded-lg border border-[#1a2a4a] bg-[#0a0a14] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[#06d6a0] focus:outline-none"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">
+                      Description <span className="text-red-400">*</span>
+                    </label>
+                    <textarea
+                      value={newDesc}
+                      onChange={(e) => setNewDesc(e.target.value)}
+                      rows={2}
+                      placeholder="In plain English, what does this workflow do?"
+                      className="w-full rounded-lg border border-[#1a2a4a] bg-[#0a0a14] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[#06d6a0] focus:outline-none resize-none"
+                    />
+                    {!newDesc.trim() && newName.trim() && (
+                      <p className="text-[11px] text-amber-400/70 mt-1">Description is required — tell users what this workflow does</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 mt-5">
+                  <button
+                    onClick={closeTemplateModal}
+                    className="rounded-lg px-4 py-2 text-sm text-slate-400 hover:text-white transition"
+                  >
+                    Cancel
+                  </button>
+                  {selectedTemplate ? (
+                    <>
+                      <button
+                        onClick={() => handleInstallTemplate(true)}
+                        disabled={!newName.trim() || !newDesc.trim()}
+                        className="rounded-lg border border-[#1a2a4a] px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:border-[#2a3a5a] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Save as Draft
+                      </button>
+                      <button
+                        onClick={() => handleInstallTemplate(false)}
+                        disabled={!newName.trim() || !newDesc.trim()}
+                        className="rounded-lg bg-[#06d6a0] px-4 py-2 text-sm font-semibold text-[#0a0a14] hover:bg-[#06d6a0]/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Activate Now
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={handleCreate}
+                      disabled={!newName.trim() || !newDesc.trim()}
+                      className="rounded-lg bg-[#06d6a0] px-4 py-2 text-sm font-semibold text-[#0a0a14] hover:bg-[#06d6a0]/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Create
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>
@@ -441,8 +805,18 @@ export function WorkflowsScreen() {
             </button>
             <div>
               <h2 className="text-lg font-bold text-white">{selectedWorkflow.name}</h2>
-              {selectedWorkflow.description && (
+              {selectedWorkflow.description ? (
                 <p className="text-xs text-slate-400">{selectedWorkflow.description}</p>
+              ) : (
+                <button
+                  onClick={() => {
+                    const desc = prompt("What does this workflow do?");
+                    if (desc?.trim()) handleUpdateMeta({ description: desc.trim() } as Partial<Workflow>);
+                  }}
+                  className="text-xs text-amber-400/70 hover:text-amber-400 transition"
+                >
+                  + Add description (required)
+                </button>
               )}
             </div>
             <StatusBadge status={selectedWorkflow.status} />

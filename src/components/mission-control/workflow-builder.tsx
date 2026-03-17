@@ -227,12 +227,25 @@ function NodeConfigPanel({
     onUpdate(node.id, { ...node.data, [field]: value });
   };
 
+  const NODE_HELP: Record<string, string> = {
+    "manual-trigger": "This node starts the workflow when you click Run Now. No configuration needed.",
+    "cron-trigger": "Runs the workflow on a schedule using a cron expression. Common patterns: */5 for every 5 minutes, 0 6 for daily at 8am SAST.",
+    "http-request": "Makes an HTTP request to any URL. Use template variables like {{status}} and {{body}} to pass data from previous steps.",
+    "condition": "Evaluates a condition on data from previous steps. Routes the workflow down the True or False branch based on the result.",
+    "notify": "Sends a notification message. Use template variables like {{status}} and {{body}} to include data from previous steps.",
+  };
+
   return (
     <div className="absolute right-4 top-4 z-50 w-80 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] p-4 shadow-2xl">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold text-white">Configure Node</h3>
         <button onClick={onClose} className="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
       </div>
+      {NODE_HELP[nodeType] && (
+        <div className="mb-4 rounded-lg bg-[#0a0a14] border border-[#1a2a4a] px-3 py-2">
+          <p className="text-[11px] text-slate-400 leading-relaxed">{NODE_HELP[nodeType]}</p>
+        </div>
+      )}
 
       <div className="space-y-3">
         <div>
@@ -407,30 +420,40 @@ function NodeConfigPanel({
 // ── Add Node Palette ──────────────────────────────────────────────────────────
 
 const PALETTE_ITEMS = [
-  { type: "manual-trigger", label: "Manual Trigger", icon: "\u25B6", color: "#06d6a0" },
-  { type: "cron-trigger", label: "Cron Trigger", icon: "\u23F0", color: "#06b6d4" },
-  { type: "http-request", label: "HTTP Request", icon: "\u21C5", color: "#3b82f6" },
-  { type: "condition", label: "Condition", icon: "\u2747", color: "#f59e0b" },
-  { type: "notify", label: "Notify", icon: "\u2709", color: "#8b5cf6" },
+  { type: "manual-trigger", label: "Manual Trigger", icon: "\u25B6", color: "#06d6a0", description: "Start this workflow by clicking Run Now" },
+  { type: "cron-trigger", label: "Cron Trigger", icon: "\u23F0", color: "#06b6d4", description: "Run this workflow on a schedule (e.g. every 5 minutes)" },
+  { type: "http-request", label: "HTTP Request", icon: "\u21C5", color: "#3b82f6", description: "Make an API call to any URL" },
+  { type: "condition", label: "Condition", icon: "\u2747", color: "#f59e0b", description: "Branch the workflow based on a condition (if/else)" },
+  { type: "notify", label: "Notify", icon: "\u2709", color: "#8b5cf6", description: "Send a notification via Telegram or log" },
 ];
 
 function NodePalette({ onAdd }: { onAdd: (type: string) => void }) {
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 relative">
       {PALETTE_ITEMS.map((item) => (
-        <button
-          key={item.type}
-          onClick={() => onAdd(item.type)}
-          className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition hover:scale-105 active:scale-95"
-          style={{
-            borderColor: `${item.color}40`,
-            background: `${item.color}10`,
-            color: item.color,
-          }}
-        >
-          <span>{item.icon}</span>
-          <span>{item.label}</span>
-        </button>
+        <div key={item.type} className="relative">
+          <button
+            onClick={() => onAdd(item.type)}
+            onMouseEnter={() => setHoveredItem(item.type)}
+            onMouseLeave={() => setHoveredItem(null)}
+            className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition hover:scale-105 active:scale-95"
+            style={{
+              borderColor: `${item.color}40`,
+              background: `${item.color}10`,
+              color: item.color,
+            }}
+          >
+            <span>{item.icon}</span>
+            <span>{item.label}</span>
+          </button>
+          {hoveredItem === item.type && (
+            <div className="absolute top-full left-0 mt-2 z-50 w-52 rounded-lg border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 shadow-xl pointer-events-none">
+              <p className="text-[11px] text-slate-300">{item.description}</p>
+            </div>
+          )}
+        </div>
       ))}
     </div>
   );
