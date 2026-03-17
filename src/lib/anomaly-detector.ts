@@ -154,6 +154,20 @@ export async function checkAnomalies(): Promise<void> {
            VALUES ($1, 'rate_silence', 'medium', 0, $2, 0)`,
           [agentId, baseline]
         );
+
+        // Get agent name for notification
+        const agentRow = await query("SELECT name FROM agents WHERE id = $1 LIMIT 1", [agentId]);
+        const agentName = (agentRow.rows[0] as { name: string } | undefined)?.name ?? agentId;
+
+        void sendNotification({
+          tenantId: "default",
+          type: "agent_offline",
+          severity: "warning",
+          title: `Agent went silent: ${agentName}`,
+          body: `No events in the last 5 minutes. Baseline: ${Math.round(baseline)} events/hr`,
+          link: `/agents/${agentId}`,
+          metadata: { agentId, baseline: Math.round(baseline) },
+        });
       }
     }
   }

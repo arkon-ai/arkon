@@ -3,6 +3,7 @@
 // Phase 5b: Cron Trigger Support
 
 import { query } from "@/lib/db";
+import { sendNotification } from "@/lib/notifications";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -447,6 +448,19 @@ export async function runWorkflow(
     `UPDATE workflows SET last_run_at = NOW(), run_count = run_count + 1, updated_at = NOW() WHERE id = $1`,
     [workflow.id]
   );
+
+  // Notify on failure
+  if (finalStatus === "failed") {
+    void sendNotification({
+      tenantId: workflow.tenant_id ?? "default",
+      type: "workflow_failure",
+      severity: "warning",
+      title: `Workflow failed: ${workflow.name ?? `#${workflow.id}`}`,
+      body: execResult.error ?? "Unknown error",
+      link: `/workflows`,
+      metadata: { workflowId: workflow.id, runId, triggeredBy, error: execResult.error },
+    });
+  }
 
   return {
     runId,

@@ -246,6 +246,34 @@ export async function POST(req: NextRequest) {
     payload: { nodes: results, collectedAt: now.toISOString() },
   });
 
+  // Notify on nodes that went offline — deduplicate (max 1 alert per node per 30 min)
+  for (const r of results) {
+    if (r.status === "offline" || r.status === "error") {
+      const node = NODES.find(n => n.id === r.nodeId);
+      // Check if we already alerted for this node recently
+      const recentAlert = await query(
+        `SELECT id FROM notifications
+         WHERE tenant_id = 'default' AND type = 'infra_offline'
+           AND metadata->>'nodeId' = $1
+           AND created_at > NOW() - INTERVAL '30 minutes'
+         LIMIT 1`,
+        [r.nodeId]
+      );
+      if (recentAlert.rows.length === 0) {
+        const { sendNotification } = await import("@/lib/notifications");
+        void sendNotification({
+          tenantId: "default",
+          type: "infra_offline",
+          severity: "critical",
+          title: `Infrastructure node offline: ${node?.label ?? r.nodeId}`,
+          body: `Node ${r.nodeId} is unreachable. Status: ${r.status}`,
+          link: "/infrastructure",
+          metadata: { nodeId: r.nodeId, status: r.status },
+        });
+      }
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     collected: results.length,

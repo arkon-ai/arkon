@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { sendNotification } from "@/lib/notifications";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -98,56 +99,20 @@ export async function POST(req: NextRequest) {
       ]
     );
 
-    // Direct Telegram alert
-    const tgToken = process.env.TELEGRAM_BOT_TOKEN ?? "";
-    const tgChat = process.env.TELEGRAM_CHAT_ID ?? "";
-
-    if (tgToken && tgChat) {
-      try {
-        const channels = Array.isArray(body.channels)
-          ? (body.channels as string[]).join(", ")
-          : "not specified";
-        const priorities = ((body.priorities as string) ?? "").slice(0, 300) || "not provided";
-        const wish = ((body.automation_wish as string) ?? "").slice(0, 300) || "not provided";
-        const tgMsg =
-          `*New Intake Submission*\n\n` +
-          `*Name:* ${fullName}\n` +
-          `*Email:* ${email ?? "not provided"}\n` +
-          `*Client:* ${clientLabel ?? "unknown"}\n` +
-          `*Channels:* ${channels}\n` +
-          `*Top priorities:* ${priorities}\n` +
-          `*Automation wish:* ${wish}\n\n` +
-          `View: ${process.env.ARKON_BASE_URL ?? "http://localhost:3000"}/tools/intake`;
-        await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: tgChat, text: tgMsg, parse_mode: "Markdown" }),
-          signal: AbortSignal.timeout(5000),
-        });
-      } catch {
-        // Non-fatal
-      }
-    }
-
-    // Gateway wake
-    const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "";
-    const hookToken = process.env.GATEWAY_HOOK_TOKEN ?? "";
-    if (gatewayUrl) try {
-      await fetch(`${gatewayUrl}/hooks/wake`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${hookToken}`,
-        },
-        body: JSON.stringify({
-          text: `[Intake Form Submitted] Name: ${fullName} | Email: ${email ?? "n/a"} | Client: ${clientLabel ?? "unknown"} | View: ${process.env.ARKON_BASE_URL ?? "http://localhost:3000"}/tools/intake`,
-          mode: "now",
-        }),
-        signal: AbortSignal.timeout(4000),
-      });
-    } catch {
-      // Non-fatal
-    }
+    // Notify via multi-channel dispatch engine (non-blocking)
+    void sendNotification({
+      tenantId: "default",
+      type: "intake",
+      severity: "info",
+      title: `New intake submission from ${fullName}`,
+      body: [
+        email ? `Email: ${email}` : null,
+        clientLabel ? `Client: ${clientLabel}` : null,
+        body.priorities ? `Priorities: ${((body.priorities as string) ?? "").slice(0, 200)}` : null,
+      ].filter(Boolean).join("\n"),
+      link: "/tools/intake",
+      metadata: { intakeId: id, fullName, email, client: clientLabel },
+    });
 
     return NextResponse.json(
       { ok: true, id },
