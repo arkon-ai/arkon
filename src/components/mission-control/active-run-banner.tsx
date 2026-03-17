@@ -40,7 +40,7 @@ export function ActiveRunBanner() {
   const [expanded, setExpanded] = useState(false);
   const [killTarget, setKillTarget] = useState<ActiveRun | null>(null);
   const [, setTick] = useState(0);
-  const dismissTimer = useRef<ReturnType<typeof setTimeout>>();
+  const dismissTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Poll for active runs
   useEffect(() => {
