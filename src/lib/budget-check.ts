@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { fireApprovalAlert } from "@/lib/alert-fire";
+import { sendNotification } from "@/lib/notifications";
 
 // Track which budgets we've already alerted on today to avoid spam
 const alertedToday = new Map<string, string>(); // key -> date string
@@ -53,12 +53,14 @@ export async function checkBudgetThreshold(agentId: string, tenantId: string): P
 
         if (pct >= budget.alert_threshold_pct) {
           alertedToday.set(alertKey, today);
-          void fireApprovalAlert({
-            id: 0,
-            title: `Budget Alert: ${alertKey} at ${Math.round(pct)}% of daily limit`,
-            agentId,
-            priority: pct >= 100 ? "urgent" : "normal",
-            contentPreview: `Daily spend $${spend.toFixed(4)} / $${budget.daily_limit_usd} limit (${Math.round(pct)}%). Action: ${budget.action_on_exceed}`,
+          void sendNotification({
+            tenantId,
+            type: "budget",
+            severity: pct >= 100 ? "critical" : "warning",
+            title: `Budget alert: ${alertKey} at ${Math.round(pct)}% of daily limit`,
+            body: `Daily spend $${spend.toFixed(4)} / $${budget.daily_limit_usd} limit (${Math.round(pct)}%). Action: ${budget.action_on_exceed}`,
+            link: "/costs",
+            metadata: { agentId, scope: alertKey, pct: Math.round(pct), period: "daily" },
           });
         }
       }
@@ -77,12 +79,14 @@ export async function checkBudgetThreshold(agentId: string, tenantId: string): P
 
         if (pct >= budget.alert_threshold_pct) {
           alertedToday.set(alertKey, today);
-          void fireApprovalAlert({
-            id: 0,
-            title: `Budget Alert: ${alertKey} at ${Math.round(pct)}% of monthly limit`,
-            agentId,
-            priority: pct >= 100 ? "urgent" : "normal",
-            contentPreview: `Monthly spend $${spend.toFixed(4)} / $${budget.monthly_limit_usd} limit (${Math.round(pct)}%). Action: ${budget.action_on_exceed}`,
+          void sendNotification({
+            tenantId,
+            type: "budget",
+            severity: pct >= 100 ? "critical" : "warning",
+            title: `Budget alert: ${alertKey} at ${Math.round(pct)}% of monthly limit`,
+            body: `Monthly spend $${spend.toFixed(4)} / $${budget.monthly_limit_usd} limit (${Math.round(pct)}%). Action: ${budget.action_on_exceed}`,
+            link: "/costs",
+            metadata: { agentId, scope: alertKey, pct: Math.round(pct), period: "monthly" },
           });
         }
       }

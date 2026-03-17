@@ -4,7 +4,7 @@
  */
 
 import { query } from "@/lib/db";
-import { fireAlert } from "@/lib/alert-fire";
+import { sendNotification } from "@/lib/notifications";
 
 interface BaselineRow {
   agent_id: string;
@@ -110,25 +110,17 @@ export async function checkAnomalies(): Promise<void> {
         [row.agent_id, anomalyType, level, currentRate, baseline, multiplier]
       );
 
-      // Fire alert for HIGH anomalies
+      // Fire notification for HIGH anomalies
       if (level === "high") {
-        void fireAlert(
-          {
-            agentId: row.agent_id,
-            agentName: row.agent_name,
-            eventType: "anomaly",
-            createdAt: new Date().toISOString(),
-          },
-          {
-            level,
-            classes: ["prompt_injection"], // reuse type — anomaly shows as high
-            matches: [{
-              class: "prompt_injection",
-              pattern: `Rate spike: ${multiplier.toFixed(1)}x baseline`,
-              excerpt: `Current: ${Math.round(currentRate)} events/hr vs baseline ${Math.round(baseline)} events/hr`,
-            }],
-          }
-        );
+        void sendNotification({
+          tenantId: "default",
+          type: "anomaly",
+          severity: "warning",
+          title: `Rate spike detected — ${row.agent_name}`,
+          body: `${multiplier.toFixed(1)}x baseline. Current: ${Math.round(currentRate)} events/hr vs baseline ${Math.round(baseline)} events/hr`,
+          link: `/analytics`,
+          metadata: { agentId: row.agent_id, anomalyType, multiplier },
+        });
       }
     }
   }

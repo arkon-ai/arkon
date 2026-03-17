@@ -1,10 +1,12 @@
 /**
  * AlertFire — Arkon Real-Time Threat Alerting
- * Fires instant alerts to OpenClaw gateway (→ Telegram) on HIGH/CRITICAL threats.
- * Falls back to direct Telegram Bot API if gateway is unreachable.
+ *
+ * Now delegates to the multi-channel notification engine (src/lib/notifications.ts).
+ * Kept as a thin wrapper for API compatibility with existing callers.
  */
 
 import type { ThreatResult, ThreatLevel } from "./threat-scanner";
+import { sendNotification, sendLegacyAlert } from "./notifications";
 
 interface AlertContext {
   agentId: string;
@@ -12,85 +14,13 @@ interface AlertContext {
   eventType: string;
   sessionKey?: string;
   createdAt: string;
-}
-
-function levelEmoji(level: ThreatLevel): string {
-  switch (level) {
-    case "critical": return "🚨";
-    case "high": return "⚠️";
-    default: return "ℹ️";
-  }
-}
-
-function buildAlertText(ctx: AlertContext, threat: ThreatResult): string {
-  const emoji = levelEmoji(threat.level);
-  const classes = threat.classes.map((c) => c.replace(/_/g, " ").toUpperCase()).join(", ");
-  const topMatch = threat.matches[0];
-
-  const lines = [
-    `${emoji} THREAT DETECTED — Arkon`,
-    `Agent: ${ctx.agentName} (${ctx.agentId})`,
-    `Level: ${threat.level.toUpperCase()}`,
-    `Class: ${classes}`,
-    `Event: ${ctx.eventType}`,
-    topMatch ? `Match: "${topMatch.pattern}"` : null,
-    topMatch ? `Context: ${topMatch.excerpt.slice(0, 100)}` : null,
-    `Time: ${new Date(ctx.createdAt).toLocaleTimeString("en-ZA", { timeZone: "Africa/Johannesburg", hour: "2-digit", minute: "2-digit" })} SAST`,
-    ctx.sessionKey ? `Session: ${ctx.sessionKey.slice(0, 16)}…` : null,
-    ``,
-    `→ Review: ${process.env.ARKON_BASE_URL ?? "http://localhost:3000"}/agent/${ctx.agentId}`,
-  ].filter(Boolean);
-
-  return lines.join("\n");
-}
-
-async function fireViaGateway(text: string): Promise<boolean> {
-  const url = process.env.ALERT_GATEWAY_URL ?? process.env.NEXT_PUBLIC_GATEWAY_URL;
-  const token = process.env.ALERT_GATEWAY_TOKEN ?? process.env.NEXT_PUBLIC_GATEWAY_TOKEN;
-
-  if (!url || !token) return false;
-
-  try {
-    const res = await fetch(`${url}/api/system-event`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ text, source: "mission-control-threatguard" }),
-      signal: AbortSignal.timeout(4000),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
-async function fireViaTelegram(text: string): Promise<boolean> {
-  const botToken = process.env.ALERT_TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.ALERT_TELEGRAM_CHAT_ID;
-
-  if (!botToken || !chatId) return false;
-
-  try {
-    const res = await fetch(
-      `https://api.telegram.org/bot${botToken}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
-        signal: AbortSignal.timeout(4000),
-      },
-    );
-    return res.ok;
-  } catch {
-    return false;
-  }
+  tenantId?: string;
 }
 
 /**
  * Fire an alert for a threat event.
- * Tries gateway first, falls back to direct Telegram.
+ * Creates in-app notification + dispatches to all configured channels.
+ * Falls back to legacy Telegram if no channels configured.
  * Never throws — alert failure should not break ingest.
  */
 export async function fireAlert(
@@ -102,21 +32,50 @@ export async function fireAlert(
 
   if ((levelRank[threat.level] ?? 0) < (levelRank[minLevel] ?? 3)) return;
 
-  const text = buildAlertText(ctx, threat);
+  const classes = threat.classes.map((c) => c.replace(/_/g, " ").toUpperCase()).join(", ");
+  const topMatch = threat.matches[0];
+  const severity = threat.level === "critical" ? "critical" as const : "warning" as const;
 
   try {
-    const gatewaySent = await fireViaGateway(text);
-    if (!gatewaySent) {
-      await fireViaTelegram(text);
-    }
+    await sendNotification({
+      tenantId: ctx.tenantId ?? "default",
+      type: "threat",
+      severity,
+      title: `${threat.level.toUpperCase()} threat detected — ${ctx.agentName}`,
+      body: [
+        `Class: ${classes}`,
+        `Event: ${ctx.eventType}`,
+        topMatch ? `Match: "${topMatch.pattern}"` : null,
+        topMatch ? `Context: ${topMatch.excerpt.slice(0, 100)}` : null,
+      ].filter(Boolean).join("\n"),
+      link: `/agents/${ctx.agentId}`,
+      metadata: {
+        agentId: ctx.agentId,
+        threatLevel: threat.level,
+        threatClasses: threat.classes,
+        sessionKey: ctx.sessionKey,
+      },
+    });
   } catch {
-    // Alert failure is non-fatal — ingest continues
-    console.error("[alert-fire] Failed to send threat alert");
+    // Fall back to legacy Telegram
+    try {
+      const emoji = threat.level === "critical" ? "\u{1F6A8}" : "\u26A0\uFE0F";
+      const text = [
+        `${emoji} THREAT DETECTED — Arkon`,
+        `Agent: ${ctx.agentName} (${ctx.agentId})`,
+        `Level: ${threat.level.toUpperCase()}`,
+        `Class: ${classes}`,
+        topMatch ? `Match: "${topMatch.pattern}"` : null,
+      ].filter(Boolean).join("\n");
+      await sendLegacyAlert(text);
+    } catch {
+      console.error("[alert-fire] Failed to send threat alert");
+    }
   }
 }
 
 
-/* ── Approval Alerts (Phase 4) ── */
+/* ── Approval Alerts ── */
 
 interface ApprovalAlertContext {
   id: number;
@@ -125,37 +84,47 @@ interface ApprovalAlertContext {
   priority: string;
   channel?: string;
   contentPreview: string;
-}
-
-function buildApprovalAlertText(ctx: ApprovalAlertContext): string {
-  const priorityEmoji = ctx.priority === "urgent" ? "\u{1F6A8}" : "\u{1F4CB}";
-  const lines = [
-    `${priorityEmoji} NEW APPROVAL REQUEST`,
-    `Title: ${ctx.title}`,
-    `Agent: ${ctx.agentId}`,
-    `Priority: ${ctx.priority.toUpperCase()}`,
-    ctx.channel ? `Channel: ${ctx.channel}` : null,
-    ``,
-    `Preview: ${ctx.contentPreview}${ctx.contentPreview.length >= 120 ? "\u2026" : ""}`,
-    ``,
-    `\u2192 Review: ${process.env.ARKON_BASE_URL ?? "http://localhost:3000"}/tools/approvals`,
-  ].filter(Boolean);
-  return lines.join("\n");
+  tenantId?: string;
 }
 
 /**
- * Fire a Telegram alert for a new approval request.
- * Tries gateway first, falls back to direct Telegram.
+ * Fire an alert for a new approval request.
+ * Delegates to notification engine.
  * Never throws.
  */
 export async function fireApprovalAlert(ctx: ApprovalAlertContext): Promise<void> {
-  const text = buildApprovalAlertText(ctx);
   try {
-    const gatewaySent = await fireViaGateway(text);
-    if (!gatewaySent) {
-      await fireViaTelegram(text);
-    }
+    await sendNotification({
+      tenantId: ctx.tenantId ?? "default",
+      type: "approval",
+      severity: ctx.priority === "urgent" ? "critical" : "info",
+      title: `New approval request: ${ctx.title}`,
+      body: [
+        `Agent: ${ctx.agentId}`,
+        `Priority: ${ctx.priority.toUpperCase()}`,
+        ctx.channel ? `Channel: ${ctx.channel}` : null,
+        `Preview: ${ctx.contentPreview}${ctx.contentPreview.length >= 120 ? "\u2026" : ""}`,
+      ].filter(Boolean).join("\n"),
+      link: "/tools/approvals",
+      metadata: {
+        approvalId: ctx.id,
+        agentId: ctx.agentId,
+        priority: ctx.priority,
+      },
+    });
   } catch {
-    console.error("[alert-fire] Failed to send approval alert");
+    // Fall back to legacy
+    try {
+      const emoji = ctx.priority === "urgent" ? "\u{1F6A8}" : "\u{1F4CB}";
+      const text = [
+        `${emoji} NEW APPROVAL REQUEST`,
+        `Title: ${ctx.title}`,
+        `Agent: ${ctx.agentId}`,
+        `Priority: ${ctx.priority.toUpperCase()}`,
+      ].join("\n");
+      await sendLegacyAlert(text);
+    } catch {
+      console.error("[alert-fire] Failed to send approval alert");
+    }
   }
 }
