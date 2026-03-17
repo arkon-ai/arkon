@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   AreaChart, Area, BarChart, Bar,
@@ -11,9 +12,10 @@ import { ShellHeader, Card, SectionTitle } from "@/components/mission-control/da
 import { CardEntranceWrapper, SkeletonCard } from "@/components/mission-control/charts";
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "@/components/mission-control/kill-confirm-modal";
-import { OctagonX, Pause, Play } from "lucide-react";
+import { OctagonX, Pause, Play, Shield, DollarSign, Activity, Zap, AlertTriangle } from "lucide-react";
 
 /* ─── Types ─────────────────────────────────────────────── */
+
 interface Event {
   id: string;
   event_type: string;
@@ -26,6 +28,8 @@ interface Event {
   metadata: Record<string, unknown>;
   token_estimate: number;
   created_at: string;
+  threat_level?: string;
+  threat_classes?: string | string[];
 }
 
 interface AgentData {
@@ -33,8 +37,10 @@ interface AgentData {
     id: string;
     name: string;
     role: string;
-    metadata: Record<string, string>;
+    metadata: Record<string, unknown>;
+    tenant_id: string;
     created_at: string;
+    updated_at: string;
   };
   events: Event[];
   sessions: Array<{
@@ -42,6 +48,7 @@ interface AgentData {
     channel_id: string;
     last_active: string;
     message_count: number;
+    started_at: string;
   }>;
   stats: Array<{
     day: string;
@@ -50,25 +57,42 @@ interface AgentData {
     tool_calls: number;
     errors: number;
     estimated_tokens: number;
+    estimated_cost_usd: number;
   }>;
+  cost: { cost_30d: number; tokens_30d: number };
+  threats: {
+    threat_count_30d: number;
+    severe_count_30d: number;
+    recent: Array<{
+      id: string;
+      event_type: string;
+      threat_level: string;
+      threat_classes: string | string[];
+      created_at: string;
+    }>;
+  };
+  errorRate: { errors_7d: number; total_events_7d: number };
+  topTools: Array<{ tool_name: string; call_count: number }>;
+  lastActive: string | null;
 }
 
 /* ─── Auth ───────────────────────────────────────────────── */
+
 function getToken(): string {
   if (typeof document === "undefined") return "";
-  return document.cookie.match(/mc_auth=([^;]+)/)?.[1]
-    ?? "";
+  return document.cookie.match(/mc_auth=([^;]+)/)?.[1] ?? "";
 }
 
 /* ─── Helpers ────────────────────────────────────────────── */
+
 const EVENT_ICON: Record<string, string> = {
-  message_received: "📥",
-  message_sent: "📤",
-  tool_call: "🔧",
-  error: "❌",
-  cron: "⏰",
-  system: "⚙️",
-  note: "📝",
+  message_received: "\u{1F4E5}",
+  message_sent: "\u{1F4E4}",
+  tool_call: "\u{1F527}",
+  error: "\u274C",
+  cron: "\u23F0",
+  system: "\u2699\uFE0F",
+  note: "\u{1F4DD}",
 };
 
 const EVENT_COLOUR: Record<string, string> = {
@@ -79,16 +103,12 @@ const EVENT_COLOUR: Record<string, string> = {
   cron: "border-sky-500/30 bg-[rgba(14,165,233,0.04)]",
 };
 
-function eventColour(type: string) {
-  return EVENT_COLOUR[type] ?? "border-[#1a2a4a] bg-[#0d0d18]";
-}
-
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" });
-}
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-ZA", { weekday: "short", day: "numeric", month: "short" });
-}
+const SEVERITY_COLORS: Record<string, string> = {
+  critical: "#ef4444",
+  high: "#f59e0b",
+  medium: "#8b5cf6",
+  low: "#64748b",
+};
 
 const ROLE_COLOURS: Record<string, string> = {
   owner: "bg-[rgba(139,92,246,0.15)] text-purple-400",
@@ -97,8 +117,58 @@ const ROLE_COLOURS: Record<string, string> = {
   viewer: "bg-[rgba(100,116,139,0.15)] text-slate-400",
 };
 
+function eventColour(type: string) {
+  return EVENT_COLOUR[type] ?? "border-[#1a2a4a] bg-[#0d0d18]";
+}
+
+function fmtTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" });
+}
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-ZA", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function timeAgo(iso: string | null): string {
+  if (!iso) return "never";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function formatCost(v: number): string {
+  return v < 0.01 ? "<$0.01" : `$${v.toFixed(2)}`;
+}
+
+function formatCompact(v: number): string {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}k`;
+  return String(v);
+}
+
+function getFramework(metadata: Record<string, unknown>): string {
+  return String(metadata?.framework ?? metadata?.agent_framework ?? "OpenClaw");
+}
+
+function getModel(metadata: Record<string, unknown>): string {
+  return String(metadata?.model ?? metadata?.primary_model ?? "unknown");
+}
+
+function parseJsonField<T>(value: string | T): T {
+  if (typeof value === "string") {
+    try { return JSON.parse(value); } catch { return [] as unknown as T; }
+  }
+  return value;
+}
+
 /* ─── Chart tooltip ──────────────────────────────────────── */
-function ChartTip({ active, payload, label }: { active?: boolean; payload?: Array<{name: string; value: number; fill?: string; stroke?: string}>; label?: string }) {
+
+function ChartTip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; fill?: string; stroke?: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-[#1a2a4a] bg-[#0a0a14] px-3 py-2 text-xs">
@@ -110,17 +180,31 @@ function ChartTip({ active, payload, label }: { active?: boolean; payload?: Arra
   );
 }
 
+/* ─── Tab navigation ─────────────────────────────────────── */
+
+type ProfileTab = "overview" | "security" | "performance" | "activity";
+
+const TABS: Array<{ key: ProfileTab; label: string; icon: React.ReactNode }> = [
+  { key: "overview", label: "Overview", icon: <Activity className="h-4 w-4" /> },
+  { key: "security", label: "Security", icon: <Shield className="h-4 w-4" /> },
+  { key: "performance", label: "Performance", icon: <Zap className="h-4 w-4" /> },
+  { key: "activity", label: "Activity", icon: <Activity className="h-4 w-4" /> },
+];
+
 /* ─── Stat pill ──────────────────────────────────────────── */
-function StatPill({ label, value, colour = "text-[#06d6a0]" }: { label: string; value: string | number; colour?: string }) {
+
+function StatPill({ label, value, colour = "text-[#06d6a0]", subtext }: { label: string; value: string | number; colour?: string; subtext?: string }) {
   return (
     <div className="rounded-2xl border border-[#1a2a4a] bg-[#05050f]/70 px-4 py-3 text-center">
       <div className={`text-xl font-bold ${colour}`}>{value}</div>
       <div className="mt-0.5 text-xs text-[#64748b]">{label}</div>
+      {subtext && <div className="mt-0.5 text-[10px] text-[#475569]">{subtext}</div>}
     </div>
   );
 }
 
 /* ─── Main ───────────────────────────────────────────────── */
+
 export default function AgentDetailPage() {
   const params = useParams();
   const agentId = params.id as string;
@@ -128,6 +212,7 @@ export default function AgentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const { runs: agentRuns, killRun, pauseRun, resumeRun } = useActiveRuns(agentId);
   const [killTarget, setKillTarget] = useState<typeof agentRuns[0] | null>(null);
 
@@ -157,6 +242,12 @@ export default function AgentDetailPage() {
   const totalTokens = data?.stats.reduce((s, d) => s + (d.estimated_tokens ?? 0), 0) ?? 0;
   const totalErrors = data?.stats.reduce((s, d) => s + (d.errors ?? 0), 0) ?? 0;
   const totalToolCalls = data?.stats.reduce((s, d) => s + (d.tool_calls ?? 0), 0) ?? 0;
+  const costThisMonth = data?.cost?.cost_30d ?? 0;
+  const threatCount30d = data?.threats?.threat_count_30d ?? 0;
+  const severeCount30d = data?.threats?.severe_count_30d ?? 0;
+  const errorRate7d = data?.errorRate?.total_events_7d
+    ? Math.round((data.errorRate.errors_7d / data.errorRate.total_events_7d) * 100)
+    : 0;
 
   const chartData = [...(data?.stats ?? [])].reverse().map((s) => ({
     day: new Date(s.day).toLocaleDateString("en-ZA", { weekday: "short" }),
@@ -165,10 +256,18 @@ export default function AgentDetailPage() {
     tools: s.tool_calls,
     tokens: Math.round((s.estimated_tokens ?? 0) / 1000),
     errors: s.errors,
+    cost: Number(s.estimated_cost_usd ?? 0),
   }));
 
   const eventTypes = ["all", ...Array.from(new Set((data?.events ?? []).map((e) => e.event_type)))];
   const filteredEvents = filter === "all" ? (data?.events ?? []) : (data?.events ?? []).filter((e) => e.event_type === filter);
+
+  const framework = data?.agent ? getFramework(data.agent.metadata) : "Unknown";
+  const model = data?.agent ? getModel(data.agent.metadata) : "unknown";
+
+  const isOnline = data?.lastActive
+    ? (Date.now() - new Date(data.lastActive).getTime()) < 300000
+    : false;
 
   /* ── Loading ── */
   if (loading) {
@@ -194,16 +293,30 @@ export default function AgentDetailPage() {
       {/* ── Header ── */}
       <ShellHeader
         title={data.agent.name}
-        subtitle={`${data.agent.id} · joined ${fmtDate(data.agent.created_at)}`}
+        subtitle={`${data.agent.id}`}
         action={
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-2 w-2 rounded-full bg-[#06d6a0] animate-pulse" />
-            <span className="text-xs text-[#64748b]">Live</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Status */}
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+              isOnline ? "bg-green/15 text-green" : "bg-white/5 text-text-dim"
+            }`}>
+              <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-green animate-pulse" : "bg-[#475569]"}`} />
+              {isOnline ? "Active" : "Offline"}
+            </span>
+
+            {/* Framework */}
+            <span className="rounded-full bg-cyan/10 px-2.5 py-1 text-xs font-semibold text-cyan">
+              {framework}
+            </span>
+
+            {/* Role */}
             {data.agent.role && (
-              <span className={`ml-2 rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_COLOURS[data.agent.role] ?? ""}`}>
+              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${ROLE_COLOURS[data.agent.role] ?? ""}`}>
                 {data.agent.role}
               </span>
             )}
+
+            {/* Kill/Pause/Resume */}
             {agentRuns.length > 0 && (
               <>
                 {agentRuns[0].status === "running" ? (
@@ -250,17 +363,94 @@ export default function AgentDetailPage() {
         />
       ) : null}
 
-      {/* ── 7-day summary pills ── */}
+      {/* ── Quick Stats Row ── */}
       <CardEntranceWrapper>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatPill label="Messages (7d)" value={totalMessages} />
-          <StatPill label="Tool Calls (7d)" value={totalToolCalls} colour="text-[#8b5cf6]" />
-          <StatPill label="~Tokens (7d)" value={`${Math.round(totalTokens / 1000)}k`} colour="text-[#f59e0b]" />
-          <StatPill label="Errors (7d)" value={totalErrors} colour={totalErrors > 0 ? "text-red-400" : "text-[#64748b]"} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <StatPill label="Cost (30d)" value={formatCost(costThisMonth)} colour="text-[#06d6a0]" />
+          <StatPill label="Messages (7d)" value={totalMessages} colour="text-[#8b5cf6]" />
+          <StatPill
+            label="Threats (30d)"
+            value={threatCount30d}
+            colour={severeCount30d > 0 ? "text-red-400" : threatCount30d > 0 ? "text-amber-400" : "text-[#64748b]"}
+            subtext={severeCount30d > 0 ? `${severeCount30d} severe` : undefined}
+          />
+          <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[#64748b]"} />
+          <StatPill label="Last Active" value={timeAgo(data.lastActive)} colour="text-text-dim" />
         </div>
       </CardEntranceWrapper>
 
-      {/* ── Message volume chart ── */}
+      {/* ── Tab Bar ── */}
+      <div className="flex gap-1 rounded-xl border border-[#1a2a4a] bg-[#05050f]/70 p-1">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${
+              activeTab === tab.key
+                ? "bg-cyan/10 text-cyan"
+                : "text-text-dim hover:bg-white/5 hover:text-text"
+            }`}
+          >
+            {tab.icon}
+            <span className="hidden sm:inline">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ── Tab Content ── */}
+      {activeTab === "overview" && (
+        <OverviewTab data={data} chartData={chartData} model={model} framework={framework} />
+      )}
+      {activeTab === "security" && (
+        <SecurityTab data={data} />
+      )}
+      {activeTab === "performance" && (
+        <PerformanceTab data={data} chartData={chartData} totalMessages={totalMessages} totalToolCalls={totalToolCalls} totalTokens={totalTokens} totalErrors={totalErrors} errorRate7d={errorRate7d} />
+      )}
+      {activeTab === "activity" && (
+        <ActivityTab
+          events={data.events}
+          filteredEvents={filteredEvents}
+          eventTypes={eventTypes}
+          filter={filter}
+          setFilter={setFilter}
+          expandedEvent={expandedEvent}
+          setExpandedEvent={setExpandedEvent}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ── Overview Tab ──────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════ */
+
+function OverviewTab({ data, chartData, model, framework }: {
+  data: AgentData;
+  chartData: Array<Record<string, unknown>>;
+  model: string;
+  framework: string;
+}) {
+  return (
+    <div className="space-y-5">
+      {/* Identity */}
+      <Card>
+        <SectionTitle title="Identity" />
+        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <InfoRow label="Name" value={data.agent.name} />
+          <InfoRow label="Agent ID" value={data.agent.id} mono />
+          <InfoRow label="Framework" value={framework} />
+          <InfoRow label="Primary Model" value={model} />
+          <InfoRow label="Role" value={data.agent.role ?? "agent"} />
+          <InfoRow label="Tenant" value={String(data.agent.tenant_id ?? "default")} />
+          <InfoRow label="Created" value={fmtDate(data.agent.created_at)} />
+          <InfoRow label="Last Updated" value={data.agent.updated_at ? fmtDate(data.agent.updated_at) : "—"} />
+        </div>
+      </Card>
+
+      {/* Message volume chart */}
       {chartData.length > 0 && (
         <Card>
           <SectionTitle title="Message Volume — 7 Days" />
@@ -287,28 +477,12 @@ export default function AgentDetailPage() {
         </Card>
       )}
 
-      {/* ── Tool calls chart ── */}
-      {chartData.length > 0 && totalToolCalls > 0 && (
-        <Card>
-          <SectionTitle title="Tool Calls — 7 Days" />
-          <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" />
-              <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTip />} />
-              <Bar dataKey="tools" name="Tool Calls" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={28} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      )}
-
-      {/* ── Active sessions ── */}
+      {/* Sessions */}
       {data.sessions.length > 0 && (
         <Card>
-          <SectionTitle title="Sessions" note={`${data.sessions.length} recent`} />
+          <SectionTitle title="Recent Sessions" note={`${data.sessions.length} sessions`} />
           <div className="space-y-2">
-            {data.sessions.slice(0, 8).map((s) => (
+            {data.sessions.slice(0, 5).map((s) => (
               <div key={s.session_key} className="flex items-center justify-between rounded-2xl border border-[#1a2a4a] bg-[#05050f]/70 px-4 py-3">
                 <div>
                   <div className="font-mono text-xs text-[#06d6a0] truncate max-w-[200px] sm:max-w-none">{s.session_key}</div>
@@ -323,81 +497,313 @@ export default function AgentDetailPage() {
           </div>
         </Card>
       )}
+    </div>
+  );
+}
 
-      {/* ── Event timeline ── */}
+/* ═══════════════════════════════════════════════════════════ */
+/* ── Security Tab ──────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════ */
+
+function SecurityTab({ data }: { data: AgentData }) {
+  const threats = data.threats;
+
+  return (
+    <div className="space-y-5">
+      {/* Threat summary cards */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <StatPill
+          label="Threats (30d)"
+          value={threats.threat_count_30d}
+          colour={threats.severe_count_30d > 0 ? "text-red-400" : threats.threat_count_30d > 0 ? "text-amber-400" : "text-[#64748b]"}
+        />
+        <StatPill
+          label="Severe (30d)"
+          value={threats.severe_count_30d}
+          colour={threats.severe_count_30d > 0 ? "text-red-400" : "text-[#64748b]"}
+        />
+        <StatPill
+          label="Error Rate (7d)"
+          value={`${data.errorRate.total_events_7d ? Math.round((data.errorRate.errors_7d / data.errorRate.total_events_7d) * 100) : 0}%`}
+          colour={data.errorRate.errors_7d > 0 ? "text-amber-400" : "text-[#64748b]"}
+        />
+      </div>
+
+      {/* Recent threats */}
       <Card>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <SectionTitle title="Event Timeline" note={`${filteredEvents.length} events`} />
-          <div className="flex flex-wrap gap-1.5">
-            {eventTypes.map((t) => (
-              <button
-                key={t}
-                onClick={() => setFilter(t)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#06d6a0] text-[#05050f]" : "border border-[#1a2a4a] text-[#64748b] hover:text-[#e2e8f0]"}`}
-              >
-                {t === "all" ? "All" : t.replace("_", " ")}
-              </button>
-            ))}
+        <SectionTitle title="Recent Threat Events" note={`${threats.recent.length} events`} />
+        {threats.recent.length === 0 ? (
+          <div className="py-8 text-center">
+            <Shield className="mx-auto h-8 w-8 text-[#1a2a4a]" />
+            <p className="mt-2 text-sm text-text-dim">No threats detected for this agent</p>
           </div>
-        </div>
-
-        <div className="space-y-2">
-          {filteredEvents.length === 0 ? (
-            <div className="py-12 text-center text-sm text-[#64748b]">
-              No events yet. Install the Mission Logger hook to start capturing data.
-            </div>
-          ) : (
-            filteredEvents.map((event) => (
-              <motion.div
-                key={event.id}
-                layout
-                className={`cursor-pointer rounded-2xl border px-4 py-3 transition ${eventColour(event.event_type)}`}
-                onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="shrink-0">{EVENT_ICON[event.event_type] ?? "📌"}</span>
-                    <span className="text-sm font-semibold text-[#e2e8f0] truncate">
-                      {event.event_type.replace(/_/g, " ")}
-                    </span>
-                    {event.content_redacted && (
-                      <span className="shrink-0 rounded-full bg-amber-900/30 px-2 py-0.5 text-[10px] text-amber-400">REDACTED</span>
-                    )}
+        ) : (
+          <div className="space-y-2">
+            {threats.recent.map((t) => {
+              const classes = parseJsonField<string[]>(t.threat_classes);
+              return (
+                <Link
+                  key={t.id}
+                  href="/threatguard"
+                  className="flex items-center justify-between rounded-xl border border-[#1a2a4a] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
+                >
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-4 w-4" style={{ color: SEVERITY_COLORS[t.threat_level] ?? "#64748b" }} />
+                    <div>
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
+                        style={{
+                          background: `${SEVERITY_COLORS[t.threat_level]}15`,
+                          color: SEVERITY_COLORS[t.threat_level] ?? "#64748b",
+                        }}
+                      >
+                        {t.threat_level}
+                      </span>
+                      {classes.map((cls) => (
+                        <span key={cls} className="ml-2 text-[10px] text-text-dim">
+                          {cls.replace("_", " ")}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <div className="shrink-0 text-right text-xs text-[#64748b]">
-                    <div>{fmtTime(event.created_at)}</div>
-                    {event.token_estimate > 0 && <div>{event.token_estimate}t</div>}
+                  <span className="text-xs text-text-dim">{timeAgo(t.created_at)}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+        {threats.threat_count_30d > threats.recent.length && (
+          <Link href="/threatguard" className="mt-3 inline-flex text-sm font-semibold text-cyan">
+            View all in ThreatGuard &rarr;
+          </Link>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ── Performance Tab ───────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════ */
+
+function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalTokens, totalErrors, errorRate7d }: {
+  data: AgentData;
+  chartData: Array<Record<string, unknown>>;
+  totalMessages: number;
+  totalToolCalls: number;
+  totalTokens: number;
+  totalErrors: number;
+  errorRate7d: number;
+}) {
+  return (
+    <div className="space-y-5">
+      {/* Summary pills */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatPill label="Cost (30d)" value={formatCost(data.cost.cost_30d)} colour="text-[#06d6a0]" />
+        <StatPill label="Tokens (30d)" value={formatCompact(Number(data.cost.tokens_30d))} colour="text-[#f59e0b]" />
+        <StatPill label="Messages (7d)" value={totalMessages} />
+        <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[#64748b]"} />
+      </div>
+
+      {/* Cost chart */}
+      {chartData.length > 0 && (
+        <Card>
+          <SectionTitle title="Daily Cost — 7 Days" />
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={chartData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" />
+              <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
+              <Tooltip content={<ChartTip />} />
+              <Bar dataKey="cost" name="Cost ($)" fill="#06d6a0" radius={[4, 4, 0, 0]} maxBarSize={28} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      )}
+
+      {/* Token usage chart */}
+      {chartData.length > 0 && (
+        <Card>
+          <SectionTitle title="Token Usage — 7 Days (thousands)" />
+          <ResponsiveContainer width="100%" height={140}>
+            <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="gradTokens" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" />
+              <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<ChartTip />} />
+              <Area type="monotone" dataKey="tokens" name="Tokens (k)" stroke="#f59e0b" strokeWidth={2} fill="url(#gradTokens)" dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+      )}
+
+      {/* Tool calls */}
+      {chartData.length > 0 && totalToolCalls > 0 && (
+        <Card>
+          <SectionTitle title="Tool Calls — 7 Days" />
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" />
+              <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<ChartTip />} />
+              <Bar dataKey="tools" name="Tool Calls" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={28} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      )}
+
+      {/* Top tools */}
+      {data.topTools.length > 0 && (
+        <Card>
+          <SectionTitle title="Top Tools (7d)" />
+          <div className="space-y-2">
+            {data.topTools.map((t) => {
+              const maxCount = data.topTools[0]?.call_count ?? 1;
+              const pct = Math.round((t.call_count / maxCount) * 100);
+              return (
+                <div key={t.tool_name} className="flex items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="truncate text-sm text-text">{t.tool_name || "(unnamed)"}</span>
+                      <span className="ml-2 shrink-0 text-xs font-semibold text-text-dim">{t.call_count}</span>
+                    </div>
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#1a2a4a]">
+                      <div className="h-full rounded-full bg-[#8b5cf6] transition-all" style={{ width: `${pct}%` }} />
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
 
-                {event.content && (
-                  <p className="mt-1.5 text-sm text-[#94a3b8] line-clamp-2">
-                    {event.content.slice(0, 200)}{event.content.length > 200 ? "…" : ""}
-                  </p>
-                )}
+/* ═══════════════════════════════════════════════════════════ */
+/* ── Activity Tab ──────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════ */
 
-                {expandedEvent === event.id && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="mt-3 rounded-xl border border-[#1a2a4a] bg-[#05050f] p-3"
-                  >
-                    <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[#94a3b8]">
-                      {event.content}
-                    </pre>
-                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-[#64748b]">
-                      {event.session_key && <span>Session: {event.session_key}</span>}
-                      {event.sender && <span>From: {event.sender}</span>}
-                      {event.channel_id && <span>Channel: {event.channel_id}</span>}
-                      {event.token_estimate > 0 && <span>~{event.token_estimate} tokens</span>}
-                    </div>
-                  </motion.div>
-                )}
-              </motion.div>
-            ))
-          )}
+function ActivityTab({
+  events,
+  filteredEvents,
+  eventTypes,
+  filter,
+  setFilter,
+  expandedEvent,
+  setExpandedEvent,
+}: {
+  events: Event[];
+  filteredEvents: Event[];
+  eventTypes: string[];
+  filter: string;
+  setFilter: (f: string) => void;
+  expandedEvent: string | null;
+  setExpandedEvent: (id: string | null) => void;
+}) {
+  return (
+    <Card>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <SectionTitle title="Event Timeline" note={`${filteredEvents.length} events`} />
+        <div className="flex flex-wrap gap-1.5">
+          {eventTypes.map((t) => (
+            <button
+              key={t}
+              onClick={() => setFilter(t)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#06d6a0] text-[#05050f]" : "border border-[#1a2a4a] text-[#64748b] hover:text-[#e2e8f0]"}`}
+            >
+              {t === "all" ? "All" : t.replace("_", " ")}
+            </button>
+          ))}
         </div>
-      </Card>
+      </div>
+
+      <div className="space-y-2">
+        {filteredEvents.length === 0 ? (
+          <div className="py-12 text-center text-sm text-[#64748b]">
+            No events yet. Connect your agent to the Arkon ingest endpoint to start capturing data.
+          </div>
+        ) : (
+          filteredEvents.map((event) => (
+            <motion.div
+              key={event.id}
+              layout
+              className={`cursor-pointer rounded-2xl border px-4 py-3 transition ${eventColour(event.event_type)}`}
+              onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="shrink-0">{EVENT_ICON[event.event_type] ?? "\u{1F4CC}"}</span>
+                  <span className="text-sm font-semibold text-[#e2e8f0] truncate">
+                    {event.event_type.replace(/_/g, " ")}
+                  </span>
+                  {event.content_redacted && (
+                    <span className="shrink-0 rounded-full bg-amber-900/30 px-2 py-0.5 text-[10px] text-amber-400">REDACTED</span>
+                  )}
+                  {event.threat_level && event.threat_level !== "none" && (
+                    <span
+                      className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
+                      style={{
+                        background: `${SEVERITY_COLORS[event.threat_level]}15`,
+                        color: SEVERITY_COLORS[event.threat_level] ?? "#64748b",
+                      }}
+                    >
+                      {event.threat_level}
+                    </span>
+                  )}
+                </div>
+                <div className="shrink-0 text-right text-xs text-[#64748b]">
+                  <div>{fmtTime(event.created_at)}</div>
+                  {event.token_estimate > 0 && <div>{event.token_estimate}t</div>}
+                </div>
+              </div>
+
+              {event.content && (
+                <p className="mt-1.5 text-sm text-[#94a3b8] line-clamp-2">
+                  {event.content.slice(0, 200)}{event.content.length > 200 ? "\u2026" : ""}
+                </p>
+              )}
+
+              {expandedEvent === event.id && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mt-3 rounded-xl border border-[#1a2a4a] bg-[#05050f] p-3"
+                >
+                  <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[#94a3b8]">
+                    {event.content}
+                  </pre>
+                  <div className="mt-2 flex flex-wrap gap-3 text-xs text-[#64748b]">
+                    {event.session_key && <span>Session: {event.session_key}</span>}
+                    {event.sender && <span>From: {event.sender}</span>}
+                    {event.channel_id && <span>Channel: {event.channel_id}</span>}
+                    {event.token_estimate > 0 && <span>~{event.token_estimate} tokens</span>}
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+          ))
+        )}
+      </div>
+    </Card>
+  );
+}
+
+/* ─── Info Row Helper ─────────────────────────────────────── */
+
+function InfoRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-text-dim">{label}</p>
+      <p className={`mt-0.5 text-sm text-text ${mono ? "font-mono" : ""}`}>{value}</p>
     </div>
   );
 }

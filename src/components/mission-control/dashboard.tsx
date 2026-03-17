@@ -791,6 +791,10 @@ function AgentsContent() {
             statusKey === "error" ? "agent-accent-error" : "agent-accent-idle";
           const activeRun = agentsWithRuns.get(agent.id);
 
+          const framework = String(agent.metadata?.framework ?? agent.metadata?.agent_framework ?? "");
+          const threats30d = asNumber(agent.threats_30d);
+          const cost30d = Number(agent.cost_30d ?? 0);
+
           return (
             <Card key={agent.id} className={`${status.panel} ${accentClass}`}>
               <div className="flex items-start justify-between gap-3">
@@ -798,34 +802,50 @@ function AgentsContent() {
                   <StatusRing status={statusKey} size={36} />
                   <div>
                     <h2 className="text-lg font-semibold text-text">{agent.name}</h2>
-                    <p className="mt-0.5 text-xs text-text-dim">{agent.id}</p>
+                    <div className="mt-0.5 flex items-center gap-2">
+                      <span className="text-xs text-text-dim">{agent.id}</span>
+                      {framework && (
+                        <span className="rounded-full bg-cyan/10 px-2 py-0.5 text-[10px] font-semibold text-cyan">
+                          {framework}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {activeRun && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); setKillTarget(activeRun); }}
-                      className="flex h-7 items-center gap-1 rounded-lg border border-red-500/30 bg-red-600/15 px-2 text-[11px] font-semibold text-red-300 transition hover:bg-red-600/30"
-                      title="Stop active run"
-                    >
-                      <OctagonX className="h-3 w-3" />
-                      Stop
-                    </button>
+                    <>
+                      <span className="h-2 w-2 rounded-full bg-green animate-pulse" title="Active run" />
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setKillTarget(activeRun); }}
+                        className="flex h-7 items-center gap-1 rounded-lg border border-red-500/30 bg-red-600/15 px-2 text-[11px] font-semibold text-red-300 transition hover:bg-red-600/30"
+                        title="Stop active run"
+                      >
+                        <OctagonX className="h-3 w-3" />
+                        Stop
+                      </button>
+                    </>
+                  )}
+                  {threats30d > 0 && (
+                    <span className="rounded-full bg-red/15 px-2 py-0.5 text-[10px] font-bold text-red">
+                      {threats30d} threat{threats30d !== 1 ? "s" : ""}
+                    </span>
                   )}
                   <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status.tone} bg-white/5`}>
                     {status.label}
                   </span>
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                 <MiniMetric label="model" value={getAgentModel(agent)} />
                 <MiniMetric label="last active" value={timeAgo(agent.last_active)} />
                 <MiniMetric label="events 24h" value={formatFull(asNumber(agent.events_24h))} />
                 <MiniMetric label="tokens 24h" value={formatCompact(asNumber(agent.tokens_24h))} />
+                <MiniMetric label="cost 30d" value={cost30d < 0.01 ? "<$0.01" : `$${cost30d.toFixed(2)}`} />
               </div>
               <Link href={`/agent/${agent.id}`} className="mt-4 inline-flex text-sm font-semibold text-cyan btn-press">
-                Open detail &rarr;
+                View profile &rarr;
               </Link>
             </Card>
           );
