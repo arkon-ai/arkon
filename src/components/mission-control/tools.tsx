@@ -550,7 +550,7 @@ export function ApprovalsToolScreen() {
                           </div>
                           <h2 className="mt-3 text-lg font-semibold text-text">{item.title}</h2>
                           <p className="mt-1 text-xs text-text-dim">
-                            {item.agent_name || item.agent_id} \u00b7 {timeAgo(item.created_at)}
+                            {item.agent_name || item.agent_id} &middot; {timeAgo(item.created_at)}
                           </p>
                         </div>
                       </div>
@@ -569,10 +569,10 @@ export function ApprovalsToolScreen() {
                         {item.content}
                       </p>
                       {!isExpanded && item.content.length > 200 && (
-                        <span className="text-xs text-cyan mt-1 inline-block">Show more \u2193</span>
+                        <span className="text-xs text-cyan mt-1 inline-block">Show more &darr;</span>
                       )}
                       {isExpanded && (
-                        <span className="text-xs text-text-dim mt-1 inline-block">Show less \u2191</span>
+                        <span className="text-xs text-text-dim mt-1 inline-block">Show less &uarr;</span>
                       )}
                     </div>
 
@@ -837,7 +837,7 @@ export function DocsToolScreen() {
                       {doc.pinned ? "Unpin" : "Pin"}
                     </button>
                   </div>
-                  <p className="text-sm leading-6 text-text-dim">{doc.preview}</p>
+                  <p className="text-sm leading-6 text-text-dim">{doc.preview?.replace(/<[^>]*>/g, "") ?? ""}</p>
                 </Card>
               </div>
             ))
