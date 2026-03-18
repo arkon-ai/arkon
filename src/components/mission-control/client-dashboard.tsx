@@ -113,9 +113,9 @@ export function ClientDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome banner */}
-      <div className="rounded-[16px] border border-[#1a2a4a] bg-[linear-gradient(135deg,rgba(6,214,160,0.04),rgba(139,92,246,0.04))] p-6">
-        <h1 className="text-2xl font-bold text-[#e2e8f0]">Welcome back, {data.tenant.name}</h1>
-        <p className="mt-1 text-sm text-[#64748b]">
+      <div className="rounded-[16px] border border-[#2E2E3A] bg-[linear-gradient(135deg,rgba(0,212,126,0.04),rgba(0,212,126,0.04))] p-6">
+        <h1 className="text-2xl font-bold text-[#E4E4ED]">Welcome back, {data.tenant.name}</h1>
+        <p className="mt-1 text-sm text-[#8888A0]">
           {data.tenant.plan === "dfy" ? "Done-For-You" : data.tenant.plan === "owner" ? "Owner" : "Starter"} Plan
           {data.tenant.domain ? ` \u00B7 ${data.tenant.domain}` : ""}
         </p>
@@ -132,17 +132,17 @@ export function ClientDashboard() {
       {/* Agents & Infra */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Agents */}
-        <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5">
+        <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
           <div className="mb-4 flex items-center gap-2">
-            <Bot className="h-4 w-4 text-[#64748b]" />
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#475569]">My Agents</h2>
+            <Bot className="h-4 w-4 text-[#8888A0]" />
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">My Agents</h2>
           </div>
           {data.agents.length === 0 ? (
             <EmptyCard icon={Bot} title="No agents yet" description="Agents will appear here once provisioned for your account." />
           ) : (
             <div className="space-y-3">
               {data.agents.map((agent) => (
-                <div key={agent.id} className="flex items-center gap-3 rounded-xl bg-[#05050f] px-4 py-3">
+                <div key={agent.id} className="flex items-center gap-3 rounded-xl bg-[#0A0A0C] px-4 py-3">
                   <StatusDot status={onlineAgents.some((a) => a.id === agent.id) ? "active" : "offline"} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-white">{agent.name}</p>
@@ -155,17 +155,17 @@ export function ClientDashboard() {
         </div>
 
         {/* Infrastructure */}
-        <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5">
+        <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
           <div className="mb-4 flex items-center gap-2">
-            <Server className="h-4 w-4 text-[#64748b]" />
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#475569]">Infrastructure</h2>
+            <Server className="h-4 w-4 text-[#8888A0]" />
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">Infrastructure</h2>
           </div>
           {data.infra_nodes.length === 0 ? (
             <EmptyCard icon={Server} title="No infrastructure nodes" description="Infrastructure nodes will appear here once connected." />
           ) : (
             <div className="space-y-3">
               {data.infra_nodes.map((node) => (
-                <div key={node.hostname} className="flex items-center gap-3 rounded-xl bg-[#05050f] px-4 py-3">
+                <div key={node.hostname} className="flex items-center gap-3 rounded-xl bg-[#0A0A0C] px-4 py-3">
                   <StatusDot status={node.status} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-white">{node.hostname}</p>
@@ -179,10 +179,10 @@ export function ClientDashboard() {
       </div>
 
       {/* Recent activity */}
-      <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5">
+      <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
         <div className="mb-4 flex items-center gap-2">
-          <Radio className="h-4 w-4 text-[#64748b]" />
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#475569]">Recent Activity</h2>
+          <Radio className="h-4 w-4 text-[#8888A0]" />
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">Recent Activity</h2>
         </div>
         {data.recent_events.length === 0 ? (
           <EmptyCard icon={Radio} title="No recent activity" description="Events from your agents will appear here in real-time." />

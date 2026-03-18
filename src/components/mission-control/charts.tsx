@@ -49,9 +49,9 @@ export function StatCountUp({
    PulsingDot — animated status indicator
 ───────────────────────────────────────── */
 const dotColors: Record<string, string> = {
-  live: "#06d6a0",
+  live: "#00D47E",
   warm: "#f59e0b",
-  idle: "#64748b",
+  idle: "#8888A0",
   error: "#ef4444",
 };
 
@@ -79,9 +79,9 @@ export function PulsingDot({ status }: { status: "live" | "warm" | "idle" | "err
    StatusRing — SVG ring status indicator
 ───────────────────────────────────────── */
 const ringColors: Record<string, string> = {
-  live: "#06d6a0",
+  live: "#00D47E",
   warm: "#f59e0b",
-  idle: "#64748b",
+  idle: "#8888A0",
   error: "#ef4444",
 };
 
@@ -118,7 +118,7 @@ export function StatusRing({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="#1a2a4a"
+          stroke="#2E2E3A"
           strokeWidth={2.5}
           fill="none"
         />
@@ -156,7 +156,7 @@ export function StatusRing({
 export function Sparkline({
   data,
   dataKey = "value",
-  color = "#06d6a0",
+  color = "#00D47E",
   width = 80,
   height = 28,
 }: {
@@ -198,7 +198,7 @@ export function Sparkline({
 ───────────────────────────────────────── */
 export function LiveBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(6,214,160,0.1)] px-2 py-0.5 text-xs font-semibold text-[#06d6a0]">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,212,126,0.1)] px-2 py-0.5 text-xs font-semibold text-[#00D47E]">
       <PulsingDot status="live" />
       LIVE
     </span>
@@ -211,9 +211,9 @@ export function LiveBadge() {
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-xs shadow-lg">
-      <p className="mb-1 text-[#64748b]">{label}</p>
-      <p className="font-semibold text-[#e2e8f0]">{payload[0].value.toLocaleString()}</p>
+    <div className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 text-[#8888A0]">{label}</p>
+      <p className="font-semibold text-[#E4E4ED]">{payload[0].value.toLocaleString()}</p>
     </div>
   );
 }
@@ -227,22 +227,22 @@ export function EventsAreaChart({ data }: { data: Array<{ day: string; events: n
       <AreaChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
         <defs>
           <linearGradient id="eventsGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#06d6a0" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#06d6a0" stopOpacity={0} />
+            <stop offset="5%" stopColor="#00D47E" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" vertical={false} />
-        <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" vertical={false} />
+        <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
         <Tooltip content={<ChartTooltip />} />
         <Area
           type="monotone"
           dataKey="events"
-          stroke="#06d6a0"
+          stroke="#00D47E"
           strokeWidth={2}
           fill="url(#eventsGrad)"
           dot={false}
-          activeDot={{ r: 4, fill: "#06d6a0", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(6,214,160,0.5))" } }}
+          activeDot={{ r: 4, fill: "#00D47E", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(0,212,126,0.5))" } }}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -250,7 +250,7 @@ export function EventsAreaChart({ data }: { data: Array<{ day: string; events: n
 }
 
 /* ─────────────────────────────────────────
-   TokensAreaChart — 7-day purple area chart
+   TokensAreaChart — 7-day accent area chart
 ───────────────────────────────────────── */
 export function TokensAreaChart({ data }: { data: Array<{ day: string; tokens: number }> }) {
   return (
@@ -258,22 +258,22 @@ export function TokensAreaChart({ data }: { data: Array<{ day: string; tokens: n
       <AreaChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
         <defs>
           <linearGradient id="tokensGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+            <stop offset="5%" stopColor="#8888A0" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#8888A0" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" vertical={false} />
-        <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" vertical={false} />
+        <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
         <Tooltip content={<ChartTooltip />} />
         <Area
           type="monotone"
           dataKey="tokens"
-          stroke="#8b5cf6"
+          stroke="#8888A0"
           strokeWidth={2}
           fill="url(#tokensGrad)"
           dot={false}
-          activeDot={{ r: 4, fill: "#8b5cf6", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(139,92,246,0.5))" } }}
+          activeDot={{ r: 4, fill: "#8888A0", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(136,136,160,0.5))" } }}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -288,8 +288,8 @@ export function AgentBarChart({ agents }: { agents: Array<{ name: string; events
   return (
     <ResponsiveContainer width="100%" height={180}>
       <BarChart data={sorted} layout="vertical" margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" horizontal={false} />
-        <XAxis type="number" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" horizontal={false} />
+        <XAxis type="number" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
         <YAxis
           type="category"
           dataKey="name"
@@ -298,12 +298,12 @@ export function AgentBarChart({ agents }: { agents: Array<{ name: string; events
           tickLine={false}
           width={72}
         />
-        <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(6,214,160,0.05)" }} />
+        <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,212,126,0.05)" }} />
         <Bar dataKey="events" radius={[0, 6, 6, 0]}>
           {sorted.map((_, i) => (
             <Cell
               key={i}
-              fill={`rgba(6,214,160,${0.9 - i * 0.1})`}
+              fill={`rgba(0,212,126,${0.9 - i * 0.1})`}
             />
           ))}
         </Bar>
@@ -317,7 +317,7 @@ export function AgentBarChart({ agents }: { agents: Array<{ name: string; events
 ───────────────────────────────────────── */
 export function SkeletonCard({ lines = 3, height = "h-20" }: { lines?: number; height?: string }) {
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <div className="skeleton mb-3 h-4 w-1/3 rounded-lg" />
       <div className={`skeleton ${height} w-full rounded-xl`} />
       {lines > 1 && Array.from({ length: lines - 1 }).map((_, i) => (

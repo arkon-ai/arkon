@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #05050f;
-  --foreground: #e2e8f0;
-  --bg-deep: #05050f;
-  --bg-card: #0d0d1a;
-  --border: #1a2a4a;
-  --cyan: #06d6a0;
-  --purple: #8b5cf6;
+  --background: #0A0A0C;
+  --foreground: #E4E4ED;
+  --bg-deep: #0A0A0C;
+  --bg-card: #1A1A22;
+  --border: #2E2E3A;
+  --cyan: #00D47E;
+  --accent: #00D47E;
   --amber: #f59e0b;
   --red: #ef4444;
   --green: #22c55e;
-  --text: #e2e8f0;
-  --text-dim: #64748b;
+  --text: #E4E4ED;
+  --text-dim: #8888A0;
 }
 
 @theme inline {
@@ -22,7 +22,7 @@
   --color-bg-card: var(--bg-card);
   --color-border: var(--border);
   --color-cyan: var(--cyan);
-  --color-purple: var(--purple);
+  --color-accent: var(--accent);
   --color-amber: var(--amber);
   --color-red: var(--red);
   --color-green: var(--green);
@@ -47,8 +47,8 @@ body {
   font-size: 14px;
   min-height: 100vh;
   background-image:
-    radial-gradient(circle at top, rgba(139, 92, 246, 0.12), transparent 28%),
-    radial-gradient(circle at 20% 20%, rgba(6, 214, 160, 0.1), transparent 20%);
+    radial-gradient(circle at top, rgba(0, 212, 126, 0.06), transparent 28%),
+    radial-gradient(circle at 20% 20%, rgba(0, 212, 126, 0.1), transparent 20%);
 }
 
 a {
@@ -61,7 +61,7 @@ pre {
 }
 
 ::selection {
-  background: rgba(6, 214, 160, 0.28);
+  background: rgba(0, 212, 126, 0.28);
   color: var(--text);
 }
 
@@ -71,7 +71,7 @@ pre {
 
 .markdown-body h1 {
   margin-bottom: 1rem;
-  border-bottom: 1px solid #1a2a4a;
+  border-bottom: 1px solid #2E2E3A;
   padding-bottom: 0.5rem;
   font-size: 2rem;
   color: #fff;
@@ -80,13 +80,13 @@ pre {
 .markdown-body h2 {
   margin: 2rem 0 1rem;
   font-size: 1.5rem;
-  color: #e2e8f0;
+  color: #E4E4ED;
 }
 
 .markdown-body h3 {
   margin: 1.5rem 0 0.75rem;
   font-size: 1.25rem;
-  color: #e2e8f0;
+  color: #E4E4ED;
 }
 
 .markdown-body p {
@@ -97,9 +97,9 @@ pre {
 
 .markdown-body code {
   border-radius: 4px;
-  background: #0d0d1a;
+  background: #1A1A22;
   padding: 2px 6px;
-  color: #06d6a0;
+  color: #00D47E;
 }
 
 .markdown-body pre code {
@@ -115,21 +115,21 @@ pre {
 }
 
 .markdown-body th {
-  background: #1a2a4a;
+  background: #2E2E3A;
   padding: 8px 12px;
   text-align: left;
-  color: #e2e8f0;
+  color: #E4E4ED;
 }
 
 .markdown-body td {
-  border-bottom: 1px solid #1a2a4a;
+  border-bottom: 1px solid #2E2E3A;
   padding: 8px 12px;
   color: #cbd5e1;
 }
 
 .markdown-body blockquote {
   margin: 1rem 0;
-  border-left: 4px solid #8b5cf6;
+  border-left: 4px solid #00D47E;
   padding: 0.5rem 1rem;
   color: #94a3b8;
 }
@@ -155,7 +155,7 @@ pre {
 }
 
 .markdown-body hr {
-  border-color: #1a2a4a;
+  border-color: #2E2E3A;
 }
 
 /* ═══════════════════════════════════════
@@ -171,13 +171,13 @@ pre {
 }
 
 /* Glow utilities */
-.glow-cyan  { box-shadow: 0 0 24px rgba(6, 214, 160, 0.18), 0 0 48px rgba(6, 214, 160, 0.07); }
-.glow-purple{ box-shadow: 0 0 24px rgba(139, 92, 246, 0.18), 0 0 48px rgba(139, 92, 246, 0.07); }
+.glow-cyan  { box-shadow: 0 0 24px rgba(0, 212, 126, 0.18), 0 0 48px rgba(0, 212, 126, 0.07); }
+.glow-info  { box-shadow: 0 0 24px rgba(6, 182, 212, 0.18), 0 0 48px rgba(6, 182, 212, 0.07); }
 .glow-amber { box-shadow: 0 0 24px rgba(245, 158, 11, 0.18), 0 0 48px rgba(245, 158, 11, 0.07); }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #06d6a0, #8b5cf6);
+  background: linear-gradient(135deg, #00D47E, #00E88A);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -191,9 +191,9 @@ pre {
 .skeleton {
   background: linear-gradient(
     90deg,
-    #0d0d1a 25%,
-    #1a2a4a 50%,
-    #0d0d1a 75%
+    #1A1A22 25%,
+    #2E2E3A 50%,
+    #1A1A22 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;

@@ -59,12 +59,12 @@ export function ClientShell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col bg-[#080810] text-[#94a3b8]">
-      <div className="flex h-14 items-center border-b border-[#1a2a4a]/50 px-4">
+      <div className="flex h-14 items-center border-b border-[#2E2E3A]/50 px-4">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#475569]">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#555566]">
             Client Portal
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-[#e2e8f0]">
+          <p className="mt-0.5 text-sm font-semibold text-[#E4E4ED]">
             {tenantName || "Loading..."}
           </p>
         </div>
@@ -85,11 +85,11 @@ export function ClientShell({ children }: { children: ReactNode }) {
                   href={item.href}
                   className={`flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${
                     active
-                      ? "bg-[rgba(6,214,160,0.08)] text-[#06d6a0]"
-                      : "text-[#94a3b8] hover:bg-white/[0.03] hover:text-[#e2e8f0]"
+                      ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
+                      : "text-[#94a3b8] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
                   }`}
                 >
-                  <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#06d6a0]" : "text-[#64748b]"}`} />
+                  <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
                   <span className="flex-1">{item.label}</span>
                 </Link>
               );
@@ -97,11 +97,11 @@ export function ClientShell({ children }: { children: ReactNode }) {
           </div>
         </section>
 
-        <div className="mt-4 border-t border-[#1a2a4a] pt-4">
+        <div className="mt-4 border-t border-[#2E2E3A] pt-4">
           <button
             type="button"
             onClick={handleLogout}
-            className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[#64748b] transition hover:bg-red-500/[0.06] hover:text-red-400"
+            className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[#8888A0] transition hover:bg-red-500/[0.06] hover:text-red-400"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             <span>Sign Out</span>
@@ -112,26 +112,26 @@ export function ClientShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#05050f] text-slate-200">
+    <div className="min-h-screen bg-[#0A0A0C] text-slate-200">
       <div className="flex min-h-screen">
-        <aside className="hidden w-64 shrink-0 border-r border-[#1a2a4a] md:block">
+        <aside className="hidden w-64 shrink-0 border-r border-[#2E2E3A] md:block">
           <div className="sticky top-0 h-screen">{sidebar}</div>
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 border-b border-[#1a2a4a]/80 bg-[#05050f]/95 backdrop-blur">
+          <header className="sticky top-0 z-40 border-b border-[#2E2E3A]/80 bg-[#0A0A0C]/95 backdrop-blur">
             <div className="flex h-16 items-center justify-between px-4 sm:px-6">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsOpen(true)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] text-[#e2e8f0] md:hidden active:scale-95 transition-transform touch-manipulation"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#2E2E3A] bg-[#1A1A22] text-[#E4E4ED] md:hidden active:scale-95 transition-transform touch-manipulation"
                   aria-label="Open sidebar"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
                 <div>
-                  <p className="text-sm font-semibold text-[#e2e8f0]">
+                  <p className="text-sm font-semibold text-[#E4E4ED]">
                     {pathname === "/client" ? "Dashboard" : pathname === "/client/agents" ? "My Agents" : pathname === "/client/costs" ? "Costs" : "Client Portal"}
                   </p>
                 </div>
@@ -157,13 +157,13 @@ export function ClientShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
           />
-          <div className="relative h-full w-[280px] max-w-[85vw] border-r border-[#1a2a4a] shadow-[0_20px_60px_rgba(0,0,0,0.5)]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative h-full w-[280px] max-w-[85vw] border-r border-[#2E2E3A] shadow-[0_20px_60px_rgba(0,0,0,0.5)]" onClick={(e) => e.stopPropagation()}>
             {sidebar}
           </div>
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1a2a4a]/80 bg-[#0a0a14]/95 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#2E2E3A]/80 bg-[#0A0A0C]/95 backdrop-blur md:hidden">
         <div className="mx-auto grid h-[60px] max-w-3xl grid-cols-3 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2">
           {clientNav.map((tab) => {
             const active = isRouteActive(pathname, tab.href);
@@ -174,8 +174,8 @@ export function ClientShell({ children }: { children: ReactNode }) {
                 href={tab.href}
                 className={`flex min-h-11 flex-col items-center justify-center rounded-xl text-[10px] font-semibold transition ${
                   active
-                    ? "text-[#06d6a0]"
-                    : "text-[#64748b] hover:text-[#94a3b8]"
+                    ? "text-[#00D47E]"
+                    : "text-[#8888A0] hover:text-[#94a3b8]"
                 }`}
               >
                 <Icon className="mb-0.5 h-5 w-5" />

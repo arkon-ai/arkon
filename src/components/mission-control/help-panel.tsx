@@ -87,7 +87,7 @@ export function HelpPanel() {
       <button
         type="button"
         onClick={toggle}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] text-[#64748b] transition hover:border-[#2a3a5a] hover:text-[#94a3b8]"
+        className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#2E2E3A] bg-[#1A1A22] text-[#8888A0] transition hover:border-[#3E3E4A] hover:text-[#94a3b8]"
         aria-label="Help"
         title="Help (press ?)"
       >
@@ -102,22 +102,22 @@ export function HelpPanel() {
       {/* Slide-out panel */}
       <div
         ref={panelRef}
-        className={`fixed right-0 top-0 z-[61] h-full w-[380px] max-w-[90vw] border-l border-[#1a2a4a]/50 bg-[#080810] shadow-[0_0_60px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out ${
+        className={`fixed right-0 top-0 z-[61] h-full w-[380px] max-w-[90vw] border-l border-[#2E2E3A]/50 bg-[#080810] shadow-[0_0_60px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="flex h-14 items-center justify-between border-b border-[#1a2a4a]/50 px-4">
+        <div className="flex h-14 items-center justify-between border-b border-[#2E2E3A]/50 px-4">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-[#06d6a0]" />
-            <span className="text-sm font-semibold text-[#e2e8f0]">
+            <BookOpen className="h-4 w-4 text-[#00D47E]" />
+            <span className="text-sm font-semibold text-[#E4E4ED]">
               {help?.title ?? "Help"}
             </span>
           </div>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#64748b] transition hover:bg-white/[0.05] hover:text-[#94a3b8]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#8888A0] transition hover:bg-white/[0.05] hover:text-[#94a3b8]"
             aria-label="Close help"
           >
             <X className="h-4 w-4" />
@@ -136,7 +136,7 @@ export function HelpPanel() {
               {/* Key Concepts */}
               {help.concepts && help.concepts.length > 0 && (
                 <section>
-                  <h3 className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#475569]">
+                  <h3 className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
                     <Lightbulb className="h-3 w-3" />
                     Key Concepts
                   </h3>
@@ -144,9 +144,9 @@ export function HelpPanel() {
                     {help.concepts.map((c) => (
                       <div
                         key={c.term}
-                        className="rounded-xl border border-[#1a2a4a]/60 bg-[#0d0d1a]/60 px-3 py-2.5"
+                        className="rounded-xl border border-[#2E2E3A]/60 bg-[#1A1A22]/60 px-3 py-2.5"
                       >
-                        <p className="text-xs font-semibold text-[#e2e8f0]">
+                        <p className="text-xs font-semibold text-[#E4E4ED]">
                           {c.term}
                         </p>
                         <p className="mt-0.5 text-[11px] leading-relaxed text-[#94a3b8]">
@@ -161,7 +161,7 @@ export function HelpPanel() {
               {/* Common Tasks */}
               {help.tasks && help.tasks.length > 0 && (
                 <section>
-                  <h3 className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#475569]">
+                  <h3 className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
                     <ListChecks className="h-3 w-3" />
                     Common Tasks
                   </h3>
@@ -169,9 +169,9 @@ export function HelpPanel() {
                     {help.tasks.map((t) => (
                       <div
                         key={t.label}
-                        className="rounded-xl border border-[#1a2a4a]/40 px-3 py-2"
+                        className="rounded-xl border border-[#2E2E3A]/40 px-3 py-2"
                       >
-                        <p className="text-xs font-semibold text-[#e2e8f0]">
+                        <p className="text-xs font-semibold text-[#E4E4ED]">
                           {t.label}
                         </p>
                         <p className="mt-0.5 text-[11px] leading-relaxed text-[#94a3b8]">
@@ -186,7 +186,7 @@ export function HelpPanel() {
               {/* Tips */}
               {help.tips && help.tips.length > 0 && (
                 <section>
-                  <h3 className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#475569]">
+                  <h3 className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
                     <Lightbulb className="h-3 w-3" />
                     Tips
                   </h3>
@@ -196,7 +196,7 @@ export function HelpPanel() {
                         key={i}
                         className="flex gap-2 text-[11px] leading-relaxed text-[#94a3b8]"
                       >
-                        <span className="mt-0.5 text-[#06d6a0]">&bull;</span>
+                        <span className="mt-0.5 text-[#00D47E]">&bull;</span>
                         <span>{tip}</span>
                       </li>
                     ))}
@@ -205,27 +205,27 @@ export function HelpPanel() {
               )}
 
               {/* Footer links */}
-              <div className="border-t border-[#1a2a4a]/50 pt-4">
+              <div className="border-t border-[#2E2E3A]/50 pt-4">
                 <Link
                   href="/help/glossary"
-                  className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-medium text-[#94a3b8] transition hover:bg-white/[0.03] hover:text-[#e2e8f0]"
+                  className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-medium text-[#94a3b8] transition hover:bg-white/[0.03] hover:text-[#E4E4ED]"
                 >
-                  <Search className="h-3.5 w-3.5 text-[#64748b]" />
+                  <Search className="h-3.5 w-3.5 text-[#8888A0]" />
                   Search Glossary
-                  <ChevronRight className="ml-auto h-3 w-3 text-[#475569]" />
+                  <ChevronRight className="ml-auto h-3 w-3 text-[#555566]" />
                 </Link>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-[#64748b]">
+            <p className="text-sm text-[#8888A0]">
               No help content available for this page.
             </p>
           )}
 
           {/* Keyboard hint */}
-          <div className="mt-6 rounded-xl border border-[#1a2a4a]/40 bg-[#0d0d1a]/40 px-3 py-2.5 text-center">
-            <p className="text-[10px] text-[#475569]">
-              Press <kbd className="rounded border border-[#1a2a4a] bg-[#050510] px-1.5 py-0.5 text-[10px] font-medium text-[#64748b]">?</kbd> to toggle help
+          <div className="mt-6 rounded-xl border border-[#2E2E3A]/40 bg-[#1A1A22]/40 px-3 py-2.5 text-center">
+            <p className="text-[10px] text-[#555566]">
+              Press <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#8888A0]">?</kbd> to toggle help
             </p>
           </div>
         </div>

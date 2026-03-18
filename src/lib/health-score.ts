@@ -76,7 +76,7 @@ export function computeHealthScore(input: HealthInput): HealthResult {
   const score = agents + threats + budget + infra;
 
   let grade: HealthResult["grade"] = "healthy";
-  let color = "#06d6a0";
+  let color = "#00D47E";
   if (score < 50) {
     grade = "critical";
     color = "#ef4444";

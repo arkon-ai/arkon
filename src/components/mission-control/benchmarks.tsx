@@ -11,12 +11,12 @@ import { EmptyCard } from "./ui-cards";
 import { SectionDescription } from "./dashboard-clarity";
 
 const C = {
-  green: "#06d6a0", purple: "#8b5cf6", amber: "#f59e0b",
-  red: "#ef4444", slate: "#64748b", teal: "#14b8a6",
+  green: "#00D47E", secondary: "#8888A0", amber: "#f59e0b",
+  red: "#ef4444", slate: "#8888A0", teal: "#14b8a6",
   pink: "#ec4899", blue: "#3b82f6",
-  grid: "#1a2a4a", tooltipBg: "#0d0d1a",
+  grid: "#2E2E3A", tooltipBg: "#1A1A22",
 };
-const MODEL_COLORS = [C.green, C.purple, C.amber, C.teal, C.pink, C.blue, C.red, C.slate];
+const MODEL_COLORS = [C.green, C.secondary, C.amber, C.teal, C.pink, C.blue, C.red, C.slate];
 
 function fmt$(v: number): string {
   if (v >= 1) return `$${v.toFixed(2)}`;
@@ -77,7 +77,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-5"
+      className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-5"
     >
       <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-bold text-white">{value}</p>
@@ -113,7 +113,7 @@ export function BenchmarksDashboard() {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 animate-pulse rounded-2xl bg-[#0d0d1a]" />
+          <div key={i} className="h-24 animate-pulse rounded-2xl bg-[#1A1A22]" />
         ))}
       </div>
     );
@@ -134,16 +134,16 @@ export function BenchmarksDashboard() {
           {(["overview", "compare"] as const).map((t) => (
             <button key={t} type="button" onClick={() => setTab(t)}
               className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                tab === t ? "bg-[rgba(6,214,160,0.15)] text-[#06d6a0]" : "text-slate-400 hover:text-white"
+                tab === t ? "bg-[rgba(0,212,126,0.15)] text-[#00D47E]" : "text-slate-400 hover:text-white"
               }`}
             >{t === "overview" ? "Overview" : "Compare Models"}</button>
           ))}
         </div>
-        <div className="flex gap-1 rounded-xl bg-[#0d0d1a] p-1">
+        <div className="flex gap-1 rounded-xl bg-[#1A1A22] p-1">
           {["24h", "7d", "30d"].map((r) => (
             <button key={r} type="button" onClick={() => setRange(r)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                range === r ? "bg-[#1a2a4a] text-white" : "text-slate-500 hover:text-slate-300"
+                range === r ? "bg-[#2E2E3A] text-white" : "text-slate-500 hover:text-slate-300"
               }`}
             >{r}</button>
           ))}
@@ -174,7 +174,7 @@ function OverviewTab({ data }: { data: OverviewData }) {
 
       {/* Model comparison bars */}
       {data.byModel.length > 0 && (
-        <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-5">
+        <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-5">
           <h3 className="mb-4 text-sm font-semibold text-slate-300">Latency by Model (avg ms)</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -199,7 +199,7 @@ function OverviewTab({ data }: { data: OverviewData }) {
 
       {/* Daily trend */}
       {data.dailyTrend.length > 0 && (
-        <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-5">
+        <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-5">
           <h3 className="mb-4 text-sm font-semibold text-slate-300">Daily Benchmark Activity</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
@@ -218,12 +218,12 @@ function OverviewTab({ data }: { data: OverviewData }) {
 
       {/* Model table */}
       {data.byModel.length > 0 && (
-        <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-5">
+        <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-5">
           <h3 className="mb-4 text-sm font-semibold text-slate-300">Model Breakdown</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-[#1a2a4a] text-xs uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-[#2E2E3A] text-xs uppercase tracking-wider text-slate-500">
                   <th className="pb-3 pr-4">Model</th>
                   <th className="pb-3 pr-4">Provider</th>
                   <th className="pb-3 pr-4 text-right">Runs</th>
@@ -236,7 +236,7 @@ function OverviewTab({ data }: { data: OverviewData }) {
               </thead>
               <tbody>
                 {data.byModel.map((m, i) => (
-                  <tr key={m.model_id} className="border-b border-[#1a2a4a]/50 text-slate-300">
+                  <tr key={m.model_id} className="border-b border-[#2E2E3A]/50 text-slate-300">
                     <td className="py-3 pr-4 font-medium text-white">
                       <span className="mr-2 inline-block h-2 w-2 rounded-full" style={{ background: MODEL_COLORS[i % MODEL_COLORS.length] }} />
                       {m.model_id}
@@ -258,7 +258,7 @@ function OverviewTab({ data }: { data: OverviewData }) {
 
       {/* Recent runs */}
       {data.recent.length > 0 && (
-        <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-5">
+        <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-5">
           <h3 className="mb-4 text-sm font-semibold text-slate-300">Recent Benchmark Runs</h3>
           <div className="space-y-2">
             {data.recent.map((r) => (
@@ -272,7 +272,7 @@ function OverviewTab({ data }: { data: OverviewData }) {
                   <span>{fmtK(r.total_tokens)} tok</span>
                   <span>{fmt$(Number(r.cost_usd))}</span>
                   {r.quality_score != null && (
-                    <span className={Number(r.quality_score) >= 7 ? "text-[#06d6a0]" : Number(r.quality_score) >= 4 ? "text-amber-400" : "text-red-400"}>
+                    <span className={Number(r.quality_score) >= 7 ? "text-[#00D47E]" : Number(r.quality_score) >= 4 ? "text-amber-400" : "text-red-400"}>
                       Q{Number(r.quality_score).toFixed(1)}
                     </span>
                   )}
@@ -322,7 +322,7 @@ function CompareTab({ models }: { models: ModelBreakdown[] }) {
           <motion.div key={m.model_id}
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-5"
+            className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-5"
           >
             <div className="flex items-center gap-2 mb-4">
               <span className="h-3 w-3 rounded-full" style={{ background: MODEL_COLORS[i % MODEL_COLORS.length] }} />
@@ -334,9 +334,9 @@ function CompareTab({ models }: { models: ModelBreakdown[] }) {
               <MetricBar label="Latency (P95)" value={m.p95_latency_ms} max={maxLatency} format={fmtMs} color={MODEL_COLORS[i % MODEL_COLORS.length]} />
               <MetricBar label="Avg Cost" value={Number(m.avg_cost)} max={maxCost} format={fmt$} color={C.amber} />
               <MetricBar label="Avg Tokens" value={m.avg_tokens} max={maxTokens} format={fmtK} color={C.teal} />
-              <div className="flex justify-between pt-2 border-t border-[#1a2a4a]">
+              <div className="flex justify-between pt-2 border-t border-[#2E2E3A]">
                 <span className="text-slate-500">Quality</span>
-                <span className={Number(m.avg_quality) >= 7 ? "text-[#06d6a0]" : Number(m.avg_quality) >= 4 ? "text-amber-400" : "text-red-400"}>
+                <span className={Number(m.avg_quality) >= 7 ? "text-[#00D47E]" : Number(m.avg_quality) >= 4 ? "text-amber-400" : "text-red-400"}>
                   {Number(m.avg_quality).toFixed(1)}/10
                 </span>
               </div>
@@ -354,7 +354,7 @@ function CompareTab({ models }: { models: ModelBreakdown[] }) {
       </div>
 
       {/* Latency comparison chart */}
-      <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-5">
+      <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-5">
         <h3 className="mb-4 text-sm font-semibold text-slate-300">Latency Distribution (P50 vs P95 vs P99)</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">

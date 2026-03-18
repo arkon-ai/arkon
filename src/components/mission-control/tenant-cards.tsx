@@ -117,7 +117,7 @@ export function TenantCards({ data }: { data: OverviewData | null }) {
                   <div className="text-[10px] text-text-dim">agents</div>
                 </div>
                 <div className="rounded-2xl border border-border bg-bg-card px-2 py-1.5">
-                  <div className="text-sm font-semibold text-purple">
+                  <div className="text-sm font-semibold text-accent">
                     {formatCompact(totalEvents24h)}
                   </div>
                   <div className="text-[10px] text-text-dim">events 24h</div>

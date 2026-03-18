@@ -194,7 +194,7 @@ export function GuidedTour() {
 
       {/* Tooltip */}
       <div
-        className="fixed z-[9999] w-72 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
+        className="fixed z-[9999] w-72 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
         style={{
           top: tooltipPos.top,
           left: tooltipPos.left,
@@ -205,7 +205,7 @@ export function GuidedTour() {
         <button
           type="button"
           onClick={closeTour}
-          className="absolute right-2 top-2 rounded-lg p-1 text-[#475569] transition hover:text-[#94a3b8]"
+          className="absolute right-2 top-2 rounded-lg p-1 text-[#555566] transition hover:text-[#94a3b8]"
           aria-label="Close tour"
         >
           <X className="h-4 w-4" />
@@ -217,7 +217,7 @@ export function GuidedTour() {
         </p>
 
         <div className="mt-4 flex items-center justify-between">
-          <span className="text-[10px] text-[#475569]">
+          <span className="text-[10px] text-[#555566]">
             {currentStep + 1} of {TOUR_STEPS.length}
           </span>
           <div className="flex gap-2">
@@ -234,7 +234,7 @@ export function GuidedTour() {
             <button
               type="button"
               onClick={nextStep}
-              className="flex items-center gap-1 rounded-lg bg-[#06d6a0]/10 px-3 py-1.5 text-xs font-semibold text-[#06d6a0] transition hover:bg-[#06d6a0]/20"
+              className="flex items-center gap-1 rounded-lg bg-[#00D47E]/10 px-3 py-1.5 text-xs font-semibold text-[#00D47E] transition hover:bg-[#00D47E]/20"
             >
               {isLast ? "Finish" : "Next"}
               {!isLast && <ArrowRight className="h-3 w-3" />}
@@ -246,7 +246,7 @@ export function GuidedTour() {
         <button
           type="button"
           onClick={closeTour}
-          className="mt-2 w-full text-center text-[10px] text-[#475569] transition hover:text-[#94a3b8]"
+          className="mt-2 w-full text-center text-[10px] text-[#555566] transition hover:text-[#94a3b8]"
         >
           Don&apos;t show again
         </button>

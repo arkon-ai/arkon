@@ -24,8 +24,8 @@ function TrendTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-xs shadow-lg">
-      <p className="mb-1 text-[#64748b]">{label}</p>
+    <div className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 text-[#8888A0]">{label}</p>
       {payload.map((p) => (
         <p key={p.name} className="font-semibold" style={{ color: p.color }}>
           {p.name}: {p.value.toLocaleString()}
@@ -98,7 +98,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
           <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-text-dim">sent</div>
         </div>
         <div className="card-hover rounded-2xl border border-border bg-bg-card px-3 py-2">
-          <div className="text-sm font-semibold text-purple">{formatCompact(totals.tools)}</div>
+          <div className="text-sm font-semibold text-accent">{formatCompact(totals.tools)}</div>
           <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-text-dim">tools</div>
         </div>
         <div className="card-hover rounded-2xl border border-border bg-bg-card px-3 py-2">
@@ -125,33 +125,33 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="msgGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#06d6a0" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#06d6a0" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#00D47E" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#00D47E" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="toolGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#8888A0" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#8888A0" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,42,74,0.4)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#64748b" }} />
-                <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={40} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8888A0" }} />
+                <YAxis tick={{ fontSize: 10, fill: "#8888A0" }} width={40} />
                 <Tooltip content={<TrendTooltip />} />
                 <Area
                   type="monotone"
                   dataKey="Messages"
-                  stroke="#06d6a0"
+                  stroke="#00D47E"
                   fill="url(#msgGrad)"
                   strokeWidth={2}
-                  activeDot={{ r: 4, fill: "#06d6a0", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(6,214,160,0.5))" } }}
+                  activeDot={{ r: 4, fill: "#00D47E", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(0,212,126,0.5))" } }}
                 />
                 <Area
                   type="monotone"
                   dataKey="Tool Calls"
-                  stroke="#8b5cf6"
+                  stroke="#8888A0"
                   fill="url(#toolGrad)"
                   strokeWidth={2}
-                  activeDot={{ r: 4, fill: "#8b5cf6", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(139,92,246,0.5))" } }}
+                  activeDot={{ r: 4, fill: "#8888A0", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(136,136,160,0.5))" } }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -173,8 +173,8 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,42,74,0.4)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#64748b" }} />
-                <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={50} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8888A0" }} />
+                <YAxis tick={{ fontSize: 10, fill: "#8888A0" }} width={50} />
                 <Tooltip content={<TrendTooltip />} />
                 <Area
                   type="monotone"

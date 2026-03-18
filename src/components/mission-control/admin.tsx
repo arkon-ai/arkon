@@ -33,8 +33,8 @@ function getSessionRole(): string {
 
 /* ─── Role badge ─────────────────────────────────────────── */
 const ROLE_COLOURS: Record<string, string> = {
-  owner: "bg-[rgba(139,92,246,0.15)] text-purple-400",
-  admin: "bg-[rgba(6,214,160,0.15)] text-cyan-400",
+  owner: "bg-[rgba(0,212,126,0.15)] text-[#00D47E]",
+  admin: "bg-[rgba(0,212,126,0.15)] text-cyan-400",
   agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
   viewer: "bg-[rgba(100,116,139,0.15)] text-slate-400",
 };
@@ -49,7 +49,7 @@ function RoleBadge({ role }: { role: string }) {
 
 /* ─── Section wrapper ────────────────────────────────────── */
 function AdminSection({
-  icon, title, description, colour = "border-[#1a2a4a]", children,
+  icon, title, description, colour = "border-[#2E2E3A]", children,
 }: {
   icon: string; title: string; description: string; colour?: string; children: React.ReactNode;
 }) {
@@ -58,8 +58,8 @@ function AdminSection({
       <div className="mb-4 flex items-start gap-3">
         <div className="mt-0.5 text-2xl">{icon}</div>
         <div>
-          <h3 className="text-base font-semibold text-[#e2e8f0]">{title}</h3>
-          <p className="mt-1 text-sm leading-relaxed text-[#64748b]">{description}</p>
+          <h3 className="text-base font-semibold text-[#E4E4ED]">{title}</h3>
+          <p className="mt-1 text-sm leading-relaxed text-[#8888A0]">{description}</p>
         </div>
       </div>
       {children}
@@ -71,10 +71,10 @@ function AdminSection({
 function Input({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#64748b]">{label}</label>
+      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#8888A0]">{label}</label>
       <input
         {...props}
-        className="w-full rounded-xl border border-[#1a2a4a] bg-[#05050f] px-3 py-2.5 text-sm text-[#e2e8f0] outline-none focus:border-[#06d6a0] focus:ring-2 focus:ring-[rgba(6,214,160,0.12)] transition"
+        className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition"
       />
     </div>
   );
@@ -83,11 +83,11 @@ function Input({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> 
 function Textarea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#64748b]">{label}</label>
+      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#8888A0]">{label}</label>
       <textarea
         {...props}
         rows={3}
-        className="w-full rounded-xl border border-[#1a2a4a] bg-[#05050f] px-3 py-2.5 text-sm text-[#e2e8f0] outline-none focus:border-[#06d6a0] focus:ring-2 focus:ring-[rgba(6,214,160,0.12)] transition resize-y"
+        className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition resize-y"
       />
     </div>
   );
@@ -96,10 +96,10 @@ function Textarea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextArea
 function Select({ label, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#64748b]">{label}</label>
+      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#8888A0]">{label}</label>
       <select
         {...props}
-        className="w-full rounded-xl border border-[#1a2a4a] bg-[#05050f] px-3 py-2.5 text-sm text-[#e2e8f0] outline-none focus:border-[#06d6a0] transition"
+        className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
       >
         {children}
       </select>
@@ -112,9 +112,9 @@ function Btn({ children, variant = "primary", disabled, onClick, type = "button"
 }) {
   const base = "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed";
   const styles = {
-    primary: "bg-[#06d6a0] text-[#05050f] hover:opacity-90",
+    primary: "bg-[#00D47E] text-[#0A0A0C] hover:opacity-90",
     danger: "bg-[rgba(239,68,68,0.15)] text-red-400 border border-red-500/30 hover:bg-[rgba(239,68,68,0.25)]",
-    ghost: "border border-[#1a2a4a] text-[#94a3b8] hover:border-[#06d6a0] hover:text-[#06d6a0]",
+    ghost: "border border-[#2E2E3A] text-[#94a3b8] hover:border-[#00D47E] hover:text-[#00D47E]",
   };
   return (
     <button type={type} disabled={disabled} onClick={onClick} className={`${base} ${styles[variant]}`}>
@@ -130,15 +130,15 @@ function TokenReveal({ token, onDismiss }: { token: string; onDismiss: () => voi
     <div className="mt-4 rounded-2xl border border-amber-500/30 bg-[rgba(245,158,11,0.08)] p-4">
       <p className="mb-2 text-xs font-semibold text-amber-400">⚠️ Copy this token now — it will never be shown again</p>
       <div className="flex items-center gap-2">
-        <code className="flex-1 break-all rounded-lg bg-[#05050f] px-3 py-2 text-xs font-mono text-[#06d6a0]">{token}</code>
+        <code className="flex-1 break-all rounded-lg bg-[#0A0A0C] px-3 py-2 text-xs font-mono text-[#00D47E]">{token}</code>
         <button
           onClick={() => { navigator.clipboard.writeText(token); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          className="rounded-lg border border-[#1a2a4a] px-3 py-2 text-xs text-[#64748b] hover:text-[#06d6a0] transition"
+          className="rounded-lg border border-[#2E2E3A] px-3 py-2 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
         >
           {copied ? "✓" : "Copy"}
         </button>
       </div>
-      <button onClick={onDismiss} className="mt-3 text-xs text-[#64748b] hover:text-[#e2e8f0] transition">
+      <button onClick={onDismiss} className="mt-3 text-xs text-[#8888A0] hover:text-[#E4E4ED] transition">
         I've saved the token — dismiss
       </button>
     </div>
@@ -394,14 +394,14 @@ export function AdminPanel() {
       <Card>
         <SectionTitle title="Registered Agents" note={loadingAgents ? "Loading..." : `${agents.length} agents`} />
         {loadingAgents ? (
-          <div className="text-sm text-[#64748b]">Loading agents...</div>
+          <div className="text-sm text-[#8888A0]">Loading agents...</div>
         ) : (
           <div className="space-y-2">
             {agents.map((a) => (
-              <div key={a.id} className="flex items-center justify-between rounded-2xl border border-[#1a2a4a] bg-[#05050f]/70 px-4 py-3">
+              <div key={a.id} className="flex items-center justify-between rounded-2xl border border-[#2E2E3A] bg-[#0A0A0C]/70 px-4 py-3">
                 <div>
-                  <span className="text-sm font-semibold text-[#e2e8f0]">{a.name}</span>
-                  <span className="ml-2 text-xs text-[#64748b]">id: {a.id}</span>
+                  <span className="text-sm font-semibold text-[#E4E4ED]">{a.name}</span>
+                  <span className="ml-2 text-xs text-[#8888A0]">id: {a.id}</span>
                 </div>
                 <RoleBadge role={a.role} />
               </div>
@@ -546,7 +546,7 @@ export function AdminPanel() {
           <Btn onClick={handleSync} disabled={syncBusy}>
             {syncBusy ? "Syncing..." : "🔄 Sync Workspace Docs"}
           </Btn>
-          {lastSync && <span className="text-xs text-[#64748b]">Last synced: {lastSync}</span>}
+          {lastSync && <span className="text-xs text-[#8888A0]">Last synced: {lastSync}</span>}
         </div>
       </AdminSection>}
 
@@ -579,7 +579,7 @@ export function AdminPanel() {
 
       {/* ── Role badge for current session ── */}
       <div className="flex items-center gap-2 pt-2 pb-4">
-        <span className="text-xs text-[#64748b]">Logged in as:</span>
+        <span className="text-xs text-[#8888A0]">Logged in as:</span>
         <RoleBadge role={sessionRole} />
       </div>
     </div>

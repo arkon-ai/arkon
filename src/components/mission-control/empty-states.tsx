@@ -164,7 +164,7 @@ export function AgentsEmpty() {
 
 export function FirstRunBanner() {
   return (
-    <div className="rounded-[16px] border border-accent/20 bg-[linear-gradient(135deg,rgba(6,214,160,0.04),rgba(139,92,246,0.04))] p-6">
+    <div className="rounded-[16px] border border-accent/20 bg-[linear-gradient(135deg,rgba(0,212,126,0.04),rgba(0,212,126,0.04))] p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-bold text-text">Welcome to Arkon</h2>

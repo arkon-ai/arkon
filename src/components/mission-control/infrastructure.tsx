@@ -79,10 +79,10 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 const ROLE_COLORS: Record<string, { color: string; bg: string; border: string }> = {
-  primary:     { color: "#22c55e", bg: "rgba(34, 197, 94, 0.08)",  border: "rgba(34, 197, 94, 0.25)" },
+  primary:     { color: "#00D47E", bg: "rgba(0, 212, 126, 0.08)",  border: "rgba(0, 212, 126, 0.25)" },
   failover:    { color: "#f59e0b", bg: "rgba(245, 158, 11, 0.08)", border: "rgba(245, 158, 11, 0.25)" },
   static:      { color: "#737373", bg: "rgba(115, 115, 115, 0.08)",border: "rgba(115, 115, 115, 0.25)" },
-  dfy_client:  { color: "#a78bfa", bg: "rgba(167, 139, 250, 0.08)", border: "rgba(167, 139, 250, 0.25)" },
+  dfy_client:  { color: "#00D47E", bg: "rgba(0, 212, 126, 0.08)", border: "rgba(0, 212, 126, 0.25)" },
   workstation: { color: "#60a5fa", bg: "rgba(96, 165, 250, 0.08)", border: "rgba(96, 165, 250, 0.25)" },
 };
 
@@ -146,7 +146,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
         className="rounded-2xl border p-4 transition-all duration-200"
         style={{
           background: selected ? "#111111" : "#0a0a0a",
-          borderColor: selected ? roleStyle.border : "#1a1a1a",
+          borderColor: selected ? roleStyle.border : "#2E2E3A",
           boxShadow: selected
             ? `0 0 30px -10px ${roleStyle.color}40, 0 20px 60px -20px rgba(0,0,0,0.6)`
             : "0 4px 20px -4px rgba(0,0,0,0.4)",
@@ -189,7 +189,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
         {/* Role badge */}
         <span
           className="mb-3 inline-block rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-          style={{ background: roleStyle.bg, color: roleStyle.color, borderColor: "#1a1a1a" }}
+          style={{ background: roleStyle.bg, color: roleStyle.color, borderColor: "#2E2E3A" }}
         >
           {ROLE_LABELS[d.role] || d.role}
         </span>
@@ -226,7 +226,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
                 style={{
                   background: svc.active ? "rgba(34, 197, 94, 0.06)" : "rgba(255,255,255,0.02)",
                   color: svc.active ? "#22c55e" : "#525252",
-                  borderColor: svc.active ? "rgba(34, 197, 94, 0.12)" : "#1a1a1a",
+                  borderColor: svc.active ? "rgba(34, 197, 94, 0.12)" : "#2E2E3A",
                 }}
               >
                 {svc.name}
@@ -330,13 +330,13 @@ function DetailPanel({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 400, opacity: 0 }}
       transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="absolute right-0 top-0 z-50 h-full w-[380px] overflow-y-auto border-l border-[#1a1a1a] bg-[#0a0a0a]"
+      className="absolute right-0 top-0 z-50 h-full w-[380px] overflow-y-auto border-l border-[#2E2E3A] bg-[#0a0a0a]"
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-[#1a1a1a] bg-[#0a0a0a] px-5 py-5">
+      <div className="sticky top-0 z-10 border-b border-[#2E2E3A] bg-[#0a0a0a] px-5 py-5">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-lg border border-[#1a1a1a] text-xs text-[#525252] transition hover:border-[#2a2a2a] hover:text-white"
+          className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-lg border border-[#2E2E3A] text-xs text-[#525252] transition hover:border-[#2a2a2a] hover:text-white"
         >
           {"\u2715"}
         </button>
@@ -395,7 +395,7 @@ function DetailPanel({
           <p className="text-xs text-[#525252]">No agents on this node</p>
         ) : (
           node.agents.map((agent) => (
-            <div key={agent.id} className="mb-2 flex items-center justify-between rounded-xl border border-[#1a1a1a] bg-[#111111] px-3 py-2.5">
+            <div key={agent.id} className="mb-2 flex items-center justify-between rounded-xl border border-[#2E2E3A] bg-[#111111] px-3 py-2.5">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(34,197,94,0.08)] text-xs font-semibold text-[#22c55e]">
                   {agent.name.charAt(0).toUpperCase()}
@@ -418,7 +418,7 @@ function DetailPanel({
         <Section title="Services">
           <div className="grid grid-cols-2 gap-2">
             {(node.services as Array<{ name: string; active: boolean }>).map((svc) => (
-              <div key={svc.name} className="flex items-center gap-2 rounded-xl border border-[#1a1a1a] bg-[#111111] px-3 py-2">
+              <div key={svc.name} className="flex items-center gap-2 rounded-xl border border-[#2E2E3A] bg-[#111111] px-3 py-2">
                 <div className="h-1.5 w-1.5 rounded-full" style={{ background: svc.active ? "#22c55e" : "#525252" }} />
                 <span className="text-[11px] font-medium text-[#a3a3a3]">{svc.name}</span>
               </div>
@@ -440,7 +440,7 @@ function DetailPanel({
                   ? "border-[rgba(34,197,94,0.15)] bg-[rgba(34,197,94,0.05)] text-[#22c55e] hover:bg-[rgba(34,197,94,0.1)]"
                   : action.style === "danger"
                     ? "border-[rgba(239,68,68,0.12)] text-[#ef4444] hover:bg-[rgba(239,68,68,0.05)]"
-                    : "border-[#1a1a1a] text-[#737373] hover:bg-white/[0.03] hover:text-[#e5e5e5]"
+                    : "border-[#2E2E3A] text-[#737373] hover:bg-white/[0.03] hover:text-[#e5e5e5]"
                 }
                 disabled:opacity-40`}
             >
@@ -458,7 +458,7 @@ function DetailPanel({
       {/* Action Output */}
       {actionResult && (
         <Section title="Output">
-          <pre className="max-h-60 overflow-auto rounded-xl border border-[#1a1a1a] bg-[#050505] p-3 font-mono text-[11px] leading-relaxed text-[#a3a3a3]">
+          <pre className="max-h-60 overflow-auto rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-3 font-mono text-[11px] leading-relaxed text-[#a3a3a3]">
             {actionResult.output || actionResult.error || "No output"}
           </pre>
         </Section>
@@ -482,7 +482,7 @@ function DetailPanel({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="border-b border-[#1a1a1a] px-5 py-4">
+    <div className="border-b border-[#2E2E3A] px-5 py-4">
       <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#525252]">{title}</p>
       {children}
     </div>
@@ -645,7 +645,7 @@ export function InfrastructureTopology() {
         <div className="text-center">
           <p className="mb-2 text-lg text-red-400">{"\u26A0"} Failed to load topology</p>
           <p className="mb-4 text-sm text-[#525252]">{error}</p>
-          <button onClick={fetchTopology} className="rounded-xl border border-[#1a1a1a] bg-[#111111] px-4 py-2 text-sm text-[#a3a3a3] transition hover:border-[#2a2a2a] hover:text-white">
+          <button onClick={fetchTopology} className="rounded-xl border border-[#2E2E3A] bg-[#111111] px-4 py-2 text-sm text-[#a3a3a3] transition hover:border-[#2a2a2a] hover:text-white">
             Retry
           </button>
         </div>
@@ -697,7 +697,7 @@ export function InfrastructureTopology() {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#1a1a1a] text-[#525252] transition hover:border-[#2a2a2a] hover:text-white disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#2E2E3A] text-[#525252] transition hover:border-[#2a2a2a] hover:text-white disabled:opacity-40"
           >
             <svg className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
@@ -708,7 +708,7 @@ export function InfrastructureTopology() {
       </div>
 
       {/* Topology Canvas */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#1a1a1a] bg-[#050505]" style={{ height: "calc(100vh - 200px)" }}>
+      <div className="relative overflow-hidden rounded-2xl border border-[#2E2E3A] bg-[#0A0A0C]" style={{ height: "calc(100vh - 200px)" }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -728,12 +728,12 @@ export function InfrastructureTopology() {
           <MiniMap
             nodeColor={(node) => {
               const d = node.data as unknown as InfraNode;
-              return STATUS_COLORS[d?.status] || "#1a1a1a";
+              return STATUS_COLORS[d?.status] || "#2E2E3A";
             }}
             maskColor="rgba(5, 5, 5, 0.85)"
             style={{
               background: "#0a0a0a",
-              border: "1px solid #1a1a1a",
+              border: "1px solid #2E2E3A",
               borderRadius: 12,
             }}
             pannable
@@ -753,7 +753,7 @@ export function InfrastructureTopology() {
         </AnimatePresence>
 
         {/* Legend */}
-        <div className="absolute bottom-4 left-4 flex gap-4 rounded-xl border border-[#1a1a1a] bg-[#0a0a0a] px-4 py-2.5">
+        <div className="absolute bottom-4 left-4 flex gap-4 rounded-xl border border-[#2E2E3A] bg-[#0a0a0a] px-4 py-2.5">
           {Object.entries(STATUS_COLORS).filter(([k]) => k !== "unknown").map(([status, color]) => (
             <div key={status} className="flex items-center gap-1.5 text-[11px] text-[#737373]">
               <div className="h-2 w-2 rounded-full" style={{ background: color }} />

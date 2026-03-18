@@ -45,12 +45,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#050505] px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0C] px-4">
       {/* Dot grid background */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(6, 214, 160, 0.06) 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(circle, rgba(0, 212, 126, 0.06) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
       />
@@ -59,18 +59,18 @@ export default function LoginPage() {
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background: "radial-gradient(ellipse at 50% 30%, rgba(6, 214, 160, 0.04), transparent 60%)",
+          background: "radial-gradient(ellipse at 50% 30%, rgba(0, 212, 126, 0.04), transparent 60%)",
         }}
       />
 
       <div className="relative z-10 w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a]">
-            <span className="text-2xl font-bold text-[#06d6a0]">A</span>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22]">
+            <span className="text-2xl font-bold text-[#00D47E]">A</span>
           </div>
           <h1 className="text-2xl font-bold text-white">Arkon</h1>
-          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[#475569]">AI Control Plane</p>
-          <p className="mt-2 text-sm text-[#64748b]">Enter your passphrase to continue</p>
+          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[#555566]">AI Governance Platform</p>
+          <p className="mt-2 text-sm text-[#8888A0]">Enter your passphrase to continue</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -82,7 +82,7 @@ export default function LoginPage() {
               placeholder="Passphrase"
               autoFocus
               autoComplete="current-password"
-              className="w-full rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-4 py-3 text-white placeholder:text-[#475569] focus:border-[#06d6a0]/50 focus:outline-none focus:ring-1 focus:ring-[#06d6a0]/50 transition"
+              className="w-full rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
             />
           </div>
 
@@ -95,13 +95,13 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading || !passphrase.trim()}
-            className="w-full rounded-xl bg-[#06d6a0] px-4 py-3 font-semibold text-[#050510] transition hover:bg-[#05c090] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+            className="w-full rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#05c090] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
           >
             {loading ? "Authenticating..." : "Sign In"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-[#475569]">
+        <p className="mt-6 text-center text-xs text-[#555566]">
           Secured by Arkon
         </p>
       </div>
