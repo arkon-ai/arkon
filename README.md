@@ -1,10 +1,13 @@
 <p align="center">
-  <img src="docs/assets/arkon-header.png" alt="Arkon — The AI Operations Control Plane" width="800" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/readme-banner-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/readme-banner-light.png">
+    <img alt="Arkon — AI Governance Platform" src=".github/assets/readme-banner-dark.png" width="100%">
+  </picture>
 </p>
 
 <p align="center">
-  <strong>The control plane for your AI agents.</strong><br/>
-  Monitor. Govern. Automate. One dashboard for your entire AI operation.
+  <strong>AI Governance Platform</strong> — Monitor your agents. Detect threats. Track costs. Build workflows.
 </p>
 
 <p align="center">
@@ -18,7 +21,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License" />
-  <img src="https://img.shields.io/badge/version-0.1.0-purple" alt="Version" />
+  <img src="https://img.shields.io/badge/version-0.1.0-green" alt="Version" />
   <img src="https://img.shields.io/badge/docker-compose%20up-green" alt="Docker" />
 </p>
 
