@@ -20,7 +20,7 @@ No Node.js, PostgreSQL, or other dependencies needed — Docker handles everythi
 ## Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/arkon.git
+git clone https://github.com/arkon-ai/arkon.git
 cd arkon
 ```
 

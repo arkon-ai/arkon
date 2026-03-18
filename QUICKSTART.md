@@ -7,7 +7,7 @@ Get Arkon running in 5 minutes. Three commands, one agent, one test event.
 ## 1. Start Arkon
 
 ```bash
-git clone https://github.com/your-org/arkon.git && cd arkon
+git clone https://github.com/arkon-ai/arkon.git && cd arkon
 cp .env.example .env
 docker compose up -d
 ```
