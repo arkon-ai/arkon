@@ -305,6 +305,32 @@ export function WorkflowsScreen() {
     fetchWorkflows();
   }, [fetchWorkflows]);
 
+  // Fetch single workflow with definition (list endpoint omits it)
+  const fetchWorkflow = useCallback(async (workflowId: number): Promise<Workflow | null> => {
+    try {
+      const res = await fetch(`/api/workflows/${workflowId}`, {
+        headers: getAuthHeaders(),
+        cache: "no-store",
+      });
+      if (!res.ok) return null;
+      const data = (await res.json()) as { workflow: Workflow };
+      return data.workflow;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Enter editor view — fetches full workflow first
+  const enterEditor = useCallback(async (wf: Workflow) => {
+    const full = await fetchWorkflow(wf.id);
+    if (full) {
+      setSelectedWorkflow(full);
+      setView("editor");
+    } else {
+      toast.error("Failed to load workflow definition");
+    }
+  }, [fetchWorkflow]);
+
   // Fetch runs for selected workflow
   const fetchRuns = useCallback(async (workflowId: number) => {
     try {
@@ -342,8 +368,7 @@ export function WorkflowsScreen() {
       setShowNewModal(false);
       setNewName("");
       setNewDesc("");
-      setSelectedWorkflow(data.workflow);
-      setView("editor");
+      enterEditor(data.workflow);
       fetchWorkflows();
     } catch {
       toast.error("Failed to create workflow");
@@ -370,8 +395,7 @@ export function WorkflowsScreen() {
       const data = (await res.json()) as { workflow: Workflow };
       toast.success(`Workflow "${data.workflow.name}" created from template`);
       closeTemplateModal();
-      setSelectedWorkflow(data.workflow);
-      setView("editor");
+      enterEditor(data.workflow);
       fetchWorkflows();
     } catch {
       toast.error("Failed to create workflow from template");
@@ -536,7 +560,7 @@ export function WorkflowsScreen() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <button
-                          onClick={() => { setSelectedWorkflow(wf); setView("editor"); }}
+                          onClick={() => enterEditor(wf)}
                           className="text-base font-semibold text-white hover:text-[#06d6a0] transition truncate"
                         >
                           {wf.name}
@@ -571,7 +595,7 @@ export function WorkflowsScreen() {
                         Runs
                       </button>
                       <button
-                        onClick={() => { setSelectedWorkflow(wf); setView("editor"); }}
+                        onClick={() => enterEditor(wf)}
                         className="rounded-lg border border-[#1a2a4a] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#2a3a5a] transition"
                       >
                         Edit

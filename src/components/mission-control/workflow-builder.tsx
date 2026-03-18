@@ -484,7 +484,10 @@ export function WorkflowBuilder({
   onChange: (def: WorkflowDefinition) => void;
   readOnly?: boolean;
 }) {
-  const initialNodes: Node[] = definition.nodes.map((n) => ({
+  const safeNodes = definition?.nodes ?? [];
+  const safeEdges = definition?.edges ?? [];
+
+  const initialNodes: Node[] = safeNodes.map((n) => ({
     id: n.id,
     type: n.type,
     position: n.position,
@@ -493,7 +496,7 @@ export function WorkflowBuilder({
     selectable: !readOnly,
   }));
 
-  const initialEdges: Edge[] = definition.edges.map((e) => ({
+  const initialEdges: Edge[] = safeEdges.map((e) => ({
     id: e.id,
     source: e.source,
     target: e.target,
