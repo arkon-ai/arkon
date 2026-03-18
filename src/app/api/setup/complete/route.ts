@@ -58,34 +58,26 @@ export async function POST(req: NextRequest) {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
 
+      const meta = JSON.stringify({
+        description: (agent_description || "").trim(),
+        framework: (framework || "custom").toLowerCase(),
+      });
+
       // Check if agent already exists (idempotent for retry)
       const existing = await query(
         "SELECT id FROM agents WHERE id = $1 LIMIT 1",
         [agentId]
       );
       if ((existing.rows as Array<{ id: string }>).length > 0) {
-        // Update the token
         await query(
-          "UPDATE agents SET token_hash = $1, name = $2, description = $3, framework = $4, updated_at = NOW() WHERE id = $5",
-          [
-            tokenHash,
-            agent_name.trim(),
-            (agent_description || "").trim(),
-            (framework || "custom").toLowerCase(),
-            agentId,
-          ]
+          "UPDATE agents SET token_hash = $1, name = $2, metadata = $3, updated_at = NOW() WHERE id = $4",
+          [tokenHash, agent_name.trim(), meta, agentId]
         );
       } else {
         await query(
-          `INSERT INTO agents (id, name, description, framework, token_hash, tenant_id, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, 'default', NOW(), NOW())`,
-          [
-            agentId,
-            agent_name.trim(),
-            (agent_description || "").trim(),
-            (framework || "custom").toLowerCase(),
-            tokenHash,
-          ]
+          `INSERT INTO agents (id, name, token_hash, metadata, tenant_id, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, 'default', NOW(), NOW())`,
+          [agentId, agent_name.trim(), tokenHash, meta]
         );
       }
 
