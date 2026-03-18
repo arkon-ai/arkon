@@ -271,10 +271,10 @@ export function CommandPalette({
         tabIndex={-1}
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
         {/* Search input */}
-        <div className="flex items-center gap-3 border-b border-[#2E2E3A] px-4 py-3">
-          <Search className="h-4 w-4 shrink-0 text-[#555566]" />
+        <div className="flex items-center gap-3 border-b border-[#1a2a4a] px-4 py-3">
+          <Search className="h-4 w-4 shrink-0 text-[#475569]" />
           <input
             ref={inputRef}
             type="text"
@@ -282,9 +282,9 @@ export function CommandPalette({
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Search pages, agents, workflows..."
-            className="flex-1 bg-transparent text-sm text-[#E4E4ED] outline-none placeholder:text-[#555566]"
+            className="flex-1 bg-transparent text-sm text-[#e2e8f0] outline-none placeholder:text-[#475569]"
           />
-          <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
+          <kbd className="rounded border border-[#1a2a4a] bg-[#050510] px-1.5 py-0.5 text-[10px] font-medium text-[#475569]">
             ESC
           </kbd>
         </div>
@@ -292,13 +292,13 @@ export function CommandPalette({
         {/* Results */}
         <div ref={listRef} className="max-h-[360px] overflow-y-auto p-2">
           {filtered.length === 0 ? (
-            <div className="py-8 text-center text-sm text-[#555566]">
+            <div className="py-8 text-center text-sm text-[#475569]">
               No results for &ldquo;{query}&rdquo;
             </div>
           ) : (
             grouped.map((group) => (
               <div key={group.category} className="mb-1">
-                <p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
+                <p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#475569]">
                   {categoryLabels[group.category] ?? group.category}
                 </p>
                 {group.items.map((item) => {
@@ -314,14 +314,14 @@ export function CommandPalette({
                       onMouseEnter={() => setActiveIndex(idx)}
                       className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] transition ${
                         isActive
-                          ? "bg-[rgba(0,212,126,0.08)] text-[#E4E4ED]"
+                          ? "bg-[rgba(0,212,126,0.08)] text-[#e2e8f0]"
                           : "text-[#94a3b8] hover:bg-white/[0.03]"
                       }`}
                     >
-                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
+                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-[#00D47E]" : "text-[#64748b]"}`} />
                       <span className="flex-1 truncate">{highlightMatch(item.label, query)}</span>
                       {isActive ? (
-                        <span className="text-[10px] text-[#555566]">Enter to open</span>
+                        <span className="text-[10px] text-[#475569]">Enter to open</span>
                       ) : null}
                     </button>
                   );
@@ -332,10 +332,10 @@ export function CommandPalette({
         </div>
 
         {/* Footer hint */}
-        <div className="flex items-center gap-4 border-t border-[#2E2E3A] px-4 py-2 text-[10px] text-[#555566]">
-          <span><kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&uarr;</kbd> <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&darr;</kbd> navigate</span>
-          <span><kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Enter</kbd> open</span>
-          <span><kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Esc</kbd> close</span>
+        <div className="flex items-center gap-4 border-t border-[#1a2a4a] px-4 py-2 text-[10px] text-[#475569]">
+          <span><kbd className="rounded border border-[#1a2a4a] bg-[#050510] px-1 py-0.5 text-[9px]">&uarr;</kbd> <kbd className="rounded border border-[#1a2a4a] bg-[#050510] px-1 py-0.5 text-[9px]">&darr;</kbd> navigate</span>
+          <span><kbd className="rounded border border-[#1a2a4a] bg-[#050510] px-1 py-0.5 text-[9px]">Enter</kbd> open</span>
+          <span><kbd className="rounded border border-[#1a2a4a] bg-[#050510] px-1 py-0.5 text-[9px]">Esc</kbd> close</span>
         </div>
       </div>
     </div>

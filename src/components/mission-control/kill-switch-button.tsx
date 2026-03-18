@@ -33,7 +33,7 @@ export function KillSwitchButton() {
         className={`relative flex h-10 w-10 items-center justify-center rounded-xl border transition ${
           hasRuns
             ? "border-red-500/50 bg-red-600/20 text-red-400 hover:bg-red-600/30 hover:text-red-300"
-            : "border-[#2E2E3A] bg-[#1A1A22] text-[#334155] cursor-default"
+            : "border-[#1a2a4a] bg-[#0d0d1a] text-[#334155] cursor-default"
         }`}
       >
         <OctagonX className="h-4 w-4" />

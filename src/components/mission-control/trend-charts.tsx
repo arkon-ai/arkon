@@ -24,8 +24,8 @@ function TrendTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-xs shadow-lg">
-      <p className="mb-1 text-[#8888A0]">{label}</p>
+    <div className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 text-[#64748b]">{label}</p>
       {payload.map((p) => (
         <p key={p.name} className="font-semibold" style={{ color: p.color }}>
           {p.name}: {p.value.toLocaleString()}
@@ -129,13 +129,13 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
                     <stop offset="100%" stopColor="#00D47E" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="toolGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8888A0" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#8888A0" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#64748b" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#64748b" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,42,74,0.4)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8888A0" }} />
-                <YAxis tick={{ fontSize: 10, fill: "#8888A0" }} width={40} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#64748b" }} />
+                <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={40} />
                 <Tooltip content={<TrendTooltip />} />
                 <Area
                   type="monotone"
@@ -148,10 +148,10 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
                 <Area
                   type="monotone"
                   dataKey="Tool Calls"
-                  stroke="#8888A0"
+                  stroke="#64748b"
                   fill="url(#toolGrad)"
                   strokeWidth={2}
-                  activeDot={{ r: 4, fill: "#8888A0", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(136,136,160,0.5))" } }}
+                  activeDot={{ r: 4, fill: "#64748b", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(136,136,160,0.5))" } }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -173,8 +173,8 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,42,74,0.4)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8888A0" }} />
-                <YAxis tick={{ fontSize: 10, fill: "#8888A0" }} width={50} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#64748b" }} />
+                <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={50} />
                 <Tooltip content={<TrendTooltip />} />
                 <Area
                   type="monotone"

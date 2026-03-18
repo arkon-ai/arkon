@@ -7,8 +7,8 @@ import { EmptyCard } from "./ui-cards";
 import { SectionDescription } from "./dashboard-clarity";
 
 const C = {
-  green: "#00D47E", secondary: "#8888A0", amber: "#f59e0b",
-  red: "#ef4444", slate: "#8888A0",
+  green: "#00D47E", secondary: "#64748b", amber: "#f59e0b",
+  red: "#ef4444", slate: "#64748b",
 };
 
 async function apiFetch<T>(url: string, opts?: RequestInit): Promise<T> {
@@ -96,7 +96,7 @@ function AuditLogTab() {
 
   if (!data) {
     return <div className="space-y-2">{[1, 2, 3].map((i) => (
-      <div key={i} className="h-12 animate-pulse rounded-xl bg-[#1A1A22]" />
+      <div key={i} className="h-12 animate-pulse rounded-xl bg-[#0d0d1a]" />
     ))}</div>;
   }
 
@@ -125,12 +125,12 @@ function AuditLogTab() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <select value={actionFilter} onChange={(e) => { setActionFilter(e.target.value); setOffset(0); }}
-          className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-sm text-white">
+          className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-sm text-white">
           <option value="">All Actions</option>
           {data.filters.actions.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
         <select value={resourceFilter} onChange={(e) => { setResourceFilter(e.target.value); setOffset(0); }}
-          className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-sm text-white">
+          className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-sm text-white">
           <option value="">All Resources</option>
           {data.filters.resourceTypes.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
@@ -145,10 +145,10 @@ function AuditLogTab() {
           description="Actions are automatically logged as you and your agents interact with the system. Recent activity will appear here."
         />
       ) : (
-        <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] overflow-hidden">
+        <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] overflow-hidden">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#2E2E3A] text-xs uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-[#1a2a4a] text-xs uppercase tracking-wider text-slate-500">
                 <th className="px-4 py-3">Time</th>
                 <th className="px-4 py-3">Actor</th>
                 <th className="px-4 py-3">Action</th>
@@ -159,7 +159,7 @@ function AuditLogTab() {
             </thead>
             <tbody>
               {data.entries.map((e) => (
-                <tr key={e.id} className="border-b border-[#2E2E3A]/50 text-slate-300 hover:bg-white/[0.02]">
+                <tr key={e.id} className="border-b border-[#1a2a4a]/50 text-slate-300 hover:bg-white/[0.02]">
                   <td className="px-4 py-2.5 text-xs text-slate-500">{new Date(e.created_at).toLocaleString()}</td>
                   <td className="px-4 py-2.5 text-white">{e.actor}</td>
                   <td className="px-4 py-2.5">
@@ -169,7 +169,7 @@ function AuditLogTab() {
                       e.action === "agent.resume" ? "bg-green-500/15 text-green-400" :
                       e.action.includes("delete") || e.action.includes("purge") ? "bg-red-500/10 text-red-400" :
                       e.action.includes("create") ? "bg-[rgba(0,212,126,0.1)] text-[#00D47E]" :
-                      "bg-[#2E2E3A] text-slate-300"
+                      "bg-[#1a2a4a] text-slate-300"
                     }`}>{e.action}</span>
                   </td>
                   <td className="px-4 py-2.5 text-slate-400">{e.resource_type}</td>
@@ -248,14 +248,14 @@ function ExportTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-6 space-y-4">
+      <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-6 space-y-4">
         <h3 className="text-sm font-semibold text-slate-300">Export Data</h3>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div>
             <label className="block text-xs text-slate-500 mb-1">Data Type</label>
             <select value={dataType} onChange={(e) => setDataType(e.target.value)}
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white">
+              className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white">
               <option value="events">Events</option>
               <option value="costs">Costs (daily_stats)</option>
               <option value="agents">Agents</option>
@@ -266,7 +266,7 @@ function ExportTab() {
           <div>
             <label className="block text-xs text-slate-500 mb-1">Format</label>
             <select value={format} onChange={(e) => setFormat(e.target.value)}
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white">
+              className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white">
               <option value="json">JSON</option>
               <option value="csv">CSV</option>
             </select>
@@ -274,18 +274,18 @@ function ExportTab() {
           <div>
             <label className="block text-xs text-slate-500 mb-1">Since</label>
             <input type="date" value={since} onChange={(e) => setSince(e.target.value)}
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white" />
+              className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white" />
           </div>
           <div>
             <label className="block text-xs text-slate-500 mb-1">Until</label>
             <input type="date" value={until} onChange={(e) => setUntil(e.target.value)}
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white" />
+              className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white" />
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           <button type="button" onClick={handleExport} disabled={loading}
-            className="rounded-xl bg-[#00D47E] px-6 py-2.5 text-sm font-semibold text-[#0A0A0C] transition hover:brightness-110 disabled:opacity-50">
+            className="rounded-xl bg-[#00D47E] px-6 py-2.5 text-sm font-semibold text-[#050510] transition hover:brightness-110 disabled:opacity-50">
             {loading ? "Exporting..." : "Export"}
           </button>
           {result && (
@@ -340,7 +340,7 @@ function PurgeTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-red-500/20 bg-[#1A1A22] p-6 space-y-4">
+      <div className="rounded-2xl border border-red-500/20 bg-[#0d0d1a] p-6 space-y-4">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-red-400" />
           <h3 className="text-sm font-semibold text-red-400">GDPR Data Purge</h3>
@@ -353,7 +353,7 @@ function PurgeTab() {
           <div>
             <label className="block text-xs text-slate-500 mb-1">Scope</label>
             <select value={scope} onChange={(e) => setScope(e.target.value as "tenant" | "agent")}
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white">
+              className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white">
               <option value="tenant">Tenant</option>
               <option value="agent">Agent</option>
             </select>
@@ -362,12 +362,12 @@ function PurgeTab() {
             <label className="block text-xs text-slate-500 mb-1">{scope === "tenant" ? "Tenant ID" : "Agent ID"}</label>
             <input type="text" value={scopeId} onChange={(e) => setScopeId(e.target.value)}
               placeholder={scope === "tenant" ? "e.g. my-client" : "e.g. agent_abc123"}
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white" />
+              className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white" />
           </div>
           <div className="flex items-end gap-3">
             <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
               <input type="checkbox" checked={dryRun} onChange={(e) => setDryRun(e.target.checked)}
-                className="rounded border-[#2E2E3A]" />
+                className="rounded border-[#1a2a4a]" />
               Dry Run (preview only)
             </label>
           </div>
@@ -377,14 +377,14 @@ function PurgeTab() {
           <div>
             <label className="block text-xs text-red-400 mb-1">Type PURGE to confirm</label>
             <input type="text" value={confirmText} onChange={(e) => setConfirmText(e.target.value)}
-              className="w-48 rounded-xl border border-red-500/30 bg-[#0A0A0C] px-3 py-2 text-sm text-white" />
+              className="w-48 rounded-xl border border-red-500/30 bg-[#050510] px-3 py-2 text-sm text-white" />
           </div>
         )}
 
         <button type="button" onClick={handlePurge} disabled={loading || !scopeId}
           className={`rounded-xl px-6 py-2.5 text-sm font-semibold transition ${
             dryRun
-              ? "bg-amber-500 text-[#0A0A0C] hover:brightness-110"
+              ? "bg-amber-500 text-[#050510] hover:brightness-110"
               : "bg-red-500 text-white hover:brightness-110"
           } disabled:opacity-50`}
         >

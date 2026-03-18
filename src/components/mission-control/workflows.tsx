@@ -244,12 +244,12 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   draft: { bg: "rgba(100,116,139,0.15)", text: "#94a3b8" },
   active: { bg: "rgba(0,212,126,0.15)", text: "#00D47E" },
   paused: { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
-  archived: { bg: "rgba(100,116,139,0.1)", text: "#8888A0" },
+  archived: { bg: "rgba(100,116,139,0.1)", text: "#64748b" },
   running: { bg: "rgba(59,130,246,0.15)", text: "#3b82f6" },
   completed: { bg: "rgba(0,212,126,0.15)", text: "#00D47E" },
   failed: { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
   success: { bg: "rgba(0,212,126,0.15)", text: "#00D47E" },
-  skipped: { bg: "rgba(100,116,139,0.1)", text: "#8888A0" },
+  skipped: { bg: "rgba(100,116,139,0.1)", text: "#64748b" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -538,7 +538,7 @@ export function WorkflowsScreen() {
           </div>
           <button
             onClick={() => setShowNewModal(true)}
-            className="rounded-lg bg-[#00D47E] px-4 py-2 text-sm font-semibold text-[#0A0A0C] hover:bg-[#00D47E]/90 transition active:scale-95"
+            className="rounded-lg bg-[#00D47E] px-4 py-2 text-sm font-semibold text-[#050510] hover:bg-[#00D47E]/90 transition active:scale-95"
           >
             + New Workflow
           </button>
@@ -555,7 +555,7 @@ export function WorkflowsScreen() {
           <div className="space-y-3">
             {workflows.map((wf, i) => (
               <CardEntranceWrapper key={wf.id} index={i}>
-                <div className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] p-4 hover:border-[#3E3E4A] transition">
+                <div className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] p-4 hover:border-[#2a3a5a] transition">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -590,13 +590,13 @@ export function WorkflowsScreen() {
                     <div className="flex gap-2 shrink-0">
                       <button
                         onClick={() => { setSelectedWorkflow(wf); fetchRuns(wf.id); setView("runs"); }}
-                        className="rounded-lg border border-[#2E2E3A] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#3E3E4A] transition"
+                        className="rounded-lg border border-[#1a2a4a] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#2a3a5a] transition"
                       >
                         Runs
                       </button>
                       <button
                         onClick={() => enterEditor(wf)}
-                        className="rounded-lg border border-[#2E2E3A] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#3E3E4A] transition"
+                        className="rounded-lg border border-[#1a2a4a] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#2a3a5a] transition"
                       >
                         Edit
                       </button>
@@ -619,8 +619,8 @@ export function WorkflowsScreen() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
             {templateStep === "gallery" ? (
               /* ── Template Gallery ── */
-              <div className="w-full max-w-3xl max-h-[85vh] rounded-xl border border-[#2E2E3A] bg-[#1A1A22] shadow-2xl flex flex-col">
-                <div className="flex items-center justify-between p-6 pb-4 border-b border-[#2E2E3A]">
+              <div className="w-full max-w-3xl max-h-[85vh] rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] shadow-2xl flex flex-col">
+                <div className="flex items-center justify-between p-6 pb-4 border-b border-[#1a2a4a]">
                   <div>
                     <h3 className="text-lg font-bold text-white">New Workflow</h3>
                     <p className="text-sm text-slate-400 mt-1">Start from a template or build from scratch</p>
@@ -634,7 +634,7 @@ export function WorkflowsScreen() {
                     return (
                       <div
                         key={tmpl.id}
-                        className="group rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-4 hover:border-[#3E3E4A] transition cursor-pointer"
+                        className="group rounded-xl border border-[#1a2a4a] bg-[#050510] p-4 hover:border-[#2a3a5a] transition cursor-pointer"
                         onClick={() => selectTemplate(tmpl)}
                       >
                         <div className="flex items-start gap-4">
@@ -668,7 +668,7 @@ export function WorkflowsScreen() {
                                 e.stopPropagation();
                                 setPreviewTemplate(previewTemplate?.id === tmpl.id ? null : tmpl);
                               }}
-                              className="rounded-lg border border-[#2E2E3A] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#3E3E4A] transition"
+                              className="rounded-lg border border-[#1a2a4a] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#2a3a5a] transition"
                             >
                               Preview
                             </button>
@@ -678,7 +678,7 @@ export function WorkflowsScreen() {
 
                         {/* Inline Preview */}
                         {previewTemplate?.id === tmpl.id && (
-                          <div className="mt-3 rounded-lg border border-[#2E2E3A] overflow-hidden" style={{ height: 220 }}>
+                          <div className="mt-3 rounded-lg border border-[#1a2a4a] overflow-hidden" style={{ height: 220 }}>
                             <WorkflowBuilder definition={tmpl.definition} onChange={() => {}} readOnly />
                           </div>
                         )}
@@ -688,7 +688,7 @@ export function WorkflowsScreen() {
 
                   {/* Blank Canvas Option */}
                   <div
-                    className="group rounded-xl border border-dashed border-[#2E2E3A] bg-[#0A0A0C] p-4 hover:border-[#3E3E4A] transition cursor-pointer"
+                    className="group rounded-xl border border-dashed border-[#1a2a4a] bg-[#050510] p-4 hover:border-[#2a3a5a] transition cursor-pointer"
                     onClick={() => {
                       setSelectedTemplate(null);
                       setNewName("");
@@ -697,7 +697,7 @@ export function WorkflowsScreen() {
                     }}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg border border-[#2E2E3A] bg-[#1A1A22]">
+                      <div className="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg border border-[#1a2a4a] bg-[#0d0d1a]">
                         <LayoutGrid className="w-5 h-5 text-slate-500" />
                       </div>
                       <div className="flex-1">
@@ -711,7 +711,7 @@ export function WorkflowsScreen() {
               </div>
             ) : (
               /* ── Customize / Create Step ── */
-              <div className="w-full max-w-lg rounded-xl border border-[#2E2E3A] bg-[#1A1A22] p-6 shadow-2xl">
+              <div className="w-full max-w-lg rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] p-6 shadow-2xl">
                 <div className="flex items-center gap-3 mb-5">
                   <button
                     onClick={() => { setTemplateStep("gallery"); setSelectedTemplate(null); setNewName(""); setNewDesc(""); }}
@@ -725,7 +725,7 @@ export function WorkflowsScreen() {
                 </div>
 
                 {selectedTemplate && (
-                  <div className="mb-4 rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] p-3">
+                  <div className="mb-4 rounded-lg border border-[#1a2a4a] bg-[#050510] p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <Info className="w-3.5 h-3.5 text-slate-400" />
                       <span className="text-[11px] uppercase tracking-wider text-slate-500 font-medium">Customize before activating</span>
@@ -751,7 +751,7 @@ export function WorkflowsScreen() {
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
                       placeholder="e.g. Daily Health Check"
-                      className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[#00D47E] focus:outline-none"
+                      className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[#00D47E] focus:outline-none"
                       autoFocus
                     />
                   </div>
@@ -764,7 +764,7 @@ export function WorkflowsScreen() {
                       onChange={(e) => setNewDesc(e.target.value)}
                       rows={2}
                       placeholder="In plain English, what does this workflow do?"
-                      className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[#00D47E] focus:outline-none resize-none"
+                      className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[#00D47E] focus:outline-none resize-none"
                     />
                     {!newDesc.trim() && newName.trim() && (
                       <p className="text-[11px] text-amber-400/70 mt-1">Description is required — tell users what this workflow does</p>
@@ -784,14 +784,14 @@ export function WorkflowsScreen() {
                       <button
                         onClick={() => handleInstallTemplate(true)}
                         disabled={!newName.trim() || !newDesc.trim()}
-                        className="rounded-lg border border-[#2E2E3A] px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:border-[#3E3E4A] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="rounded-lg border border-[#1a2a4a] px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:border-[#2a3a5a] transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Save as Draft
                       </button>
                       <button
                         onClick={() => handleInstallTemplate(false)}
                         disabled={!newName.trim() || !newDesc.trim()}
-                        className="rounded-lg bg-[#00D47E] px-4 py-2 text-sm font-semibold text-[#0A0A0C] hover:bg-[#00D47E]/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="rounded-lg bg-[#00D47E] px-4 py-2 text-sm font-semibold text-[#050510] hover:bg-[#00D47E]/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Activate Now
                       </button>
@@ -800,7 +800,7 @@ export function WorkflowsScreen() {
                     <button
                       onClick={handleCreate}
                       disabled={!newName.trim() || !newDesc.trim()}
-                      className="rounded-lg bg-[#00D47E] px-4 py-2 text-sm font-semibold text-[#0A0A0C] hover:bg-[#00D47E]/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-lg bg-[#00D47E] px-4 py-2 text-sm font-semibold text-[#050510] hover:bg-[#00D47E]/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Create
                     </button>
@@ -879,7 +879,7 @@ export function WorkflowsScreen() {
             </button>
             <button
               onClick={() => { fetchRuns(selectedWorkflow.id); setView("runs"); }}
-              className="rounded-lg border border-[#2E2E3A] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#3E3E4A] transition"
+              className="rounded-lg border border-[#1a2a4a] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#2a3a5a] transition"
             >
               View Runs ({selectedWorkflow.run_count})
             </button>
@@ -918,7 +918,7 @@ export function WorkflowsScreen() {
           ))}
         </div>
 
-        <div className="rounded-xl border border-[#2E2E3A] overflow-hidden" style={{ height: selectedWorkflow.trigger_type === "cron" ? "calc(100vh - 320px)" : "calc(100vh - 260px)" }}>
+        <div className="rounded-xl border border-[#1a2a4a] overflow-hidden" style={{ height: selectedWorkflow.trigger_type === "cron" ? "calc(100vh - 320px)" : "calc(100vh - 260px)" }}>
           <WorkflowBuilder
             definition={selectedWorkflow.definition}
             onChange={(def) => handleSave(def)}
@@ -926,7 +926,7 @@ export function WorkflowsScreen() {
         </div>
 
         {saving && (
-          <div className="fixed bottom-20 right-6 z-50 rounded-lg bg-[#1A1A22] border border-[#2E2E3A] px-4 py-2 text-xs text-slate-400 shadow-lg">
+          <div className="fixed bottom-20 right-6 z-50 rounded-lg bg-[#0d0d1a] border border-[#1a2a4a] px-4 py-2 text-xs text-slate-400 shadow-lg">
             Saving...
           </div>
         )}
@@ -954,7 +954,7 @@ export function WorkflowsScreen() {
           <div className="flex gap-2">
             <button
               onClick={() => setView("editor")}
-              className="rounded-lg border border-[#2E2E3A] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#3E3E4A] transition"
+              className="rounded-lg border border-[#1a2a4a] px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:border-[#2a3a5a] transition"
             >
               Edit Workflow
             </button>
@@ -1083,7 +1083,7 @@ function CronConfigBar({ workflow, onUpdate }: { workflow: Workflow; onUpdate: (
                 type="text"
                 value={expr}
                 onChange={(e) => setExpr(e.target.value)}
-                className="rounded border border-cyan-500/30 bg-[#0A0A0C] px-2 py-1 text-sm font-mono text-white w-40 focus:border-cyan-400 focus:outline-none"
+                className="rounded border border-cyan-500/30 bg-[#050510] px-2 py-1 text-sm font-mono text-white w-40 focus:border-cyan-400 focus:outline-none"
                 onKeyDown={(e) => { if (e.key === "Enter") saveCron(); if (e.key === "Escape") { setExpr(cronExpr); setEditing(false); } }}
                 autoFocus
               />
@@ -1136,7 +1136,7 @@ function RunCard({ run }: { run: WorkflowRun }) {
       : null;
 
   return (
-    <div className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] overflow-hidden">
+    <div className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full p-4 text-left hover:bg-white/[0.02] transition"
@@ -1161,7 +1161,7 @@ function RunCard({ run }: { run: WorkflowRun }) {
       </button>
 
       {expanded && steps.length > 0 && (
-        <div className="border-t border-[#2E2E3A] p-4 space-y-2">
+        <div className="border-t border-[#1a2a4a] p-4 space-y-2">
           {steps.map((step, i) => (
             <div
               key={`${step.nodeId}-${i}`}

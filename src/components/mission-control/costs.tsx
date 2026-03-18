@@ -11,10 +11,10 @@ import {
 
 /* ── colour tokens (matches existing charts.tsx palette) ── */
 const C = {
-  green: "#00D47E", secondary: "#8888A0", amber: "#f59e0b",
-  red: "#ef4444", slate: "#8888A0", teal: "#14b8a6",
+  green: "#00D47E", secondary: "#64748b", amber: "#f59e0b",
+  red: "#ef4444", slate: "#64748b", teal: "#14b8a6",
   pink: "#ec4899", blue: "#3b82f6",
-  grid: "#2E2E3A", tooltipBg: "#1A1A22",
+  grid: "#1a2a4a", tooltipBg: "#0d0d1a",
 };
 const AGENT_COLORS = [C.green, C.secondary, C.amber, C.teal, C.pink, C.blue, C.red, C.slate];
 
@@ -90,11 +90,11 @@ function StatCard({ label, value, sub, color }: { label: string; value: string; 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-      className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
+      className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#475569]">{label}</p>
       <p className="mt-1.5 text-2xl font-bold" style={{ color }}>{value}</p>
-      {sub && <p className="mt-1 text-xs text-[#8888A0]">{sub}</p>}
+      {sub && <p className="mt-1 text-xs text-[#64748b]">{sub}</p>}
     </motion.div>
   );
 }
@@ -104,11 +104,11 @@ function StatCard({ label, value, sub, color }: { label: string; value: string; 
 /* ── range selector ── */
 function RangeSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div className="flex gap-1 rounded-xl bg-[#1A1A22] p-1">
+    <div className="flex gap-1 rounded-xl bg-[#0d0d1a] p-1">
       {["24h", "7d", "30d"].map((r) => (
         <button key={r} onClick={() => onChange(r)}
           className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-            value === r ? "bg-[#2E2E3A] text-white" : "text-[#555566] hover:text-[#94a3b8]"
+            value === r ? "bg-[#1a2a4a] text-white" : "text-[#475569] hover:text-[#94a3b8]"
           }`}>{r}</button>
       ))}
     </div>
@@ -119,8 +119,8 @@ function RangeSelector({ value, onChange }: { value: string; onChange: (v: strin
 function CostTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-xs shadow-xl">
-      <p className="text-[#8888A0] mb-1">{label}</p>
+    <div className="rounded-lg border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-xs shadow-xl">
+      <p className="text-[#64748b] mb-1">{label}</p>
       <p className="text-white font-medium">{fmt$(payload[0].value)}</p>
     </div>
   );
@@ -224,14 +224,14 @@ export default function CostsScreen() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#E4E4ED]">Cost Tracker</h1>
-          <p className="mt-1 text-sm text-[#8888A0]">AI spend across all agents and models</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#e2e8f0]">Cost Tracker</h1>
+          <p className="mt-1 text-sm text-[#64748b]">AI spend across all agents and models</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={exportCostCSV}
             disabled={!overview || !agentData}
-            className="rounded-xl border border-[#2E2E3A] px-3 py-1.5 text-xs font-medium text-[#8888A0] hover:text-white hover:border-[#3E3E4A] transition disabled:opacity-30 disabled:cursor-not-allowed"
+            className="rounded-xl border border-[#1a2a4a] px-3 py-1.5 text-xs font-medium text-[#64748b] hover:text-white hover:border-[#2a3a5a] transition disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Export CSV
           </button>
@@ -253,7 +253,7 @@ export default function CostsScreen() {
         {(["overview", "agents", "models"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-              tab === t ? "bg-[rgba(0,212,126,0.15)] text-[#00D47E]" : "text-[#8888A0] hover:text-[#E4E4ED]"
+              tab === t ? "bg-[rgba(0,212,126,0.15)] text-[#00D47E]" : "text-[#64748b] hover:text-[#e2e8f0]"
             }`}>{t === "overview" ? "Overview" : t === "agents" ? "By Agent" : "By Model"}</button>
         ))}
       </div>
@@ -301,18 +301,18 @@ function BudgetProgress({ label, spent, limit, threshold, dailyBurn, isMonthly }
     <div className="mb-4">
       <div className="flex justify-between text-xs mb-1.5">
         <span className="text-[#94a3b8] font-medium">{label}</span>
-        <span className="text-[#8888A0]">
+        <span className="text-[#64748b]">
           {fmt$(spent)} / {fmt$(limit)}
           <span className="ml-1.5 font-medium" style={{ color: barColor }}>({Math.round(pct)}%)</span>
         </span>
       </div>
-      <div className="relative h-2.5 rounded-full bg-[#2E2E3A] overflow-hidden">
+      <div className="relative h-2.5 rounded-full bg-[#1a2a4a] overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${pct}%`, backgroundColor: barColor }} />
         {/* Threshold marker */}
-        <div className="absolute top-0 h-full w-px bg-[#555566]" style={{ left: `${threshold}%` }} />
+        <div className="absolute top-0 h-full w-px bg-[#475569]" style={{ left: `${threshold}%` }} />
       </div>
       {projectionText && (
-        <p className="text-[10px] mt-1" style={{ color: pct >= threshold ? C.amber : "#555566" }}>{projectionText}</p>
+        <p className="text-[10px] mt-1" style={{ color: pct >= threshold ? C.amber : "#475569" }}>{projectionText}</p>
       )}
     </div>
   );
@@ -327,11 +327,11 @@ function AnomalyAlert({ anomalies }: { anomalies: AgentAnomaly[] }) {
       <div className="space-y-2">
         {anomalies.map((a) => (
           <div key={a.agent_id} className="flex items-center justify-between text-xs">
-            <span className="text-[#E4E4ED]">
+            <span className="text-[#e2e8f0]">
               <span className="font-medium">{a.agent_name}</span>
               <span className="text-[#f59e0b] ml-2">{a.ratio.toFixed(1)}x higher than 7-day average</span>
             </span>
-            <span className="text-[#8888A0]">
+            <span className="text-[#64748b]">
               Today: <span className="text-white">{fmt$(a.today_cost)}</span>
               <span className="mx-1">vs</span>
               avg: <span className="text-white">{fmt$(a.avg_7d)}</span>/day
@@ -396,13 +396,13 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
   if (tips.length === 0) return null;
 
   return (
-    <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
+    <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5">
       <button onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full text-left">
         <h3 className="text-sm font-medium text-[#94a3b8]">
           Optimization Tips
-          <span className="ml-2 text-xs text-[#555566]">({tips.length})</span>
+          <span className="ml-2 text-xs text-[#475569]">({tips.length})</span>
         </h3>
-        <span className="text-xs text-[#555566]">{expanded ? "\u25B2" : "\u25BC"}</span>
+        <span className="text-xs text-[#475569]">{expanded ? "\u25B2" : "\u25BC"}</span>
       </button>
       {expanded && (
         <div className="mt-3 space-y-2">
@@ -452,7 +452,7 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
 
       {/* Budget progress (enhanced) */}
       {budgets.length > 0 && (
-        <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
+        <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5">
           <h3 className="text-sm font-medium text-[#94a3b8] mb-4">Budget Status</h3>
           {budgets.map((b) => (
             <React.Fragment key={b.id}>
@@ -482,14 +482,14 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
       )}
 
       {budgets.length === 0 && summary.total_cost_usd > 0 && (
-        <div className="rounded-[16px] border border-dashed border-[#2E2E3A] bg-[#1A1A22]/50 p-4 text-center">
-          <p className="text-sm text-[#8888A0]">No budget limits configured.</p>
-          <p className="text-xs text-[#555566] mt-1">Set a budget to track spending against a target and get alerts.</p>
+        <div className="rounded-[16px] border border-dashed border-[#1a2a4a] bg-[#0d0d1a]/50 p-4 text-center">
+          <p className="text-sm text-[#64748b]">No budget limits configured.</p>
+          <p className="text-xs text-[#475569] mt-1">Set a budget to track spending against a target and get alerts.</p>
         </div>
       )}
 
       {/* Cost trend chart */}
-      <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
+      <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5">
         <h3 className="text-sm font-medium text-[#94a3b8] mb-4">Daily Cost Trend</h3>
         <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={daily_trend}>
@@ -500,9 +500,9 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
-            <XAxis dataKey="day" tick={{ fill: "#555566", fontSize: 11 }}
+            <XAxis dataKey="day" tick={{ fill: "#475569", fontSize: 11 }}
               tickFormatter={(v: string) => new Date(v).toLocaleDateString("en", { month: "short", day: "numeric" })} />
-            <YAxis tick={{ fill: "#555566", fontSize: 11 }} tickFormatter={(v: number) => fmt$(v)} />
+            <YAxis tick={{ fill: "#475569", fontSize: 11 }} tickFormatter={(v: number) => fmt$(v)} />
             <Tooltip content={<CostTooltip />} />
             <Area type="monotone" dataKey="cost" stroke={C.green} fill="url(#costGrad)" strokeWidth={2} />
           </AreaChart>
@@ -511,7 +511,7 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Top agents by cost */}
-        <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
+        <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5">
           <h3 className="text-sm font-medium text-[#94a3b8] mb-4">Top Agents by Cost</h3>
           {by_agent.length === 0 ? (
             <CostsEmpty />
@@ -519,7 +519,7 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={by_agent.slice(0, 6)} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
-                <XAxis type="number" tick={{ fill: "#555566", fontSize: 11 }} tickFormatter={(v: number) => fmt$(v)} />
+                <XAxis type="number" tick={{ fill: "#475569", fontSize: 11 }} tickFormatter={(v: number) => fmt$(v)} />
                 <YAxis type="category" dataKey="agent_name" tick={{ fill: "#94a3b8", fontSize: 11 }} width={100} />
                 <Tooltip content={<CostTooltip />} />
                 <Bar dataKey="cost" radius={[0, 4, 4, 0]}>
@@ -533,14 +533,14 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
         </div>
 
         {/* Tenant breakdown */}
-        <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
+        <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-5">
           <h3 className="text-sm font-medium text-[#94a3b8] mb-4">Tenant Spend</h3>
           {by_tenant.map((t) => (
-            <div key={t.tenant_id} className="flex items-center justify-between py-2 border-b border-[#2E2E3A]/50 last:border-0">
-              <span className="text-sm text-[#E4E4ED]">{t.tenant_id}</span>
+            <div key={t.tenant_id} className="flex items-center justify-between py-2 border-b border-[#1a2a4a]/50 last:border-0">
+              <span className="text-sm text-[#e2e8f0]">{t.tenant_id}</span>
               <div className="text-right">
                 <span className="text-sm font-medium text-white">{fmt$(t.cost)}</span>
-                <span className="text-xs text-[#555566] ml-2">{fmtK(t.tokens)} tokens</span>
+                <span className="text-xs text-[#475569] ml-2">{fmtK(t.tokens)} tokens</span>
               </div>
             </div>
           ))}
@@ -578,7 +578,7 @@ function AgentsTab({ agents, loading, anomalies }: { agents: AgentDetailRow[] | 
         <motion.div key={a.agent_id}
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }}
-          className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-4"
+          className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] p-4"
         >
           <div className="flex items-start justify-between">
             <div>
@@ -590,19 +590,19 @@ function AgentsTab({ agents, loading, anomalies }: { agents: AgentDetailRow[] | 
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#555566]">{a.tenant_id} · {a.active_days}d active</p>
+              <p className="text-xs text-[#475569]">{a.tenant_id} · {a.active_days}d active</p>
             </div>
             <div className="text-right">
               <p className="text-lg font-semibold" style={{ color: AGENT_COLORS[i % AGENT_COLORS.length] }}>
                 {fmt$(a.total_cost)}
               </p>
-              <p className="text-xs text-[#555566]">{fmtK(a.total_tokens)} tokens</p>
+              <p className="text-xs text-[#475569]">{fmtK(a.total_tokens)} tokens</p>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-3 text-xs">
-            <div><span className="text-[#555566]">Messages</span><p className="text-[#94a3b8]">{a.total_messages}</p></div>
-            <div><span className="text-[#555566]">Tool Calls</span><p className="text-[#94a3b8]">{a.total_tool_calls}</p></div>
-            <div><span className="text-[#555566]">$/1K tokens</span><p className="text-[#94a3b8]">{fmt$(a.cost_per_1k_tokens)}</p></div>
+            <div><span className="text-[#475569]">Messages</span><p className="text-[#94a3b8]">{a.total_messages}</p></div>
+            <div><span className="text-[#475569]">Tool Calls</span><p className="text-[#94a3b8]">{a.total_tool_calls}</p></div>
+            <div><span className="text-[#475569]">$/1K tokens</span><p className="text-[#94a3b8]">{fmt$(a.cost_per_1k_tokens)}</p></div>
           </div>
           {a.daily_trend.length > 1 && (
             <div className="mt-3 h-12">
@@ -645,10 +645,10 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
       {paid.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-[#94a3b8] mb-3">Paid Models</h3>
-          <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] overflow-hidden">
+          <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#2E2E3A] text-[#555566] text-xs">
+                <tr className="border-b border-[#1a2a4a] text-[#475569] text-xs">
                   <th className="text-left p-3 font-medium">Model</th>
                   <th className="text-left p-3 font-medium">Provider</th>
                   <th className="text-right p-3 font-medium">Events</th>
@@ -658,9 +658,9 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
               </thead>
               <tbody>
                 {paid.map((m) => (
-                  <tr key={`${m.provider}::${m.model}`} className="border-b border-[#2E2E3A]/50 last:border-0">
+                  <tr key={`${m.provider}::${m.model}`} className="border-b border-[#1a2a4a]/50 last:border-0">
                     <td className="p-3 text-white">{m.display_name}</td>
-                    <td className="p-3 text-[#8888A0]">{m.provider}</td>
+                    <td className="p-3 text-[#64748b]">{m.provider}</td>
                     <td className="p-3 text-right text-[#94a3b8]">{m.event_count}</td>
                     <td className="p-3 text-right text-[#94a3b8]">{fmtK(m.total_tokens)}</td>
                     <td className="p-3 text-right font-medium text-[#f59e0b]">{fmt$(m.estimated_cost)}</td>
@@ -676,10 +676,10 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
       {free.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-[#94a3b8] mb-3">Free / Local Models</h3>
-          <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] overflow-hidden">
+          <div className="rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#2E2E3A] text-[#555566] text-xs">
+                <tr className="border-b border-[#1a2a4a] text-[#475569] text-xs">
                   <th className="text-left p-3 font-medium">Model</th>
                   <th className="text-left p-3 font-medium">Provider</th>
                   <th className="text-right p-3 font-medium">Events</th>
@@ -689,9 +689,9 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
               </thead>
               <tbody>
                 {free.map((m) => (
-                  <tr key={`${m.provider}::${m.model}`} className="border-b border-[#2E2E3A]/50 last:border-0">
+                  <tr key={`${m.provider}::${m.model}`} className="border-b border-[#1a2a4a]/50 last:border-0">
                     <td className="p-3 text-white">{m.display_name}</td>
-                    <td className="p-3 text-[#8888A0]">{m.provider}</td>
+                    <td className="p-3 text-[#64748b]">{m.provider}</td>
                     <td className="p-3 text-right text-[#94a3b8]">{m.event_count}</td>
                     <td className="p-3 text-right text-[#94a3b8]">{fmtK(m.total_tokens)}</td>
                     <td className="p-3 text-right text-[#00D47E]">Free</td>

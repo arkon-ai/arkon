@@ -62,11 +62,11 @@ interface NodeConfig {
 // ── Node type colors ──────────────────────────────────────────────────────────
 
 const NODE_STYLES: Record<string, { bg: string; border: string; icon: string; accent: string }> = {
-  "manual-trigger": { bg: "#1A1A22", border: "#00D47E", icon: "\u25B6", accent: "#00D47E" },
-  "cron-trigger":   { bg: "#1A1A22", border: "#06b6d4", icon: "\u23F0", accent: "#06b6d4" },
-  "http-request":   { bg: "#1A1A22", border: "#3b82f6", icon: "\u21C5", accent: "#3b82f6" },
-  "condition":      { bg: "#1A1A22", border: "#f59e0b", icon: "\u2747", accent: "#f59e0b" },
-  "notify":         { bg: "#1A1A22", border: "#06B6D4", icon: "\u2709", accent: "#06B6D4" },
+  "manual-trigger": { bg: "#0d0d1a", border: "#00D47E", icon: "\u25B6", accent: "#00D47E" },
+  "cron-trigger":   { bg: "#0d0d1a", border: "#06b6d4", icon: "\u23F0", accent: "#06b6d4" },
+  "http-request":   { bg: "#0d0d1a", border: "#3b82f6", icon: "\u21C5", accent: "#3b82f6" },
+  "condition":      { bg: "#0d0d1a", border: "#f59e0b", icon: "\u2747", accent: "#f59e0b" },
+  "notify":         { bg: "#0d0d1a", border: "#06B6D4", icon: "\u2709", accent: "#06B6D4" },
 };
 
 // ── Custom Node Components ────────────────────────────────────────────────────
@@ -88,7 +88,7 @@ function ManualTriggerNode({ data, selected }: NodeProps) {
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Trigger</span>
       </div>
       <div className="text-sm text-white font-medium">{d.label || "Manual Trigger"}</div>
-      <Handle type="source" position={Position.Bottom} className="!bg-[#00D47E] !w-3 !h-3 !border-2 !border-[#0A0A0C]" />
+      <Handle type="source" position={Position.Bottom} className="!bg-[#00D47E] !w-3 !h-3 !border-2 !border-[#050510]" />
     </div>
   );
 }
@@ -113,7 +113,7 @@ function CronTriggerNode({ data, selected }: NodeProps) {
       {d.cron_expression && (
         <div className="text-[11px] text-slate-400 mt-1 font-mono">{d.cron_expression}</div>
       )}
-      <Handle type="source" position={Position.Bottom} className="!bg-[#06b6d4] !w-3 !h-3 !border-2 !border-[#0A0A0C]" />
+      <Handle type="source" position={Position.Bottom} className="!bg-[#06b6d4] !w-3 !h-3 !border-2 !border-[#050510]" />
     </div>
   );
 }
@@ -130,7 +130,7 @@ function HttpRequestNode({ data, selected }: NodeProps) {
         boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-[#3b82f6] !w-3 !h-3 !border-2 !border-[#0A0A0C]" />
+      <Handle type="target" position={Position.Top} className="!bg-[#3b82f6] !w-3 !h-3 !border-2 !border-[#050510]" />
       <div className="flex items-center gap-2 mb-1">
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>HTTP</span>
@@ -142,7 +142,7 @@ function HttpRequestNode({ data, selected }: NodeProps) {
       </div>
       <div className="text-sm text-white font-medium">{d.label || "HTTP Request"}</div>
       {d.url && <div className="text-[11px] text-slate-400 mt-1 truncate max-w-[220px]">{d.url}</div>}
-      <Handle type="source" position={Position.Bottom} className="!bg-[#3b82f6] !w-3 !h-3 !border-2 !border-[#0A0A0C]" />
+      <Handle type="source" position={Position.Bottom} className="!bg-[#3b82f6] !w-3 !h-3 !border-2 !border-[#050510]" />
     </div>
   );
 }
@@ -159,7 +159,7 @@ function ConditionNode({ data, selected }: NodeProps) {
         boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-[#f59e0b] !w-3 !h-3 !border-2 !border-[#0A0A0C]" />
+      <Handle type="target" position={Position.Top} className="!bg-[#f59e0b] !w-3 !h-3 !border-2 !border-[#050510]" />
       <div className="flex items-center gap-2 mb-1">
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Condition</span>
@@ -174,8 +174,8 @@ function ConditionNode({ data, selected }: NodeProps) {
         <span className="text-green-400">True</span>
         <span className="text-red-400">False</span>
       </div>
-      <Handle type="source" position={Position.Bottom} id="true" className="!bg-green-400 !w-3 !h-3 !border-2 !border-[#0A0A0C]" style={{ left: "30%" }} />
-      <Handle type="source" position={Position.Bottom} id="false" className="!bg-red-400 !w-3 !h-3 !border-2 !border-[#0A0A0C]" style={{ left: "70%" }} />
+      <Handle type="source" position={Position.Bottom} id="true" className="!bg-green-400 !w-3 !h-3 !border-2 !border-[#050510]" style={{ left: "30%" }} />
+      <Handle type="source" position={Position.Bottom} id="false" className="!bg-red-400 !w-3 !h-3 !border-2 !border-[#050510]" style={{ left: "70%" }} />
     </div>
   );
 }
@@ -192,7 +192,7 @@ function NotifyNode({ data, selected }: NodeProps) {
         boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-[#06B6D4] !w-3 !h-3 !border-2 !border-[#0A0A0C]" />
+      <Handle type="target" position={Position.Top} className="!bg-[#06B6D4] !w-3 !h-3 !border-2 !border-[#050510]" />
       <div className="flex items-center gap-2 mb-1">
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Notify</span>
@@ -204,7 +204,7 @@ function NotifyNode({ data, selected }: NodeProps) {
       </div>
       <div className="text-sm text-white font-medium">{d.label || "Notify"}</div>
       {d.message && <div className="text-[11px] text-slate-400 mt-1 truncate max-w-[200px]">{d.message}</div>}
-      <Handle type="source" position={Position.Bottom} className="!bg-[#06B6D4] !w-3 !h-3 !border-2 !border-[#0A0A0C]" />
+      <Handle type="source" position={Position.Bottom} className="!bg-[#06B6D4] !w-3 !h-3 !border-2 !border-[#050510]" />
     </div>
   );
 }
@@ -236,13 +236,13 @@ function NodeConfigPanel({
   };
 
   return (
-    <div className="absolute right-4 top-4 z-50 w-80 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-2xl">
+    <div className="absolute right-4 top-4 z-50 w-80 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] p-4 shadow-2xl">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold text-white">Configure Node</h3>
         <button onClick={onClose} className="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
       </div>
       {NODE_HELP[nodeType] && (
-        <div className="mb-4 rounded-lg bg-[#0A0A0C] border border-[#2E2E3A] px-3 py-2">
+        <div className="mb-4 rounded-lg bg-[#050510] border border-[#1a2a4a] px-3 py-2">
           <p className="text-[11px] text-slate-400 leading-relaxed">{NODE_HELP[nodeType]}</p>
         </div>
       )}
@@ -254,7 +254,7 @@ function NodeConfigPanel({
             type="text"
             value={d.label ?? ""}
             onChange={(e) => updateField("label", e.target.value)}
-            className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+            className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
           />
         </div>
 
@@ -266,7 +266,7 @@ function NodeConfigPanel({
               value={String(d.cron_expression ?? "")}
               onChange={(e) => updateField("cron_expression", e.target.value)}
               placeholder="*/5 * * * *"
-              className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none"
+              className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none"
             />
             <div className="mt-2 space-y-1">
               <p className="text-[10px] text-slate-600 uppercase tracking-wider">Presets</p>
@@ -299,7 +299,7 @@ function NodeConfigPanel({
                 <select
                   value={String(d.method ?? "GET")}
                   onChange={(e) => updateField("method", e.target.value)}
-                  className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
                 >
                   <option>GET</option>
                   <option>POST</option>
@@ -314,7 +314,7 @@ function NodeConfigPanel({
                   type="number"
                   value={Number(d.timeout ?? 10000)}
                   onChange={(e) => updateField("timeout", Number(e.target.value))}
-                  className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
                 />
               </div>
             </div>
@@ -325,7 +325,7 @@ function NodeConfigPanel({
                 value={String(d.url ?? "")}
                 onChange={(e) => updateField("url", e.target.value)}
                 placeholder="https://example.com/api/..."
-                className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
+                className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
               />
             </div>
             <div>
@@ -335,7 +335,7 @@ function NodeConfigPanel({
                 onChange={(e) => updateField("body", e.target.value)}
                 rows={3}
                 placeholder='{"key": "value"}'
-                className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
+                className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
               />
             </div>
           </>
@@ -350,7 +350,7 @@ function NodeConfigPanel({
                 value={String(d.field ?? "")}
                 onChange={(e) => updateField("field", e.target.value)}
                 placeholder="status, body, httpStatus..."
-                className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
+                className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -359,7 +359,7 @@ function NodeConfigPanel({
                 <select
                   value={String(d.operator ?? "eq")}
                   onChange={(e) => updateField("operator", e.target.value)}
-                  className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
                 >
                   <option value="eq">equals</option>
                   <option value="neq">not equals</option>
@@ -378,7 +378,7 @@ function NodeConfigPanel({
                   value={String(d.value ?? "")}
                   onChange={(e) => updateField("value", e.target.value)}
                   placeholder="200"
-                  className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
                 />
               </div>
             </div>
@@ -392,7 +392,7 @@ function NodeConfigPanel({
               <select
                 value={String(d.channel ?? "telegram")}
                 onChange={(e) => updateField("channel", e.target.value)}
-                className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
               >
                 <option value="telegram">Telegram</option>
                 <option value="log">Log Only</option>
@@ -407,7 +407,7 @@ function NodeConfigPanel({
                 onChange={(e) => updateField("message", e.target.value)}
                 rows={3}
                 placeholder="Workflow completed. Status: {{status}}"
-                className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
+                className="w-full rounded-lg border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
               />
             </div>
           </>
@@ -449,7 +449,7 @@ function NodePalette({ onAdd }: { onAdd: (type: string) => void }) {
             <span>{item.label}</span>
           </button>
           {hoveredItem === item.type && (
-            <div className="absolute top-full left-0 mt-2 z-50 w-52 rounded-lg border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 shadow-xl pointer-events-none">
+            <div className="absolute top-full left-0 mt-2 z-50 w-52 rounded-lg border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 shadow-xl pointer-events-none">
               <p className="text-[11px] text-slate-300">{item.description}</p>
             </div>
           )}
@@ -471,8 +471,8 @@ const nodeTypes = {
 
 const defaultEdgeOptions = {
   animated: true,
-  style: { stroke: "#8888A0", strokeWidth: 2 },
-  markerEnd: { type: MarkerType.ArrowClosed, color: "#8888A0" },
+  style: { stroke: "#64748b", strokeWidth: 2 },
+  markerEnd: { type: MarkerType.ArrowClosed, color: "#64748b" },
 };
 
 export function WorkflowBuilder({
@@ -650,16 +650,16 @@ export function WorkflowBuilder({
         minZoom={0.3}
         maxZoom={2}
         proOptions={{ hideAttribution: true }}
-        className="bg-[#0A0A0C]"
+        className="bg-[#050510]"
       >
-        <Background color="#2E2E3A" gap={20} size={1} />
+        <Background color="#1a2a4a" gap={20} size={1} />
         <MiniMap
-          nodeStrokeColor="#2E2E3A"
-          nodeColor="#1A1A22"
+          nodeStrokeColor="#1a2a4a"
+          nodeColor="#0d0d1a"
           maskColor="rgba(10,10,20,0.8)"
-          className="!bg-[#1A1A22] !border-[#2E2E3A]"
+          className="!bg-[#0d0d1a] !border-[#1a2a4a]"
         />
-        <Controls className="!bg-[#1A1A22] !border-[#2E2E3A] !shadow-lg [&>button]:!bg-[#1A1A22] [&>button]:!border-[#2E2E3A] [&>button]:!text-slate-400 [&>button:hover]:!bg-[#1A1A22]" />
+        <Controls className="!bg-[#0d0d1a] !border-[#1a2a4a] !shadow-lg [&>button]:!bg-[#0d0d1a] [&>button]:!border-[#1a2a4a] [&>button]:!text-slate-400 [&>button:hover]:!bg-[#0d0d1a]" />
 
         {!readOnly && (
           <Panel position="top-left">

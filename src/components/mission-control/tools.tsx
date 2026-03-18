@@ -1029,7 +1029,7 @@ const itemTypeColors: Record<string, string> = {
   email: "#00D47E",
   campaign: "#00D47E",
   confession: "#f59e0b",
-  task: "#8888A0",
+  task: "#64748b",
   event: "#22c55e",
   reminder: "#ef4444",
 };
@@ -1156,7 +1156,7 @@ export function CalendarToolScreen() {
                       <div key={item.id} className="flex items-center gap-2 text-xs text-text">
                         <span
                           className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: item.color ?? itemTypeColors[item.item_type] ?? "#8888A0" }}
+                          style={{ backgroundColor: item.color ?? itemTypeColors[item.item_type] ?? "#64748b" }}
                         />
                         <span className="truncate">{item.title}</span>
                       </div>

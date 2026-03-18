@@ -54,17 +54,17 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#0A0A0C" />
+        <meta name="theme-color" content="#050510" />
       </head>
       <body className="bg-bg-deep text-text antialiased">
         <ServiceWorkerRegistration />
         <Toaster
           position="top-right"
           toastOptions={{
-            style: { background: "#1A1A22", border: "1px solid #2E2E3A", color: "#E4E4ED" },
+            style: { background: "#0d0d1a", border: "1px solid #1a2a4a", color: "#e2e8f0" },
           }}
         />
-        <Suspense fallback={<div className="min-h-screen bg-[#0A0A0C]" />}><NotionShell>{children}</NotionShell></Suspense>
+        <Suspense fallback={<div className="min-h-screen bg-[#050510]" />}><NotionShell>{children}</NotionShell></Suspense>
       </body>
     </html>
   );

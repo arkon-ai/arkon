@@ -212,7 +212,7 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#0A0A0C] px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center bg-[#050510] px-4 py-12">
       {/* Background effects */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -233,7 +233,7 @@ export default function SetupPage() {
       <div className="relative z-10 w-full max-w-lg">
         {/* Logo + progress */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22]">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a]">
             <span className="text-2xl font-bold text-[#00D47E]">A</span>
           </div>
           <h1 className="text-2xl font-bold text-white">
@@ -243,7 +243,7 @@ export default function SetupPage() {
             {step === 4 && "Send Your First Event"}
             {step === 5 && "You're All Set!"}
           </h1>
-          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[#555566]">
+          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[#475569]">
             AI Governance Platform
           </p>
         </div>
@@ -256,18 +256,18 @@ export default function SetupPage() {
                 className={`h-1 rounded-full transition-all duration-300 ${
                   i + 1 <= step
                     ? "bg-[#00D47E]"
-                    : "bg-[#2E2E3A]"
+                    : "bg-[#1a2a4a]"
                 }`}
               />
             </div>
           ))}
-          <span className="ml-2 text-xs text-[#555566]">
+          <span className="ml-2 text-xs text-[#475569]">
             {step}/{TOTAL_STEPS}
           </span>
         </div>
 
         {/* Step content */}
-        <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-6">
+        <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-6">
           {error && (
             <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
               {error}
@@ -290,7 +290,7 @@ export default function SetupPage() {
                   onChange={(e) => setOrgName(e.target.value)}
                   placeholder="e.g. Acme AI Labs"
                   autoFocus
-                  className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-4 py-3 text-white placeholder:text-[#475569] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
@@ -302,7 +302,7 @@ export default function SetupPage() {
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-4 py-3 text-white placeholder:text-[#475569] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
@@ -314,7 +314,7 @@ export default function SetupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Choose a strong password"
-                  className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-4 py-3 text-white placeholder:text-[#475569] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
@@ -326,14 +326,14 @@ export default function SetupPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-4 py-3 text-white placeholder:text-[#475569] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleStep1}
                 disabled={loading || !orgName.trim() || !adminEmail.trim()}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#05c090] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#050510] transition hover:bg-[#05c090] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -363,19 +363,19 @@ export default function SetupPage() {
                   onChange={(e) => setAgentName(e.target.value)}
                   placeholder="e.g. Lumina, Atlas, My Assistant"
                   autoFocus
-                  className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-4 py-3 text-white placeholder:text-[#475569] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[#94a3b8]">
-                  Description <span className="text-[#555566]">(optional)</span>
+                  Description <span className="text-[#475569]">(optional)</span>
                 </label>
                 <input
                   type="text"
                   value={agentDescription}
                   onChange={(e) => setAgentDescription(e.target.value)}
                   placeholder="What does this agent do?"
-                  className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-4 py-3 text-white placeholder:text-[#475569] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
@@ -391,7 +391,7 @@ export default function SetupPage() {
                       className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
                         framework === fw.value
                           ? "border-[#00D47E]/50 bg-[#00D47E]/10 text-[#00D47E]"
-                          : "border-[#2E2E3A] bg-[#0A0A0C] text-[#94a3b8] hover:border-[#3E3E4A]"
+                          : "border-[#1a2a4a] bg-[#050510] text-[#94a3b8] hover:border-[#2a3a5a]"
                       }`}
                     >
                       {fw.label}
@@ -403,7 +403,7 @@ export default function SetupPage() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="flex items-center gap-1 rounded-xl border border-[#2E2E3A] px-4 py-3 text-sm text-[#94a3b8] transition hover:bg-white/[0.03]"
+                  className="flex items-center gap-1 rounded-xl border border-[#1a2a4a] px-4 py-3 text-sm text-[#94a3b8] transition hover:bg-white/[0.03]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
@@ -412,7 +412,7 @@ export default function SetupPage() {
                   type="button"
                   onClick={handleStep2}
                   disabled={loading || !agentName.trim()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#05c090] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#050510] transition hover:bg-[#05c090] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -455,7 +455,7 @@ export default function SetupPage() {
                   <p className="mt-2 text-center text-sm text-[#94a3b8]">
                     Send an event from your agent, or use the test button below.
                   </p>
-                  <div className="mt-4 flex h-1 w-48 overflow-hidden rounded-full bg-[#2E2E3A]">
+                  <div className="mt-4 flex h-1 w-48 overflow-hidden rounded-full bg-[#1a2a4a]">
                     <div className="animate-[shimmer_2s_ease-in-out_infinite] h-full w-1/3 rounded-full bg-[#00D47E]/60" />
                   </div>
                 </div>
@@ -486,7 +486,7 @@ export default function SetupPage() {
                       if (!listening) startListening();
                       sendTestEvent();
                     }}
-                    className="flex items-center gap-2 rounded-xl border border-[#2E2E3A] px-4 py-2.5 text-sm font-medium text-[#94a3b8] transition hover:bg-white/[0.03]"
+                    className="flex items-center gap-2 rounded-xl border border-[#1a2a4a] px-4 py-2.5 text-sm font-medium text-[#94a3b8] transition hover:bg-white/[0.03]"
                   >
                     <Sparkles className="h-4 w-4" />
                     Send Test Event
@@ -495,7 +495,7 @@ export default function SetupPage() {
               </div>
 
               {!listening && !eventReceived && (
-                <p className="text-center text-xs text-[#555566]">
+                <p className="text-center text-xs text-[#475569]">
                   Haven&apos;t received an event? Check your agent configuration and try again.
                 </p>
               )}
@@ -504,7 +504,7 @@ export default function SetupPage() {
                 <button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="flex items-center gap-1 rounded-xl border border-[#2E2E3A] px-4 py-3 text-sm text-[#94a3b8] transition hover:bg-white/[0.03]"
+                  className="flex items-center gap-1 rounded-xl border border-[#1a2a4a] px-4 py-3 text-sm text-[#94a3b8] transition hover:bg-white/[0.03]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
@@ -514,8 +514,8 @@ export default function SetupPage() {
                   onClick={() => setStep(5)}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold transition active:scale-[0.98] ${
                     eventReceived
-                      ? "bg-[#00D47E] text-[#0A0A0C] hover:bg-[#05c090]"
-                      : "border border-[#2E2E3A] text-[#94a3b8] hover:bg-white/[0.03]"
+                      ? "bg-[#00D47E] text-[#050510] hover:bg-[#05c090]"
+                      : "border border-[#1a2a4a] text-[#94a3b8] hover:bg-white/[0.03]"
                   }`}
                 >
                   {eventReceived ? "Continue" : "Skip for now"}
@@ -575,7 +575,7 @@ export default function SetupPage() {
                 <button
                   type="button"
                   onClick={() => setStep(4)}
-                  className="flex items-center gap-1 rounded-xl border border-[#2E2E3A] px-4 py-3 text-sm text-[#94a3b8] transition hover:bg-white/[0.03]"
+                  className="flex items-center gap-1 rounded-xl border border-[#1a2a4a] px-4 py-3 text-sm text-[#94a3b8] transition hover:bg-white/[0.03]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
@@ -584,7 +584,7 @@ export default function SetupPage() {
                   type="button"
                   onClick={handleFinish}
                   disabled={loading}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#05c090] active:scale-[0.98] disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#050510] transition hover:bg-[#05c090] active:scale-[0.98] disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -600,7 +600,7 @@ export default function SetupPage() {
           )}
         </div>
 
-        <p className="mt-6 text-center text-xs text-[#555566]">
+        <p className="mt-6 text-center text-xs text-[#475569]">
           Powered by Arkon
         </p>
       </div>
@@ -694,7 +694,7 @@ telemetry:
           <CopyButton text={agentToken} />
         </div>
         <code className="block break-all text-xs text-[#94a3b8]">{agentToken}</code>
-        <p className="mt-1.5 text-[10px] text-[#555566]">
+        <p className="mt-1.5 text-[10px] text-[#475569]">
           Save this token — you won&apos;t see it again after leaving this page.
         </p>
       </div>
@@ -709,7 +709,7 @@ telemetry:
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
               tab === key
                 ? "bg-[#00D47E]/10 text-[#00D47E]"
-                : "text-[#555566] hover:text-[#94a3b8]"
+                : "text-[#475569] hover:text-[#94a3b8]"
             }`}
           >
             {snippets[key].label}
@@ -718,7 +718,7 @@ telemetry:
       </div>
 
       {/* Code block */}
-      <div className="relative rounded-xl border border-[#2E2E3A] bg-[#0A0A0C]">
+      <div className="relative rounded-xl border border-[#1a2a4a] bg-[#050510]">
         <div className="absolute right-2 top-2">
           <CopyButton text={snippets[tab].code} />
         </div>
@@ -731,7 +731,7 @@ telemetry:
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1 rounded-xl border border-[#2E2E3A] px-4 py-3 text-sm text-[#94a3b8] transition hover:bg-white/[0.03]"
+          className="flex items-center gap-1 rounded-xl border border-[#1a2a4a] px-4 py-3 text-sm text-[#94a3b8] transition hover:bg-white/[0.03]"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -739,7 +739,7 @@ telemetry:
         <button
           type="button"
           onClick={onNext}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#05c090] active:scale-[0.98]"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#050510] transition hover:bg-[#05c090] active:scale-[0.98]"
         >
           Continue
           <ArrowRight className="h-4 w-4" />
@@ -749,7 +749,7 @@ telemetry:
       <button
         type="button"
         onClick={onNext}
-        className="w-full text-center text-xs text-[#555566] transition hover:text-[#94a3b8]"
+        className="w-full text-center text-xs text-[#475569] transition hover:text-[#94a3b8]"
       >
         Skip this step — I&apos;ll set up later
       </button>
@@ -773,7 +773,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] text-[#555566] transition hover:bg-white/[0.05] hover:text-[#94a3b8]"
+      className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] text-[#475569] transition hover:bg-white/[0.05] hover:text-[#94a3b8]"
     >
       {copied ? (
         <>
@@ -804,12 +804,12 @@ function FeatureCard({
   return (
     <a
       href={href}
-      className="flex flex-col gap-2 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-3 transition hover:border-[#3E3E4A] hover:bg-[#0a0a18]"
+      className="flex flex-col gap-2 rounded-xl border border-[#1a2a4a] bg-[#050510] p-3 transition hover:border-[#2a3a5a] hover:bg-[#0a0a18]"
     >
       <Icon className="h-5 w-5 text-[#00D47E]" />
       <div>
         <p className="text-sm font-semibold text-white">{title}</p>
-        <p className="text-[11px] leading-4 text-[#555566]">{description}</p>
+        <p className="text-[11px] leading-4 text-[#475569]">{description}</p>
       </div>
     </a>
   );

@@ -323,7 +323,7 @@ function AlertsBanner() {
 
   if (anomalies.length === 0) {
     return (
-      <div className="flex items-center gap-3 rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] px-4 py-3">
+      <div className="flex items-center gap-3 rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] px-4 py-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(0,212,126,0.08)]">
           <ShieldCheckIcon className="h-4 w-4 text-[#00D47E]" />
         </div>
@@ -333,7 +333,7 @@ function AlertsBanner() {
   }
 
   return (
-    <div className="rounded-[16px] border border-[#f59e0b]/20 bg-[#1A1A22] overflow-hidden">
+    <div className="rounded-[16px] border border-[#f59e0b]/20 bg-[#0d0d1a] overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
@@ -342,10 +342,10 @@ function AlertsBanner() {
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(245,158,11,0.08)]">
           <AlertTriangle className="h-4 w-4 text-[#f59e0b]" />
         </div>
-        <span className="flex-1 text-sm font-medium text-[#E4E4ED]">
+        <span className="flex-1 text-sm font-medium text-[#e2e8f0]">
           {anomalies.length} active alert{anomalies.length !== 1 ? "s" : ""}
         </span>
-        <ChevronDown className={`h-4 w-4 text-[#555566] transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`} />
+        <ChevronDown className={`h-4 w-4 text-[#475569] transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`} />
       </button>
       <div className={`overflow-hidden transition-all duration-200 ease-in-out ${expanded ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"}`}>
         <div className="space-y-2 px-4 pb-3">
@@ -358,13 +358,13 @@ function AlertsBanner() {
                   <span className={`text-[10px] font-bold ${a.level === "high" ? "text-red-400" : "text-[#f59e0b]"}`}>
                     {a.level.toUpperCase()}
                   </span>
-                  <span className="truncate text-sm text-[#E4E4ED]">{a.agent_name}</span>
-                  <span className="text-xs text-[#8888A0]">{a.anomaly_type.replace("_", " ")}</span>
+                  <span className="truncate text-sm text-[#e2e8f0]">{a.agent_name}</span>
+                  <span className="text-xs text-[#64748b]">{a.anomaly_type.replace("_", " ")}</span>
                 </div>
               </div>
               <button
                 onClick={() => ackAlert(a.id)}
-                className="ml-3 shrink-0 rounded-lg border border-[#2E2E3A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
+                className="ml-3 shrink-0 rounded-lg border border-[#1a2a4a] px-2.5 py-1 text-xs text-[#64748b] hover:text-[#00D47E] transition"
               >
                 Ack
               </button>
@@ -667,7 +667,7 @@ function OverviewContent() {
             accent="text-cyan"
             sublabel={`${metrics.activeAgents} live now`}
             sparkData={toolsSparkData}
-            sparkColor="#8888A0"
+            sparkColor="#64748b"
             delta={toolsDelta}
             tooltip="Registered agents across all tenants. 'Live' means active in the last hour."
           />
@@ -933,7 +933,7 @@ function ProgressRing({ progress }: { progress: number }) {
             <stop offset="100%" stopColor="#00D47E" />
           </linearGradient>
         </defs>
-        <circle cx="110" cy="110" r={radius} stroke="#2E2E3A" strokeWidth="14" fill="none" />
+        <circle cx="110" cy="110" r={radius} stroke="#1a2a4a" strokeWidth="14" fill="none" />
         <circle
           cx="110"
           cy="110"
@@ -1458,10 +1458,10 @@ export function AnomalyWidget() {
                 <span className={`text-xs font-bold ${a.level === "high" ? "text-red-400" : "text-amber-400"}`}>
                   {a.level.toUpperCase()}
                 </span>
-                <span className="text-sm text-[#E4E4ED]">{a.agent_name}</span>
-                <span className="text-xs text-[#8888A0]">{a.anomaly_type.replace("_", " ")}</span>
+                <span className="text-sm text-[#e2e8f0]">{a.agent_name}</span>
+                <span className="text-xs text-[#64748b]">{a.anomaly_type.replace("_", " ")}</span>
               </div>
-              <div className="mt-0.5 text-xs text-[#8888A0]">
+              <div className="mt-0.5 text-xs text-[#64748b]">
                 {a.anomaly_type === "rate_spike"
                   ? `${parseFloat(String(a.multiplier ?? 0)).toFixed(1)}x baseline · ${Math.round(Number(a.current_rate))} vs ${Math.round(Number(a.baseline_rate))} events/hr`
                   : a.anomaly_type === "rate_silence" ? "Agent went silent (below 10% of baseline)" : a.anomaly_type}
@@ -1469,7 +1469,7 @@ export function AnomalyWidget() {
             </div>
             <button
               onClick={() => ackAlert(a.id)}
-              className="ml-3 shrink-0 rounded-lg border border-[#2E2E3A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition btn-press"
+              className="ml-3 shrink-0 rounded-lg border border-[#1a2a4a] px-2.5 py-1 text-xs text-[#64748b] hover:text-[#00D47E] transition btn-press"
             >
               Ack
             </button>

@@ -356,12 +356,12 @@ export function NotionShell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col bg-[#080810] text-[#94a3b8]">
-      <div className="flex h-14 items-center border-b border-[#2E2E3A]/50 px-4">
+      <div className="flex h-14 items-center border-b border-[#1a2a4a]/50 px-4">
         <div className="flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#555566]">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#475569]">
             Arkon
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-[#E4E4ED]">Workspace</p>
+          <p className="mt-0.5 text-sm font-semibold text-[#e2e8f0]">Workspace</p>
         </div>
       </div>
 
@@ -370,11 +370,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
-          className="flex min-h-9 w-full items-center gap-2.5 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-1.5 text-[12px] text-[#555566] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
+          className="flex min-h-9 w-full items-center gap-2.5 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-1.5 text-[12px] text-[#475569] transition hover:border-[#2a3a5a] hover:text-[#64748b]"
         >
           <Search className="h-3.5 w-3.5" />
           <span className="flex-1 text-left">Search</span>
-          <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
+          <kbd className="rounded border border-[#1a2a4a] bg-[#050510] px-1.5 py-0.5 text-[10px] font-medium text-[#475569]">
             {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
           </kbd>
         </button>
@@ -391,11 +391,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
                 className="flex min-h-8 w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-left transition hover:bg-white/[0.02]"
               >
                 <ChevronDown
-                  className={`h-3 w-3 text-[#555566] transition-transform duration-200 ${
+                  className={`h-3 w-3 text-[#475569] transition-transform duration-200 ${
                     isCollapsed ? "-rotate-90" : ""
                   }`}
                 />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#475569]">
                   {group.label}
                 </span>
               </button>
@@ -417,18 +417,18 @@ export function NotionShell({ children }: { children: ReactNode }) {
                         className={`flex min-h-9 items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium transition ${
                           active
                             ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
-                            : "text-[#94a3b8] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+                            : "text-[#94a3b8] hover:bg-white/[0.03] hover:text-[#e2e8f0]"
                         }`}
                       >
-                        <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
+                        <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#64748b]"}`} />
                         <div className="min-w-0 flex-1">
                           <span>{item.label}</span>
                           {item.subtitle && (
-                            <span className="block truncate text-[10px] font-normal text-[#555566]">{item.subtitle}</span>
+                            <span className="block truncate text-[10px] font-normal text-[#475569]">{item.subtitle}</span>
                           )}
                         </div>
                         {item.href === "/tools/approvals" && pendingCount && pendingCount > 0 ? (
-                          <span className="rounded-full bg-[#f59e0b] px-1.5 py-0.5 text-[9px] font-bold text-[#0A0A0C]">
+                          <span className="rounded-full bg-[#f59e0b] px-1.5 py-0.5 text-[9px] font-bold text-[#050510]">
                             {pendingCount > 9 ? "9+" : pendingCount}
                           </span>
                         ) : null}
@@ -444,9 +444,9 @@ export function NotionShell({ children }: { children: ReactNode }) {
         {/* Quick Access — pinned docs (max 3) */}
         {pinnedDocs.length > 0 ? (
           <>
-            <div className="my-2 border-t border-[#2E2E3A]/50" />
+            <div className="my-2 border-t border-[#1a2a4a]/50" />
             <section>
-              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#475569]">
                 Quick Access
               </p>
               <div className="space-y-0.5">
@@ -455,7 +455,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     key={`pinned-${doc.id}`}
                     href={`/tools/docs?id=${doc.id}`}
                     onClick={handleNavSelect}
-                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-3 py-1.5 text-left text-[13px] text-[#94a3b8] transition hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-3 py-1.5 text-left text-[13px] text-[#94a3b8] transition hover:bg-white/[0.03] hover:text-[#e2e8f0]"
                   >
                     <Star className="h-3.5 w-3.5 shrink-0 text-[#f59e0b]" />
                     <span className="min-w-0 flex-1 truncate">{doc.title}</span>
@@ -466,11 +466,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
           </>
         ) : null}
 
-        <div className="mt-2 border-t border-[#2E2E3A]/50 pt-2">
+        <div className="mt-2 border-t border-[#1a2a4a]/50 pt-2">
           <button
             type="button"
             onClick={handleLogout}
-            className="flex min-h-9 w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium text-[#8888A0] transition hover:bg-red-500/[0.06] hover:text-red-400"
+            className="flex min-h-9 w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium text-[#64748b] transition hover:bg-red-500/[0.06] hover:text-red-400"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             <span>Sign Out</span>
@@ -481,37 +481,37 @@ export function NotionShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0C] text-[#E4E4ED]">
+    <div className="min-h-screen bg-[#050510] text-[#e2e8f0]">
       <div className="flex min-h-screen">
-        <aside className="hidden w-60 shrink-0 border-r border-[#2E2E3A]/50 md:block">
+        <aside className="hidden w-60 shrink-0 border-r border-[#1a2a4a]/50 md:block">
           <div className="sticky top-0 h-screen">{sidebar}</div>
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 border-b border-[#2E2E3A]/50 bg-[#0A0A0C]/95 backdrop-blur">
+          <header className="sticky top-0 z-40 border-b border-[#1a2a4a]/50 bg-[#050510]/95 backdrop-blur">
             <div className="flex h-14 items-center justify-between px-4 sm:px-6">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsOpen(true)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#2E2E3A] bg-[#1A1A22] text-[#E4E4ED] md:hidden active:scale-95 transition-transform touch-manipulation"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] text-[#e2e8f0] md:hidden active:scale-95 transition-transform touch-manipulation"
                   aria-label="Open sidebar"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
                 <div>
-                  <p className="text-sm font-semibold text-[#E4E4ED]">{pageLabels[pathname ?? ""] ?? "Arkon"}</p>
+                  <p className="text-sm font-semibold text-[#e2e8f0]">{pageLabels[pathname ?? ""] ?? "Arkon"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setPaletteOpen(true)}
-                  className="hidden md:flex h-10 items-center gap-2 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 text-[12px] text-[#555566] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
+                  className="hidden md:flex h-10 items-center gap-2 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 text-[12px] text-[#475569] transition hover:border-[#2a3a5a] hover:text-[#64748b]"
                 >
                   <Search className="h-3.5 w-3.5" />
                   <span>Search</span>
-                  <kbd className="ml-2 rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium">
+                  <kbd className="ml-2 rounded border border-[#1a2a4a] bg-[#050510] px-1.5 py-0.5 text-[10px] font-medium">
                     {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
                   </kbd>
                 </button>
@@ -545,7 +545,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
           />
-          <div className="relative h-full w-[272px] max-w-[85vw] border-r border-[#2E2E3A]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative h-full w-[272px] max-w-[85vw] border-r border-[#1a2a4a]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]" onClick={(e) => e.stopPropagation()}>
             {sidebar}
           </div>
         </div>
@@ -562,8 +562,8 @@ export function NotionShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}
           />
-          <div className="absolute inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] mx-3 rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-            <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
+          <div className="absolute inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] mx-3 rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+            <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#475569]">
               More
             </div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -578,10 +578,10 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${
                       active
                         ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
-                        : "text-[#94a3b8] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+                        : "text-[#94a3b8] hover:bg-white/[0.03] hover:text-[#e2e8f0]"
                     }`}
                   >
-                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#64748b]"}`} />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -595,7 +595,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
       <MobileKillBar />
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#2E2E3A]/50 bg-[#080810]/95 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1a2a4a]/50 bg-[#080810]/95 backdrop-blur md:hidden">
         <div className="mx-auto grid h-[56px] max-w-3xl grid-cols-5 px-2 pb-[max(env(safe-area-inset-bottom),4px)] pt-1">
           {mobileTabs.map((tab) => {
             if (tab.href === "##more##") {
@@ -606,7 +606,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                   type="button"
                   onClick={() => setMoreOpen(!moreOpen)}
                   className={`flex min-h-10 flex-col items-center justify-center rounded-xl text-[10px] font-semibold transition ${
-                    moreOpen ? "text-[#00D47E]" : "text-[#8888A0] hover:text-[#94a3b8]"
+                    moreOpen ? "text-[#00D47E]" : "text-[#64748b] hover:text-[#94a3b8]"
                   }`}
                 >
                   <Icon className="mb-0.5 h-5 w-5" />
@@ -624,13 +624,13 @@ export function NotionShell({ children }: { children: ReactNode }) {
                 className={`flex min-h-10 flex-col items-center justify-center rounded-xl text-[10px] font-semibold transition ${
                   active
                     ? "text-[#00D47E]"
-                    : "text-[#8888A0] hover:text-[#94a3b8]"
+                    : "text-[#64748b] hover:text-[#94a3b8]"
                 }`}
               >
                 <span className="relative mb-0.5">
                   <Icon className="h-5 w-5" />
                   {tab.href === "/tools" && pendingCount && pendingCount > 0 ? (
-                    <span className="absolute -right-2.5 -top-1.5 inline-flex min-h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#f59e0b] px-0.5 text-[8px] font-bold text-[#0A0A0C]">
+                    <span className="absolute -right-2.5 -top-1.5 inline-flex min-h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#f59e0b] px-0.5 text-[8px] font-bold text-[#050510]">
                       {pendingCount > 9 ? "9+" : pendingCount}
                     </span>
                   ) : null}

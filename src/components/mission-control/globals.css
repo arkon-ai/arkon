@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0A0A0C;
-  --foreground: #E4E4ED;
-  --bg-deep: #0A0A0C;
-  --bg-card: #1A1A22;
-  --border: #2E2E3A;
+  --background: #050510;
+  --foreground: #e2e8f0;
+  --bg-deep: #050510;
+  --bg-card: #0d0d1a;
+  --border: #1a2a4a;
   --cyan: #00D47E;
   --accent: #00D47E;
   --amber: #f59e0b;
   --red: #ef4444;
   --green: #22c55e;
-  --text: #E4E4ED;
-  --text-dim: #8888A0;
+  --text: #e2e8f0;
+  --text-dim: #64748b;
 }
 
 @theme inline {
@@ -71,7 +71,7 @@ pre {
 
 .markdown-body h1 {
   margin-bottom: 1rem;
-  border-bottom: 1px solid #2E2E3A;
+  border-bottom: 1px solid #1a2a4a;
   padding-bottom: 0.5rem;
   font-size: 2rem;
   color: #fff;
@@ -80,13 +80,13 @@ pre {
 .markdown-body h2 {
   margin: 2rem 0 1rem;
   font-size: 1.5rem;
-  color: #E4E4ED;
+  color: #e2e8f0;
 }
 
 .markdown-body h3 {
   margin: 1.5rem 0 0.75rem;
   font-size: 1.25rem;
-  color: #E4E4ED;
+  color: #e2e8f0;
 }
 
 .markdown-body p {
@@ -97,7 +97,7 @@ pre {
 
 .markdown-body code {
   border-radius: 4px;
-  background: #1A1A22;
+  background: #0d0d1a;
   padding: 2px 6px;
   color: #00D47E;
 }
@@ -115,14 +115,14 @@ pre {
 }
 
 .markdown-body th {
-  background: #2E2E3A;
+  background: #1a2a4a;
   padding: 8px 12px;
   text-align: left;
-  color: #E4E4ED;
+  color: #e2e8f0;
 }
 
 .markdown-body td {
-  border-bottom: 1px solid #2E2E3A;
+  border-bottom: 1px solid #1a2a4a;
   padding: 8px 12px;
   color: #cbd5e1;
 }
@@ -155,7 +155,7 @@ pre {
 }
 
 .markdown-body hr {
-  border-color: #2E2E3A;
+  border-color: #1a2a4a;
 }
 
 /* ═══════════════════════════════════════
@@ -191,9 +191,9 @@ pre {
 .skeleton {
   background: linear-gradient(
     90deg,
-    #1A1A22 25%,
-    #2E2E3A 50%,
-    #1A1A22 75%
+    #0d0d1a 25%,
+    #1a2a4a 50%,
+    #0d0d1a 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;

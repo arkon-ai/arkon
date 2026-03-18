@@ -51,7 +51,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0A0A0C] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#050510] px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500/20 to-[#00D47E]/20 border border-cyan-500/30">
@@ -70,7 +70,7 @@ export default function LoginPage() {
               placeholder="Passphrase"
               autoFocus
               autoComplete="current-password"
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition"
+              className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-4 py-3 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition"
             />
           </div>
 

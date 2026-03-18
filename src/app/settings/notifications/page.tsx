@@ -252,7 +252,7 @@ export default function NotificationPreferencesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#8888A0]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#64748b]" />
       </div>
     );
   }
@@ -266,14 +266,14 @@ export default function NotificationPreferencesPage() {
       </SectionDescription>
 
       {/* In-app always on */}
-      <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a1a] p-5">
+      <div className="rounded-2xl border border-[#1a2a4a] bg-[#0a0a1a] p-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00D47E]/10">
             <Bell className="h-5 w-5 text-[#00D47E]" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-[#E4E4ED]">In-App Notifications</h3>
-            <p className="text-[12px] text-[#8888A0]">
+            <h3 className="text-sm font-semibold text-[#e2e8f0]">In-App Notifications</h3>
+            <p className="text-[12px] text-[#64748b]">
               Always active. Click the bell icon in the top nav to view.
             </p>
           </div>
@@ -295,7 +295,7 @@ export default function NotificationPreferencesPage() {
             className={`rounded-2xl border transition ${
               state.enabled
                 ? "border-[#00D47E]/30 bg-[#0a0a1a]"
-                : "border-[#2E2E3A] bg-[#0a0a1a]"
+                : "border-[#1a2a4a] bg-[#0a0a1a]"
             }`}
           >
             {/* Channel header */}
@@ -307,11 +307,11 @@ export default function NotificationPreferencesPage() {
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                 state.enabled ? "bg-[#00D47E]/10" : "bg-white/[0.03]"
               }`}>
-                <Icon className={`h-5 w-5 ${state.enabled ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
+                <Icon className={`h-5 w-5 ${state.enabled ? "text-[#00D47E]" : "text-[#64748b]"}`} />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-[#E4E4ED]">{ch.label}</h3>
-                <p className="text-[12px] text-[#8888A0]">{ch.description}</p>
+                <h3 className="text-sm font-semibold text-[#e2e8f0]">{ch.label}</h3>
+                <p className="text-[12px] text-[#64748b]">{ch.description}</p>
               </div>
               <div className="flex items-center gap-2">
                 {state.enabled ? (
@@ -319,12 +319,12 @@ export default function NotificationPreferencesPage() {
                     Active
                   </span>
                 ) : (
-                  <span className="rounded-full bg-white/[0.03] px-2 py-0.5 text-[10px] font-semibold text-[#555566]">
+                  <span className="rounded-full bg-white/[0.03] px-2 py-0.5 text-[10px] font-semibold text-[#475569]">
                     Off
                   </span>
                 )}
                 <svg
-                  className={`h-4 w-4 text-[#555566] transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                  className={`h-4 w-4 text-[#475569] transition-transform ${isExpanded ? "rotate-180" : ""}`}
                   fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -334,7 +334,7 @@ export default function NotificationPreferencesPage() {
 
             {/* Expanded config */}
             {isExpanded ? (
-              <div className="border-t border-[#2E2E3A]/50 px-5 pb-5 pt-4 space-y-4">
+              <div className="border-t border-[#1a2a4a]/50 px-5 pb-5 pt-4 space-y-4">
                 {/* Enable toggle */}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[#94a3b8]">Enable {ch.label}</span>
@@ -342,7 +342,7 @@ export default function NotificationPreferencesPage() {
                     type="button"
                     onClick={() => toggleChannelEnabled(ch.key)}
                     className={`relative h-6 w-11 rounded-full transition ${
-                      state.enabled ? "bg-[#00D47E]" : "bg-[#2E2E3A]"
+                      state.enabled ? "bg-[#00D47E]" : "bg-[#1a2a4a]"
                     }`}
                   >
                     <span
@@ -364,10 +364,10 @@ export default function NotificationPreferencesPage() {
                       placeholder={field.placeholder}
                       value={(state.config[field.key] as string) ?? ""}
                       onChange={(e) => updateChannelConfig(ch.key, field.key, e.target.value)}
-                      className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-[#E4E4ED] placeholder-[#555566] transition focus:border-[#00D47E]/50 focus:outline-none"
+                      className="w-full rounded-xl border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#475569] transition focus:border-[#00D47E]/50 focus:outline-none"
                     />
                     {field.help ? (
-                      <p className="mt-1 text-[11px] text-[#555566]">{field.help}</p>
+                      <p className="mt-1 text-[11px] text-[#475569]">{field.help}</p>
                     ) : null}
                   </div>
                 ))}
@@ -387,7 +387,7 @@ export default function NotificationPreferencesPage() {
                           type="checkbox"
                           checked={isTypeEnabled(ch.key, nt.key)}
                           onChange={() => toggleNotificationType(ch.key, nt.key)}
-                          className="h-3.5 w-3.5 rounded border-[#2E2E3A] bg-[#0A0A0C] text-[#00D47E] focus:ring-[#00D47E]/50"
+                          className="h-3.5 w-3.5 rounded border-[#1a2a4a] bg-[#050510] text-[#00D47E] focus:ring-[#00D47E]/50"
                         />
                         <span>{nt.label}</span>
                       </label>
@@ -401,7 +401,7 @@ export default function NotificationPreferencesPage() {
                     type="button"
                     onClick={() => void saveChannel(ch.key)}
                     disabled={saving === ch.key}
-                    className="flex items-center gap-1.5 rounded-xl bg-[#00D47E] px-4 py-2 text-[13px] font-semibold text-[#0A0A0C] transition hover:bg-[#00D47E]/90 disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-xl bg-[#00D47E] px-4 py-2 text-[13px] font-semibold text-[#050510] transition hover:bg-[#00D47E]/90 disabled:opacity-50"
                   >
                     {saving === ch.key ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -412,7 +412,7 @@ export default function NotificationPreferencesPage() {
                     type="button"
                     onClick={() => void testChannel(ch.key)}
                     disabled={testing === ch.key || !state.enabled}
-                    className="flex items-center gap-1.5 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-4 py-2 text-[13px] font-medium text-[#94a3b8] transition hover:border-[#3E3E4A] hover:text-[#E4E4ED] disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-4 py-2 text-[13px] font-medium text-[#94a3b8] transition hover:border-[#2a3a5a] hover:text-[#e2e8f0] disabled:opacity-50"
                   >
                     {testing === ch.key ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
