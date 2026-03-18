@@ -46,6 +46,7 @@ import { MobileKillBar } from "./mobile-kill-bar";
 import { QuickKillDialog } from "./quick-kill-dialog";
 import { GuidedTour } from "./guided-tour";
 import { HelpPanel } from "./help-panel";
+import { KillSwitchButton } from "./kill-switch-button";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -514,6 +515,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
                   </kbd>
                 </button>
+                <KillSwitchButton />
                 <HelpPanel />
                 <NotificationDropdown />
               </div>

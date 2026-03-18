@@ -13,8 +13,10 @@ export async function GET(req: NextRequest) {
 
   const interval = range === "24h" ? "24 hours" : range === "7d" ? "7 days" : "30 days";
   const tenantFilter = tenantId ? "AND ds.tenant_id = $2" : "";
+  const tenantFilterOnly = tenantId ? "AND ds.tenant_id = $1" : "";
   const params: (string | number)[] = [interval];
   if (tenantId) params.push(tenantId);
+  const tenantParams: (string | number)[] = tenantId ? [tenantId] : [];
 
   try {
     // Total cost this period
@@ -65,8 +67,8 @@ export async function GET(req: NextRequest) {
        FROM daily_stats ds
        WHERE day >= date_trunc('month', CURRENT_DATE) - interval '1 month'
          AND day < date_trunc('month', CURRENT_DATE)
-         ${tenantFilter}`,
-      params
+         ${tenantFilterOnly}`,
+      tenantParams
     );
 
     // 7-day average cost per agent (for anomaly detection)
@@ -76,9 +78,9 @@ export async function GET(req: NextRequest) {
        FROM daily_stats ds
        WHERE day >= CURRENT_DATE - interval '7 days'
          AND day < CURRENT_DATE
-         ${tenantFilter}
+         ${tenantFilterOnly}
        GROUP BY agent_id`,
-      params
+      tenantParams
     );
 
     // Today's cost per agent (for anomaly comparison)
@@ -87,9 +89,9 @@ export async function GET(req: NextRequest) {
               COALESCE(SUM(estimated_cost_usd), 0) as today_cost
        FROM daily_stats ds
        WHERE day = CURRENT_DATE
-         ${tenantFilter}
+         ${tenantFilterOnly}
        GROUP BY agent_id`,
-      params
+      tenantParams
     );
 
     // Budget status

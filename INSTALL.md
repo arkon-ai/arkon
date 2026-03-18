@@ -131,6 +131,8 @@ lsof -i :3000
 # Or change the port in .env and docker-compose.yml
 ```
 
+> **Note:** Arkon defaults to port 3000. If you change the port (via the `PORT` environment variable or in `ecosystem.config.js`), make sure your reverse proxy config points to the same port.
+
 ### Database connection refused
 
 ```bash
@@ -197,7 +199,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/arkon.yourdomain.com/privkey.pem;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3000;  # Must match the PORT in your .env / ecosystem.config.js
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
