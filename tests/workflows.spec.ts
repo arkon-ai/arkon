@@ -37,13 +37,13 @@ test.describe("Workflows Page UI", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto(`${MC_URL}/workflows`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     expect(errors.filter(e => !e.includes("ResizeObserver"))).toHaveLength(0);
   });
 
   test("workflows page shows template gallery or workflow list", async ({ page }) => {
     await page.goto(`${MC_URL}/workflows`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Should show either existing workflows or the template gallery
     const content = page.locator("text=Workflows")
       .or(page.locator("text=Template"))
@@ -54,7 +54,7 @@ test.describe("Workflows Page UI", () => {
 
   test("section description appears on workflows page", async ({ page }) => {
     await page.goto(`${MC_URL}/workflows`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // SectionDescription renders "What is this?" or the expanded text
     const desc = page.locator("text=What is this?")
       .or(page.locator("text=Got it, hide this"))

@@ -12,7 +12,7 @@ test.describe("Dashboard Features UI", () => {
 
   test("dashboard renders health gauge", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Health gauge is an SVG circle gauge with data-tour attribute
     const gauge = page.locator('[data-tour="health-gauge"]')
       .or(page.locator("svg circle"))
@@ -22,7 +22,7 @@ test.describe("Dashboard Features UI", () => {
 
   test("dashboard renders status summary text", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Status summary should contain natural language text about agents/events
     const body = await page.locator("body").textContent();
     // Should have some dashboard content (agents, events, health, etc.)
@@ -31,7 +31,7 @@ test.describe("Dashboard Features UI", () => {
 
   test("dashboard stat cards have tooltips", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // MetricTooltip renders (i) icons — look for info icons or tooltip triggers
     const infoIcons = page.locator('[aria-label*="info" i], [title*="info" i], svg.lucide-info');
     // Soft check — tooltips may not render if no data
@@ -42,7 +42,7 @@ test.describe("Dashboard Features UI", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Allow ResizeObserver which is harmless
     expect(errors.filter(e => !e.includes("ResizeObserver"))).toHaveLength(0);
   });

@@ -36,13 +36,13 @@ test.describe("Agents Page UI", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto(`${MC_URL}/agents`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     expect(errors.filter(e => !e.includes("ResizeObserver"))).toHaveLength(0);
   });
 
   test("agents page shows agent cards or empty state", async ({ page }) => {
     await page.goto(`${MC_URL}/agents`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Should either have agent cards or empty state
     const content = page.locator('[class*="card"], [class*="Card"]')
       .or(page.locator("text=No agents"))

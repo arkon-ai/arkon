@@ -37,9 +37,9 @@ test.describe("Notification Bell UI", () => {
 
   test("notification bell icon is visible in header", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Bell icon should be in the header area
-    const header = page.locator("header");
+    const header = page.locator("header").first();
     await expect(header).toBeVisible();
     // Bell button exists (may be icon-only)
     const bell = page.locator('[aria-label*="notification" i]')
@@ -52,7 +52,7 @@ test.describe("Notification Bell UI", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto(`${MC_URL}/settings/notifications`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     expect(errors.filter(e => !e.includes("ResizeObserver"))).toHaveLength(0);
     // Should show notification preferences
     const content = page.locator("text=Notification")

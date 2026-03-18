@@ -14,8 +14,8 @@ test.describe("Admin API", () => {
     expect(res.status()).toBe(401);
   });
 
-  test("GET /api/systems returns 200 with auth", async ({ request }) => {
-    const res = await request.get(`${MC_URL}/api/systems`, { headers: authHeaders() });
+  test("GET /api/infra/nodes returns 200 with auth", async ({ request }) => {
+    const res = await request.get(`${MC_URL}/api/infra/nodes`, { headers: authHeaders() });
     expect(res.status()).toBe(200);
   });
 });

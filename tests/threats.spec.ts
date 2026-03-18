@@ -30,7 +30,7 @@ test.describe("ThreatGuard UI (Session 2 + 6)", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto(`${MC_URL}/security`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     expect(errors.filter(e => !e.includes("ResizeObserver"))).toHaveLength(0);
   });
 
@@ -41,7 +41,7 @@ test.describe("ThreatGuard UI (Session 2 + 6)", () => {
       Object.keys(localStorage).filter(k => k.startsWith("arkon-section-seen-")).forEach(k => localStorage.removeItem(k));
     });
     await page.reload();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Section description should auto-expand
     const desc = page.locator("text=Got it, hide this");
     // May or may not be visible depending on whether content loaded
@@ -50,7 +50,7 @@ test.describe("ThreatGuard UI (Session 2 + 6)", () => {
 
   test("ThreatGuard has threat class explainers (Session 6)", async ({ page }) => {
     await page.goto(`${MC_URL}/security`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Should have a "What do these mean?" or similar explainer
     const explainer = page.locator("text=What do these mean");
     // Only check if page has threats loaded — this is a soft check

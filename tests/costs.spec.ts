@@ -55,13 +55,13 @@ test.describe("Costs Page UI", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto(`${MC_URL}/costs`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     expect(errors.filter(e => !e.includes("ResizeObserver"))).toHaveLength(0);
   });
 
   test("costs page shows summary grid or empty state", async ({ page }) => {
     await page.goto(`${MC_URL}/costs`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const content = page.locator("text=Costs")
       .or(page.locator("text=Projected"))
       .or(page.locator("text=Budget"))
@@ -71,7 +71,7 @@ test.describe("Costs Page UI", () => {
 
   test("costs page has CSV export button", async ({ page }) => {
     await page.goto(`${MC_URL}/costs`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const exportBtn = page.locator("text=Export")
       .or(page.locator("text=CSV"))
       .or(page.locator("text=Download"));

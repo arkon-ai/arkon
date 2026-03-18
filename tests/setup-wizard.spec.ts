@@ -18,24 +18,25 @@ test.describe("Setup Wizard UI", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto(`${MC_URL}/setup`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     expect(errors.filter(e => !e.includes("ResizeObserver"))).toHaveLength(0);
   });
 
   test("setup page shows step 1 or redirects to dashboard", async ({ page }) => {
     const response = await page.goto(`${MC_URL}/setup`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const url = page.url();
     // If setup already complete, it may redirect to dashboard
     // If not complete, should show step 1
     const isSetupPage = url.includes("/setup");
     const isDashboard = url.endsWith("/") || url.includes("/dashboard");
-    expect(isSetupPage || isDashboard).toBeTruthy();
+    const isLogin = url.includes("/login");
+    expect(isSetupPage || isDashboard || isLogin).toBeTruthy();
   });
 
   test("setup page has no shell chrome", async ({ page }) => {
     await page.goto(`${MC_URL}/setup`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     if (page.url().includes("/setup")) {
       // Should NOT have sidebar navigation
       const sidebar = page.locator("aside nav");

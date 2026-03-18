@@ -37,19 +37,19 @@ test.describe("Kill Switch UI", () => {
 
   test("header contains kill switch button", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Kill switch button should be in the header
     const killBtn = page.locator("header").locator("button").filter({ hasText: /kill/i })
       .or(page.locator('[aria-label*="kill" i]'))
       .or(page.locator("header svg").locator("..").filter({ hasText: /kill/i }));
-    // It may be hidden text or icon-only — just check header renders
-    const header = page.locator("header");
+    // It may be hidden text or icon-only — just check main header renders
+    const header = page.locator("header").first();
     await expect(header).toBeVisible();
   });
 
   test("Ctrl+Shift+K opens quick-kill dialog", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await page.keyboard.press("Control+Shift+K");
     // Should open a dialog/modal
     const dialog = page.locator('[role="dialog"]')
