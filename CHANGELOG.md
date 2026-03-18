@@ -4,6 +4,27 @@ All notable changes to Arkon are documented in this file.
 
 ---
 
+## [0.1.1] — 2026-03-18
+
+### Brand: Revert Foundation Colors (`1f9a7dd`)
+- Reverted all 8 foundation/background colors back to original deep-navy palette across 42 files
+  - `#0A0A0C` → `#050510` (background/void)
+  - `#1A1A22` → `#0d0d1a` (card/surface)
+  - `#22222E` → `#111827` (elevated)
+  - `#2E2E3A` → `#1a2a4a` (border)
+  - `#3E3E4A` → `#2a3a5a` (border hover)
+  - `#E4E4ED` → `#e2e8f0` (text primary)
+  - `#8888A0` → `#64748b` (text dim)
+  - `#555566` → `#475569` (text muted)
+- Chart secondary series colors (`#8888A0`) preserved in analytics and chart components
+- CSS variables in `globals.css`, `layout.tsx` theme-color/toaster/fallback all reverted
+- Accent `#00D47E`, purple removal, brand assets, meta tags, and README unchanged
+
+### Security: Remove Infrastructure Screenshot
+- Deleted `docs/screenshots/20-infrastructure.png` — contained exposed server IPs
+
+---
+
 ## [0.1.0] — 2026-03-17
 
 **The Productization Release** — 38 commits, 96 files changed, 10,650 lines added.
