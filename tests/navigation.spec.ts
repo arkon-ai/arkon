@@ -9,6 +9,14 @@ const PAGES = [
   { path: "/", label: "Dashboard" },
   { path: "/activity", label: "Activity" },
   { path: "/admin", label: "Admin" },
+  { path: "/agents", label: "Agents" },
+  { path: "/security", label: "ThreatGuard" },
+  { path: "/costs", label: "Costs" },
+  { path: "/workflows", label: "Workflows" },
+  { path: "/infrastructure", label: "Infrastructure" },
+  { path: "/analytics", label: "Anomaly Detection" },
+  { path: "/benchmarks", label: "Benchmarks" },
+  { path: "/compliance", label: "Compliance" },
   { path: "/tools/approvals", label: "Approvals" },
   { path: "/tools/calendar", label: "Calendar" },
   { path: "/tools/command", label: "Commands" },
@@ -17,6 +25,9 @@ const PAGES = [
   { path: "/tools/crons", label: "Cron Jobs" },
   { path: "/tools/intake", label: "Intake" },
   { path: "/tools/mcp", label: "MCP Servers" },
+  { path: "/tools/mcp-gateway", label: "MCP Gateway" },
+  { path: "/settings/notifications", label: "Notification Settings" },
+  { path: "/help/glossary", label: "Glossary" },
 ];
 
 test.describe("Page Navigation", () => {
