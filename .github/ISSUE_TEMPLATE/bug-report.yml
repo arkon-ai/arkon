@@ -1,0 +1,54 @@
+name: Bug report
+description: Something isn't working as expected
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The more detail you provide, the faster we can fix it.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Clear description of the bug.
+      placeholder: "When I click the kill switch on an active agent, nothing happens and the agent keeps running."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened?
+      placeholder: "The agent should have stopped immediately and the banner should update to show it was killed."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start an agent session
+        2. Navigate to the dashboard
+        3. Click the kill button on the active run banner
+        4. Observe that the agent continues running
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Arkon version
+      placeholder: "v0.1.0 or commit hash"
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment method
+      options:
+        - Docker Compose
+        - Manual (npm run dev)
+        - Arkon Cloud
+        - Other
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots
+      description: Paste error messages, console output, or attach screenshots.

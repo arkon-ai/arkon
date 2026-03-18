@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest a new feature or improvement
+title: "[Feature] "
+labels: ["feature-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem you're solving, not just the feature you want. Context helps us build the right thing.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      placeholder: "I'm running 5 agents across 3 servers and I can't tell at a glance which agents are healthy and which need attention."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would the ideal solution look like?
+      placeholder: "A health score per agent on the agent list page, color-coded green/amber/red based on error rate, threat count, and last-active time."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      placeholder: "I've been checking each agent individually and cross-referencing with ThreatGuard, but it takes too long."
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      options:
+        - Dashboard / Overview
+        - Agent Management
+        - ThreatGuard / Security
+        - Cost Tracking
+        - Workflow Builder
+        - Infrastructure Monitoring
+        - MCP Gateway
+        - Notifications / Alerts
+        - API / SDK
+        - Documentation
+        - Other
