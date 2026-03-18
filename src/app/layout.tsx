@@ -7,20 +7,37 @@ import { ServiceWorkerRegistration } from "@/components/mission-control/service-
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Arkon — AI Control Plane",
-  description: "Monitor, govern, and manage your AI agent infrastructure. Best with OpenClaw/NemoClaw. Works with anything.",
-  manifest: "/manifest.json",
+  title: "Arkon — AI Governance Platform",
+  description: "AI Governance Platform. Monitor your agents. Detect threats. Track costs. Build workflows. One dashboard.",
+  metadataBase: new URL("https://arkonhq.com"),
+  manifest: "/site.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Arkon",
   },
+  openGraph: {
+    title: "Arkon — AI Governance Platform",
+    description: "Monitor your agents. Detect threats. Track costs. Build workflows.",
+    url: "https://arkonhq.com",
+    siteName: "Arkon",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@arkonhq",
+    title: "Arkon — AI Governance Platform",
+    description: "Monitor your agents. Detect threats. Track costs. Build workflows.",
+    images: ["/og-image.png"],
+  },
   icons: {
     icon: [
-      { url: "/icon-192.svg", type: "image/svg+xml", sizes: "192x192" },
-      { url: "/icon-512.svg", type: "image/svg+xml", sizes: "512x512" },
+      { url: "/favicon.ico" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
     ],
-    apple: "/icon-192.svg",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
   other: {
     "mobile-web-app-capable": "yes",
@@ -37,17 +54,17 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#05050f" />
+        <meta name="theme-color" content="#0A0A0C" />
       </head>
       <body className="bg-bg-deep text-text antialiased">
         <ServiceWorkerRegistration />
         <Toaster
           position="top-right"
           toastOptions={{
-            style: { background: "#0d0d1a", border: "1px solid #1a2a4a", color: "#e2e8f0" },
+            style: { background: "#1A1A22", border: "1px solid #2E2E3A", color: "#E4E4ED" },
           }}
         />
-        <Suspense fallback={<div className="min-h-screen bg-[#05050f]" />}><NotionShell>{children}</NotionShell></Suspense>
+        <Suspense fallback={<div className="min-h-screen bg-[#0A0A0C]" />}><NotionShell>{children}</NotionShell></Suspense>
       </body>
     </html>
   );
