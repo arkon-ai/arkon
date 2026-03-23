@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { query } from "@/lib/db";
 
 /**
@@ -29,16 +30,26 @@ function extractToken(req: NextRequest): string | null {
   return auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
 }
 
+function constantTimeEqual(a: string, b: string): boolean {
+  try {
+    const aBuf = Buffer.from(a.padEnd(64));
+    const bBuf = Buffer.from(b.padEnd(64));
+    return timingSafeEqual(aBuf.slice(0, 64), bBuf.slice(0, 64)) && a.length === b.length;
+  } catch {
+    return false;
+  }
+}
+
 function validateGatewayAuth(req: NextRequest, server: McpServer): boolean {
   const token = extractToken(req);
   if (!token) return false;
 
-  // Accept MC admin token
+  // Accept MC admin token (timing-safe)
   const adminToken = process.env.MC_ADMIN_TOKEN ?? "";
-  if (adminToken && token === adminToken) return true;
+  if (adminToken && constantTimeEqual(token, adminToken)) return true;
 
-  // Accept server-specific gateway token
-  if (server.gateway_token && token === server.gateway_token) return true;
+  // Accept server-specific gateway token (timing-safe)
+  if (server.gateway_token && constantTimeEqual(token, server.gateway_token)) return true;
 
   return false;
 }
