@@ -73,8 +73,13 @@ export function middleware(request: NextRequest) {
 
   // ── CSRF check for browser mutations ───────────────────────────────────
   if (CSRF_PROTECTED_METHODS.includes(request.method)) {
-    // Auth init and setup endpoints are exempt (bootstrap the cookie / first-run)
-    if (pathname === "/api/auth/init" || pathname.startsWith("/api/setup/")) return response;
+    // Exempt: auth flow, setup, service-worker push, webhook triggers
+    if (
+      pathname.startsWith("/api/auth/") ||
+      pathname.startsWith("/api/setup/") ||
+      pathname === "/api/push" ||
+      pathname.startsWith("/api/workflows/webhook/")
+    ) return response;
 
     const csrfHeader = request.headers.get("x-csrf-token");
     const csrfCookie = request.cookies.get("mc_csrf")?.value;
