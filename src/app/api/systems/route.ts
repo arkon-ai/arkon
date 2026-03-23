@@ -18,17 +18,27 @@ async function loadServices(): Promise<ServiceDef[]> {
   const services: ServiceDef[] = [];
   for (const row of result.rows as Array<Record<string, unknown>>) {
     const meta = (row.metadata ?? {}) as Record<string, unknown>;
-    const svcList = (meta.services ?? []) as Array<{ name: string; port: number }>;
+    const rawSvcList = (meta.services ?? []) as Array<string | { name: string; port: number }>;
     const nodeName = row.name as string;
     const ip = row.ip as string;
     const isLocal = meta.is_local === true;
-    for (const svc of svcList) {
-      services.push({
-        name: svc.name,
-        host: isLocal ? "127.0.0.1" : ip,
-        port: svc.port,
-        group: nodeName,
-      });
+    for (const svc of rawSvcList) {
+      if (typeof svc === "string") {
+        // String-format entries (e.g., "openclaw") — no port info available
+        services.push({
+          name: svc,
+          host: isLocal ? "127.0.0.1" : ip,
+          port: 0,
+          group: nodeName,
+        });
+      } else if (svc && typeof svc === "object" && svc.name && svc.port) {
+        services.push({
+          name: svc.name,
+          host: isLocal ? "127.0.0.1" : ip,
+          port: svc.port,
+          group: nodeName,
+        });
+      }
     }
   }
   return services;
@@ -59,6 +69,9 @@ export async function GET(req: NextRequest) {
 
   const results = await Promise.all(
     SERVICES.map(async (svc) => {
+      if (svc.port === 0) {
+        return { ...svc, online: null, latencyMs: null, checkedAt: new Date().toISOString() };
+      }
       const { latencyMs, online } = await checkPort(svc.host, svc.port);
       return { ...svc, online, latencyMs, checkedAt: new Date().toISOString() };
     })

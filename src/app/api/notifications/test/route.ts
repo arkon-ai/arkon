@@ -38,7 +38,7 @@ function isPrivateUrl(urlStr: string): boolean {
 export async function POST(req: NextRequest) {
   if (!validateAdmin(req)) return unauthorized();
   const body = (await req.json()) as { channel: string };
-  const tenantId = "default";
+  const tenantId = req.nextUrl.searchParams.get("tenant_id") ?? "transformate";
 
   if (!body.channel) {
     return NextResponse.json({ error: "channel is required" }, { status: 400 });

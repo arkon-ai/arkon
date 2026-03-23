@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders } from "./helpers/auth";
+import { MC_URL, authHeaders, authenticate } from "./helpers/auth";
 
 /* ── Session 9: Notifications — API + UI regression ────────────── */
 
@@ -30,9 +30,7 @@ test.describe("Notifications API", () => {
 
 test.describe("Notification Bell UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("notification bell icon is visible in header", async ({ page }) => {

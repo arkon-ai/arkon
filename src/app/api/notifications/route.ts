@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const unreadOnly = sp.get("unread_only") === "true";
   const limit = Math.min(parseInt(sp.get("limit") ?? "20", 10), 100);
   const offset = parseInt(sp.get("offset") ?? "0", 10);
-  const tenantId = "default";
+  const tenantId = req.nextUrl.searchParams.get("tenant_id") ?? "transformate";
 
   const where = unreadOnly ? "AND read = FALSE" : "";
   const result = await query(
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   if (!validateAdmin(req)) return unauthorized();
   const body = (await req.json()) as { ids?: number[]; all?: boolean };
-  const tenantId = "default";
+  const tenantId = req.nextUrl.searchParams.get("tenant_id") ?? "transformate";
 
   if (body.all) {
     await query(
