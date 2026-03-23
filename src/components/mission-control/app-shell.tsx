@@ -47,6 +47,7 @@ import { QuickKillDialog } from "./quick-kill-dialog";
 import { GuidedTour } from "./guided-tour";
 import { HelpPanel } from "./help-panel";
 import { KillSwitchButton } from "./kill-switch-button";
+import { ErrorBoundary } from "./error-boundary";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -526,9 +527,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
 
           <main className="min-w-0 flex-1 px-4 pb-[calc(84px+env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:pt-6 md:pb-6">
             <div className="mx-auto w-full max-w-6xl">
-              <PageTransitionWrapper pathname={pathname ?? "/"}>
-                {children}
-              </PageTransitionWrapper>
+              <ErrorBoundary>
+                <PageTransitionWrapper pathname={pathname ?? "/"}>
+                  {children}
+                </PageTransitionWrapper>
+              </ErrorBoundary>
             </div>
           </main>
         </div>
