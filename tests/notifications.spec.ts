@@ -39,10 +39,9 @@ test.describe("Notification Bell UI", () => {
     // Bell icon should be in the header area
     const header = page.locator("header").first();
     await expect(header).toBeVisible();
-    // Bell button exists (may be icon-only)
-    const bell = page.locator('[aria-label*="notification" i]')
-      .or(page.locator('[aria-label*="bell" i]'))
-      .or(page.locator("header button").nth(2));
+    // Bell button in header (scoped to avoid matching Sonner toast section)
+    const bell = header.locator('button[aria-label*="notification" i]')
+      .or(header.locator('button[aria-label*="bell" i]'));
     await expect(bell.first()).toBeVisible({ timeout: 5000 });
   });
 
