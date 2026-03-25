@@ -37,6 +37,7 @@ import {
   Star,
   Search,
   Settings,
+  MessageSquare,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
@@ -82,6 +83,7 @@ const pageLabels: Record<string, string> = {
   "/client/costs": "Client Costs",
   "/settings": "Settings",
   "/help/glossary": "Glossary",
+  "/victoryos": "VictoryOS",
 };
 
 type NavItem = {
@@ -115,6 +117,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     items: [
       { href: "/", label: "Dashboard", subtitle: "Overview & health score", icon: LayoutDashboard },
       { href: "/activity", label: "Activity", subtitle: "Real-time event stream", icon: Radio },
+      { href: "/victoryos", label: "VictoryOS", subtitle: "Chat engine metrics & tokens", icon: MessageSquare },
       { href: "/agents", label: "Agents", subtitle: "Manage your AI agents", icon: Bot },
       { href: "/infrastructure", label: "Infrastructure", subtitle: "Monitor your servers", icon: Network },
       { href: "/security", label: "ThreatGuard", subtitle: "Detect threats in agent activity", icon: ShieldCheck },

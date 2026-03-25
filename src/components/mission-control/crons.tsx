@@ -165,8 +165,14 @@ function CronCard({ job, onMessage, onAction }: {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1" onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer" }}>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-xs font-bold ${job.enabled ? "text-[#00D47E]" : "text-[#64748b]"}`}>
-              {job.enabled ? "● ACTIVE" : "○ DISABLED"}
+            <span className={`text-xs font-bold ${
+              !job.enabled ? "text-[#64748b]"
+              : job.schedule_kind === "at" && job.next_run_at && new Date(job.next_run_at) < new Date() ? "text-[#f59e0b]"
+              : "text-[#00D47E]"
+            }`}>
+              {!job.enabled ? "○ DISABLED"
+               : job.schedule_kind === "at" && job.next_run_at && new Date(job.next_run_at) < new Date() ? "◇ EXPIRED"
+               : "● ACTIVE"}
             </span>
             {job.consecutive_errors >= 3 && (
               <span className="rounded-full bg-red-900/30 px-2 py-0.5 text-[10px] font-bold text-red-400">

@@ -837,7 +837,7 @@ export function DocsToolScreen() {
                       {doc.pinned ? "Unpin" : "Pin"}
                     </button>
                   </div>
-                  <p className="text-sm leading-6 text-text-dim">{doc.preview?.replace(/<[^>]*>/g, "") ?? ""}</p>
+                  <p className="text-sm leading-6 text-text-dim">{stripPreview(doc.preview)}</p>
                 </Card>
               </div>
             ))
@@ -1034,6 +1034,23 @@ const itemTypeColors: Record<string, string> = {
   reminder: "#ef4444",
 };
 
+/** Strip HTML tags, CSS blocks, and @import rules from doc previews */
+function stripPreview(raw?: string): string {
+  if (!raw) return "";
+  return raw
+    .replace(/<style[\s\S]*?<\/style>/gi, "")    // remove <style> blocks
+    .replace(/<[^>]*>/g, "")                       // remove HTML tags
+    .replace(/@import\s+url\([^)]*\)[^;]*;?/g, "")// remove @import url(...)
+    .replace(/[{][^}]*[}]/g, "")                   // remove CSS rule bodies
+    .replace(/\s+/g, " ")                          // collapse whitespace
+    .trim()
+    .slice(0, 200) || "No text preview available";
+}
+
+function localDateKey(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function getWeekStart(date = new Date()) {
   const target = new Date(date);
   const day = target.getDay();
@@ -1066,7 +1083,7 @@ export function CalendarToolScreen() {
   const itemsByDay = useMemo(() => {
     const grouped = new Map<string, CalendarItem[]>();
     for (const item of data?.items ?? []) {
-      const key = new Date(item.scheduled_at).toISOString().slice(0, 10);
+      const key = localDateKey(new Date(item.scheduled_at));
       const list = grouped.get(key) ?? [];
       list.push(item);
       grouped.set(key, list);
@@ -1075,7 +1092,7 @@ export function CalendarToolScreen() {
   }, [data?.items]);
 
   const selectedItems = selectedDay ? itemsByDay.get(selectedDay) ?? [] : [];
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = localDateKey(new Date());
 
   if (loading && !data) return <LoadingState label="Loading calendar" />;
 
@@ -1128,7 +1145,7 @@ export function CalendarToolScreen() {
         <div className="mt-4 overflow-x-auto">
           <div className="grid min-w-[700px] grid-cols-7 gap-3">
             {days.map((day) => {
-              const key = day.toISOString().slice(0, 10);
+              const key = localDateKey(day);
               const items = itemsByDay.get(key) ?? [];
               const isToday = key === todayKey;
               return (

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Arkon — AI Governance Platform",
   description: "AI Governance Platform. Monitor your agents. Detect threats. Track costs. Build workflows. One dashboard.",
   metadataBase: new URL("https://arkonhq.com"),
-  manifest: "/site.webmanifest",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

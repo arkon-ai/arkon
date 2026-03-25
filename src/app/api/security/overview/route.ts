@@ -109,6 +109,7 @@ export async function GET(req: NextRequest) {
     // 5. Top targeted agents
     const topAgents = await query(
       `SELECT
+        a.id as agent_id,
         a.name as agent_name,
         COUNT(*)::int as threat_count,
         COUNT(*) FILTER (WHERE e.threat_level IN ('high', 'critical'))::int as severe_count
@@ -117,7 +118,7 @@ export async function GET(req: NextRequest) {
        WHERE e.threat_level IS NOT NULL
          AND e.threat_level != 'none'
          AND e.created_at > NOW() - $1::interval
-       GROUP BY a.name
+       GROUP BY a.id, a.name
        ORDER BY threat_count DESC
        LIMIT 10`,
       [interval]

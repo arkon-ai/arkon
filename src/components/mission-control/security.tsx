@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   Area,
   AreaChart,
@@ -59,6 +61,7 @@ interface ThreatEvent {
 }
 
 interface TopAgent {
+  agent_id: string;
   agent_name: string;
   threat_count: number;
   severe_count: number;
@@ -553,7 +556,7 @@ function TopAgentsCard({ data }: { data: TopAgent[] }) {
       <div className="space-y-2">
         {data.map((agent) => (
           <div key={agent.agent_name} className="flex items-center justify-between rounded-xl bg-white/[0.02] px-3 py-2">
-            <span className="text-sm text-text">{agent.agent_name}</span>
+            <Link href={`/agent/${agent.agent_id}`} className="text-sm text-cyan hover:underline">{agent.agent_name}</Link>
             <div className="flex items-center gap-3">
               {agent.severe_count > 0 && (
                 <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444" }}>
@@ -704,6 +707,8 @@ function RecommendedActionsPanel({
 function ThreatEventRow({
   event,
   selected,
+  highlighted,
+  initialExpanded,
   onToggleSelect,
   onPurge,
   onRedact,
@@ -711,12 +716,21 @@ function ThreatEventRow({
 }: {
   event: ThreatEvent;
   selected: boolean;
+  highlighted?: boolean;
+  initialExpanded?: boolean;
   onToggleSelect: (id: string) => void;
   onPurge: (e: ThreatEvent) => void;
   onRedact: (e: ThreatEvent) => void;
   onDismiss: (e: ThreatEvent) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(initialExpanded ?? false);
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (highlighted && rowRef.current) {
+      rowRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlighted]);
   const config = SEVERITY_CONFIG[event.threat_level] ?? SEVERITY_CONFIG.low;
   const classes = parseJsonField<string[]>(event.threat_classes);
   const matches = parseJsonField<Array<{ class: string; pattern: string; excerpt: string }>>(event.threat_matches);
@@ -728,16 +742,19 @@ function ThreatEventRow({
 
   return (
     <div
+      ref={rowRef}
       className={`rounded-xl border transition ${
-        event.dismissed
-          ? "border-[#1a2a4a]/50 bg-[#0d0d1a]/50 opacity-60"
-          : isCritical
-            ? selected
-              ? "border-red/50 bg-red/[0.06]"
-              : "border-red/30 bg-red/[0.03] card-hover"
-            : selected
-              ? "border-cyan/40 bg-cyan/[0.03]"
-              : "border-[#1a2a4a] bg-[#0d0d1a] card-hover"
+        highlighted
+          ? "border-cyan/60 bg-cyan/[0.06] ring-2 ring-cyan/30"
+          : event.dismissed
+            ? "border-[#1a2a4a]/50 bg-[#0d0d1a]/50 opacity-60"
+            : isCritical
+              ? selected
+                ? "border-red/50 bg-red/[0.06]"
+                : "border-red/30 bg-red/[0.03] card-hover"
+              : selected
+                ? "border-cyan/40 bg-cyan/[0.03]"
+                : "border-[#1a2a4a] bg-[#0d0d1a] card-hover"
       }`}
     >
       <div className="flex items-center gap-2 px-2 py-3 sm:px-4">
@@ -779,7 +796,9 @@ function ThreatEventRow({
               )}
             </div>
             <p className="mt-1 truncate text-sm text-text">
-              {event.agent_name ?? `Agent ${event.agent_id}`}
+              <Link href={`/agent/${event.agent_id}`} onClick={(e) => e.stopPropagation()} className="text-cyan hover:underline">
+                {event.agent_name ?? `Agent ${event.agent_id}`}
+              </Link>
               <span className="mx-2 text-text-dim">&middot;</span>
               <span className="text-text-dim">{event.event_type}</span>
               {event.channel_id && (
@@ -898,6 +917,9 @@ function ThreatEventRow({
 /* ─── Main Page ─────────────────────────────────────────── */
 
 export function SecurityScreen() {
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("highlight");
+
   const [range, setRange] = useState<"24h" | "7d" | "30d">("7d");
   const [severityFilter, setSeverityFilter] = useState<string>("");
   const [classFilter, setClassFilter] = useState<string>("");
@@ -905,6 +927,10 @@ export function SecurityScreen() {
 
   // Selection state for bulk actions
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Auto-expand highlighted event
+  const [expandedId, setExpandedId] = useState<string | null>(highlightId);
+  const highlightRef = useRef<HTMLDivElement>(null);
 
   // Modal state
   const [purgeTarget, setPurgeTarget] = useState<ThreatEvent | null>(null);
@@ -1218,6 +1244,8 @@ export function SecurityScreen() {
                 key={event.id}
                 event={event}
                 selected={selectedIds.has(event.id)}
+                highlighted={highlightId === event.id}
+                initialExpanded={highlightId === event.id}
                 onToggleSelect={toggleSelect}
                 onPurge={handlePurge}
                 onRedact={handleRedact}

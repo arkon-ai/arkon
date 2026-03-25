@@ -353,7 +353,7 @@ function AlertsBanner() {
             <div key={a.id} className={`flex items-center justify-between rounded-xl border px-3 py-2.5 ${
               a.level === "high" ? "border-red-500/30 bg-[rgba(239,68,68,0.06)]" : "border-[#f59e0b]/20 bg-[rgba(245,158,11,0.06)]"
             }`}>
-              <div className="min-w-0 flex-1">
+              <Link href={`/agent/${a.agent_id}`} className="min-w-0 flex-1 hover:opacity-80 transition">
                 <div className="flex items-center gap-2">
                   <span className={`text-[10px] font-bold ${a.level === "high" ? "text-red-400" : "text-[#f59e0b]"}`}>
                     {a.level.toUpperCase()}
@@ -361,13 +361,18 @@ function AlertsBanner() {
                   <span className="truncate text-sm text-[#e2e8f0]">{a.agent_name}</span>
                   <span className="text-xs text-[#64748b]">{a.anomaly_type.replace("_", " ")}</span>
                 </div>
+              </Link>
+              <div className="ml-3 flex shrink-0 items-center gap-1.5">
+                <Link href="/analytics" className="rounded-lg border border-[#1a2a4a] px-2.5 py-1 text-xs text-[#64748b] hover:text-cyan transition">
+                  View
+                </Link>
+                <button
+                  onClick={() => ackAlert(a.id)}
+                  className="rounded-lg border border-[#1a2a4a] px-2.5 py-1 text-xs text-[#64748b] hover:text-[#00D47E] transition"
+                >
+                  Ack
+                </button>
               </div>
-              <button
-                onClick={() => ackAlert(a.id)}
-                className="ml-3 shrink-0 rounded-lg border border-[#1a2a4a] px-2.5 py-1 text-xs text-[#64748b] hover:text-[#00D47E] transition"
-              >
-                Ack
-              </button>
             </div>
           ))}
         </div>
@@ -383,6 +388,55 @@ function ShieldCheckIcon({ className }: { className?: string }) {
       <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
       <path d="m9 12 2 2 4-4" />
     </svg>
+  );
+}
+
+/* ── Critical Threats Card ── */
+interface ThreatSummary {
+  severityBreakdown: Array<{ threat_level: string; count: number }>;
+  events: Array<{ id: string; agent_id: string; agent_name: string | null; threat_level: string; threat_classes: string | string[]; created_at: string }>;
+}
+
+function CriticalThreatsCard() {
+  const { data, loading } = usePollingFetch<ThreatSummary>(
+    "/api/security/overview?range=7d",
+    60000
+  );
+
+  const critical = data?.severityBreakdown?.find(s => s.threat_level === "critical")?.count ?? 0;
+  const high = data?.severityBreakdown?.find(s => s.threat_level === "high")?.count ?? 0;
+  const severeEvents = (data?.events ?? []).filter(e => e.threat_level === "critical" || e.threat_level === "high").slice(0, 3);
+
+  if (loading && !data) return null;
+  if (critical + high === 0) return null;
+
+  return (
+    <div className="rounded-[16px] border border-red-500/30 bg-[#0d0d1a] overflow-hidden">
+      <Link href="/security" className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.02]">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(239,68,68,0.08)]">
+          <Shield className="h-4 w-4 text-red-400" />
+        </div>
+        <span className="flex-1 text-sm font-medium text-[#e2e8f0]">
+          {critical + high} unresolved threat{critical + high !== 1 ? "s" : ""}
+          {critical > 0 && <span className="ml-2 text-[10px] font-bold text-red-400">{critical} CRITICAL</span>}
+          {high > 0 && <span className="ml-2 text-[10px] font-bold text-amber-400">{high} HIGH</span>}
+        </span>
+        <span className="text-xs text-cyan">View &rarr;</span>
+      </Link>
+      {severeEvents.length > 0 && (
+        <div className="space-y-1.5 border-t border-[#1a2a4a] px-4 py-2.5">
+          {severeEvents.map(e => (
+            <Link key={e.id} href={`/security?highlight=${e.id}`} className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-white/[0.03]">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${e.threat_level === "critical" ? "bg-red-500/15 text-red-400" : "bg-amber-500/15 text-amber-400"}`}>
+                {e.threat_level}
+              </span>
+              <span className="truncate text-sm text-text-dim">{e.agent_name ?? e.agent_id}</span>
+              <span className="ml-auto text-[10px] text-text-muted">{timeAgo(e.created_at)}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -685,7 +739,8 @@ function OverviewContent() {
           </Card>
         </div>
 
-        {/* Row 2: Alerts banner (collapsible) */}
+        {/* Row 2: Critical threats + Alerts */}
+        <CriticalThreatsCard />
         <AlertsBanner />
 
         {/* Row 3: Trend Charts */}

@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { ShellHeader, Card, SectionTitle } from "@/components/mission-control/dashboard";
 import { CardEntranceWrapper, SkeletonCard } from "@/components/mission-control/charts";
+import { activityStatus } from "@/components/mission-control/api";
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "@/components/mission-control/kill-confirm-modal";
 import { OctagonX, Pause, Play, Shield, DollarSign, Activity, Zap, AlertTriangle } from "lucide-react";
@@ -265,9 +266,8 @@ export default function AgentDetailPage() {
   const framework = data?.agent ? getFramework(data.agent.metadata) : "Unknown";
   const model = data?.agent ? getModel(data.agent.metadata) : "unknown";
 
-  const isOnline = data?.lastActive
-    ? (Date.now() - new Date(data.lastActive).getTime()) < 300000
-    : false;
+  const agentStatus = activityStatus(data?.lastActive ?? null);
+  const isOnline = agentStatus.label === "Live" || agentStatus.label === "Warm";
 
   /* ── Loading ── */
   if (loading) {
@@ -298,10 +298,12 @@ export default function AgentDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             {/* Status */}
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-              isOnline ? "bg-green/15 text-green" : "bg-white/5 text-text-dim"
+              agentStatus.label === "Live" ? "bg-green/15 text-green"
+              : agentStatus.label === "Warm" ? "bg-amber/15 text-amber"
+              : "bg-white/5 text-text-dim"
             }`}>
-              <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-green animate-pulse" : "bg-[#475569]"}`} />
-              {isOnline ? "Active" : "Offline"}
+              <span className={`h-2 w-2 rounded-full ${agentStatus.dot}`} />
+              {agentStatus.label}
             </span>
 
             {/* Framework */}
@@ -544,7 +546,7 @@ function SecurityTab({ data }: { data: AgentData }) {
               return (
                 <Link
                   key={t.id}
-                  href="/threatguard"
+                  href={`/security?highlight=${t.id}`}
                   className="flex items-center justify-between rounded-xl border border-[#1a2a4a] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
                 >
                   <div className="flex items-center gap-3">
@@ -573,7 +575,7 @@ function SecurityTab({ data }: { data: AgentData }) {
           </div>
         )}
         {threats.threat_count_30d > threats.recent.length && (
-          <Link href="/threatguard" className="mt-3 inline-flex text-sm font-semibold text-cyan">
+          <Link href="/security" className="mt-3 inline-flex text-sm font-semibold text-cyan">
             View all in ThreatGuard &rarr;
           </Link>
         )}
