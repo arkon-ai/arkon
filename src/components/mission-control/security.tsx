@@ -126,25 +126,26 @@ const CLASS_EXPLAINERS: Record<string, { title: string; description: string; ico
 
 type RecommendedAction = {
   text: string;
-  actionType?: "purge" | "kill" | "dismiss" | "link";
-  href?: string;
+  actionType?: "purge" | "dismiss" | "link" | "activity" | "advisory";
+  /** For "link" actions — built dynamically from event context */
+  hrefFn?: (event: ThreatEvent) => string;
 };
 
 const RECOMMENDED_ACTIONS: Record<string, RecommendedAction[]> = {
   credential_leak: [
     { text: "Purge this message immediately", actionType: "purge" },
-    { text: "Rotate the exposed credential" },
-    { text: "Check if the credential was used by unauthorized parties" },
+    { text: "View agent profile & credentials", actionType: "link", hrefFn: (e) => `/agent/${e.agent_id}` },
+    { text: "Check agent activity for unauthorized usage", actionType: "activity", hrefFn: (e) => `/activity?agent=${e.agent_id}` },
   ],
   shell_command: [
-    { text: "Review what the agent was trying to accomplish" },
-    { text: "Check if the command actually executed on the server" },
-    { text: "Consider adding this pattern to your agent's deny list" },
+    { text: "Review agent activity for execution context", actionType: "activity", hrefFn: (e) => `/activity?agent=${e.agent_id}` },
+    { text: "Check if the command actually executed", actionType: "link", hrefFn: (e) => `/agent/${e.agent_id}` },
+    { text: "Add this pattern to agent's deny list", actionType: "advisory" },
   ],
   prompt_injection: [
-    { text: "Review the source of this input" },
-    { text: "Check if the agent's behavior was affected" },
-    { text: "Consider strengthening the agent's instruction guardrails" },
+    { text: "Review agent activity for affected behavior", actionType: "activity", hrefFn: (e) => `/activity?agent=${e.agent_id}` },
+    { text: "Inspect the source of this input", actionType: "link", hrefFn: (e) => `/agent/${e.agent_id}` },
+    { text: "Dismiss if reviewed and safe", actionType: "dismiss" },
   ],
 };
 
@@ -657,10 +658,13 @@ function ThreatClassExplainers() {
 function RecommendedActionsPanel({
   event,
   onPurge,
+  onDismiss,
 }: {
   event: ThreatEvent;
   onPurge: (e: ThreatEvent) => void;
+  onDismiss: (e: ThreatEvent) => void;
 }) {
+  const [noted, setNoted] = useState<Set<number>>(new Set());
   const classes = parseJsonField<string[]>(event.threat_classes);
   // Collect unique actions from all matched classes
   const actions: RecommendedAction[] = [];
@@ -675,28 +679,58 @@ function RecommendedActionsPanel({
   }
   if (actions.length === 0) return null;
 
+  const markNoted = (i: number) => setNoted((prev) => new Set(prev).add(i));
+
   return (
     <div className="mt-3 rounded-xl border border-cyan/20 bg-cyan/[0.03] px-3 py-3">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-cyan">Recommended Actions</p>
       <ul className="mt-2 space-y-1.5">
-        {actions.map((action, i) => (
-          <li key={i} className="flex items-center gap-2 text-xs text-text-dim">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-cyan/30 text-[9px] font-bold text-cyan">
-              {i + 1}
-            </span>
-            {action.actionType === "purge" ? (
-              <button
-                type="button"
-                onClick={() => onPurge(event)}
-                className="font-semibold text-red hover:underline"
-              >
-                {action.text}
-              </button>
-            ) : (
-              <span>{action.text}</span>
-            )}
-          </li>
-        ))}
+        {actions.map((action, i) => {
+          const isNoted = noted.has(i);
+          return (
+            <li key={i} className={`flex items-center gap-2 text-xs ${isNoted ? "text-text-dim/50 line-through" : "text-text-dim"}`}>
+              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[9px] font-bold ${isNoted ? "border-accent/30 bg-accent/15 text-accent" : "border-cyan/30 text-cyan"}`}>
+                {isNoted ? "\u2713" : i + 1}
+              </span>
+              {action.actionType === "purge" ? (
+                <button
+                  type="button"
+                  onClick={() => onPurge(event)}
+                  className="font-semibold text-red hover:underline"
+                >
+                  {action.text}
+                </button>
+              ) : action.actionType === "dismiss" ? (
+                <button
+                  type="button"
+                  onClick={() => onDismiss(event)}
+                  className="font-semibold text-text-dim hover:text-text hover:underline"
+                >
+                  {action.text}
+                </button>
+              ) : action.actionType === "link" || action.actionType === "activity" ? (
+                <Link
+                  href={action.hrefFn?.(event) ?? "#"}
+                  className="font-semibold text-cyan hover:underline"
+                >
+                  {action.text} &rarr;
+                </Link>
+              ) : action.actionType === "advisory" ? (
+                <button
+                  type="button"
+                  onClick={() => markNoted(i)}
+                  className={`text-left ${isNoted ? "" : "hover:text-text cursor-pointer"}`}
+                  disabled={isNoted}
+                >
+                  {action.text}
+                  {!isNoted && <span className="ml-1.5 text-[10px] text-cyan/60">(click to mark noted)</span>}
+                </button>
+              ) : (
+                <span>{action.text}</span>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -874,7 +908,7 @@ function ThreatEventRow({
           </div>
 
           {/* Recommended Actions (Step 6.2) */}
-          <RecommendedActionsPanel event={event} onPurge={onPurge} />
+          <RecommendedActionsPanel event={event} onPurge={onPurge} onDismiss={onDismiss} />
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap gap-4 text-[11px] text-text-dim">
