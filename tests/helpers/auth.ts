@@ -18,11 +18,20 @@ function getCookieDomain(): string {
   }
 }
 
+/** Parse a cookie value from a Set-Cookie header string */
+function parseCookieValue(setCookie: string, name: string): string | null {
+  // Handle multiple Set-Cookie values (may be joined with comma or newline)
+  const pattern = new RegExp(`(?:^|[,\\n])\\s*${name}=([^;]+)`, "i");
+  const match = setCookie.match(pattern);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 /**
  * Authenticate a Playwright browser context by hitting /api/auth/init
- * and injecting the returned cookies.
+ * and injecting the returned cookies. Returns the CSRF token for use
+ * in mutation requests.
  */
-export async function authenticate(context: BrowserContext): Promise<void> {
+export async function authenticate(context: BrowserContext): Promise<string> {
   const response = await context.request.post(`${MC_URL}/api/auth/init`, {
     headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
   });
@@ -32,30 +41,49 @@ export async function authenticate(context: BrowserContext): Promise<void> {
   }
 
   const domain = getCookieDomain();
+  let csrfToken = "";
 
-  // Cookies are set by the server — Playwright captures them automatically via context.request
-  // For page-level auth, visit a page that triggers the cookie read
+  // Check if cookies were auto-captured by Playwright
   const cookies = await context.cookies(MC_URL);
+  const existingCsrf = cookies.find((c) => c.name === "mc_csrf");
+  if (existingCsrf) {
+    csrfToken = existingCsrf.value;
+  }
+
   if (!cookies.some((c) => c.name === "mc_auth")) {
-    // Auth init returns Set-Cookie — manually parse if needed
+    // Auth init returns Set-Cookie — manually parse and inject
     const setCookie = response.headers()["set-cookie"] ?? "";
     if (setCookie.includes("mc_auth")) {
-      // Parse and set cookies manually
-      const authMatch = setCookie.match(/mc_auth=([^;]+)/);
-      const csrfMatch = setCookie.match(/mc_csrf=([^;]+)/);
-      const roleMatch = setCookie.match(/mc_role=([^;]+)/);
+      const authVal = parseCookieValue(setCookie, "mc_auth");
+      const csrfVal = parseCookieValue(setCookie, "mc_csrf");
+      const roleVal = parseCookieValue(setCookie, "mc_role");
+      const tenantVal = parseCookieValue(setCookie, "mc_tenant");
       const toSet = [];
-      if (authMatch) toSet.push({ name: "mc_auth", value: authMatch[1], domain, path: "/" });
-      if (csrfMatch) toSet.push({ name: "mc_csrf", value: csrfMatch[1], domain, path: "/" });
-      if (roleMatch) toSet.push({ name: "mc_role", value: roleMatch[1], domain, path: "/" });
+      if (authVal) toSet.push({ name: "mc_auth", value: authVal, domain, path: "/" });
+      if (csrfVal) {
+        toSet.push({ name: "mc_csrf", value: csrfVal, domain, path: "/" });
+        csrfToken = csrfVal;
+      }
+      if (roleVal) toSet.push({ name: "mc_role", value: roleVal, domain, path: "/" });
+      if (tenantVal) toSet.push({ name: "mc_tenant", value: tenantVal, domain, path: "/" });
       if (toSet.length) await context.addCookies(toSet);
     }
   }
+
+  return csrfToken;
 }
 
 /**
- * Get auth headers for API requests.
+ * Get auth headers for API requests (Bearer token — CSRF exempt).
  */
 export function authHeaders(): Record<string, string> {
   return { Authorization: `Bearer ${ADMIN_TOKEN}` };
+}
+
+/**
+ * Get auth headers for cookie-authenticated mutation requests.
+ * Pass the CSRF token returned by authenticate().
+ */
+export function csrfHeaders(csrfToken: string): Record<string, string> {
+  return { "x-csrf-token": csrfToken };
 }
