@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PageTransitionWrapper } from "./charts";
 import {
   LayoutDashboard,
@@ -49,6 +49,8 @@ import { GuidedTour } from "./guided-tour";
 import { HelpPanel } from "./help-panel";
 import { KillSwitchButton } from "./kill-switch-button";
 import { ErrorBoundary } from "./error-boundary";
+import { useTenantFilter } from "./tenant-context";
+import { useOverviewData, type Tenant } from "./api";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -230,6 +232,76 @@ function isRouteActive(pathname: string | null, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/* ── Tenant Switcher (owner-only) ── */
+
+function TenantSwitcher({ tenants }: { tenants: Tenant[] }) {
+  const { activeTenant, setActiveTenant } = useTenantFilter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  // Validate activeTenant still exists
+  const validTenant = tenants.find((t) => t.id === activeTenant);
+  const label = validTenant ? validTenant.name : "All Tenants";
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-2 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-1.5 text-left text-[12px] transition hover:border-[#2a3a5a]"
+      >
+        <span className={`h-2 w-2 shrink-0 rounded-full ${validTenant ? "bg-cyan" : "bg-accent"}`} />
+        <span className="flex-1 truncate text-[#e2e8f0]">{label}</span>
+        <ChevronDown className={`h-3 w-3 text-[#475569] transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] py-1 shadow-lg">
+          <button
+            type="button"
+            onClick={() => { setActiveTenant(null); setOpen(false); }}
+            className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px] transition hover:bg-white/5 ${!activeTenant ? "text-accent font-semibold" : "text-[#94a3b8]"}`}
+          >
+            <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />
+            All Tenants
+          </button>
+          {tenants.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => { setActiveTenant(t.id); setOpen(false); }}
+              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px] transition hover:bg-white/5 ${activeTenant === t.id ? "text-cyan font-semibold" : "text-[#94a3b8]"}`}
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full bg-cyan" />
+              <span className="flex-1 truncate">{t.name}</span>
+              <span className="text-[10px] text-[#475569]">{t.plan}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TenantBadge({ tenants }: { tenants: Tenant[] }) {
+  const { activeTenant } = useTenantFilter();
+  if (!activeTenant) return null;
+  const tenant = tenants.find((t) => t.id === activeTenant);
+  if (!tenant) return null;
+  return (
+    <span className="rounded-full bg-cyan/10 px-2 py-0.5 text-[10px] font-semibold text-cyan">
+      {tenant.name}
+    </span>
+  );
+}
+
 export function NotionShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -241,6 +313,14 @@ export function NotionShell({ children }: { children: ReactNode }) {
   const [pinnedDocs, setPinnedDocs] = useState<PinnedDoc[]>([]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [quickKillOpen, setQuickKillOpen] = useState(false);
+
+  // Tenant data for switcher (owner only)
+  const overviewResult = useOverviewData();
+  const tenants = overviewResult.data?.tenants ?? [];
+  const isOwner = useMemo(() => {
+    if (typeof document === "undefined") return false;
+    return document.cookie.includes("mc_role=owner");
+  }, []);
 
   // Skip shell chrome for login and setup pages
   if (pathname === "/login" || pathname?.startsWith("/setup")) {
@@ -368,6 +448,13 @@ export function NotionShell({ children }: { children: ReactNode }) {
           <p className="mt-0.5 text-sm font-semibold text-[#e2e8f0]">Workspace</p>
         </div>
       </div>
+
+      {/* Tenant switcher (owner only, 2+ tenants) */}
+      {isOwner && tenants.length > 1 && (
+        <div className="px-2 pt-3 pb-0">
+          <TenantSwitcher tenants={tenants} />
+        </div>
+      )}
 
       {/* Search trigger */}
       <div className="px-2 pt-3 pb-1">
@@ -503,8 +590,9 @@ export function NotionShell({ children }: { children: ReactNode }) {
                 >
                   <Menu className="h-5 w-5" />
                 </button>
-                <div>
+                <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-[#e2e8f0]">{pageLabels[pathname ?? ""] ?? "Arkon"}</p>
+                  <TenantBadge tenants={tenants} />
                 </div>
               </div>
               <div className="flex items-center gap-2">

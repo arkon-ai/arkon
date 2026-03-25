@@ -22,10 +22,12 @@ import {
   getOverviewMetrics,
   timeAgo,
   useAgentDetailData,
+  useFilteredOverviewData,
   useOverviewData,
   usePollingFetch,
   useTrendData,
 } from "./api";
+import { useTenantFilter } from "./tenant-context";
 import { TrendCharts } from "./trend-charts";
 import { TenantCards } from "./tenant-cards";
 import { EmptyState, FirstRunBanner } from "./empty-states";
@@ -602,8 +604,9 @@ function MobileStatTile({
 }
 
 function OverviewContent() {
-  const { data, error, loading } = useOverviewData();
-  const { data: trendData } = useTrendData("7d");
+  const { activeTenant } = useTenantFilter();
+  const { data, error, loading } = useFilteredOverviewData(activeTenant);
+  const { data: trendData } = useTrendData("7d", activeTenant ?? undefined);
 
   if (loading && !data) return <LoadingState label="Loading overview" />;
   if (error && !data) return <ErrorState error={error} />;

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
 import { NotionShell } from "@/components/mission-control/app-shell";
+import { TenantProvider } from "@/components/mission-control/tenant-context";
 import { ServiceWorkerRegistration } from "@/components/mission-control/service-worker-registration";
 import "./globals.css";
 
@@ -39,7 +40,7 @@ export default function RootLayout({
             style: { background: "#0d0d1a", border: "1px solid #1a2a4a", color: "#e2e8f0" },
           }}
         />
-        <Suspense fallback={<div className="min-h-screen bg-[#050510]" />}><NotionShell>{children}</NotionShell></Suspense>
+        <TenantProvider><Suspense fallback={<div className="min-h-screen bg-[#050510]" />}><NotionShell>{children}</NotionShell></Suspense></TenantProvider>
       </body>
     </html>
   );
