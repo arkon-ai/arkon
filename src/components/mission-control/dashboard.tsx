@@ -35,6 +35,7 @@ import { KillConfirmModal } from "./kill-confirm-modal";
 import { StatCard as UiStatCard } from "./ui-cards";
 import { StatusSummary, HealthGauge, MetricTooltip, SectionDescription } from "./dashboard-clarity";
 import { computeHealthScore } from "@/lib/health-score";
+import { FreshnessIndicator } from "@/components/ui/freshness-indicator";
 
 export function ShellHeader({
   title,
@@ -617,10 +618,10 @@ function OverviewContent() {
           subtitle="Live agent activity, token flow, and system pulse at a glance."
           gradient
           action={
-            <div className="rounded-2xl border border-border bg-bg-card px-3 py-2 text-right text-xs text-text-dim">
-              <div className="text-[10px] uppercase tracking-[0.2em]">Updated</div>
-              <div className="mt-1 text-sm text-text">{getUpdatedAtLabel(data?.timestamp)}</div>
-            </div>
+            <FreshnessIndicator
+              lastUpdated={data?.timestamp ?? null}
+              staleThresholdMs={5 * 60 * 1000}
+            />
           }
         />
 

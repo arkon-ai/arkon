@@ -48,6 +48,7 @@ import { ActiveRunBanner } from "./active-run-banner";
 import { MobileKillBar } from "./mobile-kill-bar";
 import { QuickKillDialog } from "./quick-kill-dialog";
 import { GuidedTour } from "./guided-tour";
+import { GlobalShortcuts } from "./global-shortcuts";
 import { HelpPanel } from "./help-panel";
 import { Breadcrumbs } from "../ui/breadcrumbs";
 
@@ -686,6 +687,8 @@ export function NotionShell({ children }: { children: ReactNode }) {
       <QuickKillDialog open={quickKillOpen} onClose={() => setQuickKillOpen(false)} />
 
       {/* Guided Tour (activated by ?tour=1 after setup wizard) */}
+      {/* Global Keyboard Shortcuts */}
+      <GlobalShortcuts onOpenPalette={() => setPaletteOpen(true)} onOpenKill={() => setQuickKillOpen(true)} />
       <GuidedTour />
     </div>
   );

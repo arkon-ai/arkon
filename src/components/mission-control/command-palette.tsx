@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Command } from "cmdk";
 import {
   LayoutDashboard,
   Radio,
   Bot,
   Server,
   Network,
-  HeartPulse,
   ShieldCheck,
   BarChart3,
   Wallet,
@@ -28,6 +28,8 @@ import {
   Lock,
   Search,
   OctagonX,
+  Settings,
+  MessageSquare,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -47,9 +49,8 @@ const staticPages: PaletteItem[] = [
   { id: "p-agents", label: "Agents", href: "/agents", icon: Bot, category: "page" },
   { id: "p-systems", label: "Systems", href: "/systems", icon: Server, category: "page" },
   { id: "p-infra", label: "Infrastructure", href: "/infrastructure", icon: Network, category: "page" },
-  { id: "p-health", label: "Health", href: "/health", icon: HeartPulse, category: "page" },
   { id: "p-security", label: "ThreatGuard", href: "/security", icon: ShieldCheck, category: "page", keywords: "threat guard security" },
-  { id: "p-analytics", label: "Analytics", href: "/analytics", icon: BarChart3, category: "page" },
+  { id: "p-analytics", label: "Anomaly Detection", href: "/analytics", icon: BarChart3, category: "page" },
   { id: "p-costs", label: "Cost Tracker", href: "/costs", icon: Wallet, category: "page", keywords: "cost money spending" },
   { id: "p-command", label: "Command", href: "/tools/command", icon: Terminal, category: "page" },
   { id: "p-approvals", label: "Approvals", href: "/tools/approvals", icon: CheckCircle, category: "page" },
@@ -65,6 +66,8 @@ const staticPages: PaletteItem[] = [
   { id: "p-benchmarks", label: "Benchmarks", href: "/benchmarks", icon: Gauge, category: "page", keywords: "benchmark model compare" },
   { id: "p-compliance", label: "Compliance", href: "/compliance", icon: Shield, category: "page", keywords: "audit export purge gdpr" },
   { id: "p-admin", label: "Admin Panel", href: "/admin", icon: Lock, category: "page" },
+  { id: "p-settings", label: "Settings", href: "/settings", icon: Settings, category: "page" },
+  { id: "p-victoryos", label: "VictoryOS", href: "/victoryos", icon: MessageSquare, category: "page" },
   { id: "a-kill", label: "Kill Active Agent", href: "", icon: OctagonX, category: "action", keywords: "kill stop emergency agent", action: "quick-kill" },
 ];
 
@@ -75,41 +78,6 @@ function getAuthHeaders(): Record<string, string> {
     if (csrf) headers["x-csrf-token"] = decodeURIComponent(csrf);
   }
   return headers;
-}
-
-function fuzzyMatch(query: string, text: string): { match: boolean; score: number } {
-  const q = query.toLowerCase();
-  const t = text.toLowerCase();
-
-  // Exact substring match — highest score
-  if (t.includes(q)) return { match: true, score: 100 - t.indexOf(q) };
-
-  // Fuzzy character matching
-  let qi = 0;
-  let score = 0;
-  for (let ti = 0; ti < t.length && qi < q.length; ti++) {
-    if (t[ti] === q[qi]) {
-      score += 10;
-      // Bonus for consecutive matches
-      if (ti > 0 && t[ti - 1] === q[qi - 1]) score += 5;
-      qi++;
-    }
-  }
-
-  return { match: qi === q.length, score };
-}
-
-function highlightMatch(text: string, query: string): React.ReactNode {
-  if (!query) return text;
-  const idx = text.toLowerCase().indexOf(query.toLowerCase());
-  if (idx === -1) return text;
-  return (
-    <>
-      {text.slice(0, idx)}
-      <span className="text-[#00D47E] font-semibold">{text.slice(idx, idx + query.length)}</span>
-      {text.slice(idx + query.length)}
-    </>
-  );
 }
 
 const categoryLabels: Record<string, string> = {
@@ -129,17 +97,11 @@ export function CommandPalette({
   onAction?: (action: string) => void;
 }) {
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const [query, setQuery] = useState("");
-  const [activeIndex, setActiveIndex] = useState(0);
   const [dynamicItems, setDynamicItems] = useState<PaletteItem[]>([]);
 
   // Fetch agents + workflows on open
   useEffect(() => {
     if (!open) return;
-    setQuery("");
-    setActiveIndex(0);
 
     const headers = getAuthHeaders();
 
@@ -179,41 +141,7 @@ export function CommandPalette({
     });
   }, [open]);
 
-  // Focus input on open
-  useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [open]);
-
   const allItems = useMemo(() => [...staticPages, ...dynamicItems], [dynamicItems]);
-
-  const filtered = useMemo(() => {
-    if (!query.trim()) return allItems;
-    const results: Array<PaletteItem & { score: number }> = [];
-    for (const item of allItems) {
-      const labelMatch = fuzzyMatch(query, item.label);
-      const keywordMatch = item.keywords ? fuzzyMatch(query, item.keywords) : { match: false, score: 0 };
-      const best = labelMatch.score >= keywordMatch.score ? labelMatch : keywordMatch;
-      if (best.match) {
-        results.push({ ...item, score: best.score });
-      }
-    }
-    results.sort((a, b) => b.score - a.score);
-    return results;
-  }, [query, allItems]);
-
-  // Reset active index when results change
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [filtered.length]);
-
-  // Scroll active item into view
-  useEffect(() => {
-    if (!listRef.current) return;
-    const active = listRef.current.querySelector("[data-active='true']");
-    if (active) active.scrollIntoView({ block: "nearest" });
-  }, [activeIndex]);
 
   const select = useCallback(
     (item: PaletteItem) => {
@@ -227,39 +155,17 @@ export function CommandPalette({
     [onClose, router, onAction]
   );
 
-  const onKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setActiveIndex((i) => Math.min(i + 1, filtered.length - 1));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setActiveIndex((i) => Math.max(i - 1, 0));
-      } else if (e.key === "Enter" && filtered[activeIndex]) {
-        e.preventDefault();
-        select(filtered[activeIndex]);
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
-    },
-    [activeIndex, filtered, select, onClose]
-  );
+  // Group items by category
+  const grouped = useMemo(() => {
+    const groups: Record<string, PaletteItem[]> = {};
+    for (const item of allItems) {
+      if (!groups[item.category]) groups[item.category] = [];
+      groups[item.category].push(item);
+    }
+    return groups;
+  }, [allItems]);
 
   if (!open) return null;
-
-  // Group results by category
-  const grouped: Array<{ category: string; items: typeof filtered }> = [];
-  const seen = new Set<string>();
-  for (const item of filtered) {
-    if (!seen.has(item.category)) {
-      seen.add(item.category);
-      grouped.push({ category: item.category, items: [] });
-    }
-    grouped.find((g) => g.category === item.category)?.items.push(item);
-  }
-
-  let globalIndex = 0;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[min(20vh,160px)]">
@@ -271,18 +177,17 @@ export function CommandPalette({
         tabIndex={-1}
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+      <Command
+        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+        label="Command palette"
+      >
         {/* Search input */}
         <div className="flex items-center gap-3 border-b border-[#2E2E3A] px-4 py-3">
           <Search className="h-4 w-4 shrink-0 text-[#555566]" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={onKeyDown}
+          <Command.Input
             placeholder="Search pages, agents, workflows..."
             className="flex-1 bg-transparent text-sm text-[#E4E4ED] outline-none placeholder:text-[#555566]"
+            autoFocus
           />
           <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
             ESC
@@ -290,46 +195,38 @@ export function CommandPalette({
         </div>
 
         {/* Results */}
-        <div ref={listRef} className="max-h-[360px] overflow-y-auto p-2">
-          {filtered.length === 0 ? (
-            <div className="py-8 text-center text-sm text-[#555566]">
-              No results for &ldquo;{query}&rdquo;
-            </div>
-          ) : (
-            grouped.map((group) => (
-              <div key={group.category} className="mb-1">
-                <p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
-                  {categoryLabels[group.category] ?? group.category}
-                </p>
-                {group.items.map((item) => {
-                  const idx = globalIndex++;
-                  const isActive = idx === activeIndex;
+        <Command.List className="max-h-[360px] overflow-y-auto p-2">
+          <Command.Empty className="py-8 text-center text-sm text-[#555566]">
+            No results found.
+          </Command.Empty>
+
+          {(["action", "page", "agent", "workflow"] as const).map((cat) => {
+            const items = grouped[cat];
+            if (!items?.length) return null;
+            return (
+              <Command.Group
+                key={cat}
+                heading={categoryLabels[cat]}
+                className="mb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.2em] [&_[cmdk-group-heading]]:text-[#555566]"
+              >
+                {items.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <button
+                    <Command.Item
                       key={item.id}
-                      type="button"
-                      data-active={isActive}
-                      onClick={() => select(item)}
-                      onMouseEnter={() => setActiveIndex(idx)}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] transition ${
-                        isActive
-                          ? "bg-[rgba(0,212,126,0.08)] text-[#E4E4ED]"
-                          : "text-[#8888A0] hover:bg-white/[0.03]"
-                      }`}
+                      value={`${item.label} ${item.keywords ?? ""}`}
+                      onSelect={() => select(item)}
+                      className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-[#8888A0] transition data-[selected=true]:bg-[rgba(0,212,126,0.08)] data-[selected=true]:text-[#E4E4ED]"
                     >
-                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
-                      <span className="flex-1 truncate">{highlightMatch(item.label, query)}</span>
-                      {isActive ? (
-                        <span className="text-[10px] text-[#555566]">Enter to open</span>
-                      ) : null}
-                    </button>
+                      <Icon className="h-4 w-4 shrink-0 [[data-selected=true]_&]:text-[#00D47E]" />
+                      <span className="flex-1 truncate">{item.label}</span>
+                    </Command.Item>
                   );
                 })}
-              </div>
-            ))
-          )}
-        </div>
+              </Command.Group>
+            );
+          })}
+        </Command.List>
 
         {/* Footer hint */}
         <div className="flex items-center gap-4 border-t border-[#2E2E3A] px-4 py-2 text-[10px] text-[#555566]">
@@ -337,7 +234,7 @@ export function CommandPalette({
           <span><kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Enter</kbd> open</span>
           <span><kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Esc</kbd> close</span>
         </div>
-      </div>
+      </Command>
     </div>
   );
 }

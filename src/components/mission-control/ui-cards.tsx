@@ -2,10 +2,12 @@
 
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ═══════════════════════════════════════
    Unified Card Components
    Design tokens: --bg-card, --border, --radius-card
+   Phase 2: GlowingEffect emerald glow on hover
 ═══════════════════════════════════════ */
 
 export function StatCard({
@@ -27,9 +29,17 @@ export function StatCard({
 }) {
   return (
     <div
-      className={`card-hover rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${className}`}
+      className={`relative rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${className}`}
     >
-      <div className="flex items-start justify-between">
+      <GlowingEffect
+        spread={40}
+        glow
+        disabled={false}
+        proximity={64}
+        inactiveZone={0.01}
+        borderWidth={2}
+      />
+      <div className="relative z-10 flex items-start justify-between">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
             {label}
@@ -83,18 +93,28 @@ export function ListCard({
 }) {
   return (
     <div
-      className={`card-hover rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${className}`}
+      className={`relative rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${className}`}
     >
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {Icon ? <Icon className="h-4 w-4 text-[#8888A0]" /> : null}
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
-            {title}
-          </h3>
+      <GlowingEffect
+        spread={40}
+        glow
+        disabled={false}
+        proximity={64}
+        inactiveZone={0.01}
+        borderWidth={2}
+      />
+      <div className="relative z-10">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {Icon ? <Icon className="h-4 w-4 text-[#8888A0]" /> : null}
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
+              {title}
+            </h3>
+          </div>
+          {action}
         </div>
-        {action}
+        {children}
       </div>
-      {children}
     </div>
   );
 }
@@ -114,16 +134,26 @@ export function DetailCard({
 }) {
   return (
     <div
-      className={`card-hover rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${className}`}
+      className={`relative rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${className}`}
     >
-      <div className="flex items-center justify-between border-b border-[#2E2E3A]/50 px-4 py-3">
-        <div className="flex items-center gap-2">
-          {Icon ? <Icon className="h-4 w-4 text-[#8888A0]" /> : null}
-          <h3 className="text-sm font-semibold text-[#E4E4ED]">{title}</h3>
+      <GlowingEffect
+        spread={40}
+        glow
+        disabled={false}
+        proximity={64}
+        inactiveZone={0.01}
+        borderWidth={2}
+      />
+      <div className="relative z-10">
+        <div className="flex items-center justify-between border-b border-[#2E2E3A]/50 px-4 py-3">
+          <div className="flex items-center gap-2">
+            {Icon ? <Icon className="h-4 w-4 text-[#8888A0]" /> : null}
+            <h3 className="text-sm font-semibold text-[#E4E4ED]">{title}</h3>
+          </div>
+          {action}
         </div>
-        {action}
+        <div className="p-4">{children}</div>
       </div>
-      <div className="p-4">{children}</div>
     </div>
   );
 }
