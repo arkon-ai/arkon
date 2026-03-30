@@ -31,7 +31,7 @@
 
   /* ── Borders ── */
   --border: #1E1E2A;
-  --border-hover: #3E3E4A;
+  --border-hover: rgba(0, 212, 126, 0.25);
   --border-strong: #3E3E4A;
 
   /* ── Brand — Quarn Emerald (SOLE accent, no purple) ── */
@@ -370,7 +370,8 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--border-hover);
   box-shadow:
     0 14px 48px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(0, 212, 126, 0.04);
+    0 0 20px rgba(0, 212, 126, 0.15),
+    0 0 60px rgba(0, 212, 126, 0.08);
 }
 
 /* Button press feedback */

@@ -33,6 +33,7 @@ import { Bot, AlertTriangle, ChevronDown, OctagonX, Shield, Wallet, Users, Radio
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "./kill-confirm-modal";
 import { StatCard as UiStatCard } from "./ui-cards";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { StatusSummary, HealthGauge, MetricTooltip, SectionDescription } from "./dashboard-clarity";
 import { computeHealthScore } from "@/lib/health-score";
 import { FreshnessIndicator } from "@/components/ui/freshness-indicator";
@@ -103,9 +104,17 @@ export function Card({
 }) {
   return (
     <section
-      className={`card-hover rounded-[22px] border border-border bg-bg-card p-4 shadow-[0_10px_40px_rgba(0,0,0,0.22)] ${className}`}
+      className={`relative card-hover rounded-[22px] border border-border bg-bg-card p-4 shadow-[0_10px_40px_rgba(0,0,0,0.22)] ${className}`}
     >
-      {children}
+      <GlowingEffect
+        spread={40}
+        glow
+        disabled={false}
+        proximity={64}
+        inactiveZone={0.01}
+        borderWidth={2}
+      />
+      <div className="relative z-10">{children}</div>
     </section>
   );
 }
