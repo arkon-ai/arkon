@@ -178,18 +178,18 @@ export function CommandPalette({
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
       <Command
-        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[#1E1E2A] bg-[#111118] shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
         label="Command palette"
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 border-b border-[#2E2E3A] px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-[#1E1E2A] px-4 py-3">
           <Search className="h-4 w-4 shrink-0 text-[#555566]" />
           <Command.Input
             placeholder="Search pages, agents, workflows..."
             className="flex-1 bg-transparent text-sm text-[#E4E4ED] outline-none placeholder:text-[#555566]"
             autoFocus
           />
-          <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
+          <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
             ESC
           </kbd>
         </div>
@@ -229,10 +229,10 @@ export function CommandPalette({
         </Command.List>
 
         {/* Footer hint */}
-        <div className="flex items-center gap-4 border-t border-[#2E2E3A] px-4 py-2 text-[10px] text-[#555566]">
-          <span><kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&uarr;</kbd> <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&darr;</kbd> navigate</span>
-          <span><kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Enter</kbd> open</span>
-          <span><kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Esc</kbd> close</span>
+        <div className="flex items-center gap-4 border-t border-[#1E1E2A] px-4 py-2 text-[10px] text-[#555566]">
+          <span><kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&uarr;</kbd> <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&darr;</kbd> navigate</span>
+          <span><kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Enter</kbd> open</span>
+          <span><kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Esc</kbd> close</span>
         </div>
       </Command>
     </div>

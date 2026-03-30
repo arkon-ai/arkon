@@ -108,7 +108,7 @@ function RegistryBrowser({ onImported }: { onImported: () => void }) {
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search MCP registry… (e.g. notion, slack, github)"
-          className="flex-1 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
+          className="flex-1 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
         />
         {selected.size > 0 && (
           <button
@@ -145,17 +145,17 @@ function RegistryBrowser({ onImported }: { onImported: () => void }) {
                 onClick={() => !isImported && toggleSelect(s.name)}
                 className={`cursor-pointer rounded-xl border px-4 py-3 transition ${
                   isImported
-                    ? "border-[#2E2E3A]/50 bg-[#0A0A0C]/40 opacity-60 cursor-default"
+                    ? "border-[#1E1E2A]/50 bg-[#0A0A0C]/40 opacity-60 cursor-default"
                     : isSelected
                     ? "border-[#00D47E]/60 bg-[rgba(0,212,126,0.08)]"
-                    : "border-[#2E2E3A] bg-[#0A0A0C]/60 hover:border-[#2E2E3A]/80"
+                    : "border-[#1E1E2A] bg-[#0A0A0C]/60 hover:border-[#1E1E2A]/80"
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-[#E4E4ED] truncate">{name}</span>
-                      <span className="rounded-full border border-[#2E2E3A] px-1.5 py-0.5 text-[10px] text-[#555566]">
+                      <span className="rounded-full border border-[#1E1E2A] px-1.5 py-0.5 text-[10px] text-[#555566]">
                         {transportType.toUpperCase()}
                       </span>
                       {s.version && (
@@ -172,7 +172,7 @@ function RegistryBrowser({ onImported }: { onImported: () => void }) {
                     )}
                   </div>
                   {!isImported && (
-                    <div className={`mt-1 h-5 w-5 shrink-0 rounded-full border-2 transition ${isSelected ? "border-[#00D47E] bg-[#00D47E]" : "border-[#2E2E3A]"}`}>
+                    <div className={`mt-1 h-5 w-5 shrink-0 rounded-full border-2 transition ${isSelected ? "border-[#00D47E] bg-[#00D47E]" : "border-[#1E1E2A]"}`}>
                       {isSelected && <div className="flex h-full items-center justify-center text-[#0A0A0C] text-[10px] font-bold">✓</div>}
                     </div>
                   )}
@@ -267,7 +267,7 @@ function AddServerModal({ onClose, onAdded }: { onClose: () => void; onAdded: ()
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="w-full max-w-lg rounded-3xl border border-[#2E2E3A] bg-[#0a0a14] p-6 shadow-2xl"
+        className="w-full max-w-lg rounded-3xl border border-[#1E1E2A] bg-[#0a0a14] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="mb-4 text-base font-bold text-[#E4E4ED]">Add MCP Server</h3>
@@ -284,7 +284,7 @@ function AddServerModal({ onClose, onAdded }: { onClose: () => void; onAdded: ()
                 value={form[key as keyof typeof form] as string}
                 onChange={(e) => setForm(f => ({ ...f, [key]: e.target.value }))}
                 placeholder={placeholder}
-                className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
+                className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
               />
             </div>
           ))}
@@ -294,7 +294,7 @@ function AddServerModal({ onClose, onAdded }: { onClose: () => void; onAdded: ()
             <select
               value={form.server_type}
               onChange={(e) => setForm(f => ({ ...f, server_type: e.target.value }))}
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E]"
+              className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E]"
             >
               {["mcp", "stdio", "sse", "websocket", "http"].map(t => (
                 <option key={t} value={t}>{t.toUpperCase()}</option>
@@ -321,7 +321,7 @@ function AddServerModal({ onClose, onAdded }: { onClose: () => void; onAdded: ()
           >
             {busy ? "Adding…" : "Add Server"}
           </button>
-          <button onClick={onClose} className="rounded-xl border border-[#2E2E3A] px-4 py-2.5 text-sm text-[#8888A0] hover:text-[#E4E4ED] transition">
+          <button onClick={onClose} className="rounded-xl border border-[#1E1E2A] px-4 py-2.5 text-sm text-[#8888A0] hover:text-[#E4E4ED] transition">
             Cancel
           </button>
         </div>
@@ -387,7 +387,7 @@ function AgentMappingPanel({ serverId, onClose }: { serverId: number; onClose: (
   const unmapped = allAgents.filter(a => !mappedIds.has(a.id));
 
   return (
-    <div className="mt-3 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-3">
+    <div className="mt-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3">
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-[#8888A0]">Assigned Agents</p>
         <button onClick={onClose} className="text-xs text-[#8888A0] hover:text-[#E4E4ED]">\u2715</button>
@@ -411,7 +411,7 @@ function AgentMappingPanel({ serverId, onClose }: { serverId: number; onClose: (
           {unmapped.length > 0 && (
             <select
               onChange={(e) => { if (e.target.value) { void addAgent(e.target.value); e.target.value = ""; } }}
-              className="w-full rounded-lg border border-[#2E2E3A] bg-[#0a0a14] px-2 py-1.5 text-xs text-[#E4E4ED]"
+              className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-2 py-1.5 text-xs text-[#E4E4ED]"
               defaultValue=""
             >
               <option value="" disabled>+ Assign agent...</option>
@@ -460,7 +460,7 @@ function ConfigExportModal({ serverId, serverName, onClose }: { serverId: number
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="w-full max-w-lg rounded-3xl border border-[#2E2E3A] bg-[#0a0a14] p-6 shadow-2xl"
+        className="w-full max-w-lg rounded-3xl border border-[#1E1E2A] bg-[#0a0a14] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="mb-1 text-base font-bold text-[#E4E4ED]">Export Config</h3>
@@ -474,7 +474,7 @@ function ConfigExportModal({ serverId, serverName, onClose }: { serverId: number
               className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                 format === f
                   ? "bg-[#00D47E] text-[#0A0A0C]"
-                  : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"
+                  : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"
               }`}
             >
               {f === "claude-code" ? "Claude Code" : f === "cursor" ? "Cursor" : "Raw JSON"}
@@ -487,7 +487,7 @@ function ConfigExportModal({ serverId, serverName, onClose }: { serverId: number
         {loading ? (
           <div className="h-32 rounded-xl bg-[#0A0A0C] animate-pulse" />
         ) : (
-          <pre className="max-h-64 overflow-auto rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-4 font-mono text-xs text-[#00D47E]">
+          <pre className="max-h-64 overflow-auto rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-4 font-mono text-xs text-[#00D47E]">
             {config}
           </pre>
         )}
@@ -499,7 +499,7 @@ function ConfigExportModal({ serverId, serverName, onClose }: { serverId: number
           >
             Copy to Clipboard
           </button>
-          <button onClick={onClose} className="rounded-xl border border-[#2E2E3A] px-4 py-2.5 text-sm text-[#8888A0] hover:text-[#E4E4ED] transition">
+          <button onClick={onClose} className="rounded-xl border border-[#1E1E2A] px-4 py-2.5 text-sm text-[#8888A0] hover:text-[#E4E4ED] transition">
             Close
           </button>
         </div>
@@ -569,7 +569,7 @@ function ServerCard({ server, onUpdated, onDelete }: {
           ? "border-amber-500/30 bg-[rgba(245,158,11,0.04)]"
           : server.status === "offline"
           ? "border-red-500/30 bg-[rgba(239,68,68,0.04)]"
-          : "border-[#2E2E3A] bg-[#0A0A0C]/70"
+          : "border-[#1E1E2A] bg-[#0A0A0C]/70"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -583,7 +583,7 @@ function ServerCard({ server, onUpdated, onDelete }: {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-semibold text-[#E4E4ED]">{server.name}</span>
-                <span className="rounded-full border border-[#2E2E3A] px-2 py-0.5 text-[10px] text-[#8888A0]">
+                <span className="rounded-full border border-[#1E1E2A] px-2 py-0.5 text-[10px] text-[#8888A0]">
                   {server.server_type.toUpperCase()}
                 </span>
                 {!server.approved && (
@@ -610,7 +610,7 @@ function ServerCard({ server, onUpdated, onDelete }: {
             <button
               onClick={() => void runCheck()}
               disabled={checking}
-              className="rounded-xl border border-[#2E2E3A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition disabled:opacity-50"
+              className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition disabled:opacity-50"
             >
               {checking ? "Checking…" : "🔍 Check Now"}
             </button>
@@ -626,13 +626,13 @@ function ServerCard({ server, onUpdated, onDelete }: {
             </button>
             <button
               onClick={() => setShowAgents(!showAgents)}
-              className="rounded-xl border border-[#2E2E3A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
+              className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
             >
               👥 Agents
             </button>
             <button
               onClick={() => setShowExport(true)}
-              className="rounded-xl border border-[#2E2E3A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
+              className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
             >
               📋 Export
             </button>
@@ -710,7 +710,7 @@ export function MCPInventory() {
             <div className="flex gap-2">
               <button
                 onClick={() => void runAllChecks()}
-                className="rounded-xl border border-[#2E2E3A] px-3 py-2 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
+                className="rounded-xl border border-[#1E1E2A] px-3 py-2 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
               >
                 🔍 Check All
               </button>
@@ -729,13 +729,13 @@ export function MCPInventory() {
       <div className="flex gap-2">
         <button
           onClick={() => setView("my")}
-          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${view === "my" ? "bg-[#00D47E] text-[#0A0A0C]" : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${view === "my" ? "bg-[#00D47E] text-[#0A0A0C]" : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
         >
           🔌 My Servers ({servers.length})
         </button>
         <button
           onClick={() => setView("registry")}
-          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${view === "registry" ? "bg-[#00D47E] text-white" : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${view === "registry" ? "bg-[#00D47E] text-white" : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
         >
           🌐 Browse Registry
         </button>
@@ -808,7 +808,7 @@ export function MCPInventory() {
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   filter === key
                     ? danger ? "bg-amber-500/20 text-amber-400" : "bg-[#00D47E] text-[#0A0A0C]"
-                    : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"
+                    : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"
                 }`}
               >
                 {label}

@@ -324,7 +324,7 @@ function AlertsBanner() {
 
   if (anomalies.length === 0) {
     return (
-      <div className="flex items-center gap-3 rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] px-4 py-3">
+      <div className="flex items-center gap-3 rounded-[16px] border border-[#1E1E2A] bg-[#111118] px-4 py-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(0,212,126,0.08)]">
           <ShieldCheckIcon className="h-4 w-4 text-[#00D47E]" />
         </div>
@@ -334,7 +334,7 @@ function AlertsBanner() {
   }
 
   return (
-    <div className="rounded-[16px] border border-[#f59e0b]/20 bg-[#1A1A22] overflow-hidden">
+    <div className="rounded-[16px] border border-[#f59e0b]/20 bg-[#111118] overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
@@ -365,7 +365,7 @@ function AlertsBanner() {
               </div>
               <button
                 onClick={() => ackAlert(a.id)}
-                className="ml-3 shrink-0 rounded-lg border border-[#2E2E3A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
+                className="ml-3 shrink-0 rounded-lg border border-[#1E1E2A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
               >
                 Ack
               </button>
@@ -934,7 +934,7 @@ function ProgressRing({ progress }: { progress: number }) {
             <stop offset="100%" stopColor="#00D47E" />
           </linearGradient>
         </defs>
-        <circle cx="110" cy="110" r={radius} stroke="#2E2E3A" strokeWidth="14" fill="none" />
+        <circle cx="110" cy="110" r={radius} stroke="#1E1E2A" strokeWidth="14" fill="none" />
         <circle
           cx="110"
           cy="110"
@@ -1470,7 +1470,7 @@ export function AnomalyWidget() {
             </div>
             <button
               onClick={() => ackAlert(a.id)}
-              className="ml-3 shrink-0 rounded-lg border border-[#2E2E3A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition btn-press"
+              className="ml-3 shrink-0 rounded-lg border border-[#1E1E2A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition btn-press"
             >
               Ack
             </button>

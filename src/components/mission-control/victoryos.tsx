@@ -218,7 +218,7 @@ export default function VictoryOSScreen() {
           </SectionDescription>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-xl border border-[#2E2E3A] bg-[#1A1A22] p-0.5">
+          <div className="flex rounded-xl border border-[#1E1E2A] bg-[#111118] p-0.5">
             {RANGE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
@@ -238,7 +238,7 @@ export default function VictoryOSScreen() {
             type="button"
             onClick={() => fetchData(range)}
             disabled={loading}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#2E2E3A] bg-[#1A1A22] text-[#8888A0] transition hover:text-[#E4E4ED] disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#1E1E2A] bg-[#111118] text-[#8888A0] transition hover:text-[#E4E4ED] disabled:opacity-50"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -254,7 +254,7 @@ export default function VictoryOSScreen() {
       {loading && !data ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-xl bg-[#2E2E3A]/30" />
+            <div key={i} className="h-24 animate-pulse rounded-xl bg-[#1E1E2A]/30" />
           ))}
         </div>
       ) : data ? (
@@ -313,7 +313,7 @@ export default function VictoryOSScreen() {
                         <stop offset="95%" stopColor="#22C55E" stopOpacity={0.05} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
                     <XAxis
                       dataKey="day"
                       stroke="#8888A0"
@@ -326,8 +326,8 @@ export default function VictoryOSScreen() {
                     <YAxis stroke="#8888A0" tick={{ fontSize: 11 }} allowDecimals={false} />
                     <Tooltip
                       contentStyle={{
-                        background: "#1A1A22",
-                        border: "1px solid #2E2E3A",
+                        background: "#111118",
+                        border: "1px solid #1E1E2A",
                         borderRadius: "12px",
                         fontSize: "12px",
                       }}
@@ -360,7 +360,7 @@ export default function VictoryOSScreen() {
             <DetailCard title="Activity by Hour (SAST)" icon={Clock}>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={hourlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
                   <XAxis
                     dataKey="hour"
                     stroke="#8888A0"
@@ -370,8 +370,8 @@ export default function VictoryOSScreen() {
                   <YAxis stroke="#8888A0" tick={{ fontSize: 11 }} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{
-                      background: "#1A1A22",
-                      border: "1px solid #2E2E3A",
+                      background: "#111118",
+                      border: "1px solid #1E1E2A",
                       borderRadius: "12px",
                       fontSize: "12px",
                     }}
@@ -415,7 +415,7 @@ export default function VictoryOSScreen() {
                           )}
                         </div>
                       </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-[#2E2E3A]">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-[#1E1E2A]">
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
@@ -460,8 +460,8 @@ export default function VictoryOSScreen() {
                         </Pie>
                         <Tooltip
                           contentStyle={{
-                            background: "#1A1A22",
-                            border: "1px solid #2E2E3A",
+                            background: "#111118",
+                            border: "1px solid #1E1E2A",
                             borderRadius: "12px",
                             fontSize: "12px",
                           }}

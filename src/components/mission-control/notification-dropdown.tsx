@@ -185,9 +185,9 @@ export function NotificationDropdown() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-96 rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+        <div className="absolute right-0 top-12 z-50 w-96 rounded-2xl border border-[#1E1E2A] bg-[#111118] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[#2E2E3A]/50 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-[#1E1E2A]/50 px-4 py-3">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
               Notifications
               {unreadCount > 0 ? (
@@ -298,7 +298,7 @@ export function NotificationDropdown() {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between border-t border-[#2E2E3A]/50 px-4 py-2.5">
+          <div className="flex items-center justify-between border-t border-[#1E1E2A]/50 px-4 py-2.5">
             <Link
               href="/activity"
               onClick={() => setOpen(false)}

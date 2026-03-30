@@ -79,10 +79,10 @@ export function Drawer({
               mass: 1,
             }}
             style={{ width }}
-            className="fixed right-0 top-0 z-[91] flex h-full flex-col border-l border-[#2E2E3A] bg-[#0A0A0C] shadow-[-20px_0_60px_rgba(0,0,0,0.5)]"
+            className="fixed right-0 top-0 z-[91] flex h-full flex-col border-l border-[#1E1E2A] bg-[#0A0A0C] shadow-[-20px_0_60px_rgba(0,0,0,0.5)]"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#2E2E3A]/50 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-[#1E1E2A]/50 px-5 py-4">
               {title ? (
                 <h2
                   className="text-lg font-bold text-[#E4E4ED]"
@@ -108,7 +108,7 @@ export function Drawer({
 
             {/* Footer */}
             {footer ? (
-              <div className="border-t border-[#2E2E3A]/50 px-5 py-3">
+              <div className="border-t border-[#1E1E2A]/50 px-5 py-3">
                 {footer}
               </div>
             ) : null}

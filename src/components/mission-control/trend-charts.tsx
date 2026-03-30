@@ -24,7 +24,7 @@ function TrendTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-xs shadow-lg">
+    <div className="rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2 text-xs shadow-lg">
       <p className="mb-1 text-[#8888A0]">{label}</p>
       {payload.map((p) => (
         <p key={p.name} className="font-semibold" style={{ color: p.color }}>

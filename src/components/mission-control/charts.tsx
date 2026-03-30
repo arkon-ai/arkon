@@ -118,7 +118,7 @@ export function StatusRing({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="#2E2E3A"
+          stroke="#1E1E2A"
           strokeWidth={2.5}
           fill="none"
         />
@@ -211,7 +211,7 @@ export function LiveBadge() {
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-xs shadow-lg">
+    <div className="rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2 text-xs shadow-lg">
       <p className="mb-1 text-[#8888A0]">{label}</p>
       <p className="font-semibold text-[#E4E4ED]">{payload[0].value.toLocaleString()}</p>
     </div>
@@ -231,7 +231,7 @@ export function EventsAreaChart({ data }: { data: Array<{ day: string; events: n
             <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" vertical={false} />
         <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
         <Tooltip content={<ChartTooltip />} />
@@ -262,7 +262,7 @@ export function TokensAreaChart({ data }: { data: Array<{ day: string; tokens: n
             <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" vertical={false} />
         <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
         <Tooltip content={<ChartTooltip />} />
@@ -288,7 +288,7 @@ export function AgentBarChart({ agents }: { agents: Array<{ name: string; events
   return (
     <ResponsiveContainer width="100%" height={180}>
       <BarChart data={sorted} layout="vertical" margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" horizontal={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" horizontal={false} />
         <XAxis type="number" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
         <YAxis
           type="category"
@@ -317,7 +317,7 @@ export function AgentBarChart({ agents }: { agents: Array<{ name: string; events
 ───────────────────────────────────────── */
 export function SkeletonCard({ lines = 3, height = "h-20" }: { lines?: number; height?: string }) {
   return (
-    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
+    <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
       <div className="skeleton mb-3 h-4 w-1/3 rounded-lg" />
       <div className={`skeleton ${height} w-full rounded-xl`} />
       {lines > 1 && Array.from({ length: lines - 1 }).map((_, i) => (

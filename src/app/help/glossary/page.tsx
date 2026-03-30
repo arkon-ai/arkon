@@ -50,7 +50,7 @@ export default function GlossaryPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search terms..."
-          className="w-full rounded-xl border border-[#2E2E3A] bg-[#1A1A22] py-2.5 pl-10 pr-4 text-sm text-[#E4E4ED] placeholder-[#555566] outline-none transition focus:border-[#00D47E]/50 focus:ring-1 focus:ring-[#00D47E]/20"
+          className="w-full rounded-xl border border-[#1E1E2A] bg-[#111118] py-2.5 pl-10 pr-4 text-sm text-[#E4E4ED] placeholder-[#555566] outline-none transition focus:border-[#00D47E]/50 focus:ring-1 focus:ring-[#00D47E]/20"
         />
         {query && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[#555566]">
@@ -61,7 +61,7 @@ export default function GlossaryPage() {
 
       {/* Terms grouped by letter */}
       {grouped.length === 0 ? (
-        <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22]/60 px-6 py-8 text-center">
+        <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118]/60 px-6 py-8 text-center">
           <p className="text-sm text-[#8888A0]">No terms match &ldquo;{query}&rdquo;</p>
         </div>
       ) : (
@@ -75,7 +75,7 @@ export default function GlossaryPage() {
                 {terms.map((t) => (
                   <div
                     key={t.term}
-                    className="rounded-xl border border-[#2E2E3A]/50 bg-[#1A1A22]/40 px-4 py-3 transition hover:border-[#2E2E3A]"
+                    className="rounded-xl border border-[#1E1E2A]/50 bg-[#111118]/40 px-4 py-3 transition hover:border-[#1E1E2A]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">

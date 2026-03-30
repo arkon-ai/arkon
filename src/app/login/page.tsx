@@ -65,7 +65,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22]">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[16px] border border-[#1E1E2A] bg-[#111118]">
             <span className="text-2xl font-bold text-[#00D47E]">A</span>
           </div>
           <h1 className="text-2xl font-bold text-white">Arkon</h1>
@@ -82,7 +82,7 @@ export default function LoginPage() {
               placeholder="Passphrase"
               autoFocus
               autoComplete="current-password"
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+              className="w-full rounded-xl border border-[#1E1E2A] bg-[#111118] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
             />
           </div>
 

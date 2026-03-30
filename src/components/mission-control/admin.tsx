@@ -49,7 +49,7 @@ function RoleBadge({ role }: { role: string }) {
 
 /* ─── Section wrapper ────────────────────────────────────── */
 function AdminSection({
-  icon, title, description, colour = "border-[#2E2E3A]", children,
+  icon, title, description, colour = "border-[#1E1E2A]", children,
 }: {
   icon: string; title: string; description: string; colour?: string; children: React.ReactNode;
 }) {
@@ -74,7 +74,7 @@ function Input({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> 
       <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#8888A0]">{label}</label>
       <input
         {...props}
-        className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition"
+        className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition"
       />
     </div>
   );
@@ -87,7 +87,7 @@ function Textarea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextArea
       <textarea
         {...props}
         rows={3}
-        className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition resize-y"
+        className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition resize-y"
       />
     </div>
   );
@@ -99,7 +99,7 @@ function Select({ label, children, ...props }: React.SelectHTMLAttributes<HTMLSe
       <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#8888A0]">{label}</label>
       <select
         {...props}
-        className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
+        className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
       >
         {children}
       </select>
@@ -114,7 +114,7 @@ function Btn({ children, variant = "primary", disabled, onClick, type = "button"
   const styles = {
     primary: "bg-[#00D47E] text-[#0A0A0C] hover:opacity-90",
     danger: "bg-[rgba(239,68,68,0.15)] text-red-400 border border-red-500/30 hover:bg-[rgba(239,68,68,0.25)]",
-    ghost: "border border-[#2E2E3A] text-[#8888A0] hover:border-[#00D47E] hover:text-[#00D47E]",
+    ghost: "border border-[#1E1E2A] text-[#8888A0] hover:border-[#00D47E] hover:text-[#00D47E]",
   };
   return (
     <button type={type} disabled={disabled} onClick={onClick} className={`${base} ${styles[variant]}`}>
@@ -133,7 +133,7 @@ function TokenReveal({ token, onDismiss }: { token: string; onDismiss: () => voi
         <code className="flex-1 break-all rounded-lg bg-[#0A0A0C] px-3 py-2 text-xs font-mono text-[#00D47E]">{token}</code>
         <button
           onClick={() => { navigator.clipboard.writeText(token); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          className="rounded-lg border border-[#2E2E3A] px-3 py-2 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
+          className="rounded-lg border border-[#1E1E2A] px-3 py-2 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
         >
           {copied ? "✓" : "Copy"}
         </button>
@@ -398,7 +398,7 @@ export function AdminPanel() {
         ) : (
           <div className="space-y-2">
             {agents.map((a) => (
-              <div key={a.id} className="flex items-center justify-between rounded-2xl border border-[#2E2E3A] bg-[#0A0A0C]/70 px-4 py-3">
+              <div key={a.id} className="flex items-center justify-between rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3">
                 <div>
                   <span className="text-sm font-semibold text-[#E4E4ED]">{a.name}</span>
                   <span className="ml-2 text-xs text-[#8888A0]">id: {a.id}</span>

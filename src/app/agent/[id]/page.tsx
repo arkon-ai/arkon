@@ -118,7 +118,7 @@ const ROLE_COLOURS: Record<string, string> = {
 };
 
 function eventColour(type: string) {
-  return EVENT_COLOUR[type] ?? "border-[#2E2E3A] bg-[#0d0d18]";
+  return EVENT_COLOUR[type] ?? "border-[#1E1E2A] bg-[#0d0d18]";
 }
 
 function fmtTime(iso: string) {
@@ -171,7 +171,7 @@ function parseJsonField<T>(value: string | T): T {
 function ChartTip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; fill?: string; stroke?: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#2E2E3A] bg-[#0a0a14] px-3 py-2 text-xs">
+    <div className="rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-xs">
       <p className="mb-1 font-semibold text-[#8888A0]">{label}</p>
       {payload.map((p) => (
         <p key={p.name} style={{ color: p.fill ?? p.stroke ?? "#00D47E" }}>{p.name}: {p.value}</p>
@@ -195,7 +195,7 @@ const TABS: Array<{ key: ProfileTab; label: string; icon: React.ReactNode }> = [
 
 function StatPill({ label, value, colour = "text-[#00D47E]", subtext }: { label: string; value: string | number; colour?: string; subtext?: string }) {
   return (
-    <div className="rounded-2xl border border-[#2E2E3A] bg-[#0A0A0C]/70 px-4 py-3 text-center">
+    <div className="rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3 text-center">
       <div className={`text-xl font-bold ${colour}`}>{value}</div>
       <div className="mt-0.5 text-xs text-[#8888A0]">{label}</div>
       {subtext && <div className="mt-0.5 text-[10px] text-[#555566]">{subtext}</div>}
@@ -380,7 +380,7 @@ export default function AgentDetailPage() {
       </CardEntranceWrapper>
 
       {/* ── Tab Bar ── */}
-      <div className="flex gap-1 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C]/70 p-1">
+      <div className="flex gap-1 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C]/70 p-1">
         {TABS.map((tab) => (
           <button
             key={tab.key}
@@ -466,7 +466,7 @@ function OverviewTab({ data, chartData, model, framework }: {
                   <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
               <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
@@ -483,7 +483,7 @@ function OverviewTab({ data, chartData, model, framework }: {
           <SectionTitle title="Recent Sessions" note={`${data.sessions.length} sessions`} />
           <div className="space-y-2">
             {data.sessions.slice(0, 5).map((s) => (
-              <div key={s.session_key} className="flex items-center justify-between rounded-2xl border border-[#2E2E3A] bg-[#0A0A0C]/70 px-4 py-3">
+              <div key={s.session_key} className="flex items-center justify-between rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3">
                 <div>
                   <div className="font-mono text-xs text-[#00D47E] truncate max-w-[200px] sm:max-w-none">{s.session_key}</div>
                   <div className="mt-0.5 text-xs text-[#8888A0]">{s.channel_id || "unknown channel"}</div>
@@ -534,7 +534,7 @@ function SecurityTab({ data }: { data: AgentData }) {
         <SectionTitle title="Recent Threat Events" note={`${threats.recent.length} events`} />
         {threats.recent.length === 0 ? (
           <div className="py-8 text-center">
-            <Shield className="mx-auto h-8 w-8 text-[#2E2E3A]" />
+            <Shield className="mx-auto h-8 w-8 text-[#1E1E2A]" />
             <p className="mt-2 text-sm text-text-dim">No threats detected for this agent</p>
           </div>
         ) : (
@@ -545,7 +545,7 @@ function SecurityTab({ data }: { data: AgentData }) {
                 <Link
                   key={t.id}
                   href="/threatguard"
-                  className="flex items-center justify-between rounded-xl border border-[#2E2E3A] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
+                  className="flex items-center justify-between rounded-xl border border-[#1E1E2A] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
                 >
                   <div className="flex items-center gap-3">
                     <AlertTriangle className="h-4 w-4" style={{ color: SEVERITY_COLORS[t.threat_level] ?? "#8888A0" }} />
@@ -611,7 +611,7 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
           <SectionTitle title="Daily Cost — 7 Days" />
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
               <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
               <Tooltip content={<ChartTip />} />
@@ -633,7 +633,7 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
                   <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
               <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
@@ -649,7 +649,7 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
           <SectionTitle title="Tool Calls — 7 Days" />
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
               <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
@@ -674,7 +674,7 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
                       <span className="truncate text-sm text-text">{t.tool_name || "(unnamed)"}</span>
                       <span className="ml-2 shrink-0 text-xs font-semibold text-text-dim">{t.call_count}</span>
                     </div>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#2E2E3A]">
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#1E1E2A]">
                       <div className="h-full rounded-full bg-[#00D47E] transition-all" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
@@ -718,7 +718,7 @@ function ActivityTab({
             <button
               key={t}
               onClick={() => setFilter(t)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#00D47E] text-[#0A0A0C]" : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#00D47E] text-[#0A0A0C]" : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
             >
               {t === "all" ? "All" : t.replace("_", " ")}
             </button>
@@ -776,7 +776,7 @@ function ActivityTab({
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="mt-3 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-3"
+                  className="mt-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3"
                 >
                   <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[#8888A0]">
                     {event.content}

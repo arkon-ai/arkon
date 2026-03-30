@@ -11,7 +11,7 @@ interface KeyboardShortcutModalProps {
 
 function Kbd({ children }: { children: string }) {
   return (
-    <kbd className="inline-flex min-w-[22px] items-center justify-center rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[11px] font-medium text-[#8888A0]">
+    <kbd className="inline-flex min-w-[22px] items-center justify-center rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1.5 py-0.5 text-[11px] font-medium text-[#8888A0]">
       {children}
     </kbd>
   );
@@ -63,9 +63,9 @@ export function KeyboardShortcutModal({ open, onClose }: KeyboardShortcutModalPr
         aria-label="Close shortcuts"
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
-      <div className="relative w-full max-w-md rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+      <div className="relative w-full max-w-md rounded-2xl border border-[#1E1E2A] bg-[#111118] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#2E2E3A]/50 px-5 py-3">
+        <div className="flex items-center justify-between border-b border-[#1E1E2A]/50 px-5 py-3">
           <h2
             className="text-base font-bold text-[#E4E4ED]"
             style={{ fontFamily: "var(--font-display)" }}
@@ -106,7 +106,7 @@ export function KeyboardShortcutModal({ open, onClose }: KeyboardShortcutModalPr
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[#2E2E3A]/50 px-5 py-2.5 text-center text-[11px] text-[#555566]">
+        <div className="border-t border-[#1E1E2A]/50 px-5 py-2.5 text-center text-[11px] text-[#555566]">
           Press <Kbd>?</Kbd> to toggle this dialog
         </div>
       </div>

@@ -48,7 +48,7 @@ export function ClientCosts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-white">Costs</h1>
-        <div className="flex gap-1 rounded-xl bg-[#0a0a14] border border-[#2E2E3A] p-1">
+        <div className="flex gap-1 rounded-xl bg-[#0a0a14] border border-[#1E1E2A] p-1">
           {ranges.map((r) => (
             <button
               key={r.value}
@@ -81,7 +81,7 @@ export function ClientCosts() {
 
       {/* Daily trend chart (simple bars) */}
       {data.daily_trend.length > 0 ? (
-        <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-5">
+        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Daily Spend</h2>
           <div className="flex items-end gap-1" style={{ height: 120 }}>
             {data.daily_trend.map((d) => {
@@ -89,7 +89,7 @@ export function ClientCosts() {
               const day = new Date(d.day).toLocaleDateString("en-ZA", { month: "short", day: "numeric" });
               return (
                 <div key={d.day} className="group relative flex flex-1 flex-col items-center">
-                  <div className="absolute -top-8 hidden rounded bg-[#2E2E3A] px-2 py-1 text-[10px] text-white group-hover:block whitespace-nowrap">
+                  <div className="absolute -top-8 hidden rounded bg-[#1E1E2A] px-2 py-1 text-[10px] text-white group-hover:block whitespace-nowrap">
                     {day}: ${d.cost.toFixed(4)}
                   </div>
                   <div
@@ -113,7 +113,7 @@ export function ClientCosts() {
 
       {/* Cost by agent */}
       {data.by_agent.length > 0 ? (
-        <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-5">
+        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Cost by Agent</h2>
           <div className="space-y-2">
             {data.by_agent.map((a) => (
@@ -131,7 +131,7 @@ export function ClientCosts() {
 
       {/* Budget status */}
       {data.budgets.length > 0 ? (
-        <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-5">
+        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Budget Limits</h2>
           <div className="space-y-3">
             {data.budgets.map((b, i) => {
@@ -146,7 +146,7 @@ export function ClientCosts() {
                         <span>Daily: ${Number(b.today_spend).toFixed(4)} / ${b.daily_limit_usd.toFixed(2)}</span>
                         <span>{dailyPct.toFixed(0)}%</span>
                       </div>
-                      <div className="mt-1 h-1.5 rounded-full bg-[#2E2E3A]">
+                      <div className="mt-1 h-1.5 rounded-full bg-[#1E1E2A]">
                         <div className={`h-full rounded-full transition-all ${dailyPct > 80 ? "bg-red-500" : dailyPct > 50 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${Math.min(dailyPct, 100)}%` }} />
                       </div>
                     </div>
@@ -157,7 +157,7 @@ export function ClientCosts() {
                         <span>Monthly: ${Number(b.month_spend).toFixed(4)} / ${b.monthly_limit_usd.toFixed(2)}</span>
                         <span>{monthPct.toFixed(0)}%</span>
                       </div>
-                      <div className="mt-1 h-1.5 rounded-full bg-[#2E2E3A]">
+                      <div className="mt-1 h-1.5 rounded-full bg-[#1E1E2A]">
                         <div className={`h-full rounded-full transition-all ${monthPct > 80 ? "bg-red-500" : monthPct > 50 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${Math.min(monthPct, 100)}%` }} />
                       </div>
                     </div>

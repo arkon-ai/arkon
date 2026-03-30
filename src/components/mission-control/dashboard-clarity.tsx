@@ -21,9 +21,9 @@ export function MetricTooltip({ text }: { text: string }) {
         <Info className="h-3 w-3" />
       </button>
       {open && (
-        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2.5 text-xs leading-relaxed text-[#cbd5e1] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2.5 text-xs leading-relaxed text-[#cbd5e1] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
           {text}
-          <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#2E2E3A]" />
+          <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#1E1E2A]" />
         </div>
       )}
     </span>
@@ -72,7 +72,7 @@ export function HealthGauge({
           cy={center}
           r={radius}
           fill="none"
-          stroke="#2E2E3A"
+          stroke="#1E1E2A"
           strokeWidth={strokeW}
         />
         {/* Score arc */}
@@ -113,7 +113,7 @@ export function HealthGauge({
 
       {/* Tooltip breakdown on hover */}
       {hover && (
-        <div className="absolute top-full z-50 mt-2 w-52 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] p-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute top-full z-50 mt-2 w-52 rounded-xl border border-[#1E1E2A] bg-[#111118] p-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
             Score Breakdown
           </p>
@@ -144,7 +144,7 @@ function BreakdownRow({
         <span className="text-[#8888A0]">{label}</span>
         <span className="font-semibold text-[#E4E4ED]">{value}/{max}</span>
       </div>
-      <div className="mt-0.5 h-1 overflow-hidden rounded-full bg-[#2E2E3A]">
+      <div className="mt-0.5 h-1 overflow-hidden rounded-full bg-[#1E1E2A]">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${(value / max) * 100}%`, backgroundColor: color }}
@@ -212,7 +212,7 @@ export function StatusSummary({
   }
 
   return (
-    <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22]/80 px-4 py-3 text-sm leading-relaxed text-[#8888A0]">
+    <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118]/80 px-4 py-3 text-sm leading-relaxed text-[#8888A0]">
       {parts}
     </div>
   );
@@ -247,7 +247,7 @@ export function SectionDescription({
   return (
     <div className="mb-4">
       {expanded ? (
-        <div className="rounded-[14px] border border-[#2E2E3A]/60 bg-[#1A1A22]/60 px-4 py-3">
+        <div className="rounded-[14px] border border-[#1E1E2A]/60 bg-[#111118]/60 px-4 py-3">
           <div className="text-sm leading-relaxed text-[#8888A0]">{children}</div>
           <button
             type="button"

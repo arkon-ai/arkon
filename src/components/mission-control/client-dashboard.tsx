@@ -113,7 +113,7 @@ export function ClientDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome banner */}
-      <div className="rounded-[16px] border border-[#2E2E3A] bg-[linear-gradient(135deg,rgba(0,212,126,0.04),rgba(0,212,126,0.04))] p-6">
+      <div className="rounded-[16px] border border-[#1E1E2A] bg-[linear-gradient(135deg,rgba(0,212,126,0.04),rgba(0,212,126,0.04))] p-6">
         <h1 className="text-2xl font-bold text-[#E4E4ED]">Welcome back, {data.tenant.name}</h1>
         <p className="mt-1 text-sm text-[#8888A0]">
           {data.tenant.plan === "dfy" ? "Done-For-You" : data.tenant.plan === "owner" ? "Owner" : "Starter"} Plan
@@ -132,7 +132,7 @@ export function ClientDashboard() {
       {/* Agents & Infra */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Agents */}
-        <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
+        <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
           <div className="mb-4 flex items-center gap-2">
             <Bot className="h-4 w-4 text-[#8888A0]" />
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">My Agents</h2>
@@ -155,7 +155,7 @@ export function ClientDashboard() {
         </div>
 
         {/* Infrastructure */}
-        <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
+        <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
           <div className="mb-4 flex items-center gap-2">
             <Server className="h-4 w-4 text-[#8888A0]" />
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">Infrastructure</h2>
@@ -179,7 +179,7 @@ export function ClientDashboard() {
       </div>
 
       {/* Recent activity */}
-      <div className="rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-5">
+      <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
         <div className="mb-4 flex items-center gap-2">
           <Radio className="h-4 w-4 text-[#8888A0]" />
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">Recent Activity</h2>

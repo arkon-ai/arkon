@@ -25,12 +25,12 @@
 :root {
   /* ── Surfaces ── */
   --bg-primary: #0A0A0C;
-  --bg-surface: #1A1A22;
-  --bg-surface-2: #22222E;
+  --bg-surface: #111118;
+  --bg-surface-2: #1A1A24;
   --bg-hover: rgba(255, 255, 255, 0.03);
 
   /* ── Borders ── */
-  --border: #2E2E3A;
+  --border: #1E1E2A;
   --border-hover: #3E3E4A;
   --border-strong: #3E3E4A;
 

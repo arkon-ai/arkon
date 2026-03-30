@@ -207,10 +207,10 @@ export function DataTable<T>({
   const rowHeight = densityMap[density];
 
   return (
-    <div className={`rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] ${className}`}>
+    <div className={`rounded-[16px] border border-[#1E1E2A] bg-[#111118] ${className}`}>
       {/* Toolbar */}
       {(searchable || columns.some((c) => c.hideable)) ? (
-        <div className="flex items-center gap-2 border-b border-[#2E2E3A]/50 px-4 py-2.5">
+        <div className="flex items-center gap-2 border-b border-[#1E1E2A]/50 px-4 py-2.5">
           {searchable ? (
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#555566]" />
@@ -219,7 +219,7 @@ export function DataTable<T>({
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setVisibleCount(pageSize); }}
                 placeholder={searchPlaceholder}
-                className="w-full rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] py-1.5 pl-8 pr-8 text-[13px] text-[#E4E4ED] outline-none placeholder:text-[#555566] focus:border-[#00D47E]/40"
+                className="w-full rounded-lg border border-[#1E1E2A] bg-[#0A0A0C] py-1.5 pl-8 pr-8 text-[13px] text-[#E4E4ED] outline-none placeholder:text-[#555566] focus:border-[#00D47E]/40"
               />
               {search ? (
                 <button
@@ -239,13 +239,13 @@ export function DataTable<T>({
               <button
                 type="button"
                 onClick={() => setShowColumnPicker(!showColumnPicker)}
-                className="flex h-8 items-center gap-1.5 rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-2.5 text-[11px] text-[#8888A0] transition hover:border-[#3E3E4A] hover:text-[#E4E4ED]"
+                className="flex h-8 items-center gap-1.5 rounded-lg border border-[#1E1E2A] bg-[#0A0A0C] px-2.5 text-[11px] text-[#8888A0] transition hover:border-[#3E3E4A] hover:text-[#E4E4ED]"
               >
                 <Columns3 className="h-3.5 w-3.5" />
                 Columns
               </button>
               {showColumnPicker ? (
-                <div className="absolute right-0 top-10 z-30 min-w-[180px] rounded-xl border border-[#2E2E3A] bg-[#1A1A22] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
+                <div className="absolute right-0 top-10 z-30 min-w-[180px] rounded-xl border border-[#1E1E2A] bg-[#111118] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
                   {columns.filter((c) => c.hideable).map((col) => (
                     <button
                       key={col.id}
@@ -290,8 +290,8 @@ export function DataTable<T>({
         <table className="w-full border-collapse">
           <thead>
             <tr
-              className={`border-b border-[#2E2E3A]/50 ${
-                stickyHeader ? "sticky top-0 z-10 bg-[#1A1A22]" : ""
+              className={`border-b border-[#1E1E2A]/50 ${
+                stickyHeader ? "sticky top-0 z-10 bg-[#111118]" : ""
               }`}
             >
               {selectable ? (
@@ -351,7 +351,7 @@ export function DataTable<T>({
                 return (
                   <tr
                     key={key}
-                    className={`${rowHeight} border-b border-[#2E2E3A]/30 transition ${
+                    className={`${rowHeight} border-b border-[#1E1E2A]/30 transition ${
                       isSelected
                         ? "bg-[rgba(0,212,126,0.04)]"
                         : "hover:bg-white/[0.015]"
@@ -396,7 +396,7 @@ export function DataTable<T>({
 
       {/* Load More */}
       {sorted.length > visibleCount ? (
-        <div className="border-t border-[#2E2E3A]/50 px-4 py-3 text-center">
+        <div className="border-t border-[#1E1E2A]/50 px-4 py-3 text-center">
           <button
             type="button"
             onClick={() => setVisibleCount((v) => v + pageSize)}
@@ -406,7 +406,7 @@ export function DataTable<T>({
           </button>
         </div>
       ) : sorted.length > 0 ? (
-        <div className="border-t border-[#2E2E3A]/50 px-4 py-2 text-center text-[11px] text-[#555566]">
+        <div className="border-t border-[#1E1E2A]/50 px-4 py-2 text-center text-[11px] text-[#555566]">
           Showing {sorted.length} of {data.length}{search ? " (filtered)" : ""}
         </div>
       ) : null}

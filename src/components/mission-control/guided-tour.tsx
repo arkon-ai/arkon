@@ -194,7 +194,7 @@ export function GuidedTour() {
 
       {/* Tooltip */}
       <div
-        className="fixed z-[9999] w-72 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
+        className="fixed z-[9999] w-72 rounded-xl border border-[#1E1E2A] bg-[#111118] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
         style={{
           top: tooltipPos.top,
           left: tooltipPos.left,

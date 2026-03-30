@@ -63,7 +63,7 @@ export function KillConfirmModal({
         tabIndex={-1}
         onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}
       />
-      <div className="relative w-full max-w-md rounded-2xl border border-red-500/30 bg-[#1A1A22] p-6 shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
+      <div className="relative w-full max-w-md rounded-2xl border border-red-500/30 bg-[#111118] p-6 shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
         <div className="mb-4 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10">
             <AlertTriangle className="h-5 w-5 text-red-400" />
@@ -74,7 +74,7 @@ export function KillConfirmModal({
           </div>
         </div>
 
-        <div className="mb-4 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-3">
+        <div className="mb-4 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3">
           <p className="text-[13px] text-[#8888A0]">
             This will immediately terminate{" "}
             <span className="font-semibold text-[#E4E4ED]">{run.agent_name}</span>&apos;s
@@ -110,7 +110,7 @@ export function KillConfirmModal({
             onChange={(e) => setReason(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleConfirm(); }}
             placeholder="e.g. Agent producing incorrect outputs"
-            className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-[13px] text-[#E4E4ED] outline-none placeholder:text-[#555566] focus:border-red-500/40"
+            className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2 text-[13px] text-[#E4E4ED] outline-none placeholder:text-[#555566] focus:border-red-500/40"
           />
         </div>
 
@@ -118,7 +118,7 @@ export function KillConfirmModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-[#2E2E3A] px-4 py-2 text-[13px] font-medium text-[#8888A0] transition hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+            className="rounded-xl border border-[#1E1E2A] px-4 py-2 text-[13px] font-medium text-[#8888A0] transition hover:bg-white/[0.03] hover:text-[#E4E4ED]"
           >
             Cancel
           </button>

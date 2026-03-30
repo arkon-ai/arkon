@@ -70,7 +70,7 @@ export default function LoginPage() {
               placeholder="Passphrase"
               autoFocus
               autoComplete="current-password"
-              className="w-full rounded-xl border border-[#2E2E3A] bg-[#0a0a14] px-4 py-3 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition"
+              className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-4 py-3 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition"
             />
           </div>
 

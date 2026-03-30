@@ -266,7 +266,7 @@ export default function NotificationPreferencesPage() {
       </SectionDescription>
 
       {/* In-app always on */}
-      <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a1a] p-5">
+      <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a1a] p-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00D47E]/10">
             <Bell className="h-5 w-5 text-[#00D47E]" />
@@ -295,7 +295,7 @@ export default function NotificationPreferencesPage() {
             className={`rounded-2xl border transition ${
               state.enabled
                 ? "border-[#00D47E]/30 bg-[#0a0a1a]"
-                : "border-[#2E2E3A] bg-[#0a0a1a]"
+                : "border-[#1E1E2A] bg-[#0a0a1a]"
             }`}
           >
             {/* Channel header */}
@@ -334,7 +334,7 @@ export default function NotificationPreferencesPage() {
 
             {/* Expanded config */}
             {isExpanded ? (
-              <div className="border-t border-[#2E2E3A]/50 px-5 pb-5 pt-4 space-y-4">
+              <div className="border-t border-[#1E1E2A]/50 px-5 pb-5 pt-4 space-y-4">
                 {/* Enable toggle */}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[#8888A0]">Enable {ch.label}</span>
@@ -342,7 +342,7 @@ export default function NotificationPreferencesPage() {
                     type="button"
                     onClick={() => toggleChannelEnabled(ch.key)}
                     className={`relative h-6 w-11 rounded-full transition ${
-                      state.enabled ? "bg-[#00D47E]" : "bg-[#2E2E3A]"
+                      state.enabled ? "bg-[#00D47E]" : "bg-[#1E1E2A]"
                     }`}
                   >
                     <span
@@ -364,7 +364,7 @@ export default function NotificationPreferencesPage() {
                       placeholder={field.placeholder}
                       value={(state.config[field.key] as string) ?? ""}
                       onChange={(e) => updateChannelConfig(ch.key, field.key, e.target.value)}
-                      className="w-full rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2 text-sm text-[#E4E4ED] placeholder-[#555566] transition focus:border-[#00D47E]/50 focus:outline-none"
+                      className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2 text-sm text-[#E4E4ED] placeholder-[#555566] transition focus:border-[#00D47E]/50 focus:outline-none"
                     />
                     {field.help ? (
                       <p className="mt-1 text-[11px] text-[#555566]">{field.help}</p>
@@ -387,7 +387,7 @@ export default function NotificationPreferencesPage() {
                           type="checkbox"
                           checked={isTypeEnabled(ch.key, nt.key)}
                           onChange={() => toggleNotificationType(ch.key, nt.key)}
-                          className="h-3.5 w-3.5 rounded border-[#2E2E3A] bg-[#0A0A0C] text-[#00D47E] focus:ring-[#00D47E]/50"
+                          className="h-3.5 w-3.5 rounded border-[#1E1E2A] bg-[#0A0A0C] text-[#00D47E] focus:ring-[#00D47E]/50"
                         />
                         <span>{nt.label}</span>
                       </label>
@@ -412,7 +412,7 @@ export default function NotificationPreferencesPage() {
                     type="button"
                     onClick={() => void testChannel(ch.key)}
                     disabled={testing === ch.key || !state.enabled}
-                    className="flex items-center gap-1.5 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-4 py-2 text-[13px] font-medium text-[#8888A0] transition hover:border-[#3E3E4A] hover:text-[#E4E4ED] disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-xl border border-[#1E1E2A] bg-[#111118] px-4 py-2 text-[13px] font-medium text-[#8888A0] transition hover:border-[#3E3E4A] hover:text-[#E4E4ED] disabled:opacity-50"
                   >
                     {testing === ch.key ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />

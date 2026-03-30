@@ -75,7 +75,7 @@ function EventRow({ event, expanded, onToggle }: {
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, height: 0 }}
-      className={`cursor-pointer rounded-2xl border border-[#2E2E3A] border-l-2 bg-[#0A0A0C]/70 px-4 py-3 transition hover:border-[#3E3E4A] ${EVENT_BORDER[event.event_type] ?? "border-l-slate-600"}`}
+      className={`cursor-pointer rounded-2xl border border-[#1E1E2A] border-l-2 bg-[#0A0A0C]/70 px-4 py-3 transition hover:border-[#3E3E4A] ${EVENT_BORDER[event.event_type] ?? "border-l-slate-600"}`}
       onClick={onToggle}
     >
       <div className="flex items-start justify-between gap-2">
@@ -126,7 +126,7 @@ function EventRow({ event, expanded, onToggle }: {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-3 overflow-hidden rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-3"
+            className="mt-3 overflow-hidden rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3"
           >
             <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[#8888A0]">
               {event.content}
@@ -238,7 +238,7 @@ export function ActivityFeed() {
             ) : (
               <button
                 onClick={() => setPaused(true)}
-                className="flex items-center gap-1.5 rounded-full border border-[#2E2E3A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#E4E4ED] transition"
+                className="flex items-center gap-1.5 rounded-full border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#E4E4ED] transition"
               >
                 ⏸ Pause
               </button>
@@ -263,7 +263,7 @@ export function ActivityFeed() {
           { label: "Tool Calls", value: typeCount("tool_call"), colour: "text-[#f59e0b]" },
           { label: "Errors", value: typeCount("error"), colour: typeCount("error") > 0 ? "text-red-400" : "text-[#8888A0]" },
         ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-[#2E2E3A] bg-[#0A0A0C]/70 px-4 py-3 text-center">
+          <div key={s.label} className="rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3 text-center">
             <div className={`text-xl font-bold ${s.colour}`}>{s.value}</div>
             <div className="text-xs text-[#8888A0]">{s.label}</div>
           </div>
@@ -280,7 +280,7 @@ export function ActivityFeed() {
                 <button
                   key={t}
                   onClick={() => setFilter(t)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#00D47E] text-[#0A0A0C]" : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#00D47E] text-[#0A0A0C]" : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
                 >
                   {t === "all" ? "All" : t.replace(/_/g, " ")}
                   {t !== "all" && <span className="ml-1 text-[10px] opacity-60">{typeCount(t)}</span>}
@@ -295,7 +295,7 @@ export function ActivityFeed() {
                 <button
                   key={id}
                   onClick={() => setAgentFilter(id)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${agentFilter === id ? "bg-[#00D47E] text-white" : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${agentFilter === id ? "bg-[#00D47E] text-white" : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
                 >
                   {id === "all" ? "All Agents" : (agentNames[id] ?? id)}
                 </button>

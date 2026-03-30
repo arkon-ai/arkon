@@ -59,7 +59,7 @@ export function ClientShell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col bg-[#080810] text-[#8888A0]">
-      <div className="flex h-14 items-center border-b border-[#2E2E3A]/50 px-4">
+      <div className="flex h-14 items-center border-b border-[#1E1E2A]/50 px-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#555566]">
             Client Portal
@@ -97,7 +97,7 @@ export function ClientShell({ children }: { children: ReactNode }) {
           </div>
         </section>
 
-        <div className="mt-4 border-t border-[#2E2E3A] pt-4">
+        <div className="mt-4 border-t border-[#1E1E2A] pt-4">
           <button
             type="button"
             onClick={handleLogout}
@@ -114,18 +114,18 @@ export function ClientShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-slate-200">
       <div className="flex min-h-screen">
-        <aside className="hidden w-64 shrink-0 border-r border-[#2E2E3A] md:block">
+        <aside className="hidden w-64 shrink-0 border-r border-[#1E1E2A] md:block">
           <div className="sticky top-0 h-screen">{sidebar}</div>
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 border-b border-[#2E2E3A]/80 bg-[#0A0A0C]/95 backdrop-blur">
+          <header className="sticky top-0 z-40 border-b border-[#1E1E2A]/80 bg-[#0A0A0C]/95 backdrop-blur">
             <div className="flex h-16 items-center justify-between px-4 sm:px-6">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsOpen(true)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#2E2E3A] bg-[#1A1A22] text-[#E4E4ED] md:hidden active:scale-95 transition-transform touch-manipulation"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1E1E2A] bg-[#111118] text-[#E4E4ED] md:hidden active:scale-95 transition-transform touch-manipulation"
                   aria-label="Open sidebar"
                 >
                   <Menu className="h-5 w-5" />
@@ -157,13 +157,13 @@ export function ClientShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
           />
-          <div className="relative h-full w-[280px] max-w-[85vw] border-r border-[#2E2E3A] shadow-[0_20px_60px_rgba(0,0,0,0.5)]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative h-full w-[280px] max-w-[85vw] border-r border-[#1E1E2A] shadow-[0_20px_60px_rgba(0,0,0,0.5)]" onClick={(e) => e.stopPropagation()}>
             {sidebar}
           </div>
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#2E2E3A]/80 bg-[#0a0a14]/95 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1E1E2A]/80 bg-[#0a0a14]/95 backdrop-blur md:hidden">
         <div className="mx-auto grid h-[60px] max-w-3xl grid-cols-3 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2">
           {clientNav.map((tab) => {
             const active = isRouteActive(pathname, tab.href);

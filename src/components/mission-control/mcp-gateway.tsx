@@ -106,7 +106,7 @@ export function McpGateway() {
           >
             Export Config
           </button>
-          <div className="flex gap-1 rounded-xl bg-[#0a0a14] border border-[#2E2E3A] p-1">
+          <div className="flex gap-1 rounded-xl bg-[#0a0a14] border border-[#1E1E2A] p-1">
             {ranges.map((r) => (
               <button
                 key={r.value}
@@ -135,7 +135,7 @@ export function McpGateway() {
 
       {/* By server */}
       {stats && stats.by_server.length > 0 ? (
-        <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-5">
+        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Traffic by Server</h2>
           <div className="space-y-2">
             {stats.by_server.map((s) => (
@@ -156,11 +156,11 @@ export function McpGateway() {
 
       {/* By method */}
       {stats && stats.by_method.length > 0 ? (
-        <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-5">
+        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">MCP Methods</h2>
           <div className="flex flex-wrap gap-2">
             {stats.by_method.map((m) => (
-              <div key={m.mcp_method} className="rounded-lg border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2">
+              <div key={m.mcp_method} className="rounded-lg border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2">
                 <p className="text-xs font-mono text-purple-400">{m.mcp_method}</p>
                 <p className="text-xs text-slate-500">{parseInt(m.count)} calls &middot; {m.avg_ms}ms</p>
               </div>
@@ -189,7 +189,7 @@ export function McpGateway() {
 
       {/* Empty state */}
       {!loading && stats && stats.summary.total_requests === 0 ? (
-        <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-8 text-center">
+        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-8 text-center">
           <p className="text-4xl mb-3">{"🔌"}</p>
           <p className="text-white font-semibold">No proxy traffic yet</p>
           <p className="mt-2 text-sm text-slate-500">Enable gateway mode on MCP servers, then configure AI clients to route through the proxy.</p>
@@ -205,14 +205,14 @@ export function McpGateway() {
       {/* Config modal */}
       {showConfig && config ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-xl rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-6">
+          <div className="mx-4 w-full max-w-xl rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-white">Gateway Config</h3>
               <button onClick={() => setShowConfig(false)} className="text-slate-500 hover:text-white text-xl">&times;</button>
             </div>
             <p className="text-sm text-slate-400 mb-3">{config.instructions}</p>
             <p className="text-xs text-slate-500 mb-2">{config.servers_count} server(s) via {config.gateway}</p>
-            <pre className="rounded-xl bg-[#0A0A0C] border border-[#2E2E3A] p-4 text-xs text-slate-300 overflow-auto max-h-64 font-mono">
+            <pre className="rounded-xl bg-[#0A0A0C] border border-[#1E1E2A] p-4 text-xs text-slate-300 overflow-auto max-h-64 font-mono">
               {JSON.stringify(config.config, null, 2)}
             </pre>
             <div className="mt-4 flex gap-2 justify-end">
@@ -242,7 +242,7 @@ function StatCard({ label, value, accent }: { label: string; value: string | num
     purple: "text-purple-400", red: "text-red-400", slate: "text-slate-400",
   };
   return (
-    <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-3">
+    <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-3">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
       <p className={`mt-1 text-lg font-bold ${colors[accent] || colors.cyan}`}>{typeof value === "number" ? value.toLocaleString() : value}</p>
     </div>

@@ -105,7 +105,7 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="w-full max-w-lg rounded-3xl border border-[#2E2E3A] bg-[#0a0a14] p-6 shadow-2xl"
+        className="w-full max-w-lg rounded-3xl border border-[#1E1E2A] bg-[#0a0a14] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="mb-1 text-base font-bold text-[#E4E4ED]">Message Agent</h3>
@@ -114,7 +114,7 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
         </p>
 
         <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[#8888A0]">Your message</div>
-        <div className="mb-3 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C]/70 px-3 py-2 text-xs text-[#8888A0]">
+        <div className="mb-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-3 py-2 text-xs text-[#8888A0]">
           <p className="text-[#8888A0] font-medium mb-1">Suggestions:</p>
           <ul className="space-y-1">
             {["Change the schedule to run at 8AM daily", "Disable this cron job", "Delete this cron job", "Run this cron job right now", "Change the model to Fast"].map((s) => (
@@ -130,7 +130,7 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
           onChange={(e) => setText(e.target.value)}
           rows={3}
           placeholder="What would you like Agent to do with this cron job?"
-          className="w-full resize-none rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
+          className="w-full resize-none rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
           onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) void send(); }}
         />
         <p className="mb-4 mt-1 text-[10px] text-[#8888A0]">⌘+Enter to send</p>
@@ -143,7 +143,7 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
           >
             {busy ? "Sending…" : "Send to Agent"}
           </button>
-          <button onClick={onClose} className="rounded-xl border border-[#2E2E3A] px-4 py-2.5 text-sm text-[#8888A0] hover:text-[#E4E4ED] transition">
+          <button onClick={onClose} className="rounded-xl border border-[#1E1E2A] px-4 py-2.5 text-sm text-[#8888A0] hover:text-[#E4E4ED] transition">
             Cancel
           </button>
         </div>
@@ -161,7 +161,7 @@ function CronCard({ job, onMessage, onAction }: {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <motion.div layout className={`rounded-2xl border px-4 py-4 transition ${job.enabled ? "border-[#2E2E3A] bg-[#0A0A0C]/70" : "border-[#2E2E3A]/50 bg-[#0A0A0C]/40 opacity-60"}`}>
+    <motion.div layout className={`rounded-2xl border px-4 py-4 transition ${job.enabled ? "border-[#1E1E2A] bg-[#0A0A0C]/70" : "border-[#1E1E2A]/50 bg-[#0A0A0C]/40 opacity-60"}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1" onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer" }}>
           <div className="flex items-center gap-2 flex-wrap">
@@ -231,7 +231,7 @@ function CronCard({ job, onMessage, onAction }: {
             className="overflow-hidden"
           >
             {job.payload_message && (
-              <div className="mt-3 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-3">
+              <div className="mt-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3">
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[#8888A0]">Payload Preview</p>
                 <p className="line-clamp-4 text-xs text-[#8888A0]">{job.payload_message}</p>
               </div>
@@ -240,21 +240,21 @@ function CronCard({ job, onMessage, onAction }: {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 onClick={() => onAction("run")}
-                className="rounded-xl border border-[#2E2E3A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
+                className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
               >
                 ▶ Run Now
               </button>
               {job.enabled ? (
                 <button
                   onClick={() => onAction("disable")}
-                  className="rounded-xl border border-[#2E2E3A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-amber-400 hover:border-amber-500/30 transition"
+                  className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-amber-400 hover:border-amber-500/30 transition"
                 >
                   ⏸ Disable
                 </button>
               ) : (
                 <button
                   onClick={() => onAction("enable")}
-                  className="rounded-xl border border-[#2E2E3A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
+                  className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
                 >
                   ▶ Enable
                 </button>
@@ -365,7 +365,7 @@ export function CronManager() {
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   filter === key
                     ? danger ? "bg-red-500/20 text-red-400" : "bg-[#00D47E] text-[#0A0A0C]"
-                    : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"
+                    : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"
                 }`}
               >
                 {label}

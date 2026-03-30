@@ -74,12 +74,12 @@ export function QuickKillDialog({
         tabIndex={-1}
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-red-500/30 bg-[#1A1A22] shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-red-500/30 bg-[#111118] shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-red-500/20 px-4 py-3">
           <OctagonX className="h-4 w-4 text-red-400" />
           <span className="flex-1 text-sm font-semibold text-red-200">Quick Kill</span>
-          <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
+          <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
             ESC
           </kbd>
         </div>
@@ -135,16 +135,16 @@ export function QuickKillDialog({
         {runs.length > 0 && (
           <div className="flex items-center gap-4 border-t border-red-500/20 px-4 py-2 text-[10px] text-[#555566]">
             <span>
-              <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&uarr;</kbd>{" "}
-              <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&darr;</kbd>{" "}
+              <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&uarr;</kbd>{" "}
+              <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&darr;</kbd>{" "}
               select
             </span>
             <span>
-              <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Enter</kbd>{" "}
+              <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Enter</kbd>{" "}
               kill
             </span>
             <span>
-              <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Esc</kbd>{" "}
+              <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Esc</kbd>{" "}
               close
             </span>
           </div>

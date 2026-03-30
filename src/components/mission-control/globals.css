@@ -4,8 +4,8 @@
   --background: #0A0A0C;
   --foreground: #E4E4ED;
   --bg-deep: #0A0A0C;
-  --bg-card: #1A1A22;
-  --border: #2E2E3A;
+  --bg-card: #111118;
+  --border: #1E1E2A;
   --cyan: #00D47E;
   --purple: #00D47E;
   --amber: #f59e0b;
@@ -71,7 +71,7 @@ pre {
 
 .markdown-body h1 {
   margin-bottom: 1rem;
-  border-bottom: 1px solid #2E2E3A;
+  border-bottom: 1px solid #1E1E2A;
   padding-bottom: 0.5rem;
   font-size: 2rem;
   color: #fff;
@@ -97,7 +97,7 @@ pre {
 
 .markdown-body code {
   border-radius: 4px;
-  background: #1A1A22;
+  background: #111118;
   padding: 2px 6px;
   color: #00D47E;
 }
@@ -115,14 +115,14 @@ pre {
 }
 
 .markdown-body th {
-  background: #2E2E3A;
+  background: #1E1E2A;
   padding: 8px 12px;
   text-align: left;
   color: #E4E4ED;
 }
 
 .markdown-body td {
-  border-bottom: 1px solid #2E2E3A;
+  border-bottom: 1px solid #1E1E2A;
   padding: 8px 12px;
   color: #cbd5e1;
 }
@@ -155,7 +155,7 @@ pre {
 }
 
 .markdown-body hr {
-  border-color: #2E2E3A;
+  border-color: #1E1E2A;
 }
 
 /* ═══════════════════════════════════════
@@ -191,9 +191,9 @@ pre {
 .skeleton {
   background: linear-gradient(
     90deg,
-    #1A1A22 25%,
-    #2E2E3A 50%,
-    #1A1A22 75%
+    #111118 25%,
+    #1E1E2A 50%,
+    #111118 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;

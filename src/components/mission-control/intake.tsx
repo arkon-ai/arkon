@@ -125,7 +125,7 @@ function PayloadModal({ sub, onClose }: { sub: IntakeSubmission; onClose: () => 
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl border border-[#2E2E3A] bg-[#0a0a14] p-6 shadow-2xl"
+        className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl border border-[#1E1E2A] bg-[#0a0a14] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -177,7 +177,7 @@ function SubmissionCard({ sub, onProcessed, onExpand }: {
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-2xl border px-4 py-4 transition ${sub.processed ? "border-[#2E2E3A]/50 bg-[#0A0A0C]/40 opacity-70" : "border-[#00D47E]/30 bg-[#0A0A0C]/80"}`}
+      className={`rounded-2xl border px-4 py-4 transition ${sub.processed ? "border-[#1E1E2A]/50 bg-[#0A0A0C]/40 opacity-70" : "border-[#00D47E]/30 bg-[#0A0A0C]/80"}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -199,7 +199,7 @@ function SubmissionCard({ sub, onProcessed, onExpand }: {
         <div className="flex shrink-0 gap-1.5">
           <button
             onClick={onExpand}
-            className="rounded-xl border border-[#2E2E3A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#E4E4ED] transition"
+            className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#E4E4ED] transition"
           >
             View All
           </button>
@@ -327,7 +327,7 @@ export function IntakeViewer() {
                     ? "bg-[#00D47E] text-[#0A0A0C]"
                     : highlight
                     ? "border border-[#00D47E]/40 text-[#00D47E] animate-pulse"
-                    : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"
+                    : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"
                 }`}
               >
                 {label}

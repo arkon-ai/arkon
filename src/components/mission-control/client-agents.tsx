@@ -63,17 +63,17 @@ export function ClientAgents() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-white">My Agents</h1>
-        <span className="rounded-full bg-[#2E2E3A] px-3 py-1 text-xs text-slate-400">{agents.length} total</span>
+        <span className="rounded-full bg-[#1E1E2A] px-3 py-1 text-xs text-slate-400">{agents.length} total</span>
       </div>
 
       {agents.length === 0 ? (
-        <div className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-8 text-center">
+        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-8 text-center">
           <p className="text-slate-500">No agents provisioned for your account yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {agents.map((agent) => (
-            <div key={agent.id} className="rounded-2xl border border-[#2E2E3A] bg-[#0a0a14] p-5 transition hover:border-[#3E3E4A]">
+            <div key={agent.id} className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5 transition hover:border-[#3E3E4A]">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2">

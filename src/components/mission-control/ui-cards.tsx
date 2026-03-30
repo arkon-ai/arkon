@@ -29,7 +29,7 @@ export function StatCard({
 }) {
   return (
     <div
-      className={`relative rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${className}`}
+      className={`relative rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-[#00D47E]/30 hover:shadow-[0_4px_24px_rgba(0,212,126,0.08),0_0_60px_rgba(0,212,126,0.04)] ${className}`}
     >
       <GlowingEffect
         spread={40}
@@ -93,7 +93,7 @@ export function ListCard({
 }) {
   return (
     <div
-      className={`relative rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${className}`}
+      className={`relative rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-[#00D47E]/30 hover:shadow-[0_4px_24px_rgba(0,212,126,0.08),0_0_60px_rgba(0,212,126,0.04)] ${className}`}
     >
       <GlowingEffect
         spread={40}
@@ -134,7 +134,7 @@ export function DetailCard({
 }) {
   return (
     <div
-      className={`relative rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] shadow-[0_4px_24px_rgba(0,0,0,0.2)] ${className}`}
+      className={`relative rounded-[16px] border border-[#1E1E2A] bg-[#111118] shadow-[0_4px_24px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-[#00D47E]/30 hover:shadow-[0_4px_24px_rgba(0,212,126,0.08),0_0_60px_rgba(0,212,126,0.04)] ${className}`}
     >
       <GlowingEffect
         spread={40}
@@ -145,7 +145,7 @@ export function DetailCard({
         borderWidth={2}
       />
       <div className="relative z-10">
-        <div className="flex items-center justify-between border-b border-[#2E2E3A]/50 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-[#1E1E2A]/50 px-4 py-3">
           <div className="flex items-center gap-2">
             {Icon ? <Icon className="h-4 w-4 text-[#8888A0]" /> : null}
             <h3 className="text-sm font-semibold text-[#E4E4ED]">{title}</h3>
@@ -175,9 +175,9 @@ export function EmptyCard({
 }) {
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-[16px] border border-[#2E2E3A] border-dashed bg-[#1A1A22]/50 px-6 py-12 text-center ${className}`}
+      className={`flex flex-col items-center justify-center rounded-[16px] border border-[#1E1E2A] border-dashed bg-[#111118]/50 px-6 py-12 text-center ${className}`}
     >
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#2E2E3A] bg-[#0A0A0C]">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#1E1E2A] bg-[#0D0D12]">
         <Icon className="h-6 w-6 text-[#555566]" />
       </div>
       <h3 className="text-base font-semibold text-[#E4E4ED]">{title}</h3>

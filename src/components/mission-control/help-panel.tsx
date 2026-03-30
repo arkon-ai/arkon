@@ -87,7 +87,7 @@ export function HelpPanel() {
       <button
         type="button"
         onClick={toggle}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#2E2E3A] bg-[#1A1A22] text-[#8888A0] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
+        className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1E1E2A] bg-[#111118] text-[#8888A0] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
         aria-label="Help"
         title="Help (press ?)"
       >
@@ -102,12 +102,12 @@ export function HelpPanel() {
       {/* Slide-out panel */}
       <div
         ref={panelRef}
-        className={`fixed right-0 top-0 z-[61] h-full w-[380px] max-w-[90vw] border-l border-[#2E2E3A]/50 bg-[#080810] shadow-[0_0_60px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out ${
+        className={`fixed right-0 top-0 z-[61] h-full w-[380px] max-w-[90vw] border-l border-[#1E1E2A]/50 bg-[#080810] shadow-[0_0_60px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="flex h-14 items-center justify-between border-b border-[#2E2E3A]/50 px-4">
+        <div className="flex h-14 items-center justify-between border-b border-[#1E1E2A]/50 px-4">
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-[#00D47E]" />
             <span className="text-sm font-semibold text-[#E4E4ED]">
@@ -144,7 +144,7 @@ export function HelpPanel() {
                     {help.concepts.map((c) => (
                       <div
                         key={c.term}
-                        className="rounded-xl border border-[#2E2E3A]/60 bg-[#1A1A22]/60 px-3 py-2.5"
+                        className="rounded-xl border border-[#1E1E2A]/60 bg-[#111118]/60 px-3 py-2.5"
                       >
                         <p className="text-xs font-semibold text-[#E4E4ED]">
                           {c.term}
@@ -169,7 +169,7 @@ export function HelpPanel() {
                     {help.tasks.map((t) => (
                       <div
                         key={t.label}
-                        className="rounded-xl border border-[#2E2E3A]/40 px-3 py-2"
+                        className="rounded-xl border border-[#1E1E2A]/40 px-3 py-2"
                       >
                         <p className="text-xs font-semibold text-[#E4E4ED]">
                           {t.label}
@@ -205,7 +205,7 @@ export function HelpPanel() {
               )}
 
               {/* Footer links */}
-              <div className="border-t border-[#2E2E3A]/50 pt-4">
+              <div className="border-t border-[#1E1E2A]/50 pt-4">
                 <Link
                   href="/help/glossary"
                   className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-medium text-[#8888A0] transition hover:bg-white/[0.03] hover:text-[#E4E4ED]"
@@ -223,9 +223,9 @@ export function HelpPanel() {
           )}
 
           {/* Keyboard hint */}
-          <div className="mt-6 rounded-xl border border-[#2E2E3A]/40 bg-[#1A1A22]/40 px-3 py-2.5 text-center">
+          <div className="mt-6 rounded-xl border border-[#1E1E2A]/40 bg-[#111118]/40 px-3 py-2.5 text-center">
             <p className="text-[10px] text-[#555566]">
-              Press <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#8888A0]">?</kbd> to toggle help
+              Press <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#8888A0]">?</kbd> to toggle help
             </p>
           </div>
         </div>

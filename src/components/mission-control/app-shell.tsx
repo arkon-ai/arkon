@@ -373,7 +373,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col bg-[#080810] text-[#8888A0]">
-      <div className="flex h-14 items-center border-b border-[#2E2E3A]/50 px-4">
+      <div className="flex h-14 items-center border-b border-[#1E1E2A]/50 px-4">
         <div className="flex-1 min-w-0">
           {!sidebarCollapsed && (
             <>
@@ -399,11 +399,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
-          className="flex min-h-9 w-full items-center gap-2.5 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-1.5 text-[12px] text-[#555566] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
+          className="flex min-h-9 w-full items-center gap-2.5 rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-1.5 text-[12px] text-[#555566] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
         >
           <Search className="h-3.5 w-3.5" />
           <span className="flex-1 text-left">Search</span>
-          <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
+          <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
             {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
           </kbd>
         </button>
@@ -473,7 +473,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
         {/* Quick Access — pinned docs (max 3) */}
         {pinnedDocs.length > 0 && !sidebarCollapsed ? (
           <>
-            <div className="my-2 border-t border-[#2E2E3A]/50" />
+            <div className="my-2 border-t border-[#1E1E2A]/50" />
             <section>
               <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
                 Quick Access
@@ -495,7 +495,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
           </>
         ) : null}
 
-        <div className="mt-2 border-t border-[#2E2E3A]/50 pt-2">
+        <div className="mt-2 border-t border-[#1E1E2A]/50 pt-2">
           <button
             type="button"
             onClick={handleLogout}
@@ -512,18 +512,18 @@ export function NotionShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-[#E4E4ED]">
       <div className="flex min-h-screen">
-        <aside className={`hidden shrink-0 border-r border-[#2E2E3A]/50 md:block transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-60"}`}>
+        <aside className={`hidden shrink-0 border-r border-[#1E1E2A]/50 md:block transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-60"}`}>
           <div className="sticky top-0 h-screen">{sidebar}</div>
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 border-b border-[#2E2E3A]/50 bg-[#0A0A0C]/95 backdrop-blur">
+          <header className="sticky top-0 z-40 border-b border-[#1E1E2A]/50 bg-[#0A0A0C]/95 backdrop-blur">
             <div className="flex h-14 items-center justify-between px-4 sm:px-6">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsOpen(true)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#2E2E3A] bg-[#1A1A22] text-[#E4E4ED] md:hidden active:scale-95 transition-transform touch-manipulation"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1E1E2A] bg-[#111118] text-[#E4E4ED] md:hidden active:scale-95 transition-transform touch-manipulation"
                   aria-label="Open sidebar"
                 >
                   <Menu className="h-5 w-5" />
@@ -537,11 +537,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
                 <button
                   type="button"
                   onClick={() => setPaletteOpen(true)}
-                  className="hidden md:flex h-10 items-center gap-2 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 text-[12px] text-[#555566] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
+                  className="hidden md:flex h-10 items-center gap-2 rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 text-[12px] text-[#555566] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
                 >
                   <Search className="h-3.5 w-3.5" />
                   <span>Search</span>
-                  <kbd className="ml-2 rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium">
+                  <kbd className="ml-2 rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium">
                     {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
                   </kbd>
                 </button>
@@ -577,7 +577,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
           />
-          <div className="relative h-full w-[272px] max-w-[85vw] border-r border-[#2E2E3A]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative h-full w-[272px] max-w-[85vw] border-r border-[#1E1E2A]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]" onClick={(e) => e.stopPropagation()}>
             {sidebar}
           </div>
         </div>
@@ -594,7 +594,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}
           />
-          <div className="absolute inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] mx-3 rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+          <div className="absolute inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] mx-3 rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
             <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
               More
             </div>
@@ -627,7 +627,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
       <MobileKillBar />
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#2E2E3A]/50 bg-[#080810]/95 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1E1E2A]/50 bg-[#080810]/95 backdrop-blur md:hidden">
         <div className="mx-auto grid h-[56px] max-w-3xl grid-cols-5 px-2 pb-[max(env(safe-area-inset-bottom),4px)] pt-1">
           {mobileTabs.map((tab) => {
             if (tab.href === "##more##") {
