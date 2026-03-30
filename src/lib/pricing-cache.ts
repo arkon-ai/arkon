@@ -10,7 +10,6 @@ interface PricingEntry {
 
 let cache: Map<string, PricingEntry> = new Map();
 let lastRefresh = 0;
-let lastRefreshError: string | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 function cacheKey(provider: string, modelId: string): string {
@@ -41,15 +40,8 @@ async function refreshCache(): Promise<void> {
     }
     cache = fresh;
     lastRefresh = Date.now();
-    lastRefreshError = null;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[pricing-cache] refresh failed:", msg);
-    lastRefreshError = msg;
-    // Keep existing cache on failure — don't clear stale data
-    if (cache.size > 0) {
-      lastRefresh = Date.now(); // prevent retry storm, use stale data
-    }
+    console.error("[pricing-cache] refresh failed:", err);
   }
 }
 
@@ -100,8 +92,4 @@ export async function estimateCost(
 
 export function invalidateCache(): void {
   lastRefresh = 0;
-}
-
-export function cacheStatus(): { size: number; lastRefresh: number; lastError: string | null } {
-  return { size: cache.size, lastRefresh, lastError: lastRefreshError };
 }

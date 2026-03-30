@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Area,
   AreaChart,
@@ -61,7 +59,6 @@ interface ThreatEvent {
 }
 
 interface TopAgent {
-  agent_id: string;
   agent_name: string;
   threat_count: number;
   severe_count: number;
@@ -83,8 +80,8 @@ interface SecurityData {
 const SEVERITY_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
   critical: { color: "#ef4444", bg: "rgba(239,68,68,0.1)", label: "CRITICAL" },
   high: { color: "#f59e0b", bg: "rgba(245,158,11,0.1)", label: "HIGH" },
-  medium: { color: "#06B6D4", bg: "rgba(6,182,212,0.1)", label: "MEDIUM" },
-  low: { color: "#64748b", bg: "rgba(100,116,139,0.1)", label: "LOW" },
+  medium: { color: "#00D47E", bg: "rgba(0,212,126,0.1)", label: "MEDIUM" },
+  low: { color: "#8888A0", bg: "rgba(100,116,139,0.1)", label: "LOW" },
 };
 
 const CLASS_LABELS: Record<string, string> = {
@@ -96,7 +93,7 @@ const CLASS_LABELS: Record<string, string> = {
 const CLASS_COLORS: Record<string, string> = {
   prompt_injection: "#ef4444",
   shell_command: "#f59e0b",
-  credential_leak: "#06B6D4",
+  credential_leak: "#00D47E",
 };
 
 /* ── Threat Class Explainers (Step 6.1) ── */
@@ -126,26 +123,25 @@ const CLASS_EXPLAINERS: Record<string, { title: string; description: string; ico
 
 type RecommendedAction = {
   text: string;
-  actionType?: "purge" | "dismiss" | "link" | "activity" | "advisory";
-  /** For "link" actions — built dynamically from event context */
-  hrefFn?: (event: ThreatEvent) => string;
+  actionType?: "purge" | "kill" | "dismiss" | "link";
+  href?: string;
 };
 
 const RECOMMENDED_ACTIONS: Record<string, RecommendedAction[]> = {
   credential_leak: [
     { text: "Purge this message immediately", actionType: "purge" },
-    { text: "View agent profile & credentials", actionType: "link", hrefFn: (e) => `/agent/${e.agent_id}` },
-    { text: "Check agent activity for unauthorized usage", actionType: "activity", hrefFn: (e) => `/activity?agent=${e.agent_id}` },
+    { text: "Rotate the exposed credential" },
+    { text: "Check if the credential was used by unauthorized parties" },
   ],
   shell_command: [
-    { text: "Review agent activity for execution context", actionType: "activity", hrefFn: (e) => `/activity?agent=${e.agent_id}` },
-    { text: "Check if the command actually executed", actionType: "link", hrefFn: (e) => `/agent/${e.agent_id}` },
-    { text: "Add this pattern to agent's deny list", actionType: "advisory" },
+    { text: "Review what the agent was trying to accomplish" },
+    { text: "Check if the command actually executed on the server" },
+    { text: "Consider adding this pattern to your agent's deny list" },
   ],
   prompt_injection: [
-    { text: "Review agent activity for affected behavior", actionType: "activity", hrefFn: (e) => `/activity?agent=${e.agent_id}` },
-    { text: "Inspect the source of this input", actionType: "link", hrefFn: (e) => `/agent/${e.agent_id}` },
-    { text: "Dismiss if reviewed and safe", actionType: "dismiss" },
+    { text: "Review the source of this input" },
+    { text: "Check if the agent's behavior was affected" },
+    { text: "Consider strengthening the agent's instruction guardrails" },
   ],
 };
 
@@ -194,8 +190,8 @@ async function apiPost<T>(url: string, body?: Record<string, unknown>): Promise<
 function SecurityTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-xs shadow-lg">
-      <p className="mb-1 text-[#64748b]">{label}</p>
+    <div className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 text-[#8888A0]">{label}</p>
       {payload.map((entry) => (
         <p key={entry.name} className="font-semibold" style={{ color: entry.color }}>
           {entry.name}: {entry.value}
@@ -210,7 +206,7 @@ function SecurityTooltip({ active, payload, label }: { active?: boolean; payload
 function ModalBackdrop({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="mx-4 w-full max-w-md rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="mx-4 w-full max-w-md rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>
@@ -236,7 +232,7 @@ function PurgeConfirmModal({
       <h3 className="text-lg font-bold text-text">Purge Threat Event</h3>
       <p className="mt-2 text-sm text-text-dim">This will permanently delete this event from Arkon. This cannot be undone.</p>
 
-      <div className="mt-4 rounded-xl border border-[#1a2a4a] bg-white/[0.02] p-3">
+      <div className="mt-4 rounded-xl border border-[#2E2E3A] bg-white/[0.02] p-3">
         <div className="flex items-center gap-2">
           <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase" style={{ background: config.bg, color: config.color }}>
             {config.label}
@@ -284,7 +280,7 @@ function RedactConfirmModal({
         Sensitive content (credentials, keys, tokens) will be replaced with <code className="rounded bg-white/10 px-1 text-[11px]">[REDACTED]</code>. The event will be kept for audit purposes.
       </p>
 
-      <div className="mt-4 rounded-xl border border-[#1a2a4a] bg-white/[0.02] p-3">
+      <div className="mt-4 rounded-xl border border-[#2E2E3A] bg-white/[0.02] p-3">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-text-dim">Content Preview</p>
         <pre className="mt-1 max-h-32 overflow-auto font-mono text-xs text-text-dim break-all">
           {event.content?.slice(0, 500) || "(empty)"}
@@ -300,7 +296,7 @@ function RedactConfirmModal({
           type="button"
           onClick={onConfirm}
           disabled={loading}
-          className="rounded-lg bg-accent/90 px-4 py-2 text-sm font-semibold text-white hover:bg-accent transition disabled:opacity-50"
+          className="rounded-lg bg-purple/90 px-4 py-2 text-sm font-semibold text-white hover:bg-purple transition disabled:opacity-50"
         >
           {loading ? "Redacting..." : "Redact & Keep"}
         </button>
@@ -408,7 +404,7 @@ function ActionMenu({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-8 z-40 w-52 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] py-1 shadow-xl">
+        <div className="absolute right-0 top-8 z-40 w-52 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] py-1 shadow-xl">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setOpen(false); onPurge(event); }}
@@ -423,7 +419,7 @@ function ActionMenu({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setOpen(false); onRedact(event); }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-accent hover:bg-accent/10 transition"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-purple hover:bg-purple/10 transition"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5z" />
@@ -462,7 +458,7 @@ function SeverityCards({ data }: { data: SeverityCount[] }) {
         return (
           <CardEntranceWrapper key={level} index={i}>
             <div
-              className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4 card-hover"
+              className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4 card-hover"
               style={{ borderTopColor: config.color, borderTopWidth: 2 }}
             >
               <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: config.color }}>
@@ -486,7 +482,7 @@ function ThreatTimeline({ data }: { data: TimelineDay[] }) {
   }));
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-3 text-sm font-semibold text-text">Threat Timeline</p>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
@@ -500,17 +496,17 @@ function ThreatTimeline({ data }: { data: TimelineDay[] }) {
               <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="medGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#06B6D4" stopOpacity={0} />
+              <stop offset="5%" stopColor="#00D47E" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" vertical={false} />
-          <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" vertical={false} />
+          <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
           <Tooltip content={<SecurityTooltip />} />
           <Area type="monotone" dataKey="critical" stackId="1" stroke="#ef4444" fill="url(#critGrad)" strokeWidth={2} dot={false} />
           <Area type="monotone" dataKey="high" stackId="1" stroke="#f59e0b" fill="url(#highGrad)" strokeWidth={1.5} dot={false} />
-          <Area type="monotone" dataKey="medium" stackId="1" stroke="#06B6D4" fill="url(#medGrad)" strokeWidth={1.5} dot={false} />
+          <Area type="monotone" dataKey="medium" stackId="1" stroke="#00D47E" fill="url(#medGrad)" strokeWidth={1.5} dot={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -521,20 +517,20 @@ function ClassBreakdown({ data }: { data: ClassCount[] }) {
   const chartData = data.map((d) => ({
     name: CLASS_LABELS[d.threat_class] ?? d.threat_class,
     count: d.count,
-    color: CLASS_COLORS[d.threat_class] ?? "#64748b",
+    color: CLASS_COLORS[d.threat_class] ?? "#8888A0",
   }));
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-3 text-sm font-semibold text-text">Threat Classes</p>
       {chartData.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-dim">No threats detected in this period</p>
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" horizontal={false} />
-            <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" horizontal={false} />
+            <XAxis dataKey="name" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip content={<SecurityTooltip />} />
             <Bar dataKey="count" radius={[6, 6, 0, 0]}>
               {chartData.map((entry, i) => (
@@ -552,12 +548,12 @@ function TopAgentsCard({ data }: { data: TopAgent[] }) {
   if (data.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-3 text-sm font-semibold text-text">Most Targeted Agents</p>
       <div className="space-y-2">
         {data.map((agent) => (
           <div key={agent.agent_name} className="flex items-center justify-between rounded-xl bg-white/[0.02] px-3 py-2">
-            <Link href={`/agent/${agent.agent_id}`} className="text-sm text-cyan hover:underline">{agent.agent_name}</Link>
+            <span className="text-sm text-text">{agent.agent_name}</span>
             <div className="flex items-center gap-3">
               {agent.severe_count > 0 && (
                 <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444" }}>
@@ -579,7 +575,7 @@ function ThreatHealthBar({ total, threats }: { total: number; threats: number })
 
   return (
     <CardEntranceWrapper index={4}>
-      <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+      <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-text-dim">Event Health</p>
@@ -594,7 +590,7 @@ function ThreatHealthBar({ total, threats }: { total: number; threats: number })
             </p>
           </div>
         </div>
-        <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-[#1a2a4a]">
+        <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-[#2E2E3A]">
           <div className="rounded-full bg-green transition-all" style={{ width: `${cleanPct}%` }} />
           {threatPct > 0 && (
             <div className="rounded-full bg-red transition-all" style={{ width: `${threatPct}%` }} />
@@ -623,7 +619,7 @@ function ThreatClassExplainers() {
   }
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a]">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22]">
       <button
         type="button"
         onClick={handleToggle}
@@ -633,11 +629,11 @@ function ThreatClassExplainers() {
         <span className="text-xs text-text-dim">{open ? "Hide" : "Show"}</span>
       </button>
       {open && (
-        <div className="grid gap-3 border-t border-[#1a2a4a] px-4 py-4 sm:grid-cols-3">
+        <div className="grid gap-3 border-t border-[#2E2E3A] px-4 py-4 sm:grid-cols-3">
           {Object.entries(CLASS_EXPLAINERS).map(([key, info]) => (
             <div
               key={key}
-              className="rounded-xl border border-[#1a2a4a] bg-white/[0.02] p-3"
+              className="rounded-xl border border-[#2E2E3A] bg-white/[0.02] p-3"
               style={{ borderTopColor: CLASS_COLORS[key], borderTopWidth: 2 }}
             >
               <p className="text-sm font-semibold text-text">
@@ -658,13 +654,10 @@ function ThreatClassExplainers() {
 function RecommendedActionsPanel({
   event,
   onPurge,
-  onDismiss,
 }: {
   event: ThreatEvent;
   onPurge: (e: ThreatEvent) => void;
-  onDismiss: (e: ThreatEvent) => void;
 }) {
-  const [noted, setNoted] = useState<Set<number>>(new Set());
   const classes = parseJsonField<string[]>(event.threat_classes);
   // Collect unique actions from all matched classes
   const actions: RecommendedAction[] = [];
@@ -679,58 +672,28 @@ function RecommendedActionsPanel({
   }
   if (actions.length === 0) return null;
 
-  const markNoted = (i: number) => setNoted((prev) => new Set(prev).add(i));
-
   return (
     <div className="mt-3 rounded-xl border border-cyan/20 bg-cyan/[0.03] px-3 py-3">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-cyan">Recommended Actions</p>
       <ul className="mt-2 space-y-1.5">
-        {actions.map((action, i) => {
-          const isNoted = noted.has(i);
-          return (
-            <li key={i} className={`flex items-center gap-2 text-xs ${isNoted ? "text-text-dim/50 line-through" : "text-text-dim"}`}>
-              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[9px] font-bold ${isNoted ? "border-accent/30 bg-accent/15 text-accent" : "border-cyan/30 text-cyan"}`}>
-                {isNoted ? "\u2713" : i + 1}
-              </span>
-              {action.actionType === "purge" ? (
-                <button
-                  type="button"
-                  onClick={() => onPurge(event)}
-                  className="font-semibold text-red hover:underline"
-                >
-                  {action.text}
-                </button>
-              ) : action.actionType === "dismiss" ? (
-                <button
-                  type="button"
-                  onClick={() => onDismiss(event)}
-                  className="font-semibold text-text-dim hover:text-text hover:underline"
-                >
-                  {action.text}
-                </button>
-              ) : action.actionType === "link" || action.actionType === "activity" ? (
-                <Link
-                  href={action.hrefFn?.(event) ?? "#"}
-                  className="font-semibold text-cyan hover:underline"
-                >
-                  {action.text} &rarr;
-                </Link>
-              ) : action.actionType === "advisory" ? (
-                <button
-                  type="button"
-                  onClick={() => markNoted(i)}
-                  className={`text-left ${isNoted ? "" : "hover:text-text cursor-pointer"}`}
-                  disabled={isNoted}
-                >
-                  {action.text}
-                  {!isNoted && <span className="ml-1.5 text-[10px] text-cyan/60">(click to mark noted)</span>}
-                </button>
-              ) : (
-                <span>{action.text}</span>
-              )}
-            </li>
-          );
-        })}
+        {actions.map((action, i) => (
+          <li key={i} className="flex items-center gap-2 text-xs text-text-dim">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-cyan/30 text-[9px] font-bold text-cyan">
+              {i + 1}
+            </span>
+            {action.actionType === "purge" ? (
+              <button
+                type="button"
+                onClick={() => onPurge(event)}
+                className="font-semibold text-red hover:underline"
+              >
+                {action.text}
+              </button>
+            ) : (
+              <span>{action.text}</span>
+            )}
+          </li>
+        ))}
       </ul>
     </div>
   );
@@ -741,8 +704,6 @@ function RecommendedActionsPanel({
 function ThreatEventRow({
   event,
   selected,
-  highlighted,
-  initialExpanded,
   onToggleSelect,
   onPurge,
   onRedact,
@@ -750,21 +711,12 @@ function ThreatEventRow({
 }: {
   event: ThreatEvent;
   selected: boolean;
-  highlighted?: boolean;
-  initialExpanded?: boolean;
   onToggleSelect: (id: string) => void;
   onPurge: (e: ThreatEvent) => void;
   onRedact: (e: ThreatEvent) => void;
   onDismiss: (e: ThreatEvent) => void;
 }) {
-  const [expanded, setExpanded] = useState(initialExpanded ?? false);
-  const rowRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (highlighted && rowRef.current) {
-      rowRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [highlighted]);
+  const [expanded, setExpanded] = useState(false);
   const config = SEVERITY_CONFIG[event.threat_level] ?? SEVERITY_CONFIG.low;
   const classes = parseJsonField<string[]>(event.threat_classes);
   const matches = parseJsonField<Array<{ class: string; pattern: string; excerpt: string }>>(event.threat_matches);
@@ -776,19 +728,16 @@ function ThreatEventRow({
 
   return (
     <div
-      ref={rowRef}
       className={`rounded-xl border transition ${
-        highlighted
-          ? "border-cyan/60 bg-cyan/[0.06] ring-2 ring-cyan/30"
-          : event.dismissed
-            ? "border-[#1a2a4a]/50 bg-[#0d0d1a]/50 opacity-60"
-            : isCritical
-              ? selected
-                ? "border-red/50 bg-red/[0.06]"
-                : "border-red/30 bg-red/[0.03] card-hover"
-              : selected
-                ? "border-cyan/40 bg-cyan/[0.03]"
-                : "border-[#1a2a4a] bg-[#0d0d1a] card-hover"
+        event.dismissed
+          ? "border-[#2E2E3A]/50 bg-[#1A1A22]/50 opacity-60"
+          : isCritical
+            ? selected
+              ? "border-red/50 bg-red/[0.06]"
+              : "border-red/30 bg-red/[0.03] card-hover"
+            : selected
+              ? "border-cyan/40 bg-cyan/[0.03]"
+              : "border-[#2E2E3A] bg-[#1A1A22] card-hover"
       }`}
     >
       <div className="flex items-center gap-2 px-2 py-3 sm:px-4">
@@ -798,7 +747,7 @@ function ThreatEventRow({
             type="checkbox"
             checked={selected}
             onChange={() => onToggleSelect(event.id)}
-            className="h-4 w-4 rounded border-[#1a2a4a] bg-transparent accent-cyan"
+            className="h-4 w-4 rounded border-[#2E2E3A] bg-transparent accent-cyan"
           />
         </label>
 
@@ -818,21 +767,19 @@ function ThreatEventRow({
                 {config.label}
               </span>
               {classes.map((cls) => (
-                <span key={cls} className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: (CLASS_COLORS[cls] ?? "#64748b") + "15", color: CLASS_COLORS[cls] ?? "#64748b" }}>
+                <span key={cls} className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: (CLASS_COLORS[cls] ?? "#8888A0") + "15", color: CLASS_COLORS[cls] ?? "#8888A0" }}>
                   {CLASS_LABELS[cls] ?? cls}
                 </span>
               ))}
               {event.content_redacted && (
-                <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent">REDACTED</span>
+                <span className="rounded-full bg-purple/15 px-2 py-0.5 text-[10px] font-bold text-purple">REDACTED</span>
               )}
               {event.dismissed && (
                 <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-text-dim">DISMISSED</span>
               )}
             </div>
             <p className="mt-1 truncate text-sm text-text">
-              <Link href={`/agent/${event.agent_id}`} onClick={(e) => e.stopPropagation()} className="text-cyan hover:underline">
-                {event.agent_name ?? `Agent ${event.agent_id}`}
-              </Link>
+              {event.agent_name ?? `Agent ${event.agent_id}`}
               <span className="mx-2 text-text-dim">&middot;</span>
               <span className="text-text-dim">{event.event_type}</span>
               {event.channel_id && (
@@ -883,14 +830,14 @@ function ThreatEventRow({
       </div>
 
       {expanded && (
-        <div className="border-t border-[#1a2a4a] px-4 py-3">
+        <div className="border-t border-[#2E2E3A] px-4 py-3">
           {matches.length > 0 && (
             <div className="mb-3 space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-text-dim">Pattern Matches</p>
               {matches.map((match, i) => (
                 <div key={i} className="rounded-lg bg-white/[0.02] px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: CLASS_COLORS[match.class] + "22", color: CLASS_COLORS[match.class] ?? "#64748b" }}>
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: CLASS_COLORS[match.class] + "22", color: CLASS_COLORS[match.class] ?? "#8888A0" }}>
                       {match.class}
                     </span>
                     <span className="text-xs font-medium text-text">{match.pattern}</span>
@@ -908,7 +855,7 @@ function ThreatEventRow({
           </div>
 
           {/* Recommended Actions (Step 6.2) */}
-          <RecommendedActionsPanel event={event} onPurge={onPurge} onDismiss={onDismiss} />
+          <RecommendedActionsPanel event={event} onPurge={onPurge} />
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap gap-4 text-[11px] text-text-dim">
@@ -928,7 +875,7 @@ function ThreatEventRow({
                 <button
                   type="button"
                   onClick={() => onRedact(event)}
-                  className="rounded-lg border border-accent/30 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/10 transition"
+                  className="rounded-lg border border-purple/30 px-3 py-1.5 text-xs font-semibold text-purple hover:bg-purple/10 transition"
                 >
                   Redact
                 </button>
@@ -936,7 +883,7 @@ function ThreatEventRow({
               <button
                 type="button"
                 onClick={() => onDismiss(event)}
-                className="rounded-lg border border-[#1a2a4a] px-3 py-1.5 text-xs font-semibold text-text-dim hover:bg-white/5 hover:text-text transition"
+                className="rounded-lg border border-[#2E2E3A] px-3 py-1.5 text-xs font-semibold text-text-dim hover:bg-white/5 hover:text-text transition"
               >
                 {event.dismissed ? "Restore" : "Dismiss"}
               </button>
@@ -951,9 +898,6 @@ function ThreatEventRow({
 /* ─── Main Page ─────────────────────────────────────────── */
 
 export function SecurityScreen() {
-  const searchParams = useSearchParams();
-  const highlightId = searchParams.get("highlight");
-
   const [range, setRange] = useState<"24h" | "7d" | "30d">("7d");
   const [severityFilter, setSeverityFilter] = useState<string>("");
   const [classFilter, setClassFilter] = useState<string>("");
@@ -961,10 +905,6 @@ export function SecurityScreen() {
 
   // Selection state for bulk actions
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
-  // Auto-expand highlighted event
-  const [expandedId, setExpandedId] = useState<string | null>(highlightId);
-  const highlightRef = useRef<HTMLDivElement>(null);
 
   // Modal state
   const [purgeTarget, setPurgeTarget] = useState<ThreatEvent | null>(null);
@@ -1199,7 +1139,7 @@ export function SecurityScreen() {
         <select
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value)}
-          className="rounded-lg border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-sm text-text"
+          className="rounded-lg border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-sm text-text"
         >
           <option value="">All Severities</option>
           <option value="critical">Critical</option>
@@ -1210,7 +1150,7 @@ export function SecurityScreen() {
         <select
           value={classFilter}
           onChange={(e) => setClassFilter(e.target.value)}
-          className="rounded-lg border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-sm text-text"
+          className="rounded-lg border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-sm text-text"
         >
           <option value="">All Classes</option>
           <option value="prompt_injection">Prompt Injection</option>
@@ -1219,7 +1159,7 @@ export function SecurityScreen() {
         </select>
 
         {/* Show Dismissed Toggle */}
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-sm text-text-dim hover:text-text transition">
+        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-sm text-text-dim hover:text-text transition">
           <input
             type="checkbox"
             checked={showDismissed}
@@ -1278,8 +1218,6 @@ export function SecurityScreen() {
                 key={event.id}
                 event={event}
                 selected={selectedIds.has(event.id)}
-                highlighted={highlightId === event.id}
-                initialExpanded={highlightId === event.id}
                 onToggleSelect={toggleSelect}
                 onPurge={handlePurge}
                 onRedact={handleRedact}

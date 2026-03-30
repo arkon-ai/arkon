@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface Tenant {
   id: string;
@@ -123,7 +123,7 @@ async function fetchJson<T>(url: string): Promise<T> {
   });
 
   if (response.status === 401) {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
       window.location.href = "/login";
     }
     throw new Error("Unauthorized");
@@ -263,22 +263,6 @@ export function useLivePollingFetch<T>(url: string, intervalMs = 15000): State<T
 
 export function useOverviewData() {
   return useLivePollingFetch<OverviewData>("/api/dashboard/overview");
-}
-
-/** Returns overview data filtered by active tenant (null = all tenants) */
-export function useFilteredOverviewData(tenantId: string | null) {
-  const result = useOverviewData();
-  const filtered = useMemo(() => {
-    if (!result.data || !tenantId) return result.data;
-    return {
-      ...result.data,
-      agents: result.data.agents.filter((a) => a.tenant_id === tenantId),
-      todayStats: result.data.todayStats.filter((s) => s.tenant_id === tenantId),
-      // Keep all tenants for switcher
-      tenants: result.data.tenants,
-    };
-  }, [result.data, tenantId]);
-  return { ...result, data: filtered };
 }
 
 export function useAgentDetailData(id: string) {

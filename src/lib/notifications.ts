@@ -238,8 +238,8 @@ async function sendWebhook(
  */
 export async function sendLegacyAlert(text: string): Promise<void> {
   // Try gateway first
-  const gatewayUrl = process.env.ALERT_GATEWAY_URL ?? process.env.NEXT_PUBLIC_GATEWAY_URL;
-  const gatewayToken = process.env.ALERT_GATEWAY_TOKEN ?? process.env.NEXT_PUBLIC_GATEWAY_TOKEN;
+  const gatewayUrl = process.env.ALERT_GATEWAY_URL ?? process.env.GATEWAY_URL;
+  const gatewayToken = process.env.ALERT_GATEWAY_TOKEN ?? process.env.GATEWAY_TOKEN;
 
   if (gatewayUrl && gatewayToken) {
     try {

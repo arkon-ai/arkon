@@ -1,22 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════
-   Arkon — Design Token System
+   Arkon — Design Token System v2 (Phase 1)
    ═══════════════════════════════════════════════════════════════
-   Color Palette:
-     Accent (Quarn Emerald): #00D47E — interactive, active states, brand accent
-     Success (semantic):     #10B981 — success toasts, online status
-     Warning (amber):        #f59e0b — warnings only
-     Danger (red):           #ef4444 — errors, destructive actions only
+   Brand:
+     Quarn Emerald (#00D47E) — SOLE brand accent. No purple.
+     Void (#0A0A0C) — primary background.
 
-   Typography Scale:
-     Page title:     24px / 700
-     Section header: 11px / 600 uppercase tracking-wider
-     Card title:     16px / 600
-     Body:           14px / 400
-     Label:          11px / 600 uppercase tracking-wider
-     Caption:        12px / 400
+   Typography:
+     Headings:  Urbanist ExtraBold (800)
+     UI body:   Geist Sans Regular (400)
+     Code/mono: Geist Mono
+
+   Status Colors:
+     Success: #10B981   Warning: #F59E0B
+     Danger:  #EF4444   Info:    #06B6D4
 
    Borders & Radii:
-     Card:   1px solid var(--color-border), border-radius 16px
+     Card:   1px solid var(--border), border-radius 12px
      Button: border-radius 12px
      Badge:  border-radius 8px
    ═══════════════════════════════════════════════════════════════ */
@@ -24,68 +23,116 @@
 @import "tailwindcss";
 
 :root {
-  /* Backgrounds */
-  --background: #050510;
-  --foreground: #e2e8f0;
-  --bg-deep: #050510;
-  --bg-card: #0d0d1a;
-  --bg-elevated: #111827;
+  /* ── Surfaces ── */
+  --bg-primary: #0A0A0C;
+  --bg-surface: #1A1A22;
+  --bg-surface-2: #22222E;
   --bg-hover: rgba(255, 255, 255, 0.03);
 
-  /* Borders */
-  --border: #1a2a4a;
-  --border-hover: #2a3a5a;
-  --border-strong: #2a3a5a;
+  /* ── Borders ── */
+  --border: #2E2E3A;
+  --border-hover: #3E3E4A;
+  --border-strong: #3E3E4A;
 
-  /* Brand Colors */
+  /* ── Brand — Quarn Emerald (SOLE accent, no purple) ── */
   --accent: #00D47E;
   --accent-hover: #00E88A;
-  --accent-dim: #00E88A;
+  --accent-dim: #00B86E;
   --accent-muted: rgba(0, 212, 126, 0.15);
   --accent-subtle: rgba(0, 212, 126, 0.08);
-  --accent-foreground: #050510;
-  --amber: #f59e0b;
-  --red: #ef4444;
-  --green: #00D47E;
+  --accent-foreground: #0A0A0C;
+  --text-link: #00D47E;
 
-  /* Text */
-  --text: #e2e8f0;
-  --text-dim: #64748b;
-  --text-muted: #475569;
+  /* ── Status ── */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #06B6D4;
 
-  /* Radii */
-  --radius-card: 16px;
+  /* ── Text ── */
+  --text-primary: #E4E4ED;
+  --text-secondary: #8888A0;
+  --text-tertiary: #555566;
+
+  /* ── Effects ── */
+  --glow-accent: 0 0 60px rgba(0, 212, 126, 0.15);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+
+  /* ── Radii ── */
+  --radius-card: 12px;
+  --radius-lg: 16px;
   --radius-button: 12px;
   --radius-badge: 8px;
 
-  /* Legacy aliases */
-  --cyan: #00D47E;
+  /* ── Typography ── */
+  --font-display: 'Urbanist', sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* ══════════════════════════════════════
+     Backward-compat aliases (old → new)
+     Remove these once hex sweep is complete.
+     ══════════════════════════════════════ */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --bg-deep: var(--bg-primary);
+  --bg-card: var(--bg-surface);
+  --bg-elevated: var(--bg-surface-2);
+  --text: var(--text-primary);
+  --text-dim: var(--text-secondary);
+  --text-muted: var(--text-tertiary);
+  --amber: var(--warning);
+  --red: var(--danger);
+  --green: var(--accent);
+  --cyan: var(--accent);
+  --purple: var(--accent); /* purple eliminated — maps to accent */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-bg-deep: var(--bg-deep);
-  --color-bg-card: var(--bg-card);
-  --color-bg-elevated: var(--bg-elevated);
+  /* Surfaces */
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --color-bg-deep: var(--bg-primary);
+  --color-bg-card: var(--bg-surface);
+  --color-bg-elevated: var(--bg-surface-2);
   --color-bg-hover: var(--bg-hover);
+
+  /* Borders */
   --color-border: var(--border);
   --color-border-hover: var(--border-hover);
   --color-border-strong: var(--border-strong);
+
+  /* Brand */
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-accent-dim: var(--accent-dim);
   --color-accent-muted: var(--accent-muted);
   --color-accent-subtle: var(--accent-subtle);
-  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* Legacy color aliases (redirect to accent) */
   --color-cyan: var(--accent);
-  --color-amber: var(--amber);
-  --color-red: var(--red);
-  --color-green: var(--green);
-  --color-text: var(--text);
-  --color-text-dim: var(--text-dim);
-  --color-text-muted: var(--text-muted);
-  --font-sans: "Inter", "Avenir Next", "Segoe UI", system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --color-purple: var(--accent);
+  --color-green: var(--accent);
+
+  /* Status */
+  --color-amber: var(--warning);
+  --color-red: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  /* Text */
+  --color-text: var(--text-primary);
+  --color-text-dim: var(--text-secondary);
+  --color-text-muted: var(--text-tertiary);
+  --color-text-link: var(--text-link);
+
+  /* Typography */
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 * {
@@ -93,13 +140,13 @@
 }
 
 html {
-  background: var(--bg-deep);
+  background: var(--bg-primary);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Inter", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
   font-size: 14px;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -112,12 +159,20 @@ a {
 }
 
 pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-mono);
 }
 
 ::selection {
   background: rgba(0, 212, 126, 0.28);
-  color: var(--text);
+  color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════
+   Headings — Urbanist ExtraBold
+═══════════════════════════════════════ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
 }
 
 /* ═══════════════════════════════════════
@@ -125,7 +180,7 @@ pre {
 ═══════════════════════════════════════ */
 
 .markdown-body {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .markdown-body h1 {
@@ -133,31 +188,35 @@ pre {
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;
   font-size: 2rem;
+  font-family: var(--font-display);
   color: #fff;
 }
 
 .markdown-body h2 {
   margin: 2rem 0 1rem;
   font-size: 1.5rem;
-  color: #e2e8f0;
+  font-family: var(--font-display);
+  color: var(--text-primary);
 }
 
 .markdown-body h3 {
   margin: 1.5rem 0 0.75rem;
   font-size: 1.25rem;
-  color: #e2e8f0;
+  font-family: var(--font-display);
+  color: var(--text-primary);
 }
 
 .markdown-body p {
   margin-bottom: 1rem;
   line-height: 1.7;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .markdown-body code {
   border-radius: var(--radius-badge);
-  background: var(--bg-card);
+  background: var(--bg-surface);
   padding: 2px 6px;
+  font-family: var(--font-mono);
   color: var(--accent);
 }
 
@@ -174,23 +233,23 @@ pre {
 }
 
 .markdown-body th {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   padding: 8px 12px;
   text-align: left;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .markdown-body td {
   border-bottom: 1px solid var(--border);
   padding: 8px 12px;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .markdown-body blockquote {
   margin: 1rem 0;
   border-left: 4px solid var(--accent);
   padding: 0.5rem 1rem;
-  color: var(--text-dim);
+  color: var(--text-secondary);
 }
 
 .markdown-body a {
@@ -222,9 +281,10 @@ pre {
 ═══════════════════════════════════════ */
 
 .glass-card {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
+  backdrop-filter: blur(12px);
   transition: border-color 0.2s ease;
 }
 .glass-card:hover {
@@ -232,13 +292,15 @@ pre {
 }
 
 /* Glow utilities */
-.glow-cyan  { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-green { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-amber { box-shadow: 0 0 20px rgba(245, 158, 11, 0.1), 0 0 40px rgba(245, 158, 11, 0.04); }
+.glow-cyan   { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
+.glow-green  { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
+.glow-accent { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
+.glow-purple { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
+.glow-amber  { box-shadow: 0 0 20px rgba(245, 158, 11, 0.1), 0 0 40px rgba(245, 158, 11, 0.04); }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #00D47E, #00E88A);
+  background: linear-gradient(135deg, #00D47E, #00B86E);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -252,12 +314,12 @@ pre {
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--bg-card) 25%,
-    var(--border) 50%,
-    var(--bg-card) 75%
+    var(--bg-surface) 25%,
+    var(--bg-surface-2) 50%,
+    var(--bg-surface) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.6s infinite;
+  animation: shimmer 1.5s linear infinite;
   border-radius: var(--radius-badge);
 }
 
@@ -313,7 +375,7 @@ pre {
 
 /* Button press feedback */
 .btn-press {
-  transition: transform 0.1s ease;
+  transition: transform 100ms ease-out;
 }
 .btn-press:active {
   transform: scale(0.97);
@@ -340,20 +402,22 @@ pre {
 
 /* Agent card accent borders */
 .agent-accent-live  { border-top: 2px solid var(--accent); }
-.agent-accent-warm  { border-top: 2px solid var(--amber); }
+.agent-accent-warm  { border-top: 2px solid var(--warning); }
 .agent-accent-idle  { border-top: 2px solid var(--border); }
-.agent-accent-error { border-top: 2px solid var(--red); }
+.agent-accent-error { border-top: 2px solid var(--danger); }
 
 /* Stat delta indicators */
 .stat-delta-up {
   color: var(--accent);
   font-size: 11px;
   font-weight: 600;
+  font-family: var(--font-mono);
 }
 .stat-delta-down {
-  color: var(--red);
+  color: var(--danger);
   font-size: 11px;
   font-weight: 600;
+  font-family: var(--font-mono);
 }
 
 /* Chart active dot glow */
@@ -361,6 +425,12 @@ pre {
   filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
 }
 .chart-glow-green {
+  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
+}
+.chart-glow-accent {
+  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
+}
+.chart-glow-purple {
   filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
 }
 .chart-glow-amber {

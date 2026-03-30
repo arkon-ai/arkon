@@ -104,12 +104,12 @@ const CHANNEL_COLORS: Record<string, string> = {
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
   message_received: "#00D47E",
-  message_sent: "#8888A0",
+  message_sent: "#00D47E",
   tool_call: "#f59e0b",
   error: "#ef4444",
   cron: "#3b82f6",
   system: "#8888A0",
-  note: "#94a3b8",
+  note: "#8888A0",
 };
 
 function formatDay(dateStr: string) {
@@ -129,8 +129,8 @@ function formatHour(hour: number) {
 function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-2 text-xs shadow-lg">
-      <p className="mb-1 text-[#64748b]">{label}</p>
+    <div className="rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 text-[#8888A0]">{label}</p>
       {payload.map((entry) => (
         <p key={entry.name} className="font-semibold" style={{ color: entry.color }}>
           {entry.name}: {entry.value.toLocaleString()}
@@ -145,7 +145,7 @@ function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payloa
 function SummaryCards({ totals, sessionStats }: { totals: AnalyticsData["totals"]; sessionStats: SessionStats }) {
   const stats = [
     { label: "Total Events", value: totals.total_events, color: "#00D47E" },
-    { label: "Active Agents", value: totals.active_agents, color: "#06B6D4" },
+    { label: "Active Agents", value: totals.active_agents, color: "#00D47E" },
     { label: "Sessions", value: totals.unique_sessions, color: "#3b82f6" },
     { label: "Tokens Used", value: Number(totals.total_tokens), color: "#f59e0b", format: true },
   ];
@@ -155,7 +155,7 @@ function SummaryCards({ totals, sessionStats }: { totals: AnalyticsData["totals"
       {stats.map((stat, i) => (
         <CardEntranceWrapper key={stat.label} index={i}>
           <div
-            className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4 card-hover"
+            className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4 card-hover"
             style={{ borderTopColor: stat.color, borderTopWidth: 2 }}
           >
             <p className="text-[11px] font-semibold uppercase tracking-wide text-text-dim">{stat.label}</p>
@@ -175,7 +175,7 @@ function DailyVolumeChart({ data }: { data: DailyVolume[] }) {
   const chartData = data.map((d) => ({ ...d, day: formatDay(d.day) }));
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-3 text-sm font-semibold text-text">Daily Volume</p>
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
@@ -185,21 +185,21 @@ function DailyVolumeChart({ data }: { data: DailyVolume[] }) {
               <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="sentGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8888A0" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#8888A0" stopOpacity={0} />
+              <stop offset="5%" stopColor="#00D47E" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" vertical={false} />
-          <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" vertical={false} />
+          <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
           <Tooltip content={<AnalyticsTooltip />} />
           <Area type="monotone" dataKey="received" name="Received" stroke="#00D47E" fill="url(#recvGrad)" strokeWidth={2} dot={false} />
-          <Area type="monotone" dataKey="sent" name="Sent" stroke="#8888A0" fill="url(#sentGrad)" strokeWidth={2} dot={false} />
+          <Area type="monotone" dataKey="sent" name="Sent" stroke="#00D47E" fill="url(#sentGrad)" strokeWidth={2} dot={false} />
         </AreaChart>
       </ResponsiveContainer>
       <div className="mt-2 flex justify-center gap-4 text-xs">
         <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-[#00D47E]" />Received</span>
-        <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-[#8888A0]" />Sent</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-[#00D47E]" />Sent</span>
       </div>
     </div>
   );
@@ -216,7 +216,7 @@ function HourlyHeatmap({ data }: { data: HourlyPoint[] }) {
   const maxCount = Math.max(...full.map((d) => d.count), 1);
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-3 text-sm font-semibold text-text">Activity by Hour (UTC)</p>
       <div className="flex items-end gap-1" style={{ height: 120 }}>
         {full.map((point) => {
@@ -231,7 +231,7 @@ function HourlyHeatmap({ data }: { data: HourlyPoint[] }) {
                   backgroundColor: `rgba(0, 212, 126, ${opacity})`,
                 }}
               />
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 rounded bg-[#0d0d1a] px-1.5 py-0.5 text-[9px] text-text opacity-0 transition group-hover:opacity-100 whitespace-nowrap border border-[#1a2a4a]">
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 rounded bg-[#1A1A22] px-1.5 py-0.5 text-[9px] text-text opacity-0 transition group-hover:opacity-100 whitespace-nowrap border border-[#2E2E3A]">
                 {formatHour(point.hour)}: {point.count}
               </div>
             </div>
@@ -255,7 +255,7 @@ function ChannelBreakdown({ data }: { data: VolumeByChannel[] }) {
   const total = data.reduce((sum, d) => sum + d.count, 0);
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-3 text-sm font-semibold text-text">Volume by Channel</p>
       {data.length === 0 ? (
         <p className="py-6 text-center text-sm text-text-dim">No channel data</p>
@@ -270,7 +270,7 @@ function ChannelBreakdown({ data }: { data: VolumeByChannel[] }) {
                   <span className="font-medium text-text capitalize">{ch.channel}</span>
                   <span className="text-text-dim">{ch.count.toLocaleString()} ({pct.toFixed(0)}%)</span>
                 </div>
-                <div className="mt-1 flex h-2 overflow-hidden rounded-full bg-[#1a2a4a]">
+                <div className="mt-1 flex h-2 overflow-hidden rounded-full bg-[#2E2E3A]">
                   <div className="rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
                 </div>
                 <div className="mt-1 flex gap-3 text-[10px] text-text-dim">
@@ -290,7 +290,7 @@ function ChannelBreakdown({ data }: { data: VolumeByChannel[] }) {
 
 function AgentTable({ data }: { data: AgentBreakdown[] }) {
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4 overflow-x-auto">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4 overflow-x-auto">
       <p className="mb-3 text-sm font-semibold text-text">Agent Activity</p>
       {data.length === 0 ? (
         <p className="py-6 text-center text-sm text-text-dim">No agent data</p>
@@ -309,10 +309,10 @@ function AgentTable({ data }: { data: AgentBreakdown[] }) {
           </thead>
           <tbody className="text-text">
             {data.map((agent) => (
-              <tr key={agent.agent_id} className="border-t border-[#1a2a4a]/50">
+              <tr key={agent.agent_id} className="border-t border-[#2E2E3A]/50">
                 <td className="py-2.5 pr-4 font-medium">{agent.agent_name}</td>
                 <td className="py-2.5 pr-4 text-right text-[#00D47E]">{agent.received}</td>
-                <td className="py-2.5 pr-4 text-right text-[#8888A0]">{agent.sent}</td>
+                <td className="py-2.5 pr-4 text-right text-[#00D47E]">{agent.sent}</td>
                 <td className="py-2.5 pr-4 text-right text-[#f59e0b]">{agent.tool_calls}</td>
                 <td className="py-2.5 pr-4 text-right text-[#ef4444]">{agent.errors}</td>
                 <td className="py-2.5 pr-4 text-right text-text-dim">{formatCompact(Number(agent.total_tokens))}</td>
@@ -334,17 +334,17 @@ function DirectionRatio({ data }: { data: { inbound: number; outbound: number; u
   const outPct = total > 0 ? (data.outbound / total) * 100 : 50;
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-3 text-sm font-semibold text-text">Message Direction</p>
       <div className="flex items-center gap-4">
         <div className="flex-1">
-          <div className="flex h-4 overflow-hidden rounded-full bg-[#1a2a4a]">
+          <div className="flex h-4 overflow-hidden rounded-full bg-[#2E2E3A]">
             <div className="rounded-l-full bg-[#00D47E] transition-all" style={{ width: `${inPct}%` }} />
-            <div className="rounded-r-full bg-[#8888A0] transition-all" style={{ width: `${outPct}%` }} />
+            <div className="rounded-r-full bg-[#00D47E] transition-all" style={{ width: `${outPct}%` }} />
           </div>
           <div className="mt-2 flex justify-between text-xs">
             <span className="text-[#00D47E]">{data.inbound.toLocaleString()} inbound ({inPct.toFixed(0)}%)</span>
-            <span className="text-[#8888A0]">{data.outbound.toLocaleString()} outbound ({outPct.toFixed(0)}%)</span>
+            <span className="text-[#00D47E]">{data.outbound.toLocaleString()} outbound ({outPct.toFixed(0)}%)</span>
           </div>
         </div>
       </div>
@@ -358,7 +358,7 @@ function TopSendersCard({ data }: { data: TopSender[] }) {
   if (data.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-3 text-sm font-semibold text-text">Top Senders</p>
       <div className="space-y-2">
         {data.map((sender, i) => {
@@ -391,7 +391,7 @@ function SessionStatsCard({ data }: { data: SessionStats }) {
   ];
 
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-3 text-sm font-semibold text-text">Session Analytics</p>
       <div className="grid grid-cols-2 gap-3">
         {stats.map((stat) => (
@@ -409,7 +409,7 @@ function SessionStatsCard({ data }: { data: SessionStats }) {
 
 function ToolCallsCard({ data }: { data: ToolCall[] }) {
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4">
       <p className="mb-1 text-sm font-semibold text-text">Tool Calls</p>
       <p className="mb-3 text-[11px] text-text-dim">Agent tool invocations and performance</p>
       {data.length === 0 ? (
@@ -430,7 +430,7 @@ function ToolCallsCard({ data }: { data: ToolCall[] }) {
           </thead>
           <tbody className="text-text">
             {data.map((tool) => (
-              <tr key={tool.tool_name} className="border-t border-[#1a2a4a]/50">
+              <tr key={tool.tool_name} className="border-t border-[#2E2E3A]/50">
                 <td className="py-2 pr-4 font-mono text-xs">{tool.tool_name}</td>
                 <td className="py-2 pr-4 text-right">{tool.call_count}</td>
                 <td className="py-2 pr-4 text-right text-text-dim">{tool.avg_duration_ms}ms</td>
@@ -463,7 +463,7 @@ export function AnalyticsScreen() {
   if (loading && !data) {
     return (
       <div className="space-y-5">
-        <ShellHeader title="Anomaly Detection" subtitle="Rate spikes, silence alerts, and event intelligence" gradient />
+        <ShellHeader title="Analytics" subtitle="Event intelligence and usage patterns" gradient />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} lines={1} height="h-10" />)}
         </div>
@@ -476,7 +476,7 @@ export function AnalyticsScreen() {
   if (error && !data) {
     return (
       <div className="space-y-5">
-        <ShellHeader title="Anomaly Detection" subtitle="Rate spikes, silence alerts, and event intelligence" gradient />
+        <ShellHeader title="Analytics" subtitle="Event intelligence and usage patterns" gradient />
         <div className="rounded-2xl border border-red/40 bg-red/5 p-6 text-center">
           <p className="text-sm text-red">Failed to load analytics: {error}</p>
         </div>
@@ -499,8 +499,8 @@ export function AnalyticsScreen() {
   return (
     <div className="space-y-5">
       <ShellHeader
-        title="Anomaly Detection"
-        subtitle="Rate spikes, silence alerts, and event intelligence"
+        title="Analytics"
+        subtitle="Event intelligence and usage patterns"
         gradient
         action={
           <div className="flex gap-2">

@@ -251,10 +251,10 @@ function elapsedLabel(startedAt: string, completedAt: string | null, now: number
   return `${minutes}m ${seconds}s`;
 }
 
-function toneClass(color: "cyan" | "accent" | "amber" | "green" | "red" | "slate") {
+function toneClass(color: "cyan" | "purple" | "amber" | "green" | "red" | "slate") {
   return {
     cyan: "border-cyan/30 bg-cyan/10 text-cyan",
-    accent: "border-accent/30 bg-accent/10 text-accent",
+    purple: "border-purple/30 bg-purple/10 text-purple",
     amber: "border-amber/30 bg-amber/10 text-amber",
     green: "border-green/30 bg-green/10 text-green",
     red: "border-red/30 bg-red/10 text-red",
@@ -291,7 +291,7 @@ function Badge({
   tone = "slate",
 }: {
   children: ReactNode;
-  tone?: "cyan" | "accent" | "amber" | "green" | "red" | "slate";
+  tone?: "cyan" | "purple" | "amber" | "green" | "red" | "slate";
 }) {
   return (
     <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${toneClass(tone)}`}>
@@ -342,11 +342,11 @@ const toolLinks = [
   { href: "/tools/approvals", title: "Approvals Queue", note: "Review drafted content and approve or reject from the phone.", tone: "green" as const },
   { href: "/tools/docs", title: "Docs Viewer", note: "Searchable archive of specs, reports, logs, and plans.", tone: "cyan" as const },
   { href: "/tools/tasks", title: "Task Board", note: "Kanban board for task and agent priorities.", tone: "amber" as const },
-  { href: "/tools/calendar", title: "Content Calendar", note: "Week-first content schedule with day drill-down.", tone: "accent" as const },
+  { href: "/tools/calendar", title: "Content Calendar", note: "Week-first content schedule with day drill-down.", tone: "purple" as const },
   { href: "/tools/agents-live", title: "Sub-Agent Live", note: "Real-time status, logs, tokens, and kill controls.", tone: "green" as const },
   { href: "/tools/command", title: "Quick Command", note: "Chat-like command surface for direct agent requests.", tone: "cyan" as const },
   { href: "/actions", title: "Actions", note: "Existing action list remains available from the hub.", tone: "slate" as const },
-  { href: "/confessions", title: "Confessions", note: "Mission-aligned declarations and scriptures.", tone: "accent" as const },
+  { href: "/confessions", title: "Confessions", note: "Mission-aligned declarations and scriptures.", tone: "purple" as const },
   { href: "/visuals", title: "Visuals", note: "Visual briefing and live diagrams.", tone: "amber" as const },
 ];
 
@@ -360,7 +360,7 @@ export function ToolsHubScreen() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Custom Tools" value="6" accent="text-cyan" sublabel="Interactive operational surfaces" />
-        <StatCard label="Mobile First" value="44px+" accent="text-accent" sublabel="Touch targets and sticky controls" />
+        <StatCard label="Mobile First" value="44px+" accent="text-purple" sublabel="Touch targets and sticky controls" />
         <StatCard label="Live Ops" value="5s" accent="text-amber" sublabel="Polling cadence for active runs" />
         <StatCard label="Theme" value="PWA" accent="text-green" sublabel="Arkon dark shell reused" />
       </div>
@@ -540,7 +540,7 @@ export function ApprovalsToolScreen() {
                             }>
                               {item.status}
                             </Badge>
-                            <Badge tone="accent">{item.target_channel ?? "general"}</Badge>
+                            <Badge tone="purple">{item.target_channel ?? "general"}</Badge>
                             <Badge tone={item.priority === "urgent" ? "red" : item.priority === "low" ? "slate" : "cyan"}>
                               {item.priority}
                             </Badge>
@@ -550,7 +550,7 @@ export function ApprovalsToolScreen() {
                           </div>
                           <h2 className="mt-3 text-lg font-semibold text-text">{item.title}</h2>
                           <p className="mt-1 text-xs text-text-dim">
-                            {item.agent_name || item.agent_id} &middot; {timeAgo(item.created_at)}
+                            {item.agent_name || item.agent_id} \u00b7 {timeAgo(item.created_at)}
                           </p>
                         </div>
                       </div>
@@ -569,10 +569,10 @@ export function ApprovalsToolScreen() {
                         {item.content}
                       </p>
                       {!isExpanded && item.content.length > 200 && (
-                        <span className="text-xs text-cyan mt-1 inline-block">Show more &darr;</span>
+                        <span className="text-xs text-cyan mt-1 inline-block">Show more \u2193</span>
                       )}
                       {isExpanded && (
-                        <span className="text-xs text-text-dim mt-1 inline-block">Show less &uarr;</span>
+                        <span className="text-xs text-text-dim mt-1 inline-block">Show less \u2191</span>
                       )}
                     </div>
 
@@ -754,7 +754,7 @@ export function DocsToolScreen() {
                   ← Back to documents
                 </button>
                 <div className="flex flex-wrap gap-2">
-                  {selected ? <Badge tone="accent">{selected.category}</Badge> : null}
+                  {selected ? <Badge tone="purple">{selected.category}</Badge> : null}
                   {selected?.pinned ? <Badge tone="amber">Pinned</Badge> : null}
                   {selected?.file_path ? <Badge tone="slate">{selected.file_path}</Badge> : null}
                 </div>
@@ -818,7 +818,7 @@ export function DocsToolScreen() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap gap-2">
-                        <Badge tone="accent">{doc.category}</Badge>
+                        <Badge tone="purple">{doc.category}</Badge>
                         {doc.pinned ? <Badge tone="amber">Pinned</Badge> : null}
                       </div>
                       <h2 className="mt-3 text-lg font-semibold text-text">{doc.title}</h2>
@@ -837,7 +837,7 @@ export function DocsToolScreen() {
                       {doc.pinned ? "Unpin" : "Pin"}
                     </button>
                   </div>
-                  <p className="text-sm leading-6 text-text-dim">{stripPreview(doc.preview)}</p>
+                  <p className="text-sm leading-6 text-text-dim">{doc.preview}</p>
                 </Card>
               </div>
             ))
@@ -1029,27 +1029,10 @@ const itemTypeColors: Record<string, string> = {
   email: "#00D47E",
   campaign: "#00D47E",
   confession: "#f59e0b",
-  task: "#64748b",
+  task: "#8888A0",
   event: "#22c55e",
   reminder: "#ef4444",
 };
-
-/** Strip HTML tags, CSS blocks, and @import rules from doc previews */
-function stripPreview(raw?: string): string {
-  if (!raw) return "";
-  return raw
-    .replace(/<style[\s\S]*?<\/style>/gi, "")    // remove <style> blocks
-    .replace(/<[^>]*>/g, "")                       // remove HTML tags
-    .replace(/@import\s+url\([^)]*\)[^;]*;?/g, "")// remove @import url(...)
-    .replace(/[{][^}]*[}]/g, "")                   // remove CSS rule bodies
-    .replace(/\s+/g, " ")                          // collapse whitespace
-    .trim()
-    .slice(0, 200) || "No text preview available";
-}
-
-function localDateKey(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 function getWeekStart(date = new Date()) {
   const target = new Date(date);
@@ -1083,7 +1066,7 @@ export function CalendarToolScreen() {
   const itemsByDay = useMemo(() => {
     const grouped = new Map<string, CalendarItem[]>();
     for (const item of data?.items ?? []) {
-      const key = localDateKey(new Date(item.scheduled_at));
+      const key = new Date(item.scheduled_at).toISOString().slice(0, 10);
       const list = grouped.get(key) ?? [];
       list.push(item);
       grouped.set(key, list);
@@ -1092,7 +1075,7 @@ export function CalendarToolScreen() {
   }, [data?.items]);
 
   const selectedItems = selectedDay ? itemsByDay.get(selectedDay) ?? [] : [];
-  const todayKey = localDateKey(new Date());
+  const todayKey = new Date().toISOString().slice(0, 10);
 
   if (loading && !data) return <LoadingState label="Loading calendar" />;
 
@@ -1145,7 +1128,7 @@ export function CalendarToolScreen() {
         <div className="mt-4 overflow-x-auto">
           <div className="grid min-w-[700px] grid-cols-7 gap-3">
             {days.map((day) => {
-              const key = localDateKey(day);
+              const key = day.toISOString().slice(0, 10);
               const items = itemsByDay.get(key) ?? [];
               const isToday = key === todayKey;
               return (
@@ -1173,7 +1156,7 @@ export function CalendarToolScreen() {
                       <div key={item.id} className="flex items-center gap-2 text-xs text-text">
                         <span
                           className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: item.color ?? itemTypeColors[item.item_type] ?? "#64748b" }}
+                          style={{ backgroundColor: item.color ?? itemTypeColors[item.item_type] ?? "#8888A0" }}
                         />
                         <span className="truncate">{item.title}</span>
                       </div>
@@ -1199,7 +1182,7 @@ export function CalendarToolScreen() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge tone="accent">{item.item_type}</Badge>
+                      <Badge tone="purple">{item.item_type}</Badge>
                       <Badge tone={item.status === "published" ? "green" : item.status === "cancelled" ? "red" : "amber"}>
                         {item.status}
                       </Badge>
@@ -1275,7 +1258,7 @@ export function AgentsLiveToolScreen() {
                       className={`h-2.5 w-2.5 rounded-full ${run.status === "running" ? "animate-pulse bg-green" : run.status === "failed" ? "bg-red" : "bg-text-dim"}`}
                     />
                     <Badge tone={runTone(run.status)}>{run.status}</Badge>
-                    <Badge tone="accent">{run.model}</Badge>
+                    <Badge tone="purple">{run.model}</Badge>
                   </div>
                   <h2 className="mt-3 text-lg font-semibold text-text">{run.run_label}</h2>
                   <p className="mt-1 text-sm text-text-dim">{run.task_summary ?? "No summary supplied."}</p>
@@ -1361,25 +1344,24 @@ export function CommandToolScreen() {
       });
       setMessage("");
 
-      // FUNC-1: Forward command to OpenClaw gateway as a system event
-      const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:18789";
-      const gatewayToken = process.env.NEXT_PUBLIC_GATEWAY_TOKEN ?? "";
-      if (gatewayToken) {
-        try {
-          await fetch(`${gatewayUrl}/api/system-event`, {
+      // FUNC-1: Forward command to OpenClaw gateway via server-side proxy
+      try {
+        const proxyRes = await fetch("/api/gateway/proxy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            path: "/api/system-event",
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${gatewayToken}`,
-            },
-            body: JSON.stringify({ text: command.trim(), mode: "now" }),
-          });
+            body: { text: command.trim(), mode: "now" },
+          }),
+        });
+        if (proxyRes.ok) {
           toast.success("Command sent to agent");
-        } catch {
+        } else {
           toast("Command saved — gateway unreachable", { icon: "⚠️" });
         }
-      } else {
-        toast.success("Command saved");
+      } catch {
+        toast("Command saved — gateway unreachable", { icon: "⚠️" });
       }
 
       window.location.reload();

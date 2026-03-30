@@ -32,8 +32,8 @@ interface CronJob {
 /** Send an instruction to the OpenClaw gateway via /hooks/agent.
  *  Falls back to storing a note event in the MC database. */
 async function sendToGateway(text: string, meta: Record<string, unknown>): Promise<{ sent: boolean; method: string }> {
-  const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "";
-  const hookToken = process.env.GATEWAY_HOOK_TOKEN ?? process.env.NEXT_PUBLIC_GATEWAY_TOKEN ?? "";
+  const gatewayUrl = process.env.GATEWAY_URL ?? "";
+  const hookToken = process.env.GATEWAY_HOOK_TOKEN ?? process.env.GATEWAY_TOKEN ?? "";
   const hooksBase = process.env.GATEWAY_HOOKS_URL ?? (gatewayUrl ? `${gatewayUrl}/hooks` : "");
 
   // Attempt 1: /hooks/agent — isolated agent turn, bypasses heartbeat model

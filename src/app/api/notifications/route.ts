@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "../tools/_utils";
 
 /**
  * GET /api/notifications — list notifications for the tenant
  * Query params: unread_only (bool), limit (int), offset (int)
  */
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
   const sp = req.nextUrl.searchParams;
   const unreadOnly = sp.get("unread_only") === "true";
   const limit = Math.min(parseInt(sp.get("limit") ?? "20", 10), 100);
   const offset = parseInt(sp.get("offset") ?? "0", 10);
-  const tenantId = req.nextUrl.searchParams.get("tenant_id") ?? "transformate";
+  const tenantId = "default";
 
   const where = unreadOnly ? "AND read = FALSE" : "";
   const result = await query(
@@ -40,9 +38,8 @@ export async function GET(req: NextRequest) {
  * Body: { ids: number[] } or { all: true }
  */
 export async function PATCH(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
   const body = (await req.json()) as { ids?: number[]; all?: boolean };
-  const tenantId = req.nextUrl.searchParams.get("tenant_id") ?? "transformate";
+  const tenantId = "default";
 
   if (body.all) {
     await query(

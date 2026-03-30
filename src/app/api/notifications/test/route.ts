@@ -1,34 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "../../tools/_utils";
-
-/**
- * Reject URLs targeting internal/private networks (SSRF prevention).
- */
-function isPrivateUrl(urlStr: string): boolean {
-  try {
-    const url = new URL(urlStr);
-    const host = url.hostname.toLowerCase();
-    // Block non-http(s) schemes
-    if (!["http:", "https:"].includes(url.protocol)) return true;
-    // Block localhost variants
-    if (host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "[::1]") return true;
-    // Block private IPv4 ranges
-    const parts = host.split(".").map(Number);
-    if (parts.length === 4 && parts.every((n) => !isNaN(n))) {
-      if (parts[0] === 10) return true;
-      if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
-      if (parts[0] === 192 && parts[1] === 168) return true;
-      if (parts[0] === 169 && parts[1] === 254) return true;
-      if (parts[0] === 0) return true;
-    }
-    // Block metadata endpoints
-    if (host === "metadata.google.internal" || host === "169.254.169.254") return true;
-    return false;
-  } catch {
-    return true; // Invalid URL = reject
-  }
-}
 
 /**
  * POST /api/notifications/test — send a test notification to a specific channel
@@ -36,9 +7,8 @@ function isPrivateUrl(urlStr: string): boolean {
  * Tests the channel configuration by sending a test message.
  */
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
   const body = (await req.json()) as { channel: string };
-  const tenantId = req.nextUrl.searchParams.get("tenant_id") ?? "transformate";
+  const tenantId = "default";
 
   if (!body.channel) {
     return NextResponse.json({ error: "channel is required" }, { status: 400 });
@@ -83,9 +53,6 @@ export async function POST(req: NextRequest) {
         if (!webhookUrl) {
           return NextResponse.json({ error: "Slack webhook URL is required" }, { status: 400 });
         }
-        if (isPrivateUrl(webhookUrl)) {
-          return NextResponse.json({ error: "Webhook URL targets a private/internal network" }, { status: 400 });
-        }
         const res = await fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -103,9 +70,6 @@ export async function POST(req: NextRequest) {
         if (!webhookUrl) {
           return NextResponse.json({ error: "Discord webhook URL is required" }, { status: 400 });
         }
-        if (isPrivateUrl(webhookUrl)) {
-          return NextResponse.json({ error: "Webhook URL targets a private/internal network" }, { status: 400 });
-        }
         const res = await fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -122,9 +86,6 @@ export async function POST(req: NextRequest) {
         const webhookUrl = config.url;
         if (!webhookUrl) {
           return NextResponse.json({ error: "Webhook URL is required" }, { status: 400 });
-        }
-        if (isPrivateUrl(webhookUrl)) {
-          return NextResponse.json({ error: "Webhook URL targets a private/internal network" }, { status: 400 });
         }
         const headers: Record<string, string> = { "Content-Type": "application/json" };
         if (config.secret_header && config.secret_value) {

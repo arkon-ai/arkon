@@ -22,12 +22,10 @@ import {
   getOverviewMetrics,
   timeAgo,
   useAgentDetailData,
-  useFilteredOverviewData,
   useOverviewData,
   usePollingFetch,
   useTrendData,
 } from "./api";
-import { useTenantFilter } from "./tenant-context";
 import { TrendCharts } from "./trend-charts";
 import { TenantCards } from "./tenant-cards";
 import { EmptyState, FirstRunBanner } from "./empty-states";
@@ -59,10 +57,10 @@ export function ShellHeader({
             {eyebrow}
           </p>
         ) : null}
-        <h1 className={`text-2xl font-bold tracking-tight ${gradient ? "gradient-text" : "text-text"}`}>
+        <h1 className={`text-2xl font-bold tracking-tight ${gradient ? "gradient-text" : "text-text"}`} style={{ fontFamily: "var(--font-display)" }}>
           {title}
         </h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-text-dim">{subtitle}</p>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-[#8888A0]">{subtitle}</p>
       </div>
       {action}
     </header>
@@ -159,7 +157,7 @@ export function StatCard({
             {label}
             {tooltip && <MetricTooltip text={tooltip} />}
           </div>
-          <div className={`${hero ? "mt-2 text-4xl font-extrabold tracking-[-0.04em]" : "mt-1 text-3xl font-bold"} ${accent}`}>
+          <div className={`${hero ? "mt-2 text-4xl font-extrabold tracking-[-0.04em]" : "mt-1 text-3xl font-bold"} ${accent}`} style={{ fontFamily: "var(--font-mono)" }}>
             {Number.isFinite(parseFloat(value)) && !/[a-zA-Z]/.test(value)
               ? <StatCountUp value={parseFloat(value)} />
               : value}
@@ -192,7 +190,7 @@ function PulseBar({ percentage }: { percentage: number }) {
   return (
     <div className="h-2 overflow-hidden rounded-full bg-border">
       <div
-        className="h-full rounded-full bg-[linear-gradient(90deg,#00D47E,#06B6D4)] transition-all duration-700"
+        className="h-full rounded-full bg-[linear-gradient(90deg,#00D47E,#00D47E)] transition-all duration-700"
         style={{ width: `${Math.max(6, Math.min(percentage, 100))}%` }}
       />
     </div>
@@ -274,11 +272,11 @@ const actionItems = [
 
 const visuals = [
   { slug: "briefing", label: "Morning Briefing", tone: "text-cyan", note: "Command center snapshot" },
-  { slug: "tokens", label: "Token Tracker", tone: "text-accent", note: "Usage and model mix" },
+  { slug: "tokens", label: "Token Tracker", tone: "text-purple", note: "Usage and model mix" },
   { slug: "cycling", label: "Cycling Progress", tone: "text-green", note: "Training route tracker" },
   { slug: "agents-net", label: "Agent Network", tone: "text-cyan", note: "Constellation view" },
   { slug: "architecture", label: "Architecture", tone: "text-amber", note: "Infrastructure diagram" },
-  { slug: "brainmap", label: "Brain Map", tone: "text-accent", note: "Project orbit map" },
+  { slug: "brainmap", label: "Brain Map", tone: "text-purple", note: "Project orbit map" },
   { slug: "domains", label: "Domains", tone: "text-cyan", note: "DNS and SSL health" },
   { slug: "heatmap", label: "Heatmap", tone: "text-green", note: "Activity intensity" },
 ];
@@ -325,7 +323,7 @@ function AlertsBanner() {
 
   if (anomalies.length === 0) {
     return (
-      <div className="flex items-center gap-3 rounded-[16px] border border-[#1a2a4a] bg-[#0d0d1a] px-4 py-3">
+      <div className="flex items-center gap-3 rounded-[16px] border border-[#2E2E3A] bg-[#1A1A22] px-4 py-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(0,212,126,0.08)]">
           <ShieldCheckIcon className="h-4 w-4 text-[#00D47E]" />
         </div>
@@ -335,7 +333,7 @@ function AlertsBanner() {
   }
 
   return (
-    <div className="rounded-[16px] border border-[#f59e0b]/20 bg-[#0d0d1a] overflow-hidden">
+    <div className="rounded-[16px] border border-[#f59e0b]/20 bg-[#1A1A22] overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
@@ -344,10 +342,10 @@ function AlertsBanner() {
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(245,158,11,0.08)]">
           <AlertTriangle className="h-4 w-4 text-[#f59e0b]" />
         </div>
-        <span className="flex-1 text-sm font-medium text-[#e2e8f0]">
+        <span className="flex-1 text-sm font-medium text-[#E4E4ED]">
           {anomalies.length} active alert{anomalies.length !== 1 ? "s" : ""}
         </span>
-        <ChevronDown className={`h-4 w-4 text-[#475569] transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`} />
+        <ChevronDown className={`h-4 w-4 text-[#555566] transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`} />
       </button>
       <div className={`overflow-hidden transition-all duration-200 ease-in-out ${expanded ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"}`}>
         <div className="space-y-2 px-4 pb-3">
@@ -355,26 +353,21 @@ function AlertsBanner() {
             <div key={a.id} className={`flex items-center justify-between rounded-xl border px-3 py-2.5 ${
               a.level === "high" ? "border-red-500/30 bg-[rgba(239,68,68,0.06)]" : "border-[#f59e0b]/20 bg-[rgba(245,158,11,0.06)]"
             }`}>
-              <Link href={`/agent/${a.agent_id}`} className="min-w-0 flex-1 hover:opacity-80 transition">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className={`text-[10px] font-bold ${a.level === "high" ? "text-red-400" : "text-[#f59e0b]"}`}>
                     {a.level.toUpperCase()}
                   </span>
-                  <span className="truncate text-sm text-[#e2e8f0]">{a.agent_name}</span>
-                  <span className="text-xs text-[#64748b]">{a.anomaly_type.replace("_", " ")}</span>
+                  <span className="truncate text-sm text-[#E4E4ED]">{a.agent_name}</span>
+                  <span className="text-xs text-[#8888A0]">{a.anomaly_type.replace("_", " ")}</span>
                 </div>
-              </Link>
-              <div className="ml-3 flex shrink-0 items-center gap-1.5">
-                <Link href="/analytics" className="rounded-lg border border-[#1a2a4a] px-2.5 py-1 text-xs text-[#64748b] hover:text-cyan transition">
-                  View
-                </Link>
-                <button
-                  onClick={() => ackAlert(a.id)}
-                  className="rounded-lg border border-[#1a2a4a] px-2.5 py-1 text-xs text-[#64748b] hover:text-[#00D47E] transition"
-                >
-                  Ack
-                </button>
               </div>
+              <button
+                onClick={() => ackAlert(a.id)}
+                className="ml-3 shrink-0 rounded-lg border border-[#2E2E3A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
+              >
+                Ack
+              </button>
             </div>
           ))}
         </div>
@@ -390,55 +383,6 @@ function ShieldCheckIcon({ className }: { className?: string }) {
       <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
       <path d="m9 12 2 2 4-4" />
     </svg>
-  );
-}
-
-/* ── Critical Threats Card ── */
-interface ThreatSummary {
-  severityBreakdown: Array<{ threat_level: string; count: number }>;
-  events: Array<{ id: string; agent_id: string; agent_name: string | null; threat_level: string; threat_classes: string | string[]; created_at: string }>;
-}
-
-function CriticalThreatsCard() {
-  const { data, loading } = usePollingFetch<ThreatSummary>(
-    "/api/security/overview?range=7d",
-    60000
-  );
-
-  const critical = data?.severityBreakdown?.find(s => s.threat_level === "critical")?.count ?? 0;
-  const high = data?.severityBreakdown?.find(s => s.threat_level === "high")?.count ?? 0;
-  const severeEvents = (data?.events ?? []).filter(e => e.threat_level === "critical" || e.threat_level === "high").slice(0, 3);
-
-  if (loading && !data) return null;
-  if (critical + high === 0) return null;
-
-  return (
-    <div className="rounded-[16px] border border-red-500/30 bg-[#0d0d1a] overflow-hidden">
-      <Link href="/security" className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.02]">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(239,68,68,0.08)]">
-          <Shield className="h-4 w-4 text-red-400" />
-        </div>
-        <span className="flex-1 text-sm font-medium text-[#e2e8f0]">
-          {critical + high} unresolved threat{critical + high !== 1 ? "s" : ""}
-          {critical > 0 && <span className="ml-2 text-[10px] font-bold text-red-400">{critical} CRITICAL</span>}
-          {high > 0 && <span className="ml-2 text-[10px] font-bold text-amber-400">{high} HIGH</span>}
-        </span>
-        <span className="text-xs text-cyan">View &rarr;</span>
-      </Link>
-      {severeEvents.length > 0 && (
-        <div className="space-y-1.5 border-t border-[#1a2a4a] px-4 py-2.5">
-          {severeEvents.map(e => (
-            <Link key={e.id} href={`/security?highlight=${e.id}`} className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-white/[0.03]">
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${e.threat_level === "critical" ? "bg-red-500/15 text-red-400" : "bg-amber-500/15 text-amber-400"}`}>
-                {e.threat_level}
-              </span>
-              <span className="truncate text-sm text-text-dim">{e.agent_name ?? e.agent_id}</span>
-              <span className="ml-auto text-[10px] text-text-muted">{timeAgo(e.created_at)}</span>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -504,11 +448,11 @@ function MobileDashboardView({
           accent="text-cyan"
         />
         <MobileStatTile
-          icon={<Radio className="h-4 w-4 text-accent" />}
+          icon={<Radio className="h-4 w-4 text-purple" />}
           label="Events 24h"
           value={formatCompact(metrics.events24h)}
           href="/activity"
-          accent="text-accent"
+          accent="text-purple"
         />
       </div>
 
@@ -530,7 +474,7 @@ function MobileDashboardView({
                 <div className="flex-shrink-0">
                   <span className={`inline-block h-2 w-2 rounded-full ${
                     evt.event_type === "error" ? "bg-red" :
-                    evt.event_type === "tool_call" ? "bg-accent" :
+                    evt.event_type === "tool_call" ? "bg-purple" :
                     evt.event_type === "sent" ? "bg-cyan" : "bg-text-dim"
                   }`} />
                 </div>
@@ -604,9 +548,8 @@ function MobileStatTile({
 }
 
 function OverviewContent() {
-  const { activeTenant } = useTenantFilter();
-  const { data, error, loading } = useFilteredOverviewData(activeTenant);
-  const { data: trendData } = useTrendData("7d", activeTenant ?? undefined);
+  const { data, error, loading } = useOverviewData();
+  const { data: trendData } = useTrendData("7d");
 
   if (loading && !data) return <LoadingState label="Loading overview" />;
   if (error && !data) return <ErrorState error={error} />;
@@ -670,7 +613,7 @@ function OverviewContent() {
       {/* Desktop dashboard — full layout */}
       <div className="hidden md:block space-y-5">
         <ShellHeader
-          title="Overview"
+          title="Dashboard"
           subtitle="Live agent activity, token flow, and system pulse at a glance."
           gradient
           action={
@@ -724,7 +667,7 @@ function OverviewContent() {
             accent="text-cyan"
             sublabel={`${metrics.activeAgents} live now`}
             sparkData={toolsSparkData}
-            sparkColor="#64748b"
+            sparkColor="#00D47E"
             delta={toolsDelta}
             tooltip="Registered agents across all tenants. 'Live' means active in the last hour."
           />
@@ -742,8 +685,7 @@ function OverviewContent() {
           </Card>
         </div>
 
-        {/* Row 2: Critical threats + Alerts */}
-        <CriticalThreatsCard />
+        {/* Row 2: Alerts banner (collapsible) */}
         <AlertsBanner />
 
         {/* Row 3: Trend Charts */}
@@ -825,7 +767,7 @@ function ActionsContent() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard label="Warm Agents" value={String(warmCount)} accent="text-amber" sublabel="Recently active, not hot" />
         <StatCard label="Offline Agents" value={String(offlineCount)} accent="text-red" sublabel="Need follow-up or expected idle state" />
-        <StatCard label="Token Leaders" value={String(tokenHeavy.length)} accent="text-accent" sublabel="High-consumption sessions today" />
+        <StatCard label="Token Leaders" value={String(tokenHeavy.length)} accent="text-purple" sublabel="High-consumption sessions today" />
       </div>
 
       <Card>
@@ -949,7 +891,7 @@ function HealthContent() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Est. KM" value={String(kmTotal)} accent="text-green" sublabel="Derived from recent system movement" />
-        <StatCard label="Target Days" value="4" accent="text-accent" sublabel="Training horizon" />
+        <StatCard label="Target Days" value="4" accent="text-purple" sublabel="Training horizon" />
         <StatCard label="Live Nodes" value={String(metrics.activeAgents)} accent="text-cyan" sublabel="Used as momentum proxy" />
         <StatCard label="Load" value={formatCompact(metrics.events24h)} accent="text-amber" sublabel="Telemetry volume today" />
       </div>
@@ -991,7 +933,7 @@ function ProgressRing({ progress }: { progress: number }) {
             <stop offset="100%" stopColor="#00D47E" />
           </linearGradient>
         </defs>
-        <circle cx="110" cy="110" r={radius} stroke="#1a2a4a" strokeWidth="14" fill="none" />
+        <circle cx="110" cy="110" r={radius} stroke="#2E2E3A" strokeWidth="14" fill="none" />
         <circle
           cx="110"
           cy="110"
@@ -1225,7 +1167,7 @@ function SystemsContent() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard label="24h Events" value={formatCompact(metrics.events24h)} accent="text-accent" sublabel="Infrastructure traffic proxy" />
+        <StatCard label="24h Events" value={formatCompact(metrics.events24h)} accent="text-purple" sublabel="Infrastructure traffic proxy" />
         <StatCard label="7d Events" value={formatCompact(metrics.events7d)} accent="text-cyan" sublabel="Weekly activity" />
         <StatCard label="Tokens 24H" value={formatCompact(metrics.tokens24h)} accent="text-amber" sublabel="AI compute usage" />
       </div>
@@ -1251,14 +1193,14 @@ function ConfessionsContent() {
         {confessions.map((item) => (
           <Card
             key={item.title}
-            className="bg-[linear-gradient(135deg,rgba(10,10,12,1),rgba(26,26,34,0.96))] border-accent/30"
+            className="bg-[linear-gradient(135deg,rgba(13,13,26,1),rgba(26,13,46,0.96))] border-purple/30"
           >
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-text-dim">
               {item.title}
             </p>
-            <p className="mt-4 text-base italic leading-7 text-accent">{item.verse}</p>
+            <p className="mt-4 text-base italic leading-7 text-purple">{item.verse}</p>
             <p className="mt-2 text-right text-xs text-text-dim">{item.reference}</p>
-            <p className="mt-4 border-t border-accent/20 pt-4 text-sm leading-7 text-text">
+            <p className="mt-4 border-t border-purple/20 pt-4 text-sm leading-7 text-text">
               {item.confession}
             </p>
           </Card>
@@ -1332,7 +1274,7 @@ function eventTone(type: string) {
     case "message_sent":
       return "border-cyan/30 bg-cyan/10 text-cyan";
     case "tool_call":
-      return "border-accent/30 bg-accent/10 text-accent";
+      return "border-purple/30 bg-purple/10 text-purple";
     case "error":
       return "border-red/30 bg-red/10 text-red";
     default:
@@ -1377,7 +1319,7 @@ function AgentDetailContent() {
         <StatCard
           label="Sessions"
           value={formatCompact(data.sessions.length)}
-          accent="text-accent"
+          accent="text-purple"
           sublabel="Recent active channels"
         />
         <StatCard
@@ -1516,10 +1458,10 @@ export function AnomalyWidget() {
                 <span className={`text-xs font-bold ${a.level === "high" ? "text-red-400" : "text-amber-400"}`}>
                   {a.level.toUpperCase()}
                 </span>
-                <span className="text-sm text-[#e2e8f0]">{a.agent_name}</span>
-                <span className="text-xs text-[#64748b]">{a.anomaly_type.replace("_", " ")}</span>
+                <span className="text-sm text-[#E4E4ED]">{a.agent_name}</span>
+                <span className="text-xs text-[#8888A0]">{a.anomaly_type.replace("_", " ")}</span>
               </div>
-              <div className="mt-0.5 text-xs text-[#64748b]">
+              <div className="mt-0.5 text-xs text-[#8888A0]">
                 {a.anomaly_type === "rate_spike"
                   ? `${parseFloat(String(a.multiplier ?? 0)).toFixed(1)}x baseline · ${Math.round(Number(a.current_rate))} vs ${Math.round(Number(a.baseline_rate))} events/hr`
                   : a.anomaly_type === "rate_silence" ? "Agent went silent (below 10% of baseline)" : a.anomaly_type}
@@ -1527,7 +1469,7 @@ export function AnomalyWidget() {
             </div>
             <button
               onClick={() => ackAlert(a.id)}
-              className="ml-3 shrink-0 rounded-lg border border-[#1a2a4a] px-2.5 py-1 text-xs text-[#64748b] hover:text-[#00D47E] transition btn-press"
+              className="ml-3 shrink-0 rounded-lg border border-[#2E2E3A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition btn-press"
             >
               Ack
             </button>

@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "../../tools/_utils";
 
 /**
  * GET /api/notifications/preferences — get all notification channel preferences
  */
-export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
-  const tenantId = req.nextUrl.searchParams.get("tenant_id") ?? "transformate";
+export async function GET() {
+  const tenantId = "default";
 
   const result = await query(
     `SELECT channel, enabled, config FROM notification_preferences WHERE tenant_id = $1 ORDER BY channel`,
@@ -28,13 +26,12 @@ export async function GET(req: NextRequest) {
  * Body: { channel: string, enabled: boolean, config: object }
  */
 export async function PUT(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
   const body = (await req.json()) as {
     channel: string;
     enabled: boolean;
     config: Record<string, unknown>;
   };
-  const tenantId = req.nextUrl.searchParams.get("tenant_id") ?? "transformate";
+  const tenantId = "default";
 
   if (!body.channel) {
     return NextResponse.json({ error: "channel is required" }, { status: 400 });

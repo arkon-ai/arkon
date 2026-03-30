@@ -17,6 +17,7 @@
     "@xyflow/react": "^12.10.1",
     "dompurify": "^3.3.2",
     "framer-motion": "^12.35.1",
+    "geist": "^1.7.0",
     "lucide-react": "^0.577.0",
     "marked": "^13.0.3",
     "next": "16.1.6",

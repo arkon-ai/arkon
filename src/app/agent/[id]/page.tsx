@@ -10,7 +10,6 @@ import {
 } from "recharts";
 import { ShellHeader, Card, SectionTitle } from "@/components/mission-control/dashboard";
 import { CardEntranceWrapper, SkeletonCard } from "@/components/mission-control/charts";
-import { activityStatus } from "@/components/mission-control/api";
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "@/components/mission-control/kill-confirm-modal";
 import { OctagonX, Pause, Play, Shield, DollarSign, Activity, Zap, AlertTriangle } from "lucide-react";
@@ -97,8 +96,8 @@ const EVENT_ICON: Record<string, string> = {
 };
 
 const EVENT_COLOUR: Record<string, string> = {
-  message_received: "border-[#00D47E]/30 bg-[rgba(0,212,126,0.04)]",
-  message_sent: "border-[#64748b]/30 bg-[rgba(136,136,160,0.04)]",
+  message_received: "border-[#00D47E]/30 bg-[rgba(6,214,160,0.04)]",
+  message_sent: "border-[#00D47E]/30 bg-[rgba(139,92,246,0.04)]",
   tool_call: "border-[#f59e0b]/30 bg-[rgba(245,158,11,0.04)]",
   error: "border-red-500/30 bg-[rgba(239,68,68,0.04)]",
   cron: "border-sky-500/30 bg-[rgba(14,165,233,0.04)]",
@@ -107,19 +106,19 @@ const EVENT_COLOUR: Record<string, string> = {
 const SEVERITY_COLORS: Record<string, string> = {
   critical: "#ef4444",
   high: "#f59e0b",
-  medium: "#06B6D4",
-  low: "#64748b",
+  medium: "#00D47E",
+  low: "#8888A0",
 };
 
 const ROLE_COLOURS: Record<string, string> = {
-  owner: "bg-[rgba(0,212,126,0.15)] text-[#00D47E]",
-  admin: "bg-[rgba(0,212,126,0.15)] text-cyan-400",
+  owner: "bg-[rgba(139,92,246,0.15)] text-purple-400",
+  admin: "bg-[rgba(6,214,160,0.15)] text-cyan-400",
   agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
   viewer: "bg-[rgba(100,116,139,0.15)] text-slate-400",
 };
 
 function eventColour(type: string) {
-  return EVENT_COLOUR[type] ?? "border-[#1a2a4a] bg-[#0d0d18]";
+  return EVENT_COLOUR[type] ?? "border-[#2E2E3A] bg-[#0d0d18]";
 }
 
 function fmtTime(iso: string) {
@@ -172,8 +171,8 @@ function parseJsonField<T>(value: string | T): T {
 function ChartTip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; fill?: string; stroke?: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#1a2a4a] bg-[#050510] px-3 py-2 text-xs">
-      <p className="mb-1 font-semibold text-[#94a3b8]">{label}</p>
+    <div className="rounded-xl border border-[#2E2E3A] bg-[#0a0a14] px-3 py-2 text-xs">
+      <p className="mb-1 font-semibold text-[#8888A0]">{label}</p>
       {payload.map((p) => (
         <p key={p.name} style={{ color: p.fill ?? p.stroke ?? "#00D47E" }}>{p.name}: {p.value}</p>
       ))}
@@ -196,10 +195,10 @@ const TABS: Array<{ key: ProfileTab; label: string; icon: React.ReactNode }> = [
 
 function StatPill({ label, value, colour = "text-[#00D47E]", subtext }: { label: string; value: string | number; colour?: string; subtext?: string }) {
   return (
-    <div className="rounded-2xl border border-[#1a2a4a] bg-[#050510]/70 px-4 py-3 text-center">
+    <div className="rounded-2xl border border-[#2E2E3A] bg-[#0A0A0C]/70 px-4 py-3 text-center">
       <div className={`text-xl font-bold ${colour}`}>{value}</div>
-      <div className="mt-0.5 text-xs text-[#64748b]">{label}</div>
-      {subtext && <div className="mt-0.5 text-[10px] text-[#475569]">{subtext}</div>}
+      <div className="mt-0.5 text-xs text-[#8888A0]">{label}</div>
+      {subtext && <div className="mt-0.5 text-[10px] text-[#555566]">{subtext}</div>}
     </div>
   );
 }
@@ -266,8 +265,9 @@ export default function AgentDetailPage() {
   const framework = data?.agent ? getFramework(data.agent.metadata) : "Unknown";
   const model = data?.agent ? getModel(data.agent.metadata) : "unknown";
 
-  const agentStatus = activityStatus(data?.lastActive ?? null);
-  const isOnline = agentStatus.label === "Live" || agentStatus.label === "Warm";
+  const isOnline = data?.lastActive
+    ? (Date.now() - new Date(data.lastActive).getTime()) < 300000
+    : false;
 
   /* ── Loading ── */
   if (loading) {
@@ -298,12 +298,10 @@ export default function AgentDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             {/* Status */}
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-              agentStatus.label === "Live" ? "bg-green/15 text-green"
-              : agentStatus.label === "Warm" ? "bg-amber/15 text-amber"
-              : "bg-white/5 text-text-dim"
+              isOnline ? "bg-green/15 text-green" : "bg-white/5 text-text-dim"
             }`}>
-              <span className={`h-2 w-2 rounded-full ${agentStatus.dot}`} />
-              {agentStatus.label}
+              <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-green animate-pulse" : "bg-[#555566]"}`} />
+              {isOnline ? "Active" : "Offline"}
             </span>
 
             {/* Framework */}
@@ -369,20 +367,20 @@ export default function AgentDetailPage() {
       <CardEntranceWrapper>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <StatPill label="Cost (30d)" value={formatCost(costThisMonth)} colour="text-[#00D47E]" />
-          <StatPill label="Messages (7d)" value={totalMessages} colour="text-[#64748b]" />
+          <StatPill label="Messages (7d)" value={totalMessages} colour="text-[#00D47E]" />
           <StatPill
             label="Threats (30d)"
             value={threatCount30d}
-            colour={severeCount30d > 0 ? "text-red-400" : threatCount30d > 0 ? "text-amber-400" : "text-[#64748b]"}
+            colour={severeCount30d > 0 ? "text-red-400" : threatCount30d > 0 ? "text-amber-400" : "text-[#8888A0]"}
             subtext={severeCount30d > 0 ? `${severeCount30d} severe` : undefined}
           />
-          <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[#64748b]"} />
+          <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[#8888A0]"} />
           <StatPill label="Last Active" value={timeAgo(data.lastActive)} colour="text-text-dim" />
         </div>
       </CardEntranceWrapper>
 
       {/* ── Tab Bar ── */}
-      <div className="flex gap-1 rounded-xl border border-[#1a2a4a] bg-[#050510]/70 p-1">
+      <div className="flex gap-1 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C]/70 p-1">
         {TABS.map((tab) => (
           <button
             key={tab.key}
@@ -464,16 +462,16 @@ function OverviewTab({ data, chartData, model, framework }: {
                   <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradSent" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#64748b" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#64748b" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#00D47E" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" />
-              <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+              <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
               <Area type="monotone" dataKey="received" name="Received" stroke="#00D47E" strokeWidth={2} fill="url(#gradRecv)" dot={false} />
-              <Area type="monotone" dataKey="sent" name="Sent" stroke="#64748b" strokeWidth={2} fill="url(#gradSent)" dot={false} />
+              <Area type="monotone" dataKey="sent" name="Sent" stroke="#00D47E" strokeWidth={2} fill="url(#gradSent)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </Card>
@@ -485,12 +483,12 @@ function OverviewTab({ data, chartData, model, framework }: {
           <SectionTitle title="Recent Sessions" note={`${data.sessions.length} sessions`} />
           <div className="space-y-2">
             {data.sessions.slice(0, 5).map((s) => (
-              <div key={s.session_key} className="flex items-center justify-between rounded-2xl border border-[#1a2a4a] bg-[#050510]/70 px-4 py-3">
+              <div key={s.session_key} className="flex items-center justify-between rounded-2xl border border-[#2E2E3A] bg-[#0A0A0C]/70 px-4 py-3">
                 <div>
                   <div className="font-mono text-xs text-[#00D47E] truncate max-w-[200px] sm:max-w-none">{s.session_key}</div>
-                  <div className="mt-0.5 text-xs text-[#64748b]">{s.channel_id || "unknown channel"}</div>
+                  <div className="mt-0.5 text-xs text-[#8888A0]">{s.channel_id || "unknown channel"}</div>
                 </div>
-                <div className="text-right text-xs text-[#64748b]">
+                <div className="text-right text-xs text-[#8888A0]">
                   <div>{s.message_count} msgs</div>
                   <div>{fmtTime(s.last_active)}</div>
                 </div>
@@ -517,17 +515,17 @@ function SecurityTab({ data }: { data: AgentData }) {
         <StatPill
           label="Threats (30d)"
           value={threats.threat_count_30d}
-          colour={threats.severe_count_30d > 0 ? "text-red-400" : threats.threat_count_30d > 0 ? "text-amber-400" : "text-[#64748b]"}
+          colour={threats.severe_count_30d > 0 ? "text-red-400" : threats.threat_count_30d > 0 ? "text-amber-400" : "text-[#8888A0]"}
         />
         <StatPill
           label="Severe (30d)"
           value={threats.severe_count_30d}
-          colour={threats.severe_count_30d > 0 ? "text-red-400" : "text-[#64748b]"}
+          colour={threats.severe_count_30d > 0 ? "text-red-400" : "text-[#8888A0]"}
         />
         <StatPill
           label="Error Rate (7d)"
           value={`${data.errorRate.total_events_7d ? Math.round((data.errorRate.errors_7d / data.errorRate.total_events_7d) * 100) : 0}%`}
-          colour={data.errorRate.errors_7d > 0 ? "text-amber-400" : "text-[#64748b]"}
+          colour={data.errorRate.errors_7d > 0 ? "text-amber-400" : "text-[#8888A0]"}
         />
       </div>
 
@@ -536,7 +534,7 @@ function SecurityTab({ data }: { data: AgentData }) {
         <SectionTitle title="Recent Threat Events" note={`${threats.recent.length} events`} />
         {threats.recent.length === 0 ? (
           <div className="py-8 text-center">
-            <Shield className="mx-auto h-8 w-8 text-[#1a2a4a]" />
+            <Shield className="mx-auto h-8 w-8 text-[#2E2E3A]" />
             <p className="mt-2 text-sm text-text-dim">No threats detected for this agent</p>
           </div>
         ) : (
@@ -546,17 +544,17 @@ function SecurityTab({ data }: { data: AgentData }) {
               return (
                 <Link
                   key={t.id}
-                  href={`/security?highlight=${t.id}`}
-                  className="flex items-center justify-between rounded-xl border border-[#1a2a4a] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
+                  href="/threatguard"
+                  className="flex items-center justify-between rounded-xl border border-[#2E2E3A] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
                 >
                   <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-4 w-4" style={{ color: SEVERITY_COLORS[t.threat_level] ?? "#64748b" }} />
+                    <AlertTriangle className="h-4 w-4" style={{ color: SEVERITY_COLORS[t.threat_level] ?? "#8888A0" }} />
                     <div>
                       <span
                         className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
                         style={{
                           background: `${SEVERITY_COLORS[t.threat_level]}15`,
-                          color: SEVERITY_COLORS[t.threat_level] ?? "#64748b",
+                          color: SEVERITY_COLORS[t.threat_level] ?? "#8888A0",
                         }}
                       >
                         {t.threat_level}
@@ -575,7 +573,7 @@ function SecurityTab({ data }: { data: AgentData }) {
           </div>
         )}
         {threats.threat_count_30d > threats.recent.length && (
-          <Link href="/security" className="mt-3 inline-flex text-sm font-semibold text-cyan">
+          <Link href="/threatguard" className="mt-3 inline-flex text-sm font-semibold text-cyan">
             View all in ThreatGuard &rarr;
           </Link>
         )}
@@ -604,7 +602,7 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
         <StatPill label="Cost (30d)" value={formatCost(data.cost.cost_30d)} colour="text-[#00D47E]" />
         <StatPill label="Tokens (30d)" value={formatCompact(Number(data.cost.tokens_30d))} colour="text-[#f59e0b]" />
         <StatPill label="Messages (7d)" value={totalMessages} />
-        <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[#64748b]"} />
+        <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[#8888A0]"} />
       </div>
 
       {/* Cost chart */}
@@ -613,9 +611,9 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
           <SectionTitle title="Daily Cost — 7 Days" />
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" />
-              <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+              <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
               <Tooltip content={<ChartTip />} />
               <Bar dataKey="cost" name="Cost ($)" fill="#00D47E" radius={[4, 4, 0, 0]} maxBarSize={28} />
             </BarChart>
@@ -635,9 +633,9 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
                   <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" />
-              <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+              <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
               <Area type="monotone" dataKey="tokens" name="Tokens (k)" stroke="#f59e0b" strokeWidth={2} fill="url(#gradTokens)" dot={false} />
             </AreaChart>
@@ -651,11 +649,11 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
           <SectionTitle title="Tool Calls — 7 Days" />
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1a2a4a" />
-              <XAxis dataKey="day" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2E2E3A" />
+              <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
-              <Bar dataKey="tools" name="Tool Calls" fill="#64748b" radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar dataKey="tools" name="Tool Calls" fill="#00D47E" radius={[4, 4, 0, 0]} maxBarSize={28} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -676,8 +674,8 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
                       <span className="truncate text-sm text-text">{t.tool_name || "(unnamed)"}</span>
                       <span className="ml-2 shrink-0 text-xs font-semibold text-text-dim">{t.call_count}</span>
                     </div>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#1a2a4a]">
-                      <div className="h-full rounded-full bg-[#64748b] transition-all" style={{ width: `${pct}%` }} />
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#2E2E3A]">
+                      <div className="h-full rounded-full bg-[#00D47E] transition-all" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 </div>
@@ -720,7 +718,7 @@ function ActivityTab({
             <button
               key={t}
               onClick={() => setFilter(t)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#00D47E] text-[#050510]" : "border border-[#1a2a4a] text-[#64748b] hover:text-[#e2e8f0]"}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#00D47E] text-[#0A0A0C]" : "border border-[#2E2E3A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
             >
               {t === "all" ? "All" : t.replace("_", " ")}
             </button>
@@ -730,7 +728,7 @@ function ActivityTab({
 
       <div className="space-y-2">
         {filteredEvents.length === 0 ? (
-          <div className="py-12 text-center text-sm text-[#64748b]">
+          <div className="py-12 text-center text-sm text-[#8888A0]">
             No events yet. Connect your agent to the Arkon ingest endpoint to start capturing data.
           </div>
         ) : (
@@ -744,7 +742,7 @@ function ActivityTab({
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="shrink-0">{EVENT_ICON[event.event_type] ?? "\u{1F4CC}"}</span>
-                  <span className="text-sm font-semibold text-[#e2e8f0] truncate">
+                  <span className="text-sm font-semibold text-[#E4E4ED] truncate">
                     {event.event_type.replace(/_/g, " ")}
                   </span>
                   {event.content_redacted && (
@@ -755,21 +753,21 @@ function ActivityTab({
                       className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
                       style={{
                         background: `${SEVERITY_COLORS[event.threat_level]}15`,
-                        color: SEVERITY_COLORS[event.threat_level] ?? "#64748b",
+                        color: SEVERITY_COLORS[event.threat_level] ?? "#8888A0",
                       }}
                     >
                       {event.threat_level}
                     </span>
                   )}
                 </div>
-                <div className="shrink-0 text-right text-xs text-[#64748b]">
+                <div className="shrink-0 text-right text-xs text-[#8888A0]">
                   <div>{fmtTime(event.created_at)}</div>
                   {event.token_estimate > 0 && <div>{event.token_estimate}t</div>}
                 </div>
               </div>
 
               {event.content && (
-                <p className="mt-1.5 text-sm text-[#94a3b8] line-clamp-2">
+                <p className="mt-1.5 text-sm text-[#8888A0] line-clamp-2">
                   {event.content.slice(0, 200)}{event.content.length > 200 ? "\u2026" : ""}
                 </p>
               )}
@@ -778,12 +776,12 @@ function ActivityTab({
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="mt-3 rounded-xl border border-[#1a2a4a] bg-[#050510] p-3"
+                  className="mt-3 rounded-xl border border-[#2E2E3A] bg-[#0A0A0C] p-3"
                 >
-                  <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[#94a3b8]">
+                  <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[#8888A0]">
                     {event.content}
                   </pre>
-                  <div className="mt-2 flex flex-wrap gap-3 text-xs text-[#64748b]">
+                  <div className="mt-2 flex flex-wrap gap-3 text-xs text-[#8888A0]">
                     {event.session_key && <span>Session: {event.session_key}</span>}
                     {event.sender && <span>From: {event.sender}</span>}
                     {event.channel_id && <span>Channel: {event.channel_id}</span>}

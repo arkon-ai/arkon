@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { PageTransitionWrapper } from "./charts";
 import {
   LayoutDashboard,
@@ -38,6 +38,8 @@ import {
   Search,
   Settings,
   MessageSquare,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
@@ -47,10 +49,7 @@ import { MobileKillBar } from "./mobile-kill-bar";
 import { QuickKillDialog } from "./quick-kill-dialog";
 import { GuidedTour } from "./guided-tour";
 import { HelpPanel } from "./help-panel";
-import { KillSwitchButton } from "./kill-switch-button";
-import { ErrorBoundary } from "./error-boundary";
-import { useTenantFilter } from "./tenant-context";
-import { useOverviewData, type Tenant } from "./api";
+import { Breadcrumbs } from "../ui/breadcrumbs";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -114,56 +113,50 @@ const moreSheetItems: NavItem[] = [
 
 const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
   {
-    label: "Monitor",
-    key: "monitor",
+    label: "Observe",
+    key: "observe",
     items: [
-      { href: "/", label: "Dashboard", subtitle: "Overview & health score", icon: LayoutDashboard },
+      { href: "/", label: "Dashboard", subtitle: "System health & key metrics", icon: LayoutDashboard },
+      { href: "/infrastructure", label: "Infrastructure", subtitle: "Server topology & resources", icon: Network },
+      { href: "/agents", label: "Agents", subtitle: "Monitor your AI agents", icon: Bot },
       { href: "/activity", label: "Activity", subtitle: "Real-time event stream", icon: Radio },
-      { href: "/victoryos", label: "VictoryOS", subtitle: "Chat engine metrics & tokens", icon: MessageSquare },
-      { href: "/agents", label: "Agents", subtitle: "Manage your AI agents", icon: Bot },
-      { href: "/infrastructure", label: "Infrastructure", subtitle: "Monitor your servers", icon: Network },
-      { href: "/security", label: "ThreatGuard", subtitle: "Detect threats in agent activity", icon: ShieldCheck },
-      { href: "/analytics", label: "Anomaly Detection", subtitle: "Rate spike & silence alerts", icon: BarChart3 },
-      { href: "/costs", label: "Costs", subtitle: "Track spending by agent & model", icon: Wallet },
+      { href: "/analytics", label: "Anomaly Detection", subtitle: "Rate spikes & silence alerts", icon: BarChart3 },
+      { href: "/victoryos", label: "VictoryOS", subtitle: "Chat engine metrics", icon: MessageSquare },
     ],
   },
   {
-    label: "Operate",
-    key: "operate",
+    label: "Respond",
+    key: "respond",
     items: [
+      { href: "/security", label: "ThreatGuard", subtitle: "Detect & respond to threats", icon: ShieldCheck },
       { href: "/tools/command", label: "Command", subtitle: "Run agent commands", icon: Terminal },
-      { href: "/tools/approvals", label: "Approvals", subtitle: "Review pending agent requests", icon: CheckCircle },
-      { href: "/tools/tasks", label: "Tasks", subtitle: "Track action items", icon: ListTodo },
-      { href: "/tools/crons", label: "Cron Jobs", subtitle: "Scheduled automations", icon: Clock },
+      { href: "/tools/approvals", label: "Approvals", subtitle: "Review pending requests", icon: CheckCircle },
       { href: "/tools/agents-live", label: "Live Agents", subtitle: "Active agent sessions", icon: Activity },
       { href: "/workflows", label: "Workflows", subtitle: "Automate operations", icon: Workflow },
+      { href: "/tools/crons", label: "Cron Jobs", subtitle: "Scheduled automations", icon: Clock },
+      { href: "/tools/tasks", label: "Tasks", subtitle: "Track action items", icon: ListTodo },
+    ],
+  },
+  {
+    label: "Manage",
+    key: "manage",
+    items: [
+      { href: "/costs", label: "Costs", subtitle: "Spending by agent & model", icon: Wallet },
+      { href: "/compliance", label: "Compliance", subtitle: "Audit logs & data export", icon: Shield },
+      { href: "/benchmarks", label: "Benchmarks", subtitle: "Compare agent performance", icon: Gauge },
+      { href: "/admin", label: "Admin Panel", subtitle: "System configuration", icon: Lock },
     ],
   },
   {
     label: "Configure",
     key: "configure",
     items: [
+      { href: "/settings", label: "Settings", subtitle: "Notifications & preferences", icon: Settings },
       { href: "/tools/docs", label: "Docs", subtitle: "Agent documentation", icon: FileText },
       { href: "/tools/mcp", label: "MCP Servers", subtitle: "Manage tool providers", icon: Plug },
       { href: "/tools/mcp-gateway", label: "MCP Gateway", subtitle: "Secure external tools", icon: Globe },
       { href: "/tools/intake", label: "Client Intake", subtitle: "Client onboarding forms", icon: Inbox },
       { href: "/tools/calendar", label: "Calendar", subtitle: "Schedule & events", icon: Calendar },
-      { href: "/settings", label: "Settings", subtitle: "Notifications & preferences", icon: Settings },
-    ],
-  },
-  {
-    label: "Analyze",
-    key: "analyze",
-    items: [
-      { href: "/benchmarks", label: "Benchmarks", subtitle: "Compare agent performance", icon: Gauge },
-      { href: "/compliance", label: "Compliance", subtitle: "Audit logs & data export", icon: Shield },
-    ],
-  },
-  {
-    label: "Admin",
-    key: "admin",
-    items: [
-      { href: "/admin", label: "Admin Panel", subtitle: "System configuration", icon: Lock },
     ],
   },
 ];
@@ -171,7 +164,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
 /* ── localStorage-persisted collapsed state ── */
 
 const NAV_COLLAPSED_KEY = "mc-nav-collapsed";
-const DEFAULT_EXPANDED = new Set(["monitor", "operate"]);
+const DEFAULT_EXPANDED = new Set(["observe", "respond"]);
 
 function loadCollapsedGroups(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -232,76 +225,6 @@ function isRouteActive(pathname: string | null, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/* ── Tenant Switcher (owner-only) ── */
-
-function TenantSwitcher({ tenants }: { tenants: Tenant[] }) {
-  const { activeTenant, setActiveTenant } = useTenantFilter();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    if (open) document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  // Validate activeTenant still exists
-  const validTenant = tenants.find((t) => t.id === activeTenant);
-  const label = validTenant ? validTenant.name : "All Tenants";
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-1.5 text-left text-[12px] transition hover:border-[#2a3a5a]"
-      >
-        <span className={`h-2 w-2 shrink-0 rounded-full ${validTenant ? "bg-cyan" : "bg-accent"}`} />
-        <span className="flex-1 truncate text-[#e2e8f0]">{label}</span>
-        <ChevronDown className={`h-3 w-3 text-[#475569] transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] py-1 shadow-lg">
-          <button
-            type="button"
-            onClick={() => { setActiveTenant(null); setOpen(false); }}
-            className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px] transition hover:bg-white/5 ${!activeTenant ? "text-accent font-semibold" : "text-[#94a3b8]"}`}
-          >
-            <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />
-            All Tenants
-          </button>
-          {tenants.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => { setActiveTenant(t.id); setOpen(false); }}
-              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px] transition hover:bg-white/5 ${activeTenant === t.id ? "text-cyan font-semibold" : "text-[#94a3b8]"}`}
-            >
-              <span className="h-2 w-2 shrink-0 rounded-full bg-cyan" />
-              <span className="flex-1 truncate">{t.name}</span>
-              <span className="text-[10px] text-[#475569]">{t.plan}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function TenantBadge({ tenants }: { tenants: Tenant[] }) {
-  const { activeTenant } = useTenantFilter();
-  if (!activeTenant) return null;
-  const tenant = tenants.find((t) => t.id === activeTenant);
-  if (!tenant) return null;
-  return (
-    <span className="rounded-full bg-cyan/10 px-2 py-0.5 text-[10px] font-semibold text-cyan">
-      {tenant.name}
-    </span>
-  );
-}
-
 export function NotionShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -311,24 +234,18 @@ export function NotionShell({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => loadCollapsedGroups());
   const [pinnedDocs, setPinnedDocs] = useState<PinnedDoc[]>([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try { return localStorage.getItem("arkon-sidebar-collapsed") === "true"; } catch { return false; }
+  });
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [quickKillOpen, setQuickKillOpen] = useState(false);
 
-  // Tenant data for switcher (owner only)
-  const overviewResult = useOverviewData();
-  const tenants = overviewResult.data?.tenants ?? [];
-  const isOwner = useMemo(() => {
-    if (typeof document === "undefined") return false;
-    return document.cookie.includes("mc_role=owner");
-  }, []);
-
-  // Skip shell chrome for login and setup pages
-  if (pathname === "/login" || pathname?.startsWith("/setup")) {
-    return <>{children}</>;
-  }
+  const isPublicPage = pathname === "/login" || pathname?.startsWith("/setup");
 
   // First-run detection: redirect to setup wizard if not completed
   useEffect(() => {
+    if (isPublicPage) return;
     let mounted = true;
     fetch("/api/setup/status")
       .then((r) => r.json())
@@ -339,7 +256,15 @@ export function NotionShell({ children }: { children: ReactNode }) {
       })
       .catch(() => {});
     return () => { mounted = false; };
-  }, [router]);
+  }, [router, isPublicPage]);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try { localStorage.setItem("arkon-sidebar-collapsed", String(next)); } catch {}
+      return next;
+    });
+  }, []);
 
   const toggleGroup = useCallback((key: string) => {
     setCollapsedGroups((prev) => {
@@ -372,6 +297,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
 
   // Fetch pending approvals
   useEffect(() => {
+    if (isPublicPage) return;
     let mounted = true;
     const run = async () => {
       try {
@@ -391,12 +317,13 @@ export function NotionShell({ children }: { children: ReactNode }) {
     run();
     const timer = window.setInterval(run, 15000);
     return () => { mounted = false; window.clearInterval(timer); };
-  }, []);
+  }, [isPublicPage]);
 
   // Alert count polling removed — NotificationDropdown self-manages via /api/notifications
 
   // Fetch pinned docs (max 3 for Quick Access)
   useEffect(() => {
+    if (isPublicPage) return;
     let mounted = true;
     fetch("/api/tools/docs?pinned=true&limit=3", { headers: getAuthHeaders() })
       .then((r) => r.json())
@@ -405,7 +332,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
       })
       .catch(() => {});
     return () => { mounted = false; };
-  }, []);
+  }, [isPublicPage]);
 
   // Cmd+K listener (command palette) + Ctrl+Shift+K (quick kill)
   useEffect(() => {
@@ -431,6 +358,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
     setIsOpen(false);
   };
 
+  // Skip shell chrome for login and setup pages (after all hooks to satisfy Rules of Hooks)
+  if (isPublicPage) {
+    return <>{children}</>;
+  }
+
   const handleLogout = () => {
     document.cookie = "mc_auth=; path=/; max-age=0";
     document.cookie = "mc_csrf=; path=/; max-age=0";
@@ -439,37 +371,42 @@ export function NotionShell({ children }: { children: ReactNode }) {
   };
 
   const sidebar = (
-    <div className="flex h-full flex-col bg-[#080810] text-[#94a3b8]">
-      <div className="flex h-14 items-center border-b border-[#1a2a4a]/50 px-4">
-        <div className="flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#475569]">
-            Arkon
-          </p>
-          <p className="mt-0.5 text-sm font-semibold text-[#e2e8f0]">Workspace</p>
+    <div className="flex h-full flex-col bg-[#080810] text-[#8888A0]">
+      <div className="flex h-14 items-center border-b border-[#2E2E3A]/50 px-4">
+        <div className="flex-1 min-w-0">
+          {!sidebarCollapsed && (
+            <>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#555566]">
+                Arkon
+              </p>
+              <p className="mt-0.5 text-sm font-semibold text-[#E4E4ED]">Workspace</p>
+            </>
+          )}
         </div>
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-[#555566] transition hover:bg-white/[0.03] hover:text-[#8888A0]"
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {sidebarCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </button>
       </div>
 
-      {/* Tenant switcher (owner only, 2+ tenants) */}
-      {isOwner && tenants.length > 1 && (
-        <div className="px-2 pt-3 pb-0">
-          <TenantSwitcher tenants={tenants} />
-        </div>
-      )}
-
       {/* Search trigger */}
-      <div className="px-2 pt-3 pb-1">
+      {!sidebarCollapsed && <div className="px-2 pt-3 pb-1">
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
-          className="flex min-h-9 w-full items-center gap-2.5 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 py-1.5 text-[12px] text-[#475569] transition hover:border-[#2a3a5a] hover:text-[#64748b]"
+          className="flex min-h-9 w-full items-center gap-2.5 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 py-1.5 text-[12px] text-[#555566] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
         >
           <Search className="h-3.5 w-3.5" />
           <span className="flex-1 text-left">Search</span>
-          <kbd className="rounded border border-[#1a2a4a] bg-[#050510] px-1.5 py-0.5 text-[10px] font-medium text-[#475569]">
+          <kbd className="rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
             {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
           </kbd>
         </button>
-      </div>
+      </div>}
 
       <div className="flex-1 overflow-y-auto px-2 py-2">
         {navGroups.map((group) => {
@@ -481,14 +418,14 @@ export function NotionShell({ children }: { children: ReactNode }) {
                 onClick={() => toggleGroup(group.key)}
                 className="flex min-h-8 w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-left transition hover:bg-white/[0.02]"
               >
-                <ChevronDown
-                  className={`h-3 w-3 text-[#475569] transition-transform duration-200 ${
+                {!sidebarCollapsed && <ChevronDown
+                  className={`h-3 w-3 text-[#555566] transition-transform duration-200 ${
                     isCollapsed ? "-rotate-90" : ""
                   }`}
-                />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#475569]">
+                />}
+                {!sidebarCollapsed && <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
                   {group.label}
-                </span>
+                </span>}
               </button>
               <div
                 className={`overflow-hidden transition-all duration-200 ease-in-out ${
@@ -508,18 +445,18 @@ export function NotionShell({ children }: { children: ReactNode }) {
                         className={`flex min-h-9 items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium transition ${
                           active
                             ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
-                            : "text-[#94a3b8] hover:bg-white/[0.03] hover:text-[#e2e8f0]"
+                            : "text-[#8888A0] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
                         }`}
                       >
-                        <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#64748b]"}`} />
-                        <div className="min-w-0 flex-1">
+                        <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
+                        {!sidebarCollapsed && <div className="min-w-0 flex-1">
                           <span>{item.label}</span>
                           {item.subtitle && (
-                            <span className="block truncate text-[10px] font-normal text-[#475569]">{item.subtitle}</span>
+                            <span className="block truncate text-[10px] font-normal text-[#555566]">{item.subtitle}</span>
                           )}
-                        </div>
+                        </div>}
                         {item.href === "/tools/approvals" && pendingCount && pendingCount > 0 ? (
-                          <span className="rounded-full bg-[#f59e0b] px-1.5 py-0.5 text-[9px] font-bold text-[#050510]">
+                          <span className="rounded-full bg-[#f59e0b] px-1.5 py-0.5 text-[9px] font-bold text-[#0A0A0C]">
                             {pendingCount > 9 ? "9+" : pendingCount}
                           </span>
                         ) : null}
@@ -533,11 +470,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
         })}
 
         {/* Quick Access — pinned docs (max 3) */}
-        {pinnedDocs.length > 0 ? (
+        {pinnedDocs.length > 0 && !sidebarCollapsed ? (
           <>
-            <div className="my-2 border-t border-[#1a2a4a]/50" />
+            <div className="my-2 border-t border-[#2E2E3A]/50" />
             <section>
-              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#475569]">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
                 Quick Access
               </p>
               <div className="space-y-0.5">
@@ -546,7 +483,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     key={`pinned-${doc.id}`}
                     href={`/tools/docs?id=${doc.id}`}
                     onClick={handleNavSelect}
-                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-3 py-1.5 text-left text-[13px] text-[#94a3b8] transition hover:bg-white/[0.03] hover:text-[#e2e8f0]"
+                    className="flex min-h-9 w-full items-center gap-2 rounded-xl px-3 py-1.5 text-left text-[13px] text-[#8888A0] transition hover:bg-white/[0.03] hover:text-[#E4E4ED]"
                   >
                     <Star className="h-3.5 w-3.5 shrink-0 text-[#f59e0b]" />
                     <span className="min-w-0 flex-1 truncate">{doc.title}</span>
@@ -557,14 +494,14 @@ export function NotionShell({ children }: { children: ReactNode }) {
           </>
         ) : null}
 
-        <div className="mt-2 border-t border-[#1a2a4a]/50 pt-2">
+        <div className="mt-2 border-t border-[#2E2E3A]/50 pt-2">
           <button
             type="button"
             onClick={handleLogout}
-            className="flex min-h-9 w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium text-[#64748b] transition hover:bg-red-500/[0.06] hover:text-red-400"
+            className="flex min-h-9 w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium text-[#8888A0] transition hover:bg-red-500/[0.06] hover:text-red-400"
           >
             <LogOut className="h-4 w-4 shrink-0" />
-            <span>Sign Out</span>
+            {!sidebarCollapsed && <span>Sign Out</span>}
           </button>
         </div>
       </div>
@@ -572,42 +509,42 @@ export function NotionShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#050510] text-[#e2e8f0]">
+    <div className="min-h-screen bg-[#0A0A0C] text-[#E4E4ED]">
       <div className="flex min-h-screen">
-        <aside className="hidden w-60 shrink-0 border-r border-[#1a2a4a]/50 md:block">
+        <aside className={`hidden shrink-0 border-r border-[#2E2E3A]/50 md:block transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-60"}`}>
           <div className="sticky top-0 h-screen">{sidebar}</div>
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 border-b border-[#1a2a4a]/50 bg-[#050510]/95 backdrop-blur">
+          <header className="sticky top-0 z-40 border-b border-[#2E2E3A]/50 bg-[#0A0A0C]/95 backdrop-blur">
             <div className="flex h-14 items-center justify-between px-4 sm:px-6">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsOpen(true)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] text-[#e2e8f0] md:hidden active:scale-95 transition-transform touch-manipulation"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#2E2E3A] bg-[#1A1A22] text-[#E4E4ED] md:hidden active:scale-95 transition-transform touch-manipulation"
                   aria-label="Open sidebar"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-[#e2e8f0]">{pageLabels[pathname ?? ""] ?? "Arkon"}</p>
-                  <TenantBadge tenants={tenants} />
+                <div>
+                  <Breadcrumbs />
+                  <p className="text-sm font-semibold text-[#E4E4ED]">{pageLabels[pathname ?? ""] ?? "Arkon"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setPaletteOpen(true)}
-                  className="hidden md:flex h-10 items-center gap-2 rounded-xl border border-[#1a2a4a] bg-[#0d0d1a] px-3 text-[12px] text-[#475569] transition hover:border-[#2a3a5a] hover:text-[#64748b]"
+                  className="hidden md:flex h-10 items-center gap-2 rounded-xl border border-[#2E2E3A] bg-[#1A1A22] px-3 text-[12px] text-[#555566] transition hover:border-[#3E3E4A] hover:text-[#8888A0]"
                 >
                   <Search className="h-3.5 w-3.5" />
                   <span>Search</span>
-                  <kbd className="ml-2 rounded border border-[#1a2a4a] bg-[#050510] px-1.5 py-0.5 text-[10px] font-medium">
+                  <kbd className="ml-2 rounded border border-[#2E2E3A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium">
                     {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
                   </kbd>
                 </button>
-                <KillSwitchButton />
+                
                 <HelpPanel />
                 <NotificationDropdown />
               </div>
@@ -618,11 +555,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
 
           <main className="min-w-0 flex-1 px-4 pb-[calc(84px+env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:pt-6 md:pb-6">
             <div className="mx-auto w-full max-w-6xl">
-              <ErrorBoundary>
+              
                 <PageTransitionWrapper pathname={pathname ?? "/"}>
                   {children}
                 </PageTransitionWrapper>
-              </ErrorBoundary>
+              
             </div>
           </main>
         </div>
@@ -639,7 +576,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
           />
-          <div className="relative h-full w-[272px] max-w-[85vw] border-r border-[#1a2a4a]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative h-full w-[272px] max-w-[85vw] border-r border-[#2E2E3A]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]" onClick={(e) => e.stopPropagation()}>
             {sidebar}
           </div>
         </div>
@@ -656,8 +593,8 @@ export function NotionShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}
           />
-          <div className="absolute inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] mx-3 rounded-2xl border border-[#1a2a4a] bg-[#0d0d1a] p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-            <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#475569]">
+          <div className="absolute inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] mx-3 rounded-2xl border border-[#2E2E3A] bg-[#1A1A22] p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+            <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#555566]">
               More
             </div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -672,10 +609,10 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${
                       active
                         ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
-                        : "text-[#94a3b8] hover:bg-white/[0.03] hover:text-[#e2e8f0]"
+                        : "text-[#8888A0] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
                     }`}
                   >
-                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#64748b]"}`} />
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -689,7 +626,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
       <MobileKillBar />
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1a2a4a]/50 bg-[#080810]/95 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#2E2E3A]/50 bg-[#080810]/95 backdrop-blur md:hidden">
         <div className="mx-auto grid h-[56px] max-w-3xl grid-cols-5 px-2 pb-[max(env(safe-area-inset-bottom),4px)] pt-1">
           {mobileTabs.map((tab) => {
             if (tab.href === "##more##") {
@@ -700,7 +637,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                   type="button"
                   onClick={() => setMoreOpen(!moreOpen)}
                   className={`flex min-h-10 flex-col items-center justify-center rounded-xl text-[10px] font-semibold transition ${
-                    moreOpen ? "text-[#00D47E]" : "text-[#64748b] hover:text-[#94a3b8]"
+                    moreOpen ? "text-[#00D47E]" : "text-[#8888A0] hover:text-[#8888A0]"
                   }`}
                 >
                   <Icon className="mb-0.5 h-5 w-5" />
@@ -718,13 +655,13 @@ export function NotionShell({ children }: { children: ReactNode }) {
                 className={`flex min-h-10 flex-col items-center justify-center rounded-xl text-[10px] font-semibold transition ${
                   active
                     ? "text-[#00D47E]"
-                    : "text-[#64748b] hover:text-[#94a3b8]"
+                    : "text-[#8888A0] hover:text-[#8888A0]"
                 }`}
               >
                 <span className="relative mb-0.5">
                   <Icon className="h-5 w-5" />
                   {tab.href === "/tools" && pendingCount && pendingCount > 0 ? (
-                    <span className="absolute -right-2.5 -top-1.5 inline-flex min-h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#f59e0b] px-0.5 text-[8px] font-bold text-[#050510]">
+                    <span className="absolute -right-2.5 -top-1.5 inline-flex min-h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#f59e0b] px-0.5 text-[8px] font-bold text-[#0A0A0C]">
                       {pendingCount > 9 ? "9+" : pendingCount}
                     </span>
                   ) : null}
