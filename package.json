@@ -15,6 +15,7 @@
     "@types/dompurify": "^3.0.5",
     "@types/pg": "^8.18.0",
     "@xyflow/react": "^12.10.1",
+    "bcryptjs": "^3.0.3",
     "cmdk": "^1.1.1",
     "dompurify": "^3.3.2",
     "framer-motion": "^12.35.1",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

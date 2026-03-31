@@ -1,7 +1,8 @@
 import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { forbidden, unauthorized, validateRole } from "@/app/api/tools/_utils";
+import { forbidden, unauthorized, validateRole, resolveUser } from "@/app/api/tools/_utils";
+import { logAudit, getClientIp } from "@/lib/audit";
 
 // GET /api/admin/agents — list all agents with role and tenant info
 export async function GET(req: NextRequest) {
@@ -58,6 +59,19 @@ export async function POST(req: NextRequest) {
         "INSERT INTO agents (id, name, token_hash, role, tenant_id, metadata) VALUES ($1, $2, $3, $4, $5, $6)",
         [id.toLowerCase().trim(), name.trim(), tokenHash, "agent", tenant_id.toLowerCase().trim(), {}]
       );
+
+      logAudit({
+        actorType: "system",
+        actorId: "provisioning",
+        action: "agent.provisioned",
+        targetType: "agent",
+        targetId: id,
+        description: `Provisioned agent "${name}" for tenant ${tenant_id}`,
+        newValue: { id, name, tenant_id, role: "agent" },
+        ipAddress: getClientIp(req.headers),
+        tenantId: tenant_id,
+      });
+
       return NextResponse.json({ ok: true, agentId: id, token, tenant_id, role: "agent" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
@@ -89,6 +103,20 @@ export async function POST(req: NextRequest) {
       "INSERT INTO agents (id, name, token_hash, role, tenant_id, metadata) VALUES ($1, $2, $3, $4, $5, $6)",
       [id.toLowerCase().trim(), name.trim(), tokenHash, agentRole, tenant_id, {}]
     );
+
+    const user = await resolveUser(req);
+    logAudit({
+      actorType: user ? "user" : "system",
+      actorId: user?.email ?? "owner",
+      action: "agent.created",
+      targetType: "agent",
+      targetId: id,
+      description: `Created agent "${name}" with role ${agentRole}`,
+      newValue: { id, name, role: agentRole, tenant_id },
+      ipAddress: getClientIp(req.headers),
+      tenantId: tenant_id,
+    });
+
     return NextResponse.json({ ok: true, agentId: id, token, role: agentRole, tenant_id });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
@@ -117,10 +145,24 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "id and action required" }, { status: 400 });
   }
 
+  const user = await resolveUser(req);
+  const actorId = user?.email ?? "owner";
+
   if (action === "rotate_token") {
     const token = randomBytes(32).toString("hex");
     const tokenHash = createHash("sha256").update(token).digest("hex");
     await query("UPDATE agents SET token_hash = $1, updated_at = NOW() WHERE id = $2", [tokenHash, id]);
+
+    logAudit({
+      actorType: user ? "user" : "system",
+      actorId,
+      action: "agent.token_rotated",
+      targetType: "agent",
+      targetId: id,
+      description: `Rotated token for agent ${id}`,
+      ipAddress: getClientIp(req.headers),
+    });
+
     return NextResponse.json({ ok: true, token });
   }
 
@@ -128,7 +170,25 @@ export async function PATCH(req: NextRequest) {
     if (!newRole || !["owner", "admin", "agent", "viewer"].includes(newRole)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
+
+    // Get old role for audit diff
+    const oldResult = await query("SELECT role FROM agents WHERE id = $1", [id]);
+    const oldRole = oldResult.rows[0] ? (oldResult.rows[0] as { role: string }).role : undefined;
+
     await query("UPDATE agents SET role = $1, updated_at = NOW() WHERE id = $2", [newRole, id]);
+
+    logAudit({
+      actorType: user ? "user" : "system",
+      actorId,
+      action: "agent.role_changed",
+      targetType: "agent",
+      targetId: id,
+      description: `Changed agent ${id} role from ${oldRole} to ${newRole}`,
+      oldValue: { role: oldRole },
+      newValue: { role: newRole },
+      ipAddress: getClientIp(req.headers),
+    });
+
     return NextResponse.json({ ok: true, role: newRole });
   }
 
@@ -136,7 +196,24 @@ export async function PATCH(req: NextRequest) {
     if (!tenant_id) {
       return NextResponse.json({ error: "tenant_id required" }, { status: 400 });
     }
+
+    const oldResult = await query("SELECT tenant_id FROM agents WHERE id = $1", [id]);
+    const oldTenant = oldResult.rows[0] ? (oldResult.rows[0] as { tenant_id: string }).tenant_id : undefined;
+
     await query("UPDATE agents SET tenant_id = $1, updated_at = NOW() WHERE id = $2", [tenant_id, id]);
+
+    logAudit({
+      actorType: user ? "user" : "system",
+      actorId,
+      action: "agent.tenant_changed",
+      targetType: "agent",
+      targetId: id,
+      description: `Moved agent ${id} from tenant ${oldTenant} to ${tenant_id}`,
+      oldValue: { tenant_id: oldTenant },
+      newValue: { tenant_id },
+      ipAddress: getClientIp(req.headers),
+    });
+
     return NextResponse.json({ ok: true, tenant_id });
   }
 

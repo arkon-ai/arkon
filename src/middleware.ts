@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 // Routes that are server-to-server only (exempt from CSRF and auth redirect)
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
-const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/health", "/api/intake", "/api/setup", "/docs/"];
+const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/health", "/api/intake", "/api/setup", "/docs/"];
 
 function isDashboardApiRoute(pathname: string): boolean {
   return pathname.startsWith("/api/");
@@ -73,8 +73,8 @@ export function middleware(request: NextRequest) {
 
   // ── CSRF check for browser mutations ───────────────────────────────────
   if (CSRF_PROTECTED_METHODS.includes(request.method)) {
-    // Auth init endpoint is exempt (bootstraps the cookie)
-    if (pathname === "/api/auth/init") return response;
+    // Auth endpoints that bootstrap cookies are exempt from CSRF
+    if (pathname === "/api/auth/init" || pathname === "/api/auth/login") return response;
 
     const csrfHeader = request.headers.get("x-csrf-token");
     const csrfCookie = request.cookies.get("mc_csrf")?.value;

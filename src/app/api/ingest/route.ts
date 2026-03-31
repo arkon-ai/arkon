@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Rate limit
-    const rateCheck = checkRateLimit(agentId);
+    const rateCheck = await checkRateLimit(agentId);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Rate limit exceeded", retryAfterSeconds: 60 },

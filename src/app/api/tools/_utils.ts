@@ -1,18 +1,20 @@
-import { timingSafeEqual } from "crypto";
+import { timingSafeEqual, createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import type { UserRole } from "@/lib/rbac";
 
-// Role hierarchy: owner > admin > agent > viewer
-export type Role = "owner" | "admin" | "agent" | "viewer";
+// Role hierarchy: owner > admin > operator > agent > viewer
+export type Role = "owner" | "admin" | "operator" | "agent" | "viewer";
 
-const ROLE_RANK: Record<Role, number> = {
-  owner: 4,
-  admin: 3,
+const ROLE_RANK: Record<string, number> = {
+  owner: 5,
+  admin: 4,
+  operator: 3,
   agent: 2,
   viewer: 1,
 };
 
-export function roleAtLeast(actual: Role, required: Role): boolean {
+export function roleAtLeast(actual: string, required: string): boolean {
   return (ROLE_RANK[actual] ?? 0) >= (ROLE_RANK[required] ?? 99);
 }
 
@@ -28,7 +30,6 @@ function constantTimeEqual(a: string, b: string): boolean {
 
 function extractToken(req: NextRequest): string | null {
   // SEC-4: Only accept tokens via Authorization header or httpOnly cookie.
-  // Query parameter auth removed — tokens in URLs leak via logs, Referer headers, and browser history.
   const auth = req.headers.get("authorization");
   const bearer = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
   if (bearer) return bearer;
@@ -39,22 +40,39 @@ function extractToken(req: NextRequest): string | null {
 
 /**
  * Resolves the role for the incoming request.
- * - Owner token (MC_ADMIN_TOKEN) -> 'owner'
- * - Agent token (MC_AGENT_TOKENS env) -> 'agent'
- * - Per-agent DB token -> role from agents.role column
- * Returns null if no valid token found.
+ * Priority: user session → owner token → per-agent DB token → legacy agent tokens
+ * Returns null if no valid auth found.
  */
 export async function resolveRole(req: NextRequest): Promise<Role | null> {
   const token = extractToken(req);
   if (!token) return null;
 
-  // Owner token
+  // 1. Check user sessions table (email/password login)
+  try {
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const sessionResult = await query(
+      `SELECT u.role FROM users u
+       JOIN user_sessions s ON s.user_id = u.id
+       WHERE s.token_hash = $1 AND s.expires_at > NOW() AND u.is_active = TRUE
+       LIMIT 1`,
+      [tokenHash]
+    );
+    if (sessionResult.rows.length > 0) {
+      const userRole = (sessionResult.rows[0] as { role: string }).role;
+      // Map UserRole to Role (operator maps to admin for legacy compat)
+      if (userRole === "tenant_user") return "viewer";
+      return userRole as Role;
+    }
+  } catch {
+    // user_sessions table may not exist yet during migration — fall through
+  }
+
+  // 2. Owner token (MC_ADMIN_TOKEN)
   const adminToken = process.env.MC_ADMIN_TOKEN ?? "";
   if (adminToken && constantTimeEqual(token, adminToken)) return "owner";
 
-  // Per-agent DB token lookup (admin/viewer roles)
+  // 3. Per-agent DB token lookup
   try {
-    const { createHash } = await import("crypto");
     const hash = createHash("sha256").update(token).digest("hex");
     const result = await query(
       "SELECT role FROM agents WHERE token_hash = $1 LIMIT 1",
@@ -66,7 +84,7 @@ export async function resolveRole(req: NextRequest): Promise<Role | null> {
     // DB lookup failed — fall through
   }
 
-  // Legacy agent token env var (MC_AGENT_TOKENS)
+  // 4. Legacy agent token env var (MC_AGENT_TOKENS)
   const agentTokens = process.env.MC_AGENT_TOKENS ?? "";
   for (const pair of agentTokens.split(",")) {
     const [, t] = pair.split(":");
@@ -77,8 +95,30 @@ export async function resolveRole(req: NextRequest): Promise<Role | null> {
 }
 
 /**
+ * Resolve user info from session token (for audit logging).
+ * Returns null if not a user session.
+ */
+export async function resolveUser(req: NextRequest): Promise<{ id: number; email: string; role: string; tenant_id: string | null } | null> {
+  const token = extractToken(req);
+  if (!token) return null;
+
+  try {
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const result = await query(
+      `SELECT u.id, u.email, u.role, u.tenant_id FROM users u
+       JOIN user_sessions s ON s.user_id = u.id
+       WHERE s.token_hash = $1 AND s.expires_at > NOW() AND u.is_active = TRUE
+       LIMIT 1`,
+      [tokenHash]
+    );
+    return result.rows.length > 0 ? result.rows[0] as { id: number; email: string; role: string; tenant_id: string | null } : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Validate that request has at least the required role.
- * Returns the resolved role, or null if unauthorized.
  */
 export async function validateRole(req: NextRequest, required: Role): Promise<Role | null> {
   const role = await resolveRole(req);
@@ -89,7 +129,6 @@ export async function validateRole(req: NextRequest, required: Role): Promise<Ro
 
 /**
  * Validates owner/admin token (timing-safe).
- * Checks MC_ADMIN_TOKEN via Authorization header or httpOnly cookie.
  */
 export function validateAdmin(req: NextRequest): boolean {
   const adminToken = process.env.MC_ADMIN_TOKEN ?? "";

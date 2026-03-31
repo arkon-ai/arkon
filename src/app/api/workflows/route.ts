@@ -1,7 +1,8 @@
 // src/app/api/workflows/route.ts — List + Create workflows
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateAdmin, unauthorized, resolveUser } from "@/app/api/tools/_utils";
+import { logAudit, getClientIp } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   if (!validateAdmin(req)) return unauthorized();
@@ -74,6 +75,21 @@ export async function POST(req: NextRequest) {
         body.tenant_id ?? "transformate",
       ]
     );
+
+    const workflow = result.rows[0] as { id: number; name: string };
+    const user = await resolveUser(req);
+
+    logAudit({
+      actorType: user ? "user" : "system",
+      actorId: user?.email ?? "owner",
+      action: "workflow.created",
+      targetType: "workflow",
+      targetId: workflow.id.toString(),
+      description: `Created workflow "${body.name}"`,
+      newValue: { name: body.name, status: body.status ?? "draft", trigger_type: body.trigger_type ?? "manual" },
+      ipAddress: getClientIp(req.headers),
+      tenantId: body.tenant_id ?? "transformate",
+    });
 
     return NextResponse.json({ workflow: result.rows[0], ok: true }, { status: 201 });
   } catch (err) {
