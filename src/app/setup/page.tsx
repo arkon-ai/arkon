@@ -21,6 +21,7 @@ import {
   Sparkles,
   PartyPopper,
 } from "lucide-react";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const TOTAL_STEPS = 5;
 
@@ -267,7 +268,8 @@ export default function SetupPage() {
         </div>
 
         {/* Step content */}
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-6">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-6">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           {error && (
             <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
               {error}
@@ -638,6 +640,7 @@ function SdkStep({
       label: "Node.js",
       code: `// npm install @arkon/sdk
 import { Arkon } from "@arkon/sdk";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const arkon = new Arkon({
   baseUrl: "${baseUrl}",
@@ -688,7 +691,8 @@ telemetry:
       </p>
 
       {/* Token display */}
-      <div className="rounded-xl border border-[#00D47E]/20 bg-[#00D47E]/5 p-3">
+      <div className="relative card-hover rounded-xl border border-[#00D47E]/20 bg-[#00D47E]/5 p-3">
+        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="mb-1.5 flex items-center justify-between">
           <span className="text-xs font-medium text-[#00D47E]">Your API Token</span>
           <CopyButton text={agentToken} />
@@ -718,7 +722,8 @@ telemetry:
       </div>
 
       {/* Code block */}
-      <div className="relative rounded-xl border border-[#1E1E2A] bg-[#0A0A0C]">
+      <div className="relative card-hover rounded-xl border border-[#1E1E2A] bg-[#0A0A0C]">
+        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="absolute right-2 top-2">
           <CopyButton text={snippets[tab].code} />
         </div>
@@ -804,8 +809,9 @@ function FeatureCard({
   return (
     <a
       href={href}
-      className="flex flex-col gap-2 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3 transition hover:border-[#3E3E4A] hover:bg-[#0a0a18]"
+      className="relative card-hover flex flex-col gap-2 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3 transition hover:border-[#3E3E4A] hover:bg-[#0a0a18]"
     >
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <Icon className="h-5 w-5 text-[#00D47E]" />
       <div>
         <p className="text-sm font-semibold text-white">{title}</p>

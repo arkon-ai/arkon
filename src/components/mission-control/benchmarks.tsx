@@ -9,6 +9,7 @@ import {
 import { Gauge, Scale } from "lucide-react";
 import { EmptyCard } from "./ui-cards";
 import { SectionDescription } from "./dashboard-clarity";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const C = {
   green: "#00D47E", purple: "#00D47E", amber: "#f59e0b",
@@ -77,8 +78,9 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5"
+      className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5"
     >
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-bold text-white">{value}</p>
       {sub && <p className="mt-0.5 text-xs text-slate-400">{sub}</p>}
@@ -174,7 +176,8 @@ function OverviewTab({ data }: { data: OverviewData }) {
 
       {/* Model comparison bars */}
       {data.byModel.length > 0 && (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h3 className="mb-4 text-sm font-semibold text-slate-300">Latency by Model (avg ms)</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -199,7 +202,8 @@ function OverviewTab({ data }: { data: OverviewData }) {
 
       {/* Daily trend */}
       {data.dailyTrend.length > 0 && (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h3 className="mb-4 text-sm font-semibold text-slate-300">Daily Benchmark Activity</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
@@ -218,7 +222,8 @@ function OverviewTab({ data }: { data: OverviewData }) {
 
       {/* Model table */}
       {data.byModel.length > 0 && (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h3 className="mb-4 text-sm font-semibold text-slate-300">Model Breakdown</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -258,7 +263,8 @@ function OverviewTab({ data }: { data: OverviewData }) {
 
       {/* Recent runs */}
       {data.recent.length > 0 && (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h3 className="mb-4 text-sm font-semibold text-slate-300">Recent Benchmark Runs</h3>
           <div className="space-y-2">
             {data.recent.map((r) => (
@@ -322,8 +328,9 @@ function CompareTab({ models }: { models: ModelBreakdown[] }) {
           <motion.div key={m.model_id}
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5"
+            className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5"
           >
+            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <div className="flex items-center gap-2 mb-4">
               <span className="h-3 w-3 rounded-full" style={{ background: MODEL_COLORS[i % MODEL_COLORS.length] }} />
               <span className="font-semibold text-white">{m.model_id}</span>
@@ -354,7 +361,8 @@ function CompareTab({ models }: { models: ModelBreakdown[] }) {
       </div>
 
       {/* Latency comparison chart */}
-      <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+      <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <h3 className="mb-4 text-sm font-semibold text-slate-300">Latency Distribution (P50 vs P95 vs P99)</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">

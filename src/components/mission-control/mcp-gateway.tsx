@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SectionDescription } from "./dashboard-clarity";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 interface GatewayStats {
   range: string;
@@ -135,7 +136,8 @@ export function McpGateway() {
 
       {/* By server */}
       {stats && stats.by_server.length > 0 ? (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Traffic by Server</h2>
           <div className="space-y-2">
             {stats.by_server.map((s) => (
@@ -156,7 +158,8 @@ export function McpGateway() {
 
       {/* By method */}
       {stats && stats.by_method.length > 0 ? (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">MCP Methods</h2>
           <div className="flex flex-wrap gap-2">
             {stats.by_method.map((m) => (
@@ -171,7 +174,8 @@ export function McpGateway() {
 
       {/* Recent errors */}
       {stats && stats.recent_errors.length > 0 ? (
-        <div className="rounded-2xl border border-red-500/20 bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[#0a0a14] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-red-400">Recent Errors</h2>
           <div className="space-y-2">
             {stats.recent_errors.map((e, i) => (
@@ -189,7 +193,8 @@ export function McpGateway() {
 
       {/* Empty state */}
       {!loading && stats && stats.summary.total_requests === 0 ? (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-8 text-center">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-8 text-center">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-4xl mb-3">{"🔌"}</p>
           <p className="text-white font-semibold">No proxy traffic yet</p>
           <p className="mt-2 text-sm text-slate-500">Enable gateway mode on MCP servers, then configure AI clients to route through the proxy.</p>
@@ -242,7 +247,8 @@ function StatCard({ label, value, accent }: { label: string; value: string | num
     purple: "text-purple-400", red: "text-red-400", slate: "text-slate-400",
   };
   return (
-    <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-3">
+    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-3">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
       <p className={`mt-1 text-lg font-bold ${colors[accent] || colors.cyan}`}>{typeof value === "number" ? value.toLocaleString() : value}</p>
     </div>

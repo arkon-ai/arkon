@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 interface CostData {
   summary: { total_cost_usd: number; total_tokens: number; active_agents: number; range: string };
@@ -65,23 +66,27 @@ export function ClientCosts() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-amber-500/20 bg-[#0a0a14] p-4">
+        <div className="relative card-hover rounded-2xl border border-amber-500/20 bg-[#0a0a14] p-4">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Cost</p>
           <p className="mt-1 text-2xl font-bold text-amber-400">${data.summary.total_cost_usd.toFixed(4)}</p>
         </div>
-        <div className="rounded-2xl border border-cyan-500/20 bg-[#0a0a14] p-4">
+        <div className="relative card-hover rounded-2xl border border-cyan-500/20 bg-[#0a0a14] p-4">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Tokens</p>
           <p className="mt-1 text-2xl font-bold text-cyan-400">{data.summary.total_tokens.toLocaleString()}</p>
         </div>
-        <div className="rounded-2xl border border-purple-500/20 bg-[#0a0a14] p-4">
+        <div className="relative card-hover rounded-2xl border border-[#00D47E]/20 bg-[#0a0a14] p-4">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Active Agents</p>
-          <p className="mt-1 text-2xl font-bold text-purple-400">{data.summary.active_agents}</p>
+          <p className="mt-1 text-2xl font-bold text-[#00D47E]">{data.summary.active_agents}</p>
         </div>
       </div>
 
       {/* Daily trend chart (simple bars) */}
       {data.daily_trend.length > 0 ? (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Daily Spend</h2>
           <div className="flex items-end gap-1" style={{ height: 120 }}>
             {data.daily_trend.map((d) => {
@@ -113,7 +118,8 @@ export function ClientCosts() {
 
       {/* Cost by agent */}
       {data.by_agent.length > 0 ? (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Cost by Agent</h2>
           <div className="space-y-2">
             {data.by_agent.map((a) => (
@@ -131,7 +137,8 @@ export function ClientCosts() {
 
       {/* Budget status */}
       {data.budgets.length > 0 ? (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Budget Limits</h2>
           <div className="space-y-3">
             {data.budgets.map((b, i) => {

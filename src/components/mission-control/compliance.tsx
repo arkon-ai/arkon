@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Shield, AlertTriangle } from "lucide-react";
 import { EmptyCard } from "./ui-cards";
 import { SectionDescription } from "./dashboard-clarity";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const C = {
   green: "#00D47E", purple: "#00D47E", amber: "#f59e0b",
@@ -145,7 +146,8 @@ function AuditLogTab() {
           description="Actions are automatically logged as you and your agents interact with the system. Recent activity will appear here."
         />
       ) : (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-[#1E1E2A] text-xs uppercase tracking-wider text-slate-500">
@@ -248,7 +250,8 @@ function ExportTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-6 space-y-4">
+      <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-6 space-y-4">
+        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <h3 className="text-sm font-semibold text-slate-300">Export Data</h3>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -340,7 +343,8 @@ function PurgeTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-red-500/20 bg-[#111118] p-6 space-y-4">
+      <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[#111118] p-6 space-y-4">
+        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-red-400" />
           <h3 className="text-sm font-semibold text-red-400">GDPR Data Purge</h3>

@@ -7,6 +7,7 @@ import { ShellHeader, Card, SectionTitle } from "./dashboard";
 import { SkeletonCard } from "./charts";
 import { ActivityEmpty } from "./empty-states";
 import { SectionDescription } from "./dashboard-clarity";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type FeedEvent = {
@@ -75,9 +76,10 @@ function EventRow({ event, expanded, onToggle }: {
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, height: 0 }}
-      className={`cursor-pointer rounded-2xl border border-[#1E1E2A] border-l-2 bg-[#0A0A0C]/70 px-4 py-3 transition hover:border-[#3E3E4A] ${EVENT_BORDER[event.event_type] ?? "border-l-slate-600"}`}
+      className={`relative card-hover cursor-pointer rounded-2xl border border-[#1E1E2A] border-l-2 bg-[#0A0A0C]/70 px-4 py-3 transition hover:border-[#3E3E4A] ${EVENT_BORDER[event.event_type] ?? "border-l-slate-600"}`}
       onClick={onToggle}
     >
+        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span className="shrink-0 text-base">{EVENT_ICON[event.event_type] ?? "📌"}</span>
@@ -263,7 +265,8 @@ export function ActivityFeed() {
           { label: "Tool Calls", value: typeCount("tool_call"), colour: "text-[#f59e0b]" },
           { label: "Errors", value: typeCount("error"), colour: typeCount("error") > 0 ? "text-red-400" : "text-[#8888A0]" },
         ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3 text-center">
+          <div key={s.label} className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3 text-center">
+            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <div className={`text-xl font-bold ${s.colour}`}>{s.value}</div>
             <div className="text-xs text-[#8888A0]">{s.label}</div>
           </div>

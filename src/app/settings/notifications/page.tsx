@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ── Types ── */
 
@@ -266,7 +267,8 @@ export default function NotificationPreferencesPage() {
       </SectionDescription>
 
       {/* In-app always on */}
-      <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a1a] p-5">
+      <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a1a] p-5">
+        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00D47E]/10">
             <Bell className="h-5 w-5 text-[#00D47E]" />
@@ -292,12 +294,13 @@ export default function NotificationPreferencesPage() {
         return (
           <div
             key={ch.key}
-            className={`rounded-2xl border transition ${
+            className={`relative card-hover rounded-2xl border transition ${
               state.enabled
                 ? "border-[#00D47E]/30 bg-[#0a0a1a]"
                 : "border-[#1E1E2A] bg-[#0a0a1a]"
             }`}
           >
+            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             {/* Channel header */}
             <button
               type="button"

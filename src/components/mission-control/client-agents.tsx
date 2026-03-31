@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 interface AgentWithStats {
   id: string;
@@ -67,13 +68,15 @@ export function ClientAgents() {
       </div>
 
       {agents.length === 0 ? (
-        <div className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-8 text-center">
+        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-8 text-center">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-slate-500">No agents provisioned for your account yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {agents.map((agent) => (
-            <div key={agent.id} className="rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5 transition hover:border-[#3E3E4A]">
+            <div key={agent.id} className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5 transition hover:border-[#3E3E4A]">
+              <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2">

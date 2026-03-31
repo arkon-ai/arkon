@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { WorkflowBuilder, type WorkflowDefinition } from "./workflow-builder";
 import { toast } from "sonner";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 // ── Workflow Templates ───────────────────────────────────────────────────────
 
@@ -531,7 +532,8 @@ export function WorkflowsScreen() {
           <div className="space-y-3">
             {workflows.map((wf, i) => (
               <CardEntranceWrapper key={wf.id} index={i}>
-                <div className="rounded-xl border border-[#1E1E2A] bg-[#111118] p-4 hover:border-[#3E3E4A] transition">
+                <div className="relative card-hover rounded-xl border border-[#1E1E2A] bg-[#111118] p-4 hover:border-[#3E3E4A] transition">
+                  <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -610,9 +612,10 @@ export function WorkflowsScreen() {
                     return (
                       <div
                         key={tmpl.id}
-                        className="group rounded-xl border border-[#1E1E2A] bg-[#0a0a14] p-4 hover:border-[#3E3E4A] transition cursor-pointer"
+                        className="relative card-hover group rounded-xl border border-[#1E1E2A] bg-[#0a0a14] p-4 hover:border-[#3E3E4A] transition cursor-pointer"
                         onClick={() => selectTemplate(tmpl)}
                       >
+                        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                         <div className="flex items-start gap-4">
                           <div
                             className="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg"
@@ -1112,7 +1115,8 @@ function RunCard({ run }: { run: WorkflowRun }) {
       : null;
 
   return (
-    <div className="rounded-xl border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+    <div className="relative card-hover rounded-xl border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+    <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full p-4 text-left hover:bg-white/[0.02] transition"

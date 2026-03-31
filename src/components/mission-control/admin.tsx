@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { ShellHeader, Card, SectionTitle } from "./dashboard";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type Agent = {
@@ -127,7 +128,8 @@ function Btn({ children, variant = "primary", disabled, onClick, type = "button"
 function TokenReveal({ token, onDismiss }: { token: string; onDismiss: () => void }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="mt-4 rounded-2xl border border-amber-500/30 bg-[rgba(245,158,11,0.08)] p-4">
+    <div className="relative card-hover mt-4 rounded-2xl border border-amber-500/30 bg-[rgba(245,158,11,0.08)] p-4">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-2 text-xs font-semibold text-amber-400">⚠️ Copy this token now — it will never be shown again</p>
       <div className="flex items-center gap-2">
         <code className="flex-1 break-all rounded-lg bg-[#0A0A0C] px-3 py-2 text-xs font-mono text-[#00D47E]">{token}</code>
@@ -398,7 +400,8 @@ export function AdminPanel() {
         ) : (
           <div className="space-y-2">
             {agents.map((a) => (
-              <div key={a.id} className="flex items-center justify-between rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3">
+              <div key={a.id} className="relative card-hover flex items-center justify-between rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3">
+              <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                 <div>
                   <span className="text-sm font-semibold text-[#E4E4ED]">{a.name}</span>
                   <span className="ml-2 text-xs text-[#8888A0]">id: {a.id}</span>

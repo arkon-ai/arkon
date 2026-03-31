@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { ShellHeader, Card, SectionTitle } from "./dashboard";
 import { SkeletonCard } from "./charts";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type CronJob = {
@@ -114,7 +115,8 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
         </p>
 
         <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[#8888A0]">Your message</div>
-        <div className="mb-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-3 py-2 text-xs text-[#8888A0]">
+        <div className="relative card-hover mb-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-3 py-2 text-xs text-[#8888A0]">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[#8888A0] font-medium mb-1">Suggestions:</p>
           <ul className="space-y-1">
             {["Change the schedule to run at 8AM daily", "Disable this cron job", "Delete this cron job", "Run this cron job right now", "Change the model to Fast"].map((s) => (
@@ -161,7 +163,8 @@ function CronCard({ job, onMessage, onAction }: {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <motion.div layout className={`rounded-2xl border px-4 py-4 transition ${job.enabled ? "border-[#1E1E2A] bg-[#0A0A0C]/70" : "border-[#1E1E2A]/50 bg-[#0A0A0C]/40 opacity-60"}`}>
+    <motion.div layout className={`relative card-hover rounded-2xl border px-4 py-4 transition ${job.enabled ? "border-[#1E1E2A] bg-[#0A0A0C]/70" : "border-[#1E1E2A]/50 bg-[#0A0A0C]/40 opacity-60"}`}>
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1" onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer" }}>
           <div className="flex items-center gap-2 flex-wrap">
@@ -231,7 +234,8 @@ function CronCard({ job, onMessage, onAction }: {
             className="overflow-hidden"
           >
             {job.payload_message && (
-              <div className="mt-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3">
+              <div className="relative card-hover mt-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3">
+                <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[#8888A0]">Payload Preview</p>
                 <p className="line-clamp-4 text-xs text-[#8888A0]">{job.payload_message}</p>
               </div>
