@@ -45,9 +45,10 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
 import { NotificationDropdown } from "./notification-dropdown";
-import { ActiveRunBanner } from "./active-run-banner";
-import { MobileKillBar } from "./mobile-kill-bar";
+// import { ActiveRunBanner } from "./active-run-banner"; // Replaced by FloatingKillSwitch
+// import { MobileKillBar } from "./mobile-kill-bar"; // Replaced by FloatingKillSwitch
 import { QuickKillDialog } from "./quick-kill-dialog";
+import { FloatingKillSwitch } from "./floating-kill-switch";
 import { GuidedTour } from "./guided-tour";
 import { GlobalShortcuts } from "./global-shortcuts";
 import { HelpPanel } from "./help-panel";
@@ -557,7 +558,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
             </div>
           </header>
 
-          <ActiveRunBanner />
+          {/* ActiveRunBanner replaced by FloatingKillSwitch */}
 
           <main className="min-w-0 flex-1 px-4 pb-[calc(84px+env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:pt-6 md:pb-6">
             <div className="mx-auto w-full max-w-6xl">
@@ -629,7 +630,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
       ) : null}
 
       {/* Mobile kill bar — above bottom nav when active run exists */}
-      <MobileKillBar />
+      {/* MobileKillBar replaced by FloatingKillSwitch */}
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1E1E2A]/50 bg-[#080810]/95 backdrop-blur md:hidden">
@@ -687,6 +688,9 @@ export function NotionShell({ children }: { children: ReactNode }) {
           if (action === "quick-kill") setQuickKillOpen(true);
         }}
       />
+
+      {/* Floating Kill Switch FAB */}
+      <FloatingKillSwitch />
 
       {/* Quick Kill Dialog (Ctrl+Shift+K) */}
       <QuickKillDialog open={quickKillOpen} onClose={() => setQuickKillOpen(false)} />
