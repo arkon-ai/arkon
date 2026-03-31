@@ -40,6 +40,7 @@ import {
   MessageSquare,
   PanelLeftClose,
   PanelLeft,
+  GitBranch,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
@@ -64,6 +65,7 @@ const pageLabels: Record<string, string> = {
   "/tools/command": "Command",
   "/security": "ThreatGuard",
   "/analytics": "Anomaly Detection",
+  "/traces": "Traces",
   "/costs": "Costs",
   "/agents": "Agents",
   "/systems": "Infrastructure",
@@ -122,6 +124,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
       { href: "/agents", label: "Agents", subtitle: "Monitor your AI agents", icon: Bot },
       { href: "/activity", label: "Activity", subtitle: "Real-time event stream", icon: Radio },
       { href: "/analytics", label: "Anomaly Detection", subtitle: "Rate spikes & silence alerts", icon: BarChart3 },
+      { href: "/traces", label: "Traces", subtitle: "Agent execution traces & spans", icon: GitBranch },
       { href: "/victoryos", label: "VictoryOS", subtitle: "Chat engine metrics", icon: MessageSquare },
     ],
   },
