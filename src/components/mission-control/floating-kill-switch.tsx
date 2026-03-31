@@ -15,6 +15,15 @@ function formatDuration(startedAt: string): string {
   return `${pad(minutes)}:${pad(seconds % 60)}`;
 }
 
+function formatLastSeen(startedAt: string): string {
+  const ms = Date.now() - new Date(startedAt).getTime();
+  const seconds = Math.floor(ms / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  return `${Math.floor(minutes / 60)}h ago`;
+}
+
 export function FloatingKillSwitch() {
   const { runs, killRun, pauseRun, resumeRun } = useActiveRuns(undefined, 3000);
   const [expanded, setExpanded] = useState(false);
@@ -77,8 +86,8 @@ export function FloatingKillSwitch() {
 
   if (runs.length === 0) return null;
 
-  const runningCount = runs.filter((r) => r.status === "running").length;
-  const pausedCount = runs.filter((r) => r.status === "paused").length;
+  const mainAgents = runs.filter((r) => r.is_main_agent);
+  const subRuns = runs.filter((r) => !r.is_main_agent);
 
   return (
     <>
@@ -112,71 +121,130 @@ export function FloatingKillSwitch() {
               </button>
             </div>
 
-            {/* Runs list */}
-            <div className="max-h-[320px] overflow-y-auto">
-              {runs.map((run) => (
-                <div
-                  key={run.run_id}
-                  className="border-b border-[#1E1E2A]/50 px-4 py-3 transition hover:bg-white/[0.02]"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div
-                        className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                          run.status === "running" ? "bg-red-500" : "bg-amber-500"
-                        }`}
-                      />
-                      <span className="truncate text-[13px] font-semibold text-[#E4E4ED]">
-                        {run.agent_name}
-                      </span>
-                      {run.status === "paused" && (
-                        <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-400">
-                          Paused
-                        </span>
-                      )}
-                    </div>
-                    <span className="shrink-0 font-mono text-[12px] tabular-nums text-red-300/80">
-                      {formatDuration(run.started_at)}
-                    </span>
-                  </div>
-
-                  <p className="mt-1 truncate text-[11px] text-[#555566]">
-                    {run.current_action}
-                  </p>
-
-                  {/* Per-agent actions */}
-                  <div className="mt-2 flex items-center gap-1.5">
-                    {run.status === "running" ? (
-                      <button
-                        type="button"
-                        onClick={() => pauseRun(run.run_id)}
-                        className="flex h-6 items-center gap-1 rounded-lg border border-amber-500/25 bg-amber-500/8 px-2 text-[10px] font-semibold text-amber-300 transition hover:bg-amber-500/15"
-                      >
-                        <Pause className="h-2.5 w-2.5" />
-                        Pause
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => resumeRun(run.run_id)}
-                        className="flex h-6 items-center gap-1 rounded-lg border border-green-500/25 bg-green-500/8 px-2 text-[10px] font-semibold text-green-300 transition hover:bg-green-500/15"
-                      >
-                        <Play className="h-2.5 w-2.5" />
-                        Resume
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setKillTarget(run)}
-                      className="flex h-6 items-center gap-1 rounded-lg border border-red-500/30 bg-red-600/15 px-2 text-[10px] font-bold text-red-300 transition hover:bg-red-600/30"
-                    >
-                      <OctagonX className="h-2.5 w-2.5" />
-                      Kill
-                    </button>
-                  </div>
+            {/* Main agents section */}
+            {mainAgents.length > 0 && (
+              <>
+                <div className="px-4 pt-2.5 pb-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
+                    Live Agents
+                  </span>
                 </div>
-              ))}
-            </div>
+                {mainAgents.map((run) => (
+                  <div
+                    key={run.run_id}
+                    className="border-b border-[#1E1E2A]/50 px-4 py-3 transition hover:bg-white/[0.02]"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {/* Green pulsing dot for live main agents */}
+                        <div className="relative flex h-2 w-2 shrink-0">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                        </div>
+                        <span className="truncate text-[13px] font-semibold text-[#E4E4ED]">
+                          {run.agent_name}
+                        </span>
+                        <span className="shrink-0 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-400">
+                          Live
+                        </span>
+                      </div>
+                      <span className="shrink-0 text-[11px] text-[#8888A0]">
+                        {formatLastSeen(run.started_at)}
+                      </span>
+                    </div>
+
+                    <p className="mt-1 truncate text-[11px] text-[#555566]">
+                      {run.model ? `${run.model} · ` : ""}{run.current_action}
+                    </p>
+
+                    {/* Main agent actions */}
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setKillTarget(run)}
+                        className="flex h-6 items-center gap-1 rounded-lg border border-red-500/30 bg-red-600/15 px-2 text-[10px] font-bold text-red-300 transition hover:bg-red-600/30"
+                      >
+                        <OctagonX className="h-2.5 w-2.5" />
+                        Kill
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* Sub-agent runs section */}
+            {subRuns.length > 0 && (
+              <>
+                <div className="px-4 pt-2.5 pb-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
+                    Sub-Agent Runs
+                  </span>
+                </div>
+                {subRuns.map((run) => (
+                  <div
+                    key={run.run_id}
+                    className="border-b border-[#1E1E2A]/50 px-4 py-3 transition hover:bg-white/[0.02]"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                            run.status === "running" ? "bg-red-500" : "bg-amber-500"
+                          }`}
+                        />
+                        <span className="truncate text-[13px] font-semibold text-[#E4E4ED]">
+                          {run.agent_name}
+                        </span>
+                        {run.status === "paused" && (
+                          <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-400">
+                            Paused
+                          </span>
+                        )}
+                      </div>
+                      <span className="shrink-0 font-mono text-[12px] tabular-nums text-red-300/80">
+                        {formatDuration(run.started_at)}
+                      </span>
+                    </div>
+
+                    <p className="mt-1 truncate text-[11px] text-[#555566]">
+                      {run.current_action}
+                    </p>
+
+                    {/* Sub-agent actions */}
+                    <div className="mt-2 flex items-center gap-1.5">
+                      {run.status === "running" ? (
+                        <button
+                          type="button"
+                          onClick={() => pauseRun(run.run_id)}
+                          className="flex h-6 items-center gap-1 rounded-lg border border-amber-500/25 bg-amber-500/8 px-2 text-[10px] font-semibold text-amber-300 transition hover:bg-amber-500/15"
+                        >
+                          <Pause className="h-2.5 w-2.5" />
+                          Pause
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => resumeRun(run.run_id)}
+                          className="flex h-6 items-center gap-1 rounded-lg border border-green-500/25 bg-green-500/8 px-2 text-[10px] font-semibold text-green-300 transition hover:bg-green-500/15"
+                        >
+                          <Play className="h-2.5 w-2.5" />
+                          Resume
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setKillTarget(run)}
+                        className="flex h-6 items-center gap-1 rounded-lg border border-red-500/30 bg-red-600/15 px-2 text-[10px] font-bold text-red-300 transition hover:bg-red-600/30"
+                      >
+                        <OctagonX className="h-2.5 w-2.5" />
+                        Kill
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
 
             {/* Kill All footer */}
             {runs.length > 1 && (
@@ -232,9 +300,9 @@ export function FloatingKillSwitch() {
         {!expanded && (
           <div className="mt-1.5 rounded-lg bg-[#111118]/90 border border-red-500/20 px-2.5 py-1 backdrop-blur">
             <p className="text-center text-[10px] font-medium text-red-300/80">
-              {runningCount > 0 && `${runningCount} running`}
-              {runningCount > 0 && pausedCount > 0 && " · "}
-              {pausedCount > 0 && `${pausedCount} paused`}
+              {mainAgents.length > 0 && `${mainAgents.length} live`}
+              {mainAgents.length > 0 && subRuns.length > 0 && " · "}
+              {subRuns.length > 0 && `${subRuns.length} task${subRuns.length !== 1 ? "s" : ""}`}
             </p>
           </div>
         )}

@@ -11,6 +11,8 @@ export interface ActiveRun {
   source_channel: string | null;
   model: string | null;
   status: "running" | "paused";
+  /** true = main agent (from agents table), false = sub-agent run (from subagent_runs) */
+  is_main_agent?: boolean;
 }
 
 function getAuthHeaders(): Record<string, string> {
@@ -54,6 +56,21 @@ export function useActiveRuns(agentId?: string, pollInterval = 5000) {
   }, [agentId, pollInterval]);
 
   const killRun = useCallback(async (runId: string, reason?: string) => {
+    // Main agents use agent:id format — kill via gateway proxy
+    if (runId.startsWith("agent:")) {
+      const agentIdFromRun = runId.replace("agent:", "");
+      const res = await fetch("/api/gateway/kill-agent", {
+        method: "POST",
+        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ agent_id: agentIdFromRun, reason: reason || undefined }),
+      });
+      if (res.ok) {
+        setRuns((prev) => prev.filter((r) => r.run_id !== runId));
+      }
+      return res.ok;
+    }
+
+    // Sub-agent runs — existing kill endpoint
     const res = await fetch(`/api/tools/agents-live/${runId}/kill`, {
       method: "POST",
       headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
@@ -66,6 +83,10 @@ export function useActiveRuns(agentId?: string, pollInterval = 5000) {
   }, []);
 
   const pauseRun = useCallback(async (runId: string) => {
+    if (runId.startsWith("agent:")) {
+      // Main agents — pause not supported yet
+      return false;
+    }
     const res = await fetch(`/api/tools/agents-live/${runId}/pause`, {
       method: "POST",
       headers: getAuthHeaders(),
@@ -79,6 +100,9 @@ export function useActiveRuns(agentId?: string, pollInterval = 5000) {
   }, []);
 
   const resumeRun = useCallback(async (runId: string) => {
+    if (runId.startsWith("agent:")) {
+      return false;
+    }
     const res = await fetch(`/api/tools/agents-live/${runId}/resume`, {
       method: "POST",
       headers: getAuthHeaders(),
