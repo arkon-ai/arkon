@@ -8,6 +8,7 @@ import {
   AreaChart, Area, BarChart, Bar, CartesianGrid,
   ResponsiveContainer, Tooltip, XAxis, YAxis, Cell,
 } from "recharts";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ── colour tokens (matches existing charts.tsx palette) ── */
 const C = {
@@ -90,8 +91,9 @@ function StatCard({ label, value, sub, color }: { label: string; value: string; 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-      className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
+      className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
     >
+        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">{label}</p>
       <p className="mt-1.5 text-2xl font-bold" style={{ color }}>{value}</p>
       {sub && <p className="mt-1 text-xs text-[#8888A0]">{sub}</p>}
@@ -396,7 +398,8 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
   if (tips.length === 0) return null;
 
   return (
-    <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+    <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <button onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full text-left">
         <h3 className="text-sm font-medium text-[#8888A0]">
           Optimization Tips
@@ -452,7 +455,8 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
 
       {/* Budget progress (enhanced) */}
       {budgets.length > 0 && (
-        <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h3 className="text-sm font-medium text-[#8888A0] mb-4">Budget Status</h3>
           {budgets.map((b) => (
             <React.Fragment key={b.id}>
@@ -489,7 +493,8 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
       )}
 
       {/* Cost trend chart */}
-      <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+      <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <h3 className="text-sm font-medium text-[#8888A0] mb-4">Daily Cost Trend</h3>
         <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={daily_trend}>
@@ -511,7 +516,8 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Top agents by cost */}
-        <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h3 className="text-sm font-medium text-[#8888A0] mb-4">Top Agents by Cost</h3>
           {by_agent.length === 0 ? (
             <CostsEmpty />
@@ -533,7 +539,8 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
         </div>
 
         {/* Tenant breakdown */}
-        <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h3 className="text-sm font-medium text-[#8888A0] mb-4">Tenant Spend</h3>
           {by_tenant.map((t) => (
             <div key={t.tenant_id} className="flex items-center justify-between py-2 border-b border-[#1E1E2A]/50 last:border-0">
@@ -578,8 +585,9 @@ function AgentsTab({ agents, loading, anomalies }: { agents: AgentDetailRow[] | 
         <motion.div key={a.agent_id}
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }}
-          className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-4"
+          className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-4"
         >
+            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -645,7 +653,8 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
       {paid.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-[#8888A0] mb-3">Paid Models</h3>
-          <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+          <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#1E1E2A] text-[#555566] text-xs">
@@ -676,7 +685,8 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
       {free.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-[#8888A0] mb-3">Free / Local Models</h3>
-          <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+          <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#1E1E2A] text-[#555566] text-xs">

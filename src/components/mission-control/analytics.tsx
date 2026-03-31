@@ -17,6 +17,7 @@ import { CardEntranceWrapper, SkeletonCard, StatCountUp } from "@/components/mis
 import { ShellHeader } from "@/components/mission-control/dashboard";
 import { formatCompact, timeAgo, usePollingFetch } from "@/components/mission-control/api";
 import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -155,9 +156,10 @@ function SummaryCards({ totals, sessionStats }: { totals: AnalyticsData["totals"
       {stats.map((stat, i) => (
         <CardEntranceWrapper key={stat.label} index={i}>
           <div
-            className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4 card-hover"
+            className="relative rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4 card-hover"
             style={{ borderTopColor: stat.color, borderTopWidth: 2 }}
           >
+              <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <p className="text-[11px] font-semibold uppercase tracking-wide text-text-dim">{stat.label}</p>
             <p className="mt-2 text-2xl font-bold text-text">
               {stat.format ? formatCompact(stat.value) : <StatCountUp value={stat.value} />}
@@ -175,7 +177,8 @@ function DailyVolumeChart({ data }: { data: DailyVolume[] }) {
   const chartData = data.map((d) => ({ ...d, day: formatDay(d.day) }));
 
   return (
-    <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Daily Volume</p>
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
@@ -216,7 +219,8 @@ function HourlyHeatmap({ data }: { data: HourlyPoint[] }) {
   const maxCount = Math.max(...full.map((d) => d.count), 1);
 
   return (
-    <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Activity by Hour (UTC)</p>
       <div className="flex items-end gap-1" style={{ height: 120 }}>
         {full.map((point) => {
@@ -255,7 +259,8 @@ function ChannelBreakdown({ data }: { data: VolumeByChannel[] }) {
   const total = data.reduce((sum, d) => sum + d.count, 0);
 
   return (
-    <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Volume by Channel</p>
       {data.length === 0 ? (
         <p className="py-6 text-center text-sm text-text-dim">No channel data</p>
@@ -290,7 +295,8 @@ function ChannelBreakdown({ data }: { data: VolumeByChannel[] }) {
 
 function AgentTable({ data }: { data: AgentBreakdown[] }) {
   return (
-    <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4 overflow-x-auto">
+    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4 overflow-x-auto">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Agent Activity</p>
       {data.length === 0 ? (
         <p className="py-6 text-center text-sm text-text-dim">No agent data</p>
@@ -334,7 +340,8 @@ function DirectionRatio({ data }: { data: { inbound: number; outbound: number; u
   const outPct = total > 0 ? (data.outbound / total) * 100 : 50;
 
   return (
-    <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Message Direction</p>
       <div className="flex items-center gap-4">
         <div className="flex-1">
@@ -358,7 +365,8 @@ function TopSendersCard({ data }: { data: TopSender[] }) {
   if (data.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Top Senders</p>
       <div className="space-y-2">
         {data.map((sender, i) => {
@@ -391,7 +399,8 @@ function SessionStatsCard({ data }: { data: SessionStats }) {
   ];
 
   return (
-    <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Session Analytics</p>
       <div className="grid grid-cols-2 gap-3">
         {stats.map((stat) => (
@@ -409,7 +418,8 @@ function SessionStatsCard({ data }: { data: SessionStats }) {
 
 function ToolCallsCard({ data }: { data: ToolCall[] }) {
   return (
-    <div className="rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-1 text-sm font-semibold text-text">Tool Calls</p>
       <p className="mb-3 text-[11px] text-text-dim">Agent tool invocations and performance</p>
       {data.length === 0 ? (
