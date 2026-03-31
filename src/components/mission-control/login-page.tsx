@@ -1,18 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-type AuthMode = "passphrase" | "email";
+type AuthMode = "passphrase" | "email" | "magic";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<AuthMode>("passphrase");
   const [passphrase, setPassphrase] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [magicEmail, setMagicEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [magicSent, setMagicSent] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const magicToken = searchParams.get("magic");
+    const magicEmailParam = searchParams.get("email");
+    if (magicToken && magicEmailParam) {
+      verifyMagicLink(magicToken, magicEmailParam);
+    }
+  }, [searchParams]);
+
+  async function verifyMagicLink(token: string, emailAddr: string) {
+    setLoading(true);
+    setError("");
+    setMode("magic");
+
+    try {
+      const res = await fetch("/api/auth/verify-magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, email: emailAddr }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Invalid or expired link");
+        setLoading(false);
+        return;
+      }
+
+      if (data.ok) {
+        const role = data.role || "viewer";
+        router.push(role === "owner" || role === "admin" || role === "operator" ? "/" : "/client");
+        router.refresh();
+      }
+    } catch {
+      setError("Connection error. Please try again.");
+      setLoading(false);
+    }
+  }
 
   async function handlePassphraseLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -24,9 +65,7 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/auth/init", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${passphrase.trim()}`,
-        },
+        headers: { Authorization: `Bearer ${passphrase.trim()}` },
       });
 
       if (!res.ok) {
@@ -65,7 +104,6 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
-
       if (!res.ok) {
         setError(data.error || "Authentication failed.");
         setLoading(false);
@@ -83,6 +121,38 @@ export default function LoginPage() {
     }
   }
 
+  async function handleMagicLink(e: React.FormEvent) {
+    e.preventDefault();
+    if (!magicEmail.trim()) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: magicEmail.trim() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to send link.");
+        setLoading(false);
+        return;
+      }
+
+      setMagicSent(true);
+      setLoading(false);
+    } catch {
+      setError("Connection error. Please try again.");
+      setLoading(false);
+    }
+  }
+
+  const inputClass = "w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[rgba(0,212,126,0.5)] focus:outline-none focus:ring-1 focus:ring-[rgba(0,212,126,0.5)] transition";
+  const submitClass = "w-full rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#00E88A] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]";
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0A0A0C] px-4">
       <div className="w-full max-w-sm">
@@ -94,98 +164,114 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-[var(--text-secondary)]">AI Control Plane</p>
         </div>
 
-        {/* Auth mode toggle */}
         <div className="mb-6 flex rounded-xl border border-[#1E1E2A] bg-[#111118] p-1">
-          <button
-            type="button"
-            onClick={() => { setMode("passphrase"); setError(""); }}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
-              mode === "passphrase"
-                ? "bg-[rgba(0,212,126,0.15)] text-[#00D47E]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Passphrase
-          </button>
-          <button
-            type="button"
-            onClick={() => { setMode("email"); setError(""); }}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
-              mode === "email"
-                ? "bg-[rgba(0,212,126,0.15)] text-[#00D47E]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Email
-          </button>
+          {(["passphrase", "email", "magic"] as AuthMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => { setMode(m); setError(""); setMagicSent(false); }}
+              className={`flex-1 rounded-lg py-2 text-xs font-medium transition ${
+                mode === m
+                  ? "bg-[rgba(0,212,126,0.15)] text-[#00D47E]"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              }`}
+            >
+              {m === "passphrase" ? "Passphrase" : m === "email" ? "Email" : "Magic Link"}
+            </button>
+          ))}
         </div>
 
-        {mode === "passphrase" ? (
+        {mode === "passphrase" && (
           <form onSubmit={handlePassphraseLogin} className="space-y-4">
-            <div>
-              <input
-                type="password"
-                value={passphrase}
-                onChange={(e) => setPassphrase(e.target.value)}
-                placeholder="Passphrase"
-                autoFocus
-                autoComplete="current-password"
-                className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[rgba(0,212,126,0.5)] focus:outline-none focus:ring-1 focus:ring-[rgba(0,212,126,0.5)] transition"
-              />
-            </div>
-
+            <input
+              type="password"
+              value={passphrase}
+              onChange={(e) => setPassphrase(e.target.value)}
+              placeholder="Passphrase"
+              autoFocus
+              autoComplete="current-password"
+              className={inputClass}
+            />
             {error && (
-              <p className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">
-                {error}
-              </p>
+              <p className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
             )}
-
-            <button
-              type="submit"
-              disabled={loading || !passphrase.trim()}
-              className="w-full rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#00E88A] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-            >
+            <button type="submit" disabled={loading || !passphrase.trim()} className={submitClass}>
               {loading ? "Authenticating..." : "Sign In"}
             </button>
           </form>
-        ) : (
+        )}
+
+        {mode === "email" && (
           <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                autoFocus
-                autoComplete="email"
-                className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[rgba(0,212,126,0.5)] focus:outline-none focus:ring-1 focus:ring-[rgba(0,212,126,0.5)] transition"
-              />
-            </div>
-            <div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                autoComplete="current-password"
-                className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[rgba(0,212,126,0.5)] focus:outline-none focus:ring-1 focus:ring-[rgba(0,212,126,0.5)] transition"
-              />
-            </div>
-
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              autoFocus
+              autoComplete="email"
+              className={inputClass}
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              autoComplete="current-password"
+              className={inputClass}
+            />
             {error && (
-              <p className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">
-                {error}
-              </p>
+              <p className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
             )}
-
-            <button
-              type="submit"
-              disabled={loading || !email.trim() || !password}
-              className="w-full rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#00E88A] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-            >
+            <button type="submit" disabled={loading || !email.trim() || !password} className={submitClass}>
               {loading ? "Authenticating..." : "Sign In"}
             </button>
           </form>
+        )}
+
+        {mode === "magic" && !magicSent && (
+          <form onSubmit={handleMagicLink} className="space-y-4">
+            <p className="text-sm text-[var(--text-secondary)]">
+              Enter your email and we will send you a sign-in link. No password needed.
+            </p>
+            <input
+              type="email"
+              value={magicEmail}
+              onChange={(e) => setMagicEmail(e.target.value)}
+              placeholder="Email"
+              autoFocus
+              autoComplete="email"
+              className={inputClass}
+            />
+            {error && (
+              <p className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
+            )}
+            <button type="submit" disabled={loading || !magicEmail.trim()} className={submitClass}>
+              {loading ? "Sending..." : "Send Magic Link"}
+            </button>
+          </form>
+        )}
+
+        {mode === "magic" && magicSent && (
+          <div className="space-y-4 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[rgba(0,212,126,0.08)]">
+              <svg className="h-8 w-8 text-[#00D47E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="text-sm font-medium text-[#E4E4ED]">Check your email</p>
+            <p className="text-xs text-[var(--text-secondary)]">
+              If an account exists for <span className="text-[#00D47E]">{magicEmail}</span>, a sign-in link was sent.
+              The link expires in 15 minutes.
+            </p>
+            <button
+              type="button"
+              onClick={() => { setMagicSent(false); setMagicEmail(""); }}
+              className="text-xs text-[var(--text-secondary)] underline hover:text-[var(--text-primary)]"
+            >
+              Try a different email
+            </button>
+          </div>
         )}
 
         <p className="mt-6 text-center text-xs text-[var(--text-tertiary)]">

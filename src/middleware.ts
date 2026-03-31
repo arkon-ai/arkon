@@ -1,9 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-// Routes that are server-to-server only (exempt from CSRF and auth redirect)
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
-const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/health", "/api/intake", "/api/setup", "/docs/"];
+const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/docs/"];
 
 function isDashboardApiRoute(pathname: string): boolean {
   return pathname.startsWith("/api/");
@@ -21,7 +20,6 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
 
-  // ── Security headers on ALL responses ──────────────────────────────────
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -41,8 +39,6 @@ export function middleware(request: NextRequest) {
     ].join("; ")
   );
 
-  // SEC-1/UX-1: Redirect unauthenticated users to /login
-  // Skip for public paths, static assets, and agent API routes
   if (
     !isPublicPath(pathname) &&
     !pathname.startsWith("/_next/") &&
@@ -53,7 +49,6 @@ export function middleware(request: NextRequest) {
   ) {
     const hasAuth = request.cookies.has("mc_auth") || !!request.headers.get("authorization");
     if (!hasAuth) {
-      // API routes return 401, page routes redirect to login
       if (pathname.startsWith("/api/")) {
         return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
@@ -66,19 +61,20 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Skip CSRF check for non-API, agent routes, and public paths
   if (!isDashboardApiRoute(pathname) || isAgentRoute(pathname)) {
     return response;
   }
 
-  // ── CSRF check for browser mutations ───────────────────────────────────
   if (CSRF_PROTECTED_METHODS.includes(request.method)) {
-    // Auth endpoints that bootstrap cookies are exempt from CSRF
-    if (pathname === "/api/auth/init" || pathname === "/api/auth/login") return response;
+    if (
+      pathname === "/api/auth/init" ||
+      pathname === "/api/auth/login" ||
+      pathname === "/api/auth/magic-link" ||
+      pathname === "/api/auth/verify-magic-link"
+    ) return response;
 
     const csrfHeader = request.headers.get("x-csrf-token");
     const csrfCookie = request.cookies.get("mc_csrf")?.value;
-    // Bearer token = server-to-server (exempt from CSRF)
     const hasBearerAuth = !!request.headers.get("authorization");
 
     const csrfMatch = !!(csrfHeader && csrfCookie && decodeURIComponent(csrfHeader) === decodeURIComponent(csrfCookie));

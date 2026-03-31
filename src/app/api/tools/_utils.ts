@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import type { UserRole } from "@/lib/rbac";
 
-// Role hierarchy: owner > admin > operator > agent > viewer
 export type Role = "owner" | "admin" | "operator" | "agent" | "viewer";
 
 const ROLE_RANK: Record<string, number> = {
@@ -29,7 +28,6 @@ function constantTimeEqual(a: string, b: string): boolean {
 }
 
 function extractToken(req: NextRequest): string | null {
-  // SEC-4: Only accept tokens via Authorization header or httpOnly cookie.
   const auth = req.headers.get("authorization");
   const bearer = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : null;
   if (bearer) return bearer;
@@ -38,16 +36,11 @@ function extractToken(req: NextRequest): string | null {
   return null;
 }
 
-/**
- * Resolves the role for the incoming request.
- * Priority: user session → owner token → per-agent DB token → legacy agent tokens
- * Returns null if no valid auth found.
- */
 export async function resolveRole(req: NextRequest): Promise<Role | null> {
   const token = extractToken(req);
   if (!token) return null;
 
-  // 1. Check user sessions table (email/password login)
+  // 1. User sessions
   try {
     const tokenHash = createHash("sha256").update(token).digest("hex");
     const sessionResult = await query(
@@ -59,19 +52,39 @@ export async function resolveRole(req: NextRequest): Promise<Role | null> {
     );
     if (sessionResult.rows.length > 0) {
       const userRole = (sessionResult.rows[0] as { role: string }).role;
-      // Map UserRole to Role (operator maps to admin for legacy compat)
       if (userRole === "tenant_user") return "viewer";
       return userRole as Role;
     }
   } catch {
-    // user_sessions table may not exist yet during migration — fall through
+    // Fall through
   }
 
-  // 2. Owner token (MC_ADMIN_TOKEN)
+  // 2. Owner token
   const adminToken = process.env.MC_ADMIN_TOKEN ?? "";
   if (adminToken && constantTimeEqual(token, adminToken)) return "owner";
 
-  // 3. Per-agent DB token lookup
+  // 3. API key (ak_live_*)
+  if (token.startsWith("ak_live_")) {
+    try {
+      const keyHash = createHash("sha256").update(token).digest("hex");
+      const keyResult = await query(
+        `SELECT id, tenant_id, scopes FROM api_keys
+         WHERE key_hash = $1 AND is_active = TRUE
+         AND (expires_at IS NULL OR expires_at > NOW())
+         LIMIT 1`,
+        [keyHash]
+      );
+      if (keyResult.rows.length > 0) {
+        const keyRow = keyResult.rows[0] as { id: number };
+        query("UPDATE api_keys SET last_used_at = NOW() WHERE id = $1", [keyRow.id]).catch(() => {});
+        return "agent";
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  // 4. Per-agent DB token
   try {
     const hash = createHash("sha256").update(token).digest("hex");
     const result = await query(
@@ -81,10 +94,10 @@ export async function resolveRole(req: NextRequest): Promise<Role | null> {
     const rows = result.rows as Array<{ role: Role }>;
     if (rows.length > 0) return rows[0].role;
   } catch {
-    // DB lookup failed — fall through
+    // Fall through
   }
 
-  // 4. Legacy agent token env var (MC_AGENT_TOKENS)
+  // 5. Legacy agent tokens
   const agentTokens = process.env.MC_AGENT_TOKENS ?? "";
   for (const pair of agentTokens.split(",")) {
     const [, t] = pair.split(":");
@@ -94,10 +107,6 @@ export async function resolveRole(req: NextRequest): Promise<Role | null> {
   return null;
 }
 
-/**
- * Resolve user info from session token (for audit logging).
- * Returns null if not a user session.
- */
 export async function resolveUser(req: NextRequest): Promise<{ id: number; email: string; role: string; tenant_id: string | null } | null> {
   const token = extractToken(req);
   if (!token) return null;
@@ -117,9 +126,25 @@ export async function resolveUser(req: NextRequest): Promise<{ id: number; email
   }
 }
 
-/**
- * Validate that request has at least the required role.
- */
+export async function resolveApiKey(req: NextRequest): Promise<{ id: number; tenant_id: string; scopes: string[] } | null> {
+  const token = extractToken(req);
+  if (!token || !token.startsWith("ak_live_")) return null;
+
+  try {
+    const keyHash = createHash("sha256").update(token).digest("hex");
+    const result = await query(
+      `SELECT id, tenant_id, scopes FROM api_keys
+       WHERE key_hash = $1 AND is_active = TRUE
+       AND (expires_at IS NULL OR expires_at > NOW())
+       LIMIT 1`,
+      [keyHash]
+    );
+    return result.rows.length > 0 ? result.rows[0] as { id: number; tenant_id: string; scopes: string[] } : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function validateRole(req: NextRequest, required: Role): Promise<Role | null> {
   const role = await resolveRole(req);
   if (!role) return null;
@@ -127,9 +152,6 @@ export async function validateRole(req: NextRequest, required: Role): Promise<Ro
   return role;
 }
 
-/**
- * Validates owner/admin token (timing-safe).
- */
 export function validateAdmin(req: NextRequest): boolean {
   const adminToken = process.env.MC_ADMIN_TOKEN ?? "";
   if (!adminToken) return false;

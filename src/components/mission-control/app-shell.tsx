@@ -52,6 +52,7 @@ import { GuidedTour } from "./guided-tour";
 import { GlobalShortcuts } from "./global-shortcuts";
 import { HelpPanel } from "./help-panel";
 import { Breadcrumbs } from "../ui/breadcrumbs";
+import { TenantSwitcher } from "./tenant-switcher";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -549,6 +550,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                   </kbd>
                 </button>
                 
+                <TenantSwitcher />
                 <HelpPanel />
                 <NotificationDropdown />
               </div>

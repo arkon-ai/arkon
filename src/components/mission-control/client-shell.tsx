@@ -7,8 +7,10 @@ import {
   LayoutDashboard,
   Bot,
   Wallet,
+  Key,
   LogOut,
   Menu,
+  ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -18,10 +20,11 @@ function isRouteActive(pathname: string | null, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-const clientNav: Array<{ href: string; label: string; icon: LucideIcon }> = [
-  { href: "/client", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/client/agents", label: "My Agents", icon: Bot },
-  { href: "/client/costs", label: "Costs", icon: Wallet },
+const clientNav: Array<{ href: string; label: string; subtitle: string; icon: LucideIcon }> = [
+  { href: "/client", label: "Dashboard", subtitle: "Overview & activity", icon: LayoutDashboard },
+  { href: "/client/agents", label: "My Agents", subtitle: "Status & sessions", icon: Bot },
+  { href: "/client/costs", label: "Costs", subtitle: "Usage & billing", icon: Wallet },
+  { href: "/client/api-keys", label: "API Keys", subtitle: "Integration tokens", icon: Key },
 ];
 
 export function ClientShell({ children }: { children: ReactNode }) {
@@ -29,20 +32,23 @@ export function ClientShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [tenantName, setTenantName] = useState<string>("");
+  const [tenantPlan, setTenantPlan] = useState<string>("");
 
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
-  // Fetch tenant name on mount
   useEffect(() => {
     let mounted = true;
     const run = async () => {
       try {
         const res = await fetch("/api/client/dashboard", { cache: "no-store" });
         if (!res.ok) return;
-        const data = (await res.json()) as { tenant?: { name?: string } };
-        if (mounted && data.tenant?.name) setTenantName(data.tenant.name);
+        const data = (await res.json()) as { tenant?: { name?: string; plan?: string } };
+        if (mounted) {
+          if (data.tenant?.name) setTenantName(data.tenant.name);
+          if (data.tenant?.plan) setTenantPlan(data.tenant.plan);
+        }
       } catch { /* silent */ }
     };
     run();
@@ -54,59 +60,70 @@ export function ClientShell({ children }: { children: ReactNode }) {
     document.cookie = "mc_csrf=; path=/; max-age=0";
     document.cookie = "mc_role=; path=/; max-age=0";
     document.cookie = "mc_tenant=; path=/; max-age=0";
+    document.cookie = "mc_user_session=; path=/; max-age=0";
     router.push("/login");
   };
 
+  const currentPage = clientNav.find((item) => isRouteActive(pathname, item.href));
+
   const sidebar = (
     <div className="flex h-full flex-col bg-[#080810] text-[#8888A0]">
-      <div className="flex h-14 items-center border-b border-[#1E1E2A]/50 px-4">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#555566]">
-            Client Portal
-          </p>
-          <p className="mt-0.5 text-sm font-semibold text-[#E4E4ED]">
-            {tenantName || "Loading..."}
-          </p>
+      <div className="border-b border-[#1E1E2A]/50 px-4 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[rgba(0,212,126,0.1)] text-[#00D47E]">
+            <span className="text-sm font-extrabold font-[family-name:var(--font-display)]">
+              {tenantName?.charAt(0)?.toUpperCase() || "?"}
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-[#E4E4ED]">
+              {tenantName || "Loading..."}
+            </p>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-[#555566]">
+              {tenantPlan || "Client Portal"}
+            </p>
+          </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
-        <section className="mb-4">
-          <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-            My Account
-          </p>
-          <div className="space-y-1">
-            {clientNav.map((item) => {
-              const active = isRouteActive(pathname, item.href);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                    active
-                      ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
-                      : "text-[#8888A0] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
-                  }`}
-                >
-                  <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
-                  <span className="flex-1">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        <div className="mt-4 border-t border-[#1E1E2A] pt-4">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[#8888A0] transition hover:bg-red-500/[0.06] hover:text-red-400"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            <span>Sign Out</span>
-          </button>
+        <div className="space-y-1">
+          {clientNav.map((item) => {
+            const active = isRouteActive(pathname, item.href);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                  active
+                    ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
+                    : "text-[#8888A0] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+                }`}
+              >
+                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#555566] group-hover:text-[#8888A0]"}`} />
+                <div className="min-w-0 flex-1">
+                  <span className="block">{item.label}</span>
+                  <span className={`block text-[10px] ${active ? "text-[#00D47E]/60" : "text-[#555566]"}`}>
+                    {item.subtitle}
+                  </span>
+                </div>
+                {active && <ChevronRight className="h-3 w-3 text-[#00D47E]/50" />}
+              </Link>
+            );
+          })}
         </div>
+      </div>
+
+      <div className="border-t border-[#1E1E2A] p-3">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[#8888A0] transition hover:bg-red-500/[0.06] hover:text-red-400"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          <span>Sign Out</span>
+        </button>
       </div>
     </div>
   );
@@ -132,10 +149,19 @@ export function ClientShell({ children }: { children: ReactNode }) {
                 </button>
                 <div>
                   <p className="text-sm font-semibold text-[#E4E4ED]">
-                    {pathname === "/client" ? "Dashboard" : pathname === "/client/agents" ? "My Agents" : pathname === "/client/costs" ? "Costs" : "Client Portal"}
+                    {currentPage?.label ?? "Client Portal"}
                   </p>
+                  {currentPage?.subtitle && (
+                    <p className="text-[10px] text-[#555566]">{currentPage.subtitle}</p>
+                  )}
                 </div>
               </div>
+              {tenantName && (
+                <div className="hidden items-center gap-2 sm:flex">
+                  <span className="text-xs text-[#555566]">Powered by</span>
+                  <span className="text-xs font-bold text-[#00D47E] font-[family-name:var(--font-display)]">Arkon</span>
+                </div>
+              )}
             </div>
           </header>
 
@@ -164,7 +190,7 @@ export function ClientShell({ children }: { children: ReactNode }) {
       ) : null}
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1E1E2A]/80 bg-[#0a0a14]/95 backdrop-blur md:hidden">
-        <div className="mx-auto grid h-[60px] max-w-3xl grid-cols-3 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2">
+        <div className="mx-auto grid h-[60px] max-w-3xl grid-cols-4 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2">
           {clientNav.map((tab) => {
             const active = isRouteActive(pathname, tab.href);
             const Icon = tab.icon;
@@ -173,9 +199,7 @@ export function ClientShell({ children }: { children: ReactNode }) {
                 key={tab.href}
                 href={tab.href}
                 className={`flex min-h-11 flex-col items-center justify-center rounded-xl text-[10px] font-semibold transition ${
-                  active
-                    ? "text-[#00D47E]"
-                    : "text-[#8888A0] hover:text-[#8888A0]"
+                  active ? "text-[#00D47E]" : "text-[#8888A0] hover:text-[#8888A0]"
                 }`}
               >
                 <Icon className="mb-0.5 h-5 w-5" />
