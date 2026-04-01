@@ -9,6 +9,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis, Cell,
 } from "recharts";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
+import { Plus, Trash2, X } from "lucide-react";
 
 /* ── colour tokens (matches existing charts.tsx palette) ── */
 const C = {
@@ -139,6 +140,8 @@ export default function CostsScreen() {
   const [modelData, setModelData] = useState<ModelRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const refresh = () => setRefreshKey(k => k + 1);
 
   // Fetch on mount + range/tab change
   React.useEffect(() => {
@@ -175,7 +178,7 @@ export default function CostsScreen() {
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
-  }, [range, tab]);
+  }, [range, tab, refreshKey]);
 
   /* ── estimated daily burn ── */
   const dailyBurn = useMemo(() => {
@@ -265,7 +268,7 @@ export default function CostsScreen() {
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
         </div>
       ) : tab === "overview" ? (
-        <OverviewTab overview={overview} dailyBurn={dailyBurn} projected={projected} agentData={agentData} />
+        <OverviewTab overview={overview} dailyBurn={dailyBurn} projected={projected} agentData={agentData} onBudgetChange={refresh} />
       ) : tab === "agents" ? (
         <AgentsTab agents={agentData} loading={loading} anomalies={overview?.agent_anomalies || []} />
       ) : (
@@ -422,9 +425,10 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
 }
 
 /* ═══ Overview Tab ═══ */
-function OverviewTab({ overview, dailyBurn, projected, agentData }: {
-  overview: OverviewData | null; dailyBurn: number; projected: number; agentData: AgentDetailRow[] | null;
+function OverviewTab({ overview, dailyBurn, projected, agentData, onBudgetChange }: {
+  overview: OverviewData | null; dailyBurn: number; projected: number; agentData: AgentDetailRow[] | null; onBudgetChange?: () => void;
 }) {
+  const [showBudgetDialog, setShowBudgetDialog] = useState(false);
   if (!overview) return null;
   const { summary, daily_trend, by_agent, by_tenant, budgets, last_month_cost, agent_anomalies } = overview;
 
@@ -457,7 +461,15 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
       {budgets.length > 0 && (
         <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Budget Status</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-[var(--text-secondary)]">Budget Status</h3>
+            <button
+              onClick={() => setShowBudgetDialog(true)}
+              className="inline-flex items-center gap-1 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-hover)]"
+            >
+              <Plus className="h-3 w-3" /> Add Budget
+            </button>
+          </div>
           {budgets.map((b) => (
             <React.Fragment key={b.id}>
               {b.daily_limit_usd != null && (
@@ -489,6 +501,12 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
         <div className="rounded-[16px] border border-dashed border-[var(--border)] bg-[var(--bg-surface)]/50 p-4 text-center">
           <p className="text-sm text-[var(--text-secondary)]">No budget limits configured.</p>
           <p className="text-xs text-[var(--text-tertiary)] mt-1">Set a budget to track spending against a target and get alerts.</p>
+          <button
+            onClick={() => setShowBudgetDialog(true)}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-hover)] active:scale-[0.98]"
+          >
+            <Plus className="h-4 w-4" /> Set Budget
+          </button>
         </div>
       )}
 
@@ -555,6 +573,15 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
       </div>
 
       {/* Optimization Tips */}
+      {/* Budget dialog */}
+      {showBudgetDialog && (
+        <BudgetDialog
+          agents={overview.by_agent}
+          existingBudgets={overview.budgets}
+          onClose={() => setShowBudgetDialog(false)}
+          onSaved={() => { setShowBudgetDialog(false); onBudgetChange?.(); }}
+        />
+      )}
       <OptimizationTips overview={overview} agentData={agentData} />
     </div>
   );
@@ -712,6 +739,194 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* === Budget Management Dialog === */
+function BudgetDialog({ agents, existingBudgets, onClose, onSaved }: {
+  agents: AgentCost[];
+  existingBudgets: BudgetRow[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [scopeType, setScopeType] = useState<"agent" | "tenant">("agent");
+  const [scopeId, setScopeId] = useState("");
+  const [dailyLimit, setDailyLimit] = useState("");
+  const [monthlyLimit, setMonthlyLimit] = useState("");
+  const [threshold, setThreshold] = useState("80");
+  const [action, setAction] = useState("alert");
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<number | null>(null);
+
+  async function handleCreate() {
+    if (!scopeId) return;
+    if (!dailyLimit && !monthlyLimit) return;
+    setSaving(true);
+    try {
+      const csrf = document.cookie.match(/mc_csrf=([^;]+)/)?.[1] || "";
+      await fetch("/api/costs/budgets", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", "x-csrf-token": csrf },
+        body: JSON.stringify({
+          scope_type: scopeType,
+          scope_id: scopeId,
+          daily_limit_usd: dailyLimit ? parseFloat(dailyLimit) : null,
+          monthly_limit_usd: monthlyLimit ? parseFloat(monthlyLimit) : null,
+          alert_threshold_pct: parseInt(threshold) || 80,
+          action_on_exceed: action,
+        }),
+      });
+      onSaved();
+    } catch { /* ignore */ }
+    setSaving(false);
+  }
+
+  async function handleDelete(id: number) {
+    setDeleting(id);
+    try {
+      const csrf2 = document.cookie.match(/mc_csrf=([^;]+)/)?.[1] || "";
+      await fetch(`/api/costs/budgets?id=${id}`, { method: "DELETE", credentials: "include", headers: { "x-csrf-token": csrf2 } });
+      onSaved();
+    } catch { /* ignore */ }
+    setDeleting(null);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 top-4 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition">
+          <X className="h-5 w-5" />
+        </button>
+
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">Budget Limits</h2>
+        <p className="text-xs text-[var(--text-tertiary)] mb-5">Set daily or monthly spending caps per agent or tenant.</p>
+
+        {/* Existing budgets */}
+        {existingBudgets.length > 0 && (
+          <div className="mb-5 space-y-2">
+            <h3 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Active Budgets</h3>
+            {existingBudgets.map((b) => (
+              <div key={b.id} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5">
+                <div>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">{b.scope_type}: {b.scope_id}</span>
+                  <div className="flex gap-3 mt-0.5 text-xs text-[var(--text-tertiary)]">
+                    {b.daily_limit_usd != null && <span>Daily: ${Number(b.daily_limit_usd).toFixed(2)}</span>}
+                    {b.monthly_limit_usd != null && <span>Monthly: ${Number(b.monthly_limit_usd).toFixed(2)}</span>}
+                    <span>Alert at {b.alert_threshold_pct}%</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleDelete(b.id)}
+                  disabled={deleting === b.id}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Create new budget */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">New Budget</h3>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-[var(--text-tertiary)]">Scope Type</label>
+              <select
+                value={scopeType}
+                onChange={e => { setScopeType(e.target.value as "agent" | "tenant"); setScopeId(""); }}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]/40"
+              >
+                <option value="agent">Agent</option>
+                <option value="tenant">Tenant</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-[var(--text-tertiary)]">
+                {scopeType === "agent" ? "Agent" : "Tenant ID"}
+              </label>
+              {scopeType === "agent" ? (
+                <select
+                  value={scopeId}
+                  onChange={e => setScopeId(e.target.value)}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]/40"
+                >
+                  <option value="">Select agent...</option>
+                  {agents.map(a => (
+                    <option key={a.agent_id} value={a.agent_id}>{a.agent_name || a.agent_id}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  value={scopeId}
+                  onChange={e => setScopeId(e.target.value)}
+                  placeholder="e.g. transformate"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/40"
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-[var(--text-tertiary)]">Daily Limit (USD)</label>
+              <input
+                type="number" step="0.01" min="0"
+                value={dailyLimit}
+                onChange={e => setDailyLimit(e.target.value)}
+                placeholder="e.g. 5.00"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/40"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-[var(--text-tertiary)]">Monthly Limit (USD)</label>
+              <input
+                type="number" step="0.01" min="0"
+                value={monthlyLimit}
+                onChange={e => setMonthlyLimit(e.target.value)}
+                placeholder="e.g. 50.00"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/40"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-[var(--text-tertiary)]">Alert Threshold (%)</label>
+              <input
+                type="number" min="1" max="100"
+                value={threshold}
+                onChange={e => setThreshold(e.target.value)}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]/40"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-[var(--text-tertiary)]">On Exceed</label>
+              <select
+                value={action}
+                onChange={e => setAction(e.target.value)}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]/40"
+              >
+                <option value="alert">Alert Only</option>
+                <option value="pause">Pause Agent</option>
+                <option value="block">Block Requests</option>
+              </select>
+            </div>
+          </div>
+
+          <button
+            onClick={handleCreate}
+            disabled={saving || !scopeId || (!dailyLimit && !monthlyLimit)}
+            className="mt-1 w-full rounded-xl bg-[var(--accent)] py-2.5 text-sm font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+          >
+            {saving ? "Saving..." : "Create Budget Limit"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

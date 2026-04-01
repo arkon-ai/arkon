@@ -133,7 +133,14 @@ export async function GET(req: NextRequest) {
         cost: parseFloat(r.cost),
         tokens: parseInt(r.tokens),
       })),
-      budgets: budgets.rows,
+      budgets: budgets.rows.map((r: Record<string, unknown>) => ({
+        ...r,
+        daily_limit_usd: r.daily_limit_usd != null ? parseFloat(String(r.daily_limit_usd)) : null,
+        monthly_limit_usd: r.monthly_limit_usd != null ? parseFloat(String(r.monthly_limit_usd)) : null,
+        alert_threshold_pct: parseInt(String(r.alert_threshold_pct)) || 80,
+        today_spend: parseFloat(String(r.today_spend)) || 0,
+        month_spend: parseFloat(String(r.month_spend)) || 0,
+      })),
       last_month_cost: parseFloat(lastMonth.rows[0]?.cost || "0"),
       agent_anomalies: (() => {
         const avgMap: Record<string, number> = {};
