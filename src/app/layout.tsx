@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Toaster } from "sonner";
 import { NotionShell } from "@/components/mission-control/app-shell";
 import { ServiceWorkerRegistration } from "@/components/mission-control/service-worker-registration";
+import { ThemeProvider } from "@/components/mission-control/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -34,7 +35,7 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#0A0A0C" />
@@ -52,6 +53,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-bg-deep text-text antialiased">
+        <ThemeProvider>
         <ServiceWorkerRegistration />
         <Toaster
           position="top-right"
@@ -66,6 +68,7 @@ export default function RootLayout({
         <Suspense fallback={<div className="min-h-screen" style={{ background: "#0A0A0C" }} />}>
           <NotionShell>{children}</NotionShell>
         </Suspense>
+      </ThemeProvider>
       </body>
     </html>
   );

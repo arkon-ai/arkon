@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { PageTransitionWrapper } from "./charts";
 import {
+  AlertTriangle,
   LayoutDashboard,
   Radio,
   Bot,
@@ -54,6 +55,7 @@ import { GlobalShortcuts } from "./global-shortcuts";
 import { HelpPanel } from "./help-panel";
 import { Breadcrumbs } from "../ui/breadcrumbs";
 import { TenantSwitcher } from "./tenant-switcher";
+import { ThemeToggle } from "./theme-toggle";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -87,7 +89,10 @@ const pageLabels: Record<string, string> = {
   "/client/agents": "Client Agents",
   "/client/events": "Client Events",
   "/client/costs": "Client Costs",
+  "/incidents": "Incidents",
   "/settings": "Settings",
+  "/settings/appearance": "Appearance",
+  "/settings/notifications": "Notifications",
   "/help/glossary": "Glossary",
   "/victoryos": "VictoryOS",
 };
@@ -138,6 +143,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
       { href: "/tools/command", label: "Command", subtitle: "Run agent commands", icon: Terminal },
       { href: "/tools/approvals", label: "Approvals", subtitle: "Review pending requests", icon: CheckCircle },
       { href: "/tools/agents-live", label: "Live Agents", subtitle: "Active agent sessions", icon: Activity },
+      { href: "/incidents", label: "Incidents", subtitle: "Track operational incidents", icon: AlertTriangle },
       { href: "/workflows", label: "Workflows", subtitle: "Automate operations", icon: Workflow },
       { href: "/tools/crons", label: "Cron Jobs", subtitle: "Scheduled automations", icon: Clock },
       { href: "/tools/tasks", label: "Tasks", subtitle: "Track action items", icon: ListTodo },
@@ -377,7 +383,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
   };
 
   const sidebar = (
-    <div className="flex h-full flex-col bg-[#080810] text-[#8888A0]">
+    <div className="flex h-full flex-col bg-[var(--bg-primary)] text-[var(--text-secondary)]">
       <div className="flex h-14 items-center border-b border-[#1E1E2A]/50 px-4">
         <div className="flex-1 min-w-0">
           {!sidebarCollapsed && (
@@ -515,14 +521,14 @@ export function NotionShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0C] text-[#E4E4ED]">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <div className="flex min-h-screen">
         <aside className={`hidden shrink-0 border-r border-[#1E1E2A]/50 md:block transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-60"}`}>
           <div className="sticky top-0 h-screen">{sidebar}</div>
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 border-b border-[#1E1E2A]/50 bg-[#0A0A0C]/95 backdrop-blur">
+          <header className="sticky top-0 z-40 border-b border-[#1E1E2A]/50 bg-[var(--bg-primary)]/95 backdrop-blur">
             <div className="flex h-14 items-center justify-between px-4 sm:px-6">
               <div className="flex items-center gap-3">
                 <button
@@ -551,6 +557,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                   </kbd>
                 </button>
                 
+                <ThemeToggle />
                 <TenantSwitcher />
                 <HelpPanel />
                 <NotificationDropdown />
@@ -633,7 +640,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
       {/* MobileKillBar replaced by FloatingKillSwitch */}
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1E1E2A]/50 bg-[#080810]/95 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1E1E2A]/50 bg-[var(--bg-primary)]/95 backdrop-blur md:hidden">
         <div className="mx-auto grid h-[56px] max-w-3xl grid-cols-5 px-2 pb-[max(env(safe-area-inset-bottom),4px)] pt-1">
           {mobileTabs.map((tab) => {
             if (tab.href === "##more##") {

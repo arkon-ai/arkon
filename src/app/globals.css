@@ -451,3 +451,102 @@ h1, h2, h3, h4, h5, h6 {
   0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 126, 0.4); }
   50%      { box-shadow: 0 0 0 8px rgba(0, 212, 126, 0); }
 }
+
+/* ═══════════════════════════════════════
+   Light Mode Overrides
+   Activated by data-theme="light" on <html>
+   200ms crossfade applied by ThemeProvider
+   ═══════════════════════════════════════ */
+
+[data-theme="light"] {
+  /* ── Surfaces ── */
+  --bg-primary: #F5F5F7;
+  --bg-surface: #FFFFFF;
+  --bg-surface-2: #EEEEF0;
+  --bg-hover: rgba(0, 0, 0, 0.03);
+
+  /* ── Borders ── */
+  --border: #D4D4D8;
+  --border-hover: rgba(0, 180, 100, 0.35);
+  --border-strong: #A1A1AA;
+
+  /* ── Brand stays consistent ── */
+  --accent: #00B86E;
+  --accent-hover: #00A060;
+  --accent-dim: #009058;
+  --accent-muted: rgba(0, 184, 110, 0.12);
+  --accent-subtle: rgba(0, 184, 110, 0.06);
+  --accent-foreground: #FFFFFF;
+  --text-link: #00916A;
+
+  /* ── Status — slightly adjusted for light bg contrast ── */
+  --success: #059669;
+  --warning: #D97706;
+  --danger: #DC2626;
+  --info: #0891B2;
+
+  /* ── Text ── */
+  --text-primary: #18181B;
+  --text-secondary: #52525B;
+  --text-tertiary: #A1A1AA;
+
+  /* ── Effects ── */
+  --glow-accent: 0 0 40px rgba(0, 184, 110, 0.1);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Light mode overrides for components using hardcoded colors ── */
+
+[data-theme="light"] body {
+  -webkit-font-smoothing: auto;
+}
+
+[data-theme="light"] ::selection {
+  background: rgba(0, 184, 110, 0.2);
+  color: #18181B;
+}
+
+[data-theme="light"] .glass-card {
+  background: #FFFFFF;
+  border-color: #D4D4D8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+[data-theme="light"] .glass-card:hover {
+  border-color: rgba(0, 180, 100, 0.35);
+}
+
+[data-theme="light"] .card-hover:hover {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 0 16px rgba(0, 184, 110, 0.08);
+}
+
+[data-theme="light"] .skeleton {
+  background: linear-gradient(90deg, #EEEEF0 25%, #E4E4E7 50%, #EEEEF0 75%);
+  background-size: 200% 100%;
+}
+
+[data-theme="light"] .grid-bg {
+  background-image: radial-gradient(circle, rgba(0, 184, 110, 0.06) 1px, transparent 1px);
+}
+
+[data-theme="light"] .glow-cyan,
+[data-theme="light"] .glow-green,
+[data-theme="light"] .glow-accent,
+[data-theme="light"] .glow-purple {
+  box-shadow: 0 0 12px rgba(0, 184, 110, 0.06);
+}
+[data-theme="light"] .glow-amber {
+  box-shadow: 0 0 12px rgba(217, 119, 6, 0.06);
+}
+
+[data-theme="light"] .gradient-text {
+  background: linear-gradient(135deg, #00B86E, #009058);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+[data-theme="light"] .markdown-body h1 {
+  color: #18181B;
+  border-bottom-color: #D4D4D8;
+}
