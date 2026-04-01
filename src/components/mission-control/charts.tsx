@@ -199,7 +199,7 @@ export function Sparkline({
 ───────────────────────────────────────── */
 export function LiveBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,212,126,0.1)] px-2 py-0.5 text-xs font-semibold text-[#00D47E]">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,212,126,0.1)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)]">
       <PulsingDot status="live" />
       LIVE
     </span>
@@ -212,9 +212,9 @@ export function LiveBadge() {
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2 text-xs shadow-lg">
-      <p className="mb-1 text-[#8888A0]">{label}</p>
-      <p className="font-semibold text-[#E4E4ED]">{payload[0].value.toLocaleString()}</p>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 text-[var(--text-secondary)]">{label}</p>
+      <p className="font-semibold text-[var(--text-primary)]">{payload[0].value.toLocaleString()}</p>
     </div>
   );
 }
@@ -318,7 +318,7 @@ export function AgentBarChart({ agents }: { agents: Array<{ name: string; events
 ───────────────────────────────────────── */
 export function SkeletonCard({ lines = 3, height = "h-20" }: { lines?: number; height?: string }) {
   return (
-    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+    <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className="skeleton mb-3 h-4 w-1/3 rounded-lg" />
       <div className={`skeleton ${height} w-full rounded-xl`} />

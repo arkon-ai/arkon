@@ -62,7 +62,7 @@ export function ShellHeader({
         <h1 className={`text-2xl font-bold tracking-tight ${gradient ? "gradient-text" : "text-text"}`} style={{ fontFamily: "var(--font-display)" }}>
           {title}
         </h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-[#8888A0]">{subtitle}</p>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-secondary)]">{subtitle}</p>
       </div>
       {action}
     </header>
@@ -333,48 +333,48 @@ function AlertsBanner() {
 
   if (anomalies.length === 0) {
     return (
-      <div className="flex items-center gap-3 rounded-[16px] border border-[#1E1E2A] bg-[#111118] px-4 py-3">
+      <div className="flex items-center gap-3 rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(0,212,126,0.08)]">
-          <ShieldCheckIcon className="h-4 w-4 text-[#00D47E]" />
+          <ShieldCheckIcon className="h-4 w-4 text-[var(--accent)]" />
         </div>
-        <span className="text-sm text-[#00D47E]">All systems nominal</span>
+        <span className="text-sm text-[var(--accent)]">All systems nominal</span>
       </div>
     );
   }
 
   return (
-    <div className="rounded-[16px] border border-[#f59e0b]/20 bg-[#111118] overflow-hidden">
+    <div className="rounded-[16px] border border-[var(--warning)]/20 bg-[var(--bg-surface)] overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-white/[0.02]"
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(245,158,11,0.08)]">
-          <AlertTriangle className="h-4 w-4 text-[#f59e0b]" />
+          <AlertTriangle className="h-4 w-4 text-[var(--warning)]" />
         </div>
-        <span className="flex-1 text-sm font-medium text-[#E4E4ED]">
+        <span className="flex-1 text-sm font-medium text-[var(--text-primary)]">
           {anomalies.length} active alert{anomalies.length !== 1 ? "s" : ""}
         </span>
-        <ChevronDown className={`h-4 w-4 text-[#555566] transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`} />
+        <ChevronDown className={`h-4 w-4 text-[var(--text-tertiary)] transition-transform duration-200 ${expanded ? "" : "-rotate-90"}`} />
       </button>
       <div className={`overflow-hidden transition-all duration-200 ease-in-out ${expanded ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"}`}>
         <div className="space-y-2 px-4 pb-3">
           {anomalies.map((a) => (
             <div key={a.id} className={`flex items-center justify-between rounded-xl border px-3 py-2.5 ${
-              a.level === "high" ? "border-red-500/30 bg-[rgba(239,68,68,0.06)]" : "border-[#f59e0b]/20 bg-[rgba(245,158,11,0.06)]"
+              a.level === "high" ? "border-red-500/30 bg-[rgba(239,68,68,0.06)]" : "border-[var(--warning)]/20 bg-[rgba(245,158,11,0.06)]"
             }`}>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold ${a.level === "high" ? "text-red-400" : "text-[#f59e0b]"}`}>
+                  <span className={`text-[10px] font-bold ${a.level === "high" ? "text-red-400" : "text-[var(--warning)]"}`}>
                     {a.level.toUpperCase()}
                   </span>
-                  <span className="truncate text-sm text-[#E4E4ED]">{a.agent_name}</span>
-                  <span className="text-xs text-[#8888A0]">{a.anomaly_type.replace("_", " ")}</span>
+                  <span className="truncate text-sm text-[var(--text-primary)]">{a.agent_name}</span>
+                  <span className="text-xs text-[var(--text-secondary)]">{a.anomaly_type.replace("_", " ")}</span>
                 </div>
               </div>
               <button
                 onClick={() => ackAlert(a.id)}
-                className="ml-3 shrink-0 rounded-lg border border-[#1E1E2A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
+                className="ml-3 shrink-0 rounded-lg border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition"
               >
                 Ack
               </button>
@@ -1448,7 +1448,7 @@ export function AnomalyWidget() {
   if (anomalies.length === 0) return (
     <Card>
       <SectionTitle title="BaselineWatch" note="Anomaly Detection" />
-      <div className="flex items-center gap-2 text-sm text-[#00D47E]">
+      <div className="flex items-center gap-2 text-sm text-[var(--accent)]">
         <ShieldCheckIcon className="h-4 w-4" />
         <span>All agents operating within normal parameters</span>
       </div>
@@ -1468,10 +1468,10 @@ export function AnomalyWidget() {
                 <span className={`text-xs font-bold ${a.level === "high" ? "text-red-400" : "text-amber-400"}`}>
                   {a.level.toUpperCase()}
                 </span>
-                <span className="text-sm text-[#E4E4ED]">{a.agent_name}</span>
-                <span className="text-xs text-[#8888A0]">{a.anomaly_type.replace("_", " ")}</span>
+                <span className="text-sm text-[var(--text-primary)]">{a.agent_name}</span>
+                <span className="text-xs text-[var(--text-secondary)]">{a.anomaly_type.replace("_", " ")}</span>
               </div>
-              <div className="mt-0.5 text-xs text-[#8888A0]">
+              <div className="mt-0.5 text-xs text-[var(--text-secondary)]">
                 {a.anomaly_type === "rate_spike"
                   ? `${parseFloat(String(a.multiplier ?? 0)).toFixed(1)}x baseline · ${Math.round(Number(a.current_rate))} vs ${Math.round(Number(a.baseline_rate))} events/hr`
                   : a.anomaly_type === "rate_silence" ? "Agent went silent (below 10% of baseline)" : a.anomaly_type}
@@ -1479,7 +1479,7 @@ export function AnomalyWidget() {
             </div>
             <button
               onClick={() => ackAlert(a.id)}
-              className="ml-3 shrink-0 rounded-lg border border-[#1E1E2A] px-2.5 py-1 text-xs text-[#8888A0] hover:text-[#00D47E] transition btn-press"
+              className="ml-3 shrink-0 rounded-lg border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition btn-press"
             >
               Ack
             </button>

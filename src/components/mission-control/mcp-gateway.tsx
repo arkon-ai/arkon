@@ -98,7 +98,7 @@ export function McpGateway() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white">MCP Gateway</h1>
-          <p className="text-sm text-slate-500">Proxy traffic between AI clients and MCP servers</p>
+          <p className="text-sm text-[var(--text-tertiary)]">Proxy traffic between AI clients and MCP servers</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -107,13 +107,13 @@ export function McpGateway() {
           >
             Export Config
           </button>
-          <div className="flex gap-1 rounded-xl bg-[#0a0a14] border border-[#1E1E2A] p-1">
+          <div className="flex gap-1 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] p-1">
             {ranges.map((r) => (
               <button
                 key={r.value}
                 onClick={() => setRange(r.value)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                  range === r.value ? "bg-cyan-500/20 text-cyan-400" : "text-slate-400 hover:text-white"
+                  range === r.value ? "bg-cyan-500/20 text-cyan-400" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 {r.label}
@@ -136,19 +136,19 @@ export function McpGateway() {
 
       {/* By server */}
       {stats && stats.by_server.length > 0 ? (
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Traffic by Server</h2>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Traffic by Server</h2>
           <div className="space-y-2">
             {stats.by_server.map((s) => (
-              <div key={s.server_id} className="flex items-center justify-between rounded-xl bg-[#0A0A0C] px-4 py-3">
+              <div key={s.server_id} className="flex items-center justify-between rounded-xl bg-[var(--bg-primary)] px-4 py-3">
                 <div>
                   <p className="text-sm font-medium text-white">{s.server_name || `Server #${s.server_id}`}</p>
-                  <p className="text-xs text-slate-500">{s.avg_ms}ms avg &middot; {parseInt(s.errors)} errors</p>
+                  <p className="text-xs text-[var(--text-tertiary)]">{s.avg_ms}ms avg &middot; {parseInt(s.errors)} errors</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-cyan-400">{parseInt(s.requests).toLocaleString()}</p>
-                  <p className="text-xs text-slate-500">requests</p>
+                  <p className="text-xs text-[var(--text-tertiary)]">requests</p>
                 </div>
               </div>
             ))}
@@ -158,14 +158,14 @@ export function McpGateway() {
 
       {/* By method */}
       {stats && stats.by_method.length > 0 ? (
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">MCP Methods</h2>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">MCP Methods</h2>
           <div className="flex flex-wrap gap-2">
             {stats.by_method.map((m) => (
-              <div key={m.mcp_method} className="rounded-lg border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2">
+              <div key={m.mcp_method} className="rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2">
                 <p className="text-xs font-mono text-purple-400">{m.mcp_method}</p>
-                <p className="text-xs text-slate-500">{parseInt(m.count)} calls &middot; {m.avg_ms}ms</p>
+                <p className="text-xs text-[var(--text-tertiary)]">{parseInt(m.count)} calls &middot; {m.avg_ms}ms</p>
               </div>
             ))}
           </div>
@@ -174,7 +174,7 @@ export function McpGateway() {
 
       {/* Recent errors */}
       {stats && stats.recent_errors.length > 0 ? (
-        <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[var(--bg-primary)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-red-400">Recent Errors</h2>
           <div className="space-y-2">
@@ -182,7 +182,7 @@ export function McpGateway() {
               <div key={i} className="rounded-xl bg-red-500/5 border border-red-500/10 px-4 py-3">
                 <div className="flex justify-between">
                   <p className="text-sm text-white">{e.server_name} &middot; <span className="text-red-400">{e.status}</span></p>
-                  <p className="text-xs text-slate-500">{new Date(e.created_at).toLocaleString()}</p>
+                  <p className="text-xs text-[var(--text-tertiary)]">{new Date(e.created_at).toLocaleString()}</p>
                 </div>
                 {e.error ? <p className="mt-1 text-xs text-red-300/70 truncate">{e.error}</p> : null}
               </div>
@@ -193,11 +193,11 @@ export function McpGateway() {
 
       {/* Empty state */}
       {!loading && stats && stats.summary.total_requests === 0 ? (
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-8 text-center">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-8 text-center">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-4xl mb-3">{"🔌"}</p>
           <p className="text-white font-semibold">No proxy traffic yet</p>
-          <p className="mt-2 text-sm text-slate-500">Enable gateway mode on MCP servers, then configure AI clients to route through the proxy.</p>
+          <p className="mt-2 text-sm text-[var(--text-tertiary)]">Enable gateway mode on MCP servers, then configure AI clients to route through the proxy.</p>
           <button
             onClick={loadConfig}
             className="mt-4 rounded-lg bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-400 hover:bg-cyan-500/30 transition"
@@ -210,14 +210,14 @@ export function McpGateway() {
       {/* Config modal */}
       {showConfig && config ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-xl rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-6">
+          <div className="mx-4 w-full max-w-xl rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-white">Gateway Config</h3>
-              <button onClick={() => setShowConfig(false)} className="text-slate-500 hover:text-white text-xl">&times;</button>
+              <button onClick={() => setShowConfig(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-xl">&times;</button>
             </div>
-            <p className="text-sm text-slate-400 mb-3">{config.instructions}</p>
-            <p className="text-xs text-slate-500 mb-2">{config.servers_count} server(s) via {config.gateway}</p>
-            <pre className="rounded-xl bg-[#0A0A0C] border border-[#1E1E2A] p-4 text-xs text-slate-300 overflow-auto max-h-64 font-mono">
+            <p className="text-sm text-[var(--text-secondary)] mb-3">{config.instructions}</p>
+            <p className="text-xs text-[var(--text-tertiary)] mb-2">{config.servers_count} server(s) via {config.gateway}</p>
+            <pre className="rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] p-4 text-xs text-[var(--text-primary)] overflow-auto max-h-64 font-mono">
               {JSON.stringify(config.config, null, 2)}
             </pre>
             <div className="mt-4 flex gap-2 justify-end">
@@ -229,7 +229,7 @@ export function McpGateway() {
               </button>
               <button
                 onClick={() => setShowConfig(false)}
-                className="rounded-lg bg-white/5 px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition"
+                className="rounded-lg bg-white/5 px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
               >
                 Close
               </button>
@@ -244,12 +244,12 @@ export function McpGateway() {
 function StatCard({ label, value, accent }: { label: string; value: string | number; accent: string }) {
   const colors: Record<string, string> = {
     cyan: "text-cyan-400", emerald: "text-emerald-400", amber: "text-amber-400",
-    purple: "text-purple-400", red: "text-red-400", slate: "text-slate-400",
+    purple: "text-purple-400", red: "text-red-400", slate: "text-[var(--text-secondary)]",
   };
   return (
-    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-3">
+    <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{label}</p>
       <p className={`mt-1 text-lg font-bold ${colors[accent] || colors.cyan}`}>{typeof value === "number" ? value.toLocaleString() : value}</p>
     </div>
   );

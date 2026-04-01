@@ -213,7 +213,7 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#050505] px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center bg-[var(--bg-primary)] px-4 py-12">
       {/* Background effects */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -234,8 +234,8 @@ export default function SetupPage() {
       <div className="relative z-10 w-full max-w-lg">
         {/* Logo + progress */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[16px] border border-[#1E1E2A] bg-[#111118]">
-            <span className="text-2xl font-bold text-[#00D47E]">A</span>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)]">
+            <span className="text-2xl font-bold text-[var(--accent)]">A</span>
           </div>
           <h1 className="text-2xl font-bold text-white">
             {step === 1 && "Welcome to Arkon"}
@@ -244,7 +244,7 @@ export default function SetupPage() {
             {step === 4 && "Send Your First Event"}
             {step === 5 && "You're All Set!"}
           </h1>
-          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[#555566]">
+          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
             AI Control Plane
           </p>
         </div>
@@ -256,19 +256,19 @@ export default function SetupPage() {
               <div
                 className={`h-1 rounded-full transition-all duration-300 ${
                   i + 1 <= step
-                    ? "bg-[#00D47E]"
-                    : "bg-[#1E1E2A]"
+                    ? "bg-[var(--accent)]"
+                    : "bg-[var(--bg-surface-2)]"
                 }`}
               />
             </div>
           ))}
-          <span className="ml-2 text-xs text-[#555566]">
+          <span className="ml-2 text-xs text-[var(--text-tertiary)]">
             {step}/{TOTAL_STEPS}
           </span>
         </div>
 
         {/* Step content */}
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-6">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           {error && (
             <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
@@ -279,11 +279,11 @@ export default function SetupPage() {
           {/* ── Step 1: Account ────────────────────────────────────────── */}
           {step === 1 && (
             <div className="space-y-4">
-              <p className="text-sm leading-6 text-[#8888A0]">
+              <p className="text-sm leading-6 text-[var(--text-secondary)]">
                 Let&apos;s get your control plane running in a few minutes.
               </p>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#8888A0]">
+                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Organization Name
                 </label>
                 <input
@@ -292,11 +292,11 @@ export default function SetupPage() {
                   onChange={(e) => setOrgName(e.target.value)}
                   placeholder="e.g. Acme AI Labs"
                   autoFocus
-                  className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#8888A0]">
+                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Admin Email
                 </label>
                 <input
@@ -304,11 +304,11 @@ export default function SetupPage() {
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#8888A0]">
+                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Admin Password
                 </label>
                 <input
@@ -316,11 +316,11 @@ export default function SetupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Choose a strong password"
-                  className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#8888A0]">
+                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Confirm Password
                 </label>
                 <input
@@ -328,14 +328,14 @@ export default function SetupPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleStep1}
                 disabled={loading || !orgName.trim() || !adminEmail.trim()}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#05c090] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-dim)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -352,11 +352,11 @@ export default function SetupPage() {
           {/* ── Step 2: Register Agent ─────────────────────────────────── */}
           {step === 2 && (
             <div className="space-y-4">
-              <p className="text-sm leading-6 text-[#8888A0]">
+              <p className="text-sm leading-6 text-[var(--text-secondary)]">
                 Register your first AI agent to start monitoring.
               </p>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#8888A0]">
+                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Agent Name
                 </label>
                 <input
@@ -365,23 +365,23 @@ export default function SetupPage() {
                   onChange={(e) => setAgentName(e.target.value)}
                   placeholder="e.g. Lumina, Atlas, My Assistant"
                   autoFocus
-                  className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#8888A0]">
-                  Description <span className="text-[#555566]">(optional)</span>
+                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+                  Description <span className="text-[var(--text-tertiary)]">(optional)</span>
                 </label>
                 <input
                   type="text"
                   value={agentDescription}
                   onChange={(e) => setAgentDescription(e.target.value)}
                   placeholder="What does this agent do?"
-                  className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-4 py-3 text-white placeholder:text-[#555566] focus:border-[#00D47E]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[#00D47E]/50 transition"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#8888A0]">
+                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Framework
                 </label>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -392,8 +392,8 @@ export default function SetupPage() {
                       onClick={() => setFramework(fw.value)}
                       className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
                         framework === fw.value
-                          ? "border-[#00D47E]/50 bg-[#00D47E]/10 text-[#00D47E]"
-                          : "border-[#1E1E2A] bg-[#0A0A0C] text-[#8888A0] hover:border-[#3E3E4A]"
+                          ? "border-[var(--accent)]/50 bg-[var(--accent)]/10 text-[var(--accent)]"
+                          : "border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"
                       }`}
                     >
                       {fw.label}
@@ -405,7 +405,7 @@ export default function SetupPage() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="flex items-center gap-1 rounded-xl border border-[#1E1E2A] px-4 py-3 text-sm text-[#8888A0] transition hover:bg-white/[0.03]"
+                  className="flex items-center gap-1 rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-[var(--text-secondary)] transition hover:bg-white/[0.03]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
@@ -414,7 +414,7 @@ export default function SetupPage() {
                   type="button"
                   onClick={handleStep2}
                   disabled={loading || !agentName.trim()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#05c090] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-dim)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -437,33 +437,33 @@ export default function SetupPage() {
             <div className="space-y-4">
               {eventReceived ? (
                 <div className="flex flex-col items-center py-4">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#00D47E]/10">
-                    <PartyPopper className="h-8 w-8 text-[#00D47E]" />
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent)]/10">
+                    <PartyPopper className="h-8 w-8 text-[var(--accent)]" />
                   </div>
                   <h3 className="text-lg font-bold text-white">Event Received!</h3>
-                  <p className="mt-2 text-center text-sm text-[#8888A0]">
+                  <p className="mt-2 text-center text-sm text-[var(--text-secondary)]">
                     Your agent is connected and sending events to Arkon.
                   </p>
                   <ConfettiEffect />
                 </div>
               ) : listening ? (
                 <div className="flex flex-col items-center py-6">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#00D47E]/30">
-                    <Zap className="h-8 w-8 animate-pulse text-[#00D47E]" />
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[var(--accent)]/30">
+                    <Zap className="h-8 w-8 animate-pulse text-[var(--accent)]" />
                   </div>
                   <h3 className="text-base font-semibold text-white">
                     Listening for your first event...
                   </h3>
-                  <p className="mt-2 text-center text-sm text-[#8888A0]">
+                  <p className="mt-2 text-center text-sm text-[var(--text-secondary)]">
                     Send an event from your agent, or use the test button below.
                   </p>
-                  <div className="mt-4 flex h-1 w-48 overflow-hidden rounded-full bg-[#1E1E2A]">
-                    <div className="animate-[shimmer_2s_ease-in-out_infinite] h-full w-1/3 rounded-full bg-[#00D47E]/60" />
+                  <div className="mt-4 flex h-1 w-48 overflow-hidden rounded-full bg-[var(--bg-surface-2)]">
+                    <div className="animate-[shimmer_2s_ease-in-out_infinite] h-full w-1/3 rounded-full bg-[var(--accent)]/60" />
                   </div>
                 </div>
               ) : (
                 <div className="text-center">
-                  <p className="text-sm leading-6 text-[#8888A0]">
+                  <p className="text-sm leading-6 text-[var(--text-secondary)]">
                     Let&apos;s verify the connection. Click &quot;Start Listening&quot; then send
                     an event from your agent — or use the test button.
                   </p>
@@ -475,7 +475,7 @@ export default function SetupPage() {
                   <button
                     type="button"
                     onClick={startListening}
-                    className="flex items-center gap-2 rounded-xl bg-[#00D47E] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#7c4ddb] active:scale-[0.98]"
+                    className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)] active:scale-[0.98]"
                   >
                     <Zap className="h-4 w-4" />
                     Start Listening
@@ -488,7 +488,7 @@ export default function SetupPage() {
                       if (!listening) startListening();
                       sendTestEvent();
                     }}
-                    className="flex items-center gap-2 rounded-xl border border-[#1E1E2A] px-4 py-2.5 text-sm font-medium text-[#8888A0] transition hover:bg-white/[0.03]"
+                    className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition hover:bg-white/[0.03]"
                   >
                     <Sparkles className="h-4 w-4" />
                     Send Test Event
@@ -497,7 +497,7 @@ export default function SetupPage() {
               </div>
 
               {!listening && !eventReceived && (
-                <p className="text-center text-xs text-[#555566]">
+                <p className="text-center text-xs text-[var(--text-tertiary)]">
                   Haven&apos;t received an event? Check your agent configuration and try again.
                 </p>
               )}
@@ -506,7 +506,7 @@ export default function SetupPage() {
                 <button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="flex items-center gap-1 rounded-xl border border-[#1E1E2A] px-4 py-3 text-sm text-[#8888A0] transition hover:bg-white/[0.03]"
+                  className="flex items-center gap-1 rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-[var(--text-secondary)] transition hover:bg-white/[0.03]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
@@ -516,8 +516,8 @@ export default function SetupPage() {
                   onClick={() => setStep(5)}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold transition active:scale-[0.98] ${
                     eventReceived
-                      ? "bg-[#00D47E] text-[#0A0A0C] hover:bg-[#05c090]"
-                      : "border border-[#1E1E2A] text-[#8888A0] hover:bg-white/[0.03]"
+                      ? "bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--accent-dim)]"
+                      : "border border-[var(--border)] text-[var(--text-secondary)] hover:bg-white/[0.03]"
                   }`}
                 >
                   {eventReceived ? "Continue" : "Skip for now"}
@@ -530,7 +530,7 @@ export default function SetupPage() {
           {/* ── Step 5: What's Next ────────────────────────────────────── */}
           {step === 5 && (
             <div className="space-y-5">
-              <p className="text-sm leading-6 text-[#8888A0]">
+              <p className="text-sm leading-6 text-[var(--text-secondary)]">
                 Your control plane is ready. Here&apos;s what to explore:
               </p>
 
@@ -577,7 +577,7 @@ export default function SetupPage() {
                 <button
                   type="button"
                   onClick={() => setStep(4)}
-                  className="flex items-center gap-1 rounded-xl border border-[#1E1E2A] px-4 py-3 text-sm text-[#8888A0] transition hover:bg-white/[0.03]"
+                  className="flex items-center gap-1 rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-[var(--text-secondary)] transition hover:bg-white/[0.03]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
@@ -586,7 +586,7 @@ export default function SetupPage() {
                   type="button"
                   onClick={handleFinish}
                   disabled={loading}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#05c090] active:scale-[0.98] disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-dim)] active:scale-[0.98] disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -602,7 +602,7 @@ export default function SetupPage() {
           )}
         </div>
 
-        <p className="mt-6 text-center text-xs text-[#555566]">
+        <p className="mt-6 text-center text-xs text-[var(--text-tertiary)]">
           Powered by Arkon
         </p>
       </div>
@@ -686,19 +686,19 @@ telemetry:
 
   return (
     <div className="space-y-4">
-      <p className="text-sm leading-6 text-[#8888A0]">
+      <p className="text-sm leading-6 text-[var(--text-secondary)]">
         Connect your agent to Arkon. Choose your integration method:
       </p>
 
       {/* Token display */}
-      <div className="relative card-hover rounded-xl border border-[#00D47E]/20 bg-[#00D47E]/5 p-3">
+      <div className="relative card-hover rounded-xl border border-[var(--accent)]/20 bg-[var(--accent)]/5 p-3">
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-xs font-medium text-[#00D47E]">Your API Token</span>
+          <span className="text-xs font-medium text-[var(--accent)]">Your API Token</span>
           <CopyButton text={agentToken} />
         </div>
-        <code className="block break-all text-xs text-[#8888A0]">{agentToken}</code>
-        <p className="mt-1.5 text-[10px] text-[#555566]">
+        <code className="block break-all text-xs text-[var(--text-secondary)]">{agentToken}</code>
+        <p className="mt-1.5 text-[10px] text-[var(--text-tertiary)]">
           Save this token — you won&apos;t see it again after leaving this page.
         </p>
       </div>
@@ -712,8 +712,8 @@ telemetry:
             onClick={() => setTab(key as typeof tab)}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
               tab === key
-                ? "bg-[#00D47E]/10 text-[#00D47E]"
-                : "text-[#555566] hover:text-[#8888A0]"
+                ? "bg-[var(--accent)]/10 text-[var(--accent)]"
+                : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
             }`}
           >
             {snippets[key].label}
@@ -722,12 +722,12 @@ telemetry:
       </div>
 
       {/* Code block */}
-      <div className="relative card-hover rounded-xl border border-[#1E1E2A] bg-[#0A0A0C]">
+      <div className="relative card-hover rounded-xl border border-[var(--border)] bg-[var(--bg-primary)]">
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="absolute right-2 top-2">
           <CopyButton text={snippets[tab].code} />
         </div>
-        <pre className="overflow-x-auto p-4 text-xs leading-relaxed text-[#8888A0]">
+        <pre className="overflow-x-auto p-4 text-xs leading-relaxed text-[var(--text-secondary)]">
           <code>{snippets[tab].code}</code>
         </pre>
       </div>
@@ -736,7 +736,7 @@ telemetry:
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1 rounded-xl border border-[#1E1E2A] px-4 py-3 text-sm text-[#8888A0] transition hover:bg-white/[0.03]"
+          className="flex items-center gap-1 rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-[var(--text-secondary)] transition hover:bg-white/[0.03]"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -744,7 +744,7 @@ telemetry:
         <button
           type="button"
           onClick={onNext}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#05c090] active:scale-[0.98]"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-dim)] active:scale-[0.98]"
         >
           Continue
           <ArrowRight className="h-4 w-4" />
@@ -754,7 +754,7 @@ telemetry:
       <button
         type="button"
         onClick={onNext}
-        className="w-full text-center text-xs text-[#555566] transition hover:text-[#8888A0]"
+        className="w-full text-center text-xs text-[var(--text-tertiary)] transition hover:text-[var(--text-secondary)]"
       >
         Skip this step — I&apos;ll set up later
       </button>
@@ -778,12 +778,12 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] text-[#555566] transition hover:bg-white/[0.05] hover:text-[#8888A0]"
+      className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] text-[var(--text-tertiary)] transition hover:bg-white/[0.05] hover:text-[var(--text-secondary)]"
     >
       {copied ? (
         <>
-          <Check className="h-3 w-3 text-[#00D47E]" />
-          <span className="text-[#00D47E]">Copied</span>
+          <Check className="h-3 w-3 text-[var(--accent)]" />
+          <span className="text-[var(--accent)]">Copied</span>
         </>
       ) : (
         <>
@@ -809,13 +809,13 @@ function FeatureCard({
   return (
     <a
       href={href}
-      className="relative card-hover flex flex-col gap-2 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3 transition hover:border-[#3E3E4A] hover:bg-[#0a0a18]"
+      className="relative card-hover flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3 transition hover:border-[var(--border-strong)] hover:bg-[var(--bg-primary)]"
     >
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-      <Icon className="h-5 w-5 text-[#00D47E]" />
+      <Icon className="h-5 w-5 text-[var(--accent)]" />
       <div>
         <p className="text-sm font-semibold text-white">{title}</p>
-        <p className="text-[11px] leading-4 text-[#555566]">{description}</p>
+        <p className="text-[11px] leading-4 text-[var(--text-tertiary)]">{description}</p>
       </div>
     </a>
   );

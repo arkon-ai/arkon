@@ -97,7 +97,7 @@ export function FloatingKillSwitch() {
       >
         {/* Expanded panel */}
         {expanded && (
-          <div className="mb-3 w-[340px] overflow-hidden rounded-2xl border border-red-500/30 bg-[#111118] shadow-[0_20px_60px_rgba(220,38,38,0.2)]">
+          <div className="mb-3 w-[340px] overflow-hidden rounded-2xl border border-red-500/30 bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(220,38,38,0.2)]">
             {/* Panel header */}
             <div className="flex items-center justify-between border-b border-red-500/20 px-4 py-3">
               <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export function FloatingKillSwitch() {
               <button
                 type="button"
                 onClick={() => setExpanded(false)}
-                className="flex h-6 w-6 items-center justify-center rounded-lg text-[#555566] transition hover:bg-white/[0.05] hover:text-[#8888A0]"
+                className="flex h-6 w-6 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition hover:bg-white/[0.05] hover:text-[var(--text-secondary)]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -125,14 +125,14 @@ export function FloatingKillSwitch() {
             {mainAgents.length > 0 && (
               <>
                 <div className="px-4 pt-2.5 pb-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
                     Live Agents
                   </span>
                 </div>
                 {mainAgents.map((run) => (
                   <div
                     key={run.run_id}
-                    className="border-b border-[#1E1E2A]/50 px-4 py-3 transition hover:bg-white/[0.02]"
+                    className="border-b border-[var(--border)]/50 px-4 py-3 transition hover:bg-white/[0.02]"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
@@ -141,19 +141,19 @@ export function FloatingKillSwitch() {
                           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                           <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                         </div>
-                        <span className="truncate text-[13px] font-semibold text-[#E4E4ED]">
+                        <span className="truncate text-[13px] font-semibold text-[var(--text-primary)]">
                           {run.agent_name}
                         </span>
                         <span className="shrink-0 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-400">
                           Live
                         </span>
                       </div>
-                      <span className="shrink-0 text-[11px] text-[#8888A0]">
+                      <span className="shrink-0 text-[11px] text-[var(--text-secondary)]">
                         {formatLastSeen(run.started_at)}
                       </span>
                     </div>
 
-                    <p className="mt-1 truncate text-[11px] text-[#555566]">
+                    <p className="mt-1 truncate text-[11px] text-[var(--text-tertiary)]">
                       {run.model ? `${run.model} · ` : ""}{run.current_action}
                     </p>
 
@@ -177,14 +177,14 @@ export function FloatingKillSwitch() {
             {subRuns.length > 0 && (
               <>
                 <div className="px-4 pt-2.5 pb-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
                     Sub-Agent Runs
                   </span>
                 </div>
                 {subRuns.map((run) => (
                   <div
                     key={run.run_id}
-                    className="border-b border-[#1E1E2A]/50 px-4 py-3 transition hover:bg-white/[0.02]"
+                    className="border-b border-[var(--border)]/50 px-4 py-3 transition hover:bg-white/[0.02]"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
@@ -193,7 +193,7 @@ export function FloatingKillSwitch() {
                             run.status === "running" ? "bg-red-500" : "bg-amber-500"
                           }`}
                         />
-                        <span className="truncate text-[13px] font-semibold text-[#E4E4ED]">
+                        <span className="truncate text-[13px] font-semibold text-[var(--text-primary)]">
                           {run.agent_name}
                         </span>
                         {run.status === "paused" && (
@@ -207,7 +207,7 @@ export function FloatingKillSwitch() {
                       </span>
                     </div>
 
-                    <p className="mt-1 truncate text-[11px] text-[#555566]">
+                    <p className="mt-1 truncate text-[11px] text-[var(--text-tertiary)]">
                       {run.current_action}
                     </p>
 
@@ -262,9 +262,9 @@ export function FloatingKillSwitch() {
             )}
 
             {/* Keyboard hint */}
-            <div className="border-t border-[#1E1E2A]/50 px-4 py-2 text-center">
-              <span className="text-[10px] text-[#555566]">
-                <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px] font-medium">
+            <div className="border-t border-[var(--border)]/50 px-4 py-2 text-center">
+              <span className="text-[10px] text-[var(--text-tertiary)]">
+                <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px] font-medium">
                   Ctrl+Shift+K
                 </kbd>{" "}
                 quick kill
@@ -298,7 +298,7 @@ export function FloatingKillSwitch() {
 
         {/* Status summary below FAB (collapsed state only) */}
         {!expanded && (
-          <div className="mt-1.5 rounded-lg bg-[#111118]/90 border border-red-500/20 px-2.5 py-1 backdrop-blur">
+          <div className="mt-1.5 rounded-lg bg-[var(--bg-surface)]/90 border border-red-500/20 px-2.5 py-1 backdrop-blur">
             <p className="text-center text-[10px] font-medium text-red-300/80">
               {mainAgents.length > 0 && `${mainAgents.length} live`}
               {mainAgents.length > 0 && subRuns.length > 0 && " · "}

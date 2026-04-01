@@ -39,7 +39,7 @@ export default function RootLayout({
             style: { background: "#111118", border: "1px solid #1E1E2A", color: "#E4E4ED" },
           }}
         />
-        <Suspense fallback={<div className="min-h-screen bg-[#0A0A0C]" />}><NotionShell>{children}</NotionShell></Suspense>
+        <Suspense fallback={<div className="min-h-screen bg-[var(--bg-primary)]" />}><NotionShell>{children}</NotionShell></Suspense>
       </body>
     </html>
   );

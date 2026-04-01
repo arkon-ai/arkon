@@ -24,8 +24,8 @@ function TrendTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2 text-xs shadow-lg">
-      <p className="mb-1 text-[#8888A0]">{label}</p>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 text-[var(--text-secondary)]">{label}</p>
       {payload.map((p) => (
         <p key={p.name} className="font-semibold" style={{ color: p.color }}>
           {p.name}: {p.value.toLocaleString()}

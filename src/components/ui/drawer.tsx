@@ -79,13 +79,13 @@ export function Drawer({
               mass: 1,
             }}
             style={{ width }}
-            className="fixed right-0 top-0 z-[91] flex h-full flex-col border-l border-[#1E1E2A] bg-[#0A0A0C] shadow-[-20px_0_60px_rgba(0,0,0,0.5)]"
+            className="fixed right-0 top-0 z-[91] flex h-full flex-col border-l border-[var(--border)] bg-[var(--bg-primary)] shadow-[-20px_0_60px_rgba(0,0,0,0.5)]"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#1E1E2A]/50 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-5 py-4">
               {title ? (
                 <h2
-                  className="text-lg font-bold text-[#E4E4ED]"
+                  className="text-lg font-bold text-[var(--text-primary)]"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {title}
@@ -96,7 +96,7 @@ export function Drawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#555566] transition hover:bg-white/[0.04] hover:text-[#E4E4ED]"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition hover:bg-white/[0.04] hover:text-[var(--text-primary)]"
                 aria-label="Close drawer"
               >
                 <X className="h-4 w-4" />
@@ -108,7 +108,7 @@ export function Drawer({
 
             {/* Footer */}
             {footer ? (
-              <div className="border-t border-[#1E1E2A]/50 px-5 py-3">
+              <div className="border-t border-[var(--border)]/50 px-5 py-3">
                 {footer}
               </div>
             ) : null}

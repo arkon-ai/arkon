@@ -253,7 +253,7 @@ export default function NotificationPreferencesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#8888A0]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-secondary)]" />
       </div>
     );
   }
@@ -267,19 +267,19 @@ export default function NotificationPreferencesPage() {
       </SectionDescription>
 
       {/* In-app always on */}
-      <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a1a] p-5">
+      <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-5">
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00D47E]/10">
-            <Bell className="h-5 w-5 text-[#00D47E]" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)]/10">
+            <Bell className="h-5 w-5 text-[var(--accent)]" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-[#E4E4ED]">In-App Notifications</h3>
-            <p className="text-[12px] text-[#8888A0]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">In-App Notifications</h3>
+            <p className="text-[12px] text-[var(--text-secondary)]">
               Always active. Click the bell icon in the top nav to view.
             </p>
           </div>
-          <span className="rounded-full bg-[#00D47E]/10 px-3 py-1 text-[11px] font-semibold text-[#00D47E]">
+          <span className="rounded-full bg-[var(--accent)]/10 px-3 py-1 text-[11px] font-semibold text-[var(--accent)]">
             Always On
           </span>
         </div>
@@ -296,8 +296,8 @@ export default function NotificationPreferencesPage() {
             key={ch.key}
             className={`relative card-hover rounded-2xl border transition ${
               state.enabled
-                ? "border-[#00D47E]/30 bg-[#0a0a1a]"
-                : "border-[#1E1E2A] bg-[#0a0a1a]"
+                ? "border-[var(--accent)]/30 bg-[var(--bg-primary)]"
+                : "border-[var(--border)] bg-[var(--bg-primary)]"
             }`}
           >
             <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
@@ -308,26 +308,26 @@ export default function NotificationPreferencesPage() {
               className="flex w-full items-center gap-3 p-5 text-left"
             >
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                state.enabled ? "bg-[#00D47E]/10" : "bg-white/[0.03]"
+                state.enabled ? "bg-[var(--accent)]/10" : "bg-white/[0.03]"
               }`}>
-                <Icon className={`h-5 w-5 ${state.enabled ? "text-[#00D47E]" : "text-[#8888A0]"}`} />
+                <Icon className={`h-5 w-5 ${state.enabled ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"}`} />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-[#E4E4ED]">{ch.label}</h3>
-                <p className="text-[12px] text-[#8888A0]">{ch.description}</p>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">{ch.label}</h3>
+                <p className="text-[12px] text-[var(--text-secondary)]">{ch.description}</p>
               </div>
               <div className="flex items-center gap-2">
                 {state.enabled ? (
-                  <span className="rounded-full bg-[#00D47E]/10 px-2 py-0.5 text-[10px] font-semibold text-[#00D47E]">
+                  <span className="rounded-full bg-[var(--accent)]/10 px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
                     Active
                   </span>
                 ) : (
-                  <span className="rounded-full bg-white/[0.03] px-2 py-0.5 text-[10px] font-semibold text-[#555566]">
+                  <span className="rounded-full bg-white/[0.03] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-tertiary)]">
                     Off
                   </span>
                 )}
                 <svg
-                  className={`h-4 w-4 text-[#555566] transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                  className={`h-4 w-4 text-[var(--text-tertiary)] transition-transform ${isExpanded ? "rotate-180" : ""}`}
                   fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -337,15 +337,15 @@ export default function NotificationPreferencesPage() {
 
             {/* Expanded config */}
             {isExpanded ? (
-              <div className="border-t border-[#1E1E2A]/50 px-5 pb-5 pt-4 space-y-4">
+              <div className="border-t border-[var(--border)]/50 px-5 pb-5 pt-4 space-y-4">
                 {/* Enable toggle */}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#8888A0]">Enable {ch.label}</span>
+                  <span className="text-sm text-[var(--text-secondary)]">Enable {ch.label}</span>
                   <button
                     type="button"
                     onClick={() => toggleChannelEnabled(ch.key)}
                     className={`relative h-6 w-11 rounded-full transition ${
-                      state.enabled ? "bg-[#00D47E]" : "bg-[#1E1E2A]"
+                      state.enabled ? "bg-[var(--accent)]" : "bg-[var(--bg-surface-2)]"
                     }`}
                   >
                     <span
@@ -359,7 +359,7 @@ export default function NotificationPreferencesPage() {
                 {/* Config fields */}
                 {ch.fields.map((field) => (
                   <div key={field.key}>
-                    <label className="block text-[12px] font-medium text-[#8888A0] mb-1">
+                    <label className="block text-[12px] font-medium text-[var(--text-secondary)] mb-1">
                       {field.label}
                     </label>
                     <input
@@ -367,30 +367,30 @@ export default function NotificationPreferencesPage() {
                       placeholder={field.placeholder}
                       value={(state.config[field.key] as string) ?? ""}
                       onChange={(e) => updateChannelConfig(ch.key, field.key, e.target.value)}
-                      className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2 text-sm text-[#E4E4ED] placeholder-[#555566] transition focus:border-[#00D47E]/50 focus:outline-none"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[#555566] transition focus:border-[var(--accent)]/50 focus:outline-none"
                     />
                     {field.help ? (
-                      <p className="mt-1 text-[11px] text-[#555566]">{field.help}</p>
+                      <p className="mt-1 text-[11px] text-[var(--text-tertiary)]">{field.help}</p>
                     ) : null}
                   </div>
                 ))}
 
                 {/* Notification type toggles */}
                 <div>
-                  <p className="text-[12px] font-medium text-[#8888A0] mb-2">
+                  <p className="text-[12px] font-medium text-[var(--text-secondary)] mb-2">
                     Notification Types
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {NOTIFICATION_TYPES.map((nt) => (
                       <label
                         key={nt.key}
-                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] text-[#8888A0] hover:bg-white/[0.02] cursor-pointer transition"
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] text-[var(--text-secondary)] hover:bg-white/[0.02] cursor-pointer transition"
                       >
                         <input
                           type="checkbox"
                           checked={isTypeEnabled(ch.key, nt.key)}
                           onChange={() => toggleNotificationType(ch.key, nt.key)}
-                          className="h-3.5 w-3.5 rounded border-[#1E1E2A] bg-[#0A0A0C] text-[#00D47E] focus:ring-[#00D47E]/50"
+                          className="h-3.5 w-3.5 rounded border-[var(--border)] bg-[var(--bg-primary)] text-[var(--accent)] focus:ring-[#00D47E]/50"
                         />
                         <span>{nt.label}</span>
                       </label>
@@ -404,7 +404,7 @@ export default function NotificationPreferencesPage() {
                     type="button"
                     onClick={() => void saveChannel(ch.key)}
                     disabled={saving === ch.key}
-                    className="flex items-center gap-1.5 rounded-xl bg-[#00D47E] px-4 py-2 text-[13px] font-semibold text-[#0A0A0C] transition hover:bg-[#00D47E]/90 disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-[13px] font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent)]/90 disabled:opacity-50"
                   >
                     {saving === ch.key ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -415,7 +415,7 @@ export default function NotificationPreferencesPage() {
                     type="button"
                     onClick={() => void testChannel(ch.key)}
                     disabled={testing === ch.key || !state.enabled}
-                    className="flex items-center gap-1.5 rounded-xl border border-[#1E1E2A] bg-[#111118] px-4 py-2 text-[13px] font-medium text-[#8888A0] transition hover:border-[#3E3E4A] hover:text-[#E4E4ED] disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] disabled:opacity-50"
                   >
                     {testing === ch.key ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -427,7 +427,7 @@ export default function NotificationPreferencesPage() {
 
                   {testResult && testResult.channel === ch.key ? (
                     <span className={`flex items-center gap-1 text-[12px] ${
-                      testResult.ok ? "text-[#00D47E]" : "text-[#ef4444]"
+                      testResult.ok ? "text-[var(--accent)]" : "text-[var(--danger)]"
                     }`}>
                       {testResult.ok ? (
                         <CheckCircle className="h-3.5 w-3.5" />

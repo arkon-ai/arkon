@@ -108,7 +108,7 @@ function SpanTreeNode({
         className={`group flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left transition-colors ${
           isSelected
             ? "bg-[rgba(0,212,126,0.08)] border border-[rgba(0,212,126,0.2)]"
-            : "hover:bg-[#1A1A24] border border-transparent"
+            : "hover:bg-[var(--bg-surface-2)] border border-transparent"
         }`}
         style={{ paddingLeft: `${8 + node.depth * 20}px` }}
       >
@@ -116,7 +116,7 @@ function SpanTreeNode({
         {hasChildren ? (
           <span
             onClick={(e) => { e.stopPropagation(); setCollapsed(!collapsed); }}
-            className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[#555566] hover:text-[#8888A0]"
+            className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
           >
             {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </span>
@@ -133,14 +133,14 @@ function SpanTreeNode({
         </span>
 
         {/* Name */}
-        <span className={`min-w-0 truncate text-xs ${isSelected ? "text-[#E4E4ED] font-medium" : "text-[#8888A0]"}`}>
+        <span className={`min-w-0 truncate text-xs ${isSelected ? "text-[var(--text-primary)] font-medium" : "text-[var(--text-secondary)]"}`}>
           {node.span.name || "unnamed"}
         </span>
 
         {/* Duration bar + text */}
         <div className="ml-auto flex shrink-0 items-center gap-2">
           {barWidth > 0 && (
-            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-[#1E1E2A]">
+            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-[var(--bg-surface-2)]">
               <div
                 className="h-full rounded-full"
                 style={{
@@ -151,7 +151,7 @@ function SpanTreeNode({
               />
             </div>
           )}
-          <span className="font-mono text-[10px] text-[#555566]">{fmtDur}</span>
+          <span className="font-mono text-[10px] text-[var(--text-tertiary)]">{fmtDur}</span>
         </div>
       </button>
 

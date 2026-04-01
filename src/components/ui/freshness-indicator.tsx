@@ -49,18 +49,18 @@ export function FreshnessIndicator({
   return (
     <span
       className={`inline-flex items-center gap-1.5 text-[11px] ${
-        isStale ? "text-[#F59E0B]" : "text-[#555566]"
+        isStale ? "text-[var(--warning)]" : "text-[var(--text-tertiary)]"
       } ${className}`}
     >
       {isStale ? (
-        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#F59E0B] animate-pulse" />
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--warning)] animate-pulse" />
       ) : null}
       <span>Updated {formatAge(age)}</span>
       {onRefresh ? (
         <button
           type="button"
           onClick={onRefresh}
-          className="rounded p-0.5 transition hover:bg-white/[0.04] hover:text-[#8888A0]"
+          className="rounded p-0.5 transition hover:bg-white/[0.04] hover:text-[var(--text-secondary)]"
           title="Refresh"
         >
           <RefreshCw className="h-3 w-3" />

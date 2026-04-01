@@ -147,10 +147,10 @@ export default function TracesPage() {
           <motion.div
             key={s.label}
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-            className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-5"
+            className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-5"
           >
             <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">{s.label}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">{s.label}</p>
             <p className="mt-1.5 font-mono text-2xl font-bold" style={{ color: s.color }}>{s.value}</p>
           </motion.div>
         ))}
@@ -159,19 +159,19 @@ export default function TracesPage() {
       {/* Search & Filters */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#555566]" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" />
           <input
             type="text"
             placeholder="Search traces..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setOffset(0); }}
-            className="w-full rounded-xl border border-[#1E1E2A] bg-[#111118] py-2.5 pl-10 pr-4 text-sm text-[#E4E4ED] placeholder-[#555566] outline-none focus:border-[rgba(0,212,126,0.25)]"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder-[#555566] outline-none focus:border-[rgba(0,212,126,0.25)]"
           />
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 rounded-xl border border-[#1E1E2A] bg-[#111118] px-4 py-2.5 text-sm text-[#8888A0] hover:border-[rgba(0,212,126,0.25)] hover:text-[#E4E4ED]"
+            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:border-[rgba(0,212,126,0.25)] hover:text-[var(--text-primary)]"
           >
             <Filter className="h-4 w-4" />
             Filters
@@ -179,7 +179,7 @@ export default function TracesPage() {
           </button>
           <button
             onClick={fetchTraces}
-            className="rounded-xl bg-[#00D47E] px-4 py-2.5 text-sm font-semibold text-[#0A0A0C] hover:bg-[#00E88A]"
+            className="rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--accent-foreground)] hover:bg-[var(--accent-hover)]"
           >
             Refresh
           </button>
@@ -193,13 +193,13 @@ export default function TracesPage() {
             initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="flex flex-wrap gap-3 rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+            <div className="flex flex-wrap gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
               <div>
-                <label className="mb-1 block text-[11px] uppercase tracking-widest text-[#555566]">Status</label>
+                <label className="mb-1 block text-[11px] uppercase tracking-widest text-[var(--text-tertiary)]">Status</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => { setStatusFilter(e.target.value); setOffset(0); }}
-                  className="rounded-lg border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2 text-sm text-[#E4E4ED]"
+                  className="rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)]"
                 >
                   <option value="all">All</option>
                   <option value="ok">OK</option>
@@ -209,11 +209,11 @@ export default function TracesPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-[11px] uppercase tracking-widest text-[#555566]">Agent</label>
+                <label className="mb-1 block text-[11px] uppercase tracking-widest text-[var(--text-tertiary)]">Agent</label>
                 <select
                   value={agentFilter}
                   onChange={(e) => { setAgentFilter(e.target.value); setOffset(0); }}
-                  className="rounded-lg border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2 text-sm text-[#E4E4ED]"
+                  className="rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)]"
                 >
                   <option value="">All Agents</option>
                   {uniqueAgents.map((a) => <option key={a} value={a}>{a}</option>)}
@@ -225,12 +225,12 @@ export default function TracesPage() {
       </AnimatePresence>
 
       {/* Trace Table */}
-      <div className="relative card-hover overflow-hidden rounded-2xl border border-[#1E1E2A] bg-[#111118]">
+      <div className="relative card-hover overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)]">
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#1E1E2A] text-[11px] uppercase tracking-wider text-[#555566]">
+              <tr className="border-b border-[var(--border)] text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 font-semibold">Name</th>
                 <th className="px-4 py-3 font-semibold">Agent</th>
@@ -244,15 +244,15 @@ export default function TracesPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="border-b border-[#1E1E2A]/50">
+                  <tr key={i} className="border-b border-[var(--border)]/50">
                     <td colSpan={8} className="px-4 py-4">
-                      <div className="h-4 animate-pulse rounded bg-[#1E1E2A]" style={{ width: `${60 + Math.random() * 30}%` }} />
+                      <div className="h-4 animate-pulse rounded bg-[var(--bg-surface-2)]" style={{ width: `${60 + Math.random() * 30}%` }} />
                     </td>
                   </tr>
                 ))
               ) : traces.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-16 text-center text-[#555566]">
+                  <td colSpan={8} className="px-4 py-16 text-center text-[var(--text-tertiary)]">
                     No traces found. Traces are recorded when agents execute operations.
                   </td>
                 </tr>
@@ -264,7 +264,7 @@ export default function TracesPage() {
                     <tr
                       key={trace.trace_id}
                       onClick={() => router.push(`/traces/${trace.trace_id}`)}
-                      className="cursor-pointer border-b border-[#1E1E2A]/50 transition-colors hover:bg-[rgba(0,212,126,0.03)]"
+                      className="cursor-pointer border-b border-[var(--border)]/50 transition-colors hover:bg-[rgba(0,212,126,0.03)]"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -275,15 +275,15 @@ export default function TracesPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-medium text-[#E4E4ED]">{trace.name || "Unnamed trace"}</span>
-                        <p className="mt-0.5 font-mono text-[10px] text-[#555566]">{trace.trace_id.slice(0, 8)}</p>
+                        <span className="font-medium text-[var(--text-primary)]">{trace.name || "Unnamed trace"}</span>
+                        <p className="mt-0.5 font-mono text-[10px] text-[var(--text-tertiary)]">{trace.trace_id.slice(0, 8)}</p>
                       </td>
-                      <td className="px-4 py-3 text-[#8888A0]">{trace.agent_id || "—"}</td>
-                      <td className="px-4 py-3 text-right font-mono text-[#E4E4ED]">{fmtDuration(trace.duration_ms)}</td>
-                      <td className="px-4 py-3 text-right font-mono text-[#8888A0]">{trace.span_count}</td>
-                      <td className="px-4 py-3 text-right font-mono text-[#8888A0]">{fmtTokens(trace.token_count)}</td>
-                      <td className="px-4 py-3 text-right font-mono text-[#00D47E]">{fmtCost(Number(trace.cost))}</td>
-                      <td className="px-4 py-3 text-right text-[#555566]">{relativeTime(trace.started_at)}</td>
+                      <td className="px-4 py-3 text-[var(--text-secondary)]">{trace.agent_id || "—"}</td>
+                      <td className="px-4 py-3 text-right font-mono text-[var(--text-primary)]">{fmtDuration(trace.duration_ms)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)]">{trace.span_count}</td>
+                      <td className="px-4 py-3 text-right font-mono text-[var(--text-secondary)]">{fmtTokens(trace.token_count)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-[var(--accent)]">{fmtCost(Number(trace.cost))}</td>
+                      <td className="px-4 py-3 text-right text-[var(--text-tertiary)]">{relativeTime(trace.started_at)}</td>
                     </tr>
                   );
                 })
@@ -294,22 +294,22 @@ export default function TracesPage() {
 
         {/* Pagination */}
         {total > limit && (
-          <div className="flex items-center justify-between border-t border-[#1E1E2A] px-4 py-3">
-            <span className="text-xs text-[#555566]">
+          <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-3">
+            <span className="text-xs text-[var(--text-tertiary)]">
               {offset + 1}–{Math.min(offset + limit, total)} of {total}
             </span>
             <div className="flex gap-2">
               <button
                 onClick={() => setOffset(Math.max(0, offset - limit))}
                 disabled={offset === 0}
-                className="rounded-lg border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:border-[rgba(0,212,126,0.25)] disabled:opacity-30"
+                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(0,212,126,0.25)] disabled:opacity-30"
               >
                 Previous
               </button>
               <button
                 onClick={() => setOffset(offset + limit)}
                 disabled={offset + limit >= total}
-                className="rounded-lg border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:border-[rgba(0,212,126,0.25)] disabled:opacity-30"
+                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(0,212,126,0.25)] disabled:opacity-30"
               >
                 Next
               </button>

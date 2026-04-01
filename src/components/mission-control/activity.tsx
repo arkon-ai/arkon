@@ -76,7 +76,7 @@ function EventRow({ event, expanded, onToggle }: {
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, height: 0 }}
-      className={`relative card-hover cursor-pointer rounded-2xl border border-[#1E1E2A] border-l-2 bg-[#0A0A0C]/70 px-4 py-3 transition hover:border-[#3E3E4A] ${EVENT_BORDER[event.event_type] ?? "border-l-slate-600"}`}
+      className={`relative card-hover cursor-pointer rounded-2xl border border-[var(--border)] border-l-2 bg-[var(--bg-primary)]/70 px-4 py-3 transition hover:border-[var(--border-strong)] ${EVENT_BORDER[event.event_type] ?? "border-l-slate-600"}`}
       onClick={onToggle}
     >
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
@@ -88,11 +88,11 @@ function EventRow({ event, expanded, onToggle }: {
               <Link
                 href={`/agent/${event.agent_id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="text-xs font-semibold text-[#00D47E] hover:underline"
+                className="text-xs font-semibold text-[var(--accent)] hover:underline"
               >
                 {event.agent_name}
               </Link>
-              <span className="text-xs text-[#8888A0]">
+              <span className="text-xs text-[var(--text-secondary)]">
                 {event.event_type.replace(/_/g, " ")}
               </span>
               {event.content_redacted && (
@@ -103,20 +103,20 @@ function EventRow({ event, expanded, onToggle }: {
                   event.threat_level === "critical" ? "bg-red-900/50 text-red-300 animate-pulse" :
                   event.threat_level === "high" ? "bg-red-900/30 text-red-400" :
                   event.threat_level === "medium" ? "bg-amber-900/30 text-amber-400" :
-                  "bg-slate-800 text-slate-400"
+                  "bg-[var(--bg-surface)] text-[var(--text-secondary)]"
                 }`}>
                   🛡️ {event.threat_level.toUpperCase()}
                 </span>
               )}
             </div>
             {event.content && (
-              <p className="mt-0.5 text-xs text-[#8888A0] line-clamp-1">
+              <p className="mt-0.5 text-xs text-[var(--text-secondary)] line-clamp-1">
                 {event.content.slice(0, 120)}{event.content.length > 120 ? "…" : ""}
               </p>
             )}
           </div>
         </div>
-        <div className="shrink-0 text-right text-xs text-[#8888A0]">
+        <div className="shrink-0 text-right text-xs text-[var(--text-secondary)]">
           <div>{timeAgo(event.created_at)}</div>
           {event.token_estimate > 0 && <div className="text-[10px]">{event.token_estimate}t</div>}
         </div>
@@ -128,12 +128,12 @@ function EventRow({ event, expanded, onToggle }: {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-3 overflow-hidden rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3"
+            className="mt-3 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3"
           >
-            <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[#8888A0]">
+            <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[var(--text-secondary)]">
               {event.content}
             </pre>
-            <div className="mt-2 flex flex-wrap gap-3 text-[10px] text-[#8888A0]">
+            <div className="mt-2 flex flex-wrap gap-3 text-[10px] text-[var(--text-secondary)]">
               {event.session_key && <span>Session: {event.session_key}</span>}
               {event.sender && <span>From: {event.sender}</span>}
               {event.channel_id && <span>Channel: {event.channel_id}</span>}
@@ -240,13 +240,13 @@ export function ActivityFeed() {
             ) : (
               <button
                 onClick={() => setPaused(true)}
-                className="flex items-center gap-1.5 rounded-full border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#E4E4ED] transition"
+                className="flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
               >
                 ⏸ Pause
               </button>
             )}
-            <span className="inline-block h-2 w-2 rounded-full bg-[#00D47E] animate-pulse" />
-            <span className="text-xs text-[#8888A0]">10s</span>
+            <span className="inline-block h-2 w-2 rounded-full bg-[var(--accent)] animate-pulse" />
+            <span className="text-xs text-[var(--text-secondary)]">10s</span>
           </div>
         }
       />
@@ -260,15 +260,15 @@ export function ActivityFeed() {
       {/* ── Quick stats ── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: "Total Events", value: events.length, colour: "text-[#E4E4ED]" },
-          { label: "Messages In", value: typeCount("message_received"), colour: "text-[#00D47E]" },
-          { label: "Tool Calls", value: typeCount("tool_call"), colour: "text-[#f59e0b]" },
-          { label: "Errors", value: typeCount("error"), colour: typeCount("error") > 0 ? "text-red-400" : "text-[#8888A0]" },
+          { label: "Total Events", value: events.length, colour: "text-[var(--text-primary)]" },
+          { label: "Messages In", value: typeCount("message_received"), colour: "text-[var(--accent)]" },
+          { label: "Tool Calls", value: typeCount("tool_call"), colour: "text-[var(--warning)]" },
+          { label: "Errors", value: typeCount("error"), colour: typeCount("error") > 0 ? "text-red-400" : "text-[var(--text-secondary)]" },
         ].map((s) => (
-          <div key={s.label} className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3 text-center">
+          <div key={s.label} className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-4 py-3 text-center">
             <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <div className={`text-xl font-bold ${s.colour}`}>{s.value}</div>
-            <div className="text-xs text-[#8888A0]">{s.label}</div>
+            <div className="text-xs text-[var(--text-secondary)]">{s.label}</div>
           </div>
         ))}
       </div>
@@ -277,13 +277,13 @@ export function ActivityFeed() {
       <Card>
         <div className="space-y-3">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#8888A0]">Event Type</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Event Type</p>
             <div className="flex flex-wrap gap-1.5">
               {eventTypes.map((t) => (
                 <button
                   key={t}
                   onClick={() => setFilter(t)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#00D47E] text-[#0A0A0C]" : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[var(--accent)] text-[var(--accent-foreground)]" : "border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
                 >
                   {t === "all" ? "All" : t.replace(/_/g, " ")}
                   {t !== "all" && <span className="ml-1 text-[10px] opacity-60">{typeCount(t)}</span>}
@@ -292,13 +292,13 @@ export function ActivityFeed() {
             </div>
           </div>
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#8888A0]">Agent</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Agent</p>
             <div className="flex flex-wrap gap-1.5">
               {agents.map((id) => (
                 <button
                   key={id}
                   onClick={() => setAgentFilter(id)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${agentFilter === id ? "bg-[#00D47E] text-white" : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${agentFilter === id ? "bg-[var(--accent)] text-white" : "border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
                 >
                   {id === "all" ? "All Agents" : (agentNames[id] ?? id)}
                 </button>

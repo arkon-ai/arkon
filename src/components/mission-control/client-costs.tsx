@@ -39,7 +39,7 @@ export function ClientCosts() {
     return () => { mounted = false; };
   }, [range]);
 
-  if (loading && !data) return <div className="text-center text-slate-500 py-20"><p className="animate-pulse">Loading costs...</p></div>;
+  if (loading && !data) return <div className="text-center text-[var(--text-tertiary)] py-20"><p className="animate-pulse">Loading costs...</p></div>;
   if (error) return <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center"><p className="text-red-400">{error}</p></div>;
   if (!data) return null;
 
@@ -49,13 +49,13 @@ export function ClientCosts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-white">Costs</h1>
-        <div className="flex gap-1 rounded-xl bg-[#0a0a14] border border-[#1E1E2A] p-1">
+        <div className="flex gap-1 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] p-1">
           {ranges.map((r) => (
             <button
               key={r.value}
               onClick={() => setRange(r.value)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                range === r.value ? "bg-cyan-500/20 text-cyan-400" : "text-slate-400 hover:text-white"
+                range === r.value ? "bg-cyan-500/20 text-cyan-400" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
               {r.label}
@@ -66,35 +66,35 @@ export function ClientCosts() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="relative card-hover rounded-2xl border border-amber-500/20 bg-[#0a0a14] p-4">
+        <div className="relative card-hover rounded-2xl border border-amber-500/20 bg-[var(--bg-primary)] p-4">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Cost</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Total Cost</p>
           <p className="mt-1 text-2xl font-bold text-amber-400">${data.summary.total_cost_usd.toFixed(4)}</p>
         </div>
-        <div className="relative card-hover rounded-2xl border border-cyan-500/20 bg-[#0a0a14] p-4">
+        <div className="relative card-hover rounded-2xl border border-cyan-500/20 bg-[var(--bg-primary)] p-4">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Tokens</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Total Tokens</p>
           <p className="mt-1 text-2xl font-bold text-cyan-400">{data.summary.total_tokens.toLocaleString()}</p>
         </div>
-        <div className="relative card-hover rounded-2xl border border-[#00D47E]/20 bg-[#0a0a14] p-4">
+        <div className="relative card-hover rounded-2xl border border-[var(--accent)]/20 bg-[var(--bg-primary)] p-4">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Active Agents</p>
-          <p className="mt-1 text-2xl font-bold text-[#00D47E]">{data.summary.active_agents}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Active Agents</p>
+          <p className="mt-1 text-2xl font-bold text-[var(--accent)]">{data.summary.active_agents}</p>
         </div>
       </div>
 
       {/* Daily trend chart (simple bars) */}
       {data.daily_trend.length > 0 ? (
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Daily Spend</h2>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Daily Spend</h2>
           <div className="flex items-end gap-1" style={{ height: 120 }}>
             {data.daily_trend.map((d) => {
               const h = Math.max((d.cost / maxCost) * 100, 2);
               const day = new Date(d.day).toLocaleDateString("en-ZA", { month: "short", day: "numeric" });
               return (
                 <div key={d.day} className="group relative flex flex-1 flex-col items-center">
-                  <div className="absolute -top-8 hidden rounded bg-[#1E1E2A] px-2 py-1 text-[10px] text-white group-hover:block whitespace-nowrap">
+                  <div className="absolute -top-8 hidden rounded bg-[var(--bg-surface-2)] px-2 py-1 text-[10px] text-white group-hover:block whitespace-nowrap">
                     {day}: ${d.cost.toFixed(4)}
                   </div>
                   <div
@@ -105,7 +105,7 @@ export function ClientCosts() {
               );
             })}
           </div>
-          <div className="mt-2 flex justify-between text-[10px] text-slate-600">
+          <div className="mt-2 flex justify-between text-[10px] text-[var(--text-tertiary)]">
             {data.daily_trend.length > 0 ? (
               <>
                 <span>{new Date(data.daily_trend[0].day).toLocaleDateString("en-ZA", { month: "short", day: "numeric" })}</span>
@@ -118,15 +118,15 @@ export function ClientCosts() {
 
       {/* Cost by agent */}
       {data.by_agent.length > 0 ? (
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Cost by Agent</h2>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Cost by Agent</h2>
           <div className="space-y-2">
             {data.by_agent.map((a) => (
-              <div key={a.agent_id} className="flex items-center justify-between rounded-xl bg-[#0A0A0C] px-4 py-3">
+              <div key={a.agent_id} className="flex items-center justify-between rounded-xl bg-[var(--bg-primary)] px-4 py-3">
                 <div>
                   <p className="text-sm font-medium text-white">{a.agent_name || a.agent_id}</p>
-                  <p className="text-xs text-slate-500">{a.tokens.toLocaleString()} tokens</p>
+                  <p className="text-xs text-[var(--text-tertiary)]">{a.tokens.toLocaleString()} tokens</p>
                 </div>
                 <p className="text-sm font-bold text-amber-400">${a.cost.toFixed(4)}</p>
               </div>
@@ -137,34 +137,34 @@ export function ClientCosts() {
 
       {/* Budget status */}
       {data.budgets.length > 0 ? (
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0a0a14] p-5">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">Budget Limits</h2>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Budget Limits</h2>
           <div className="space-y-3">
             {data.budgets.map((b, i) => {
               const dailyPct = b.daily_limit_usd > 0 ? (Number(b.today_spend) / b.daily_limit_usd) * 100 : 0;
               const monthPct = b.monthly_limit_usd > 0 ? (Number(b.month_spend) / b.monthly_limit_usd) * 100 : 0;
               return (
-                <div key={i} className="rounded-xl bg-[#0A0A0C] px-4 py-3">
+                <div key={i} className="rounded-xl bg-[var(--bg-primary)] px-4 py-3">
                   <p className="text-sm font-medium text-white">{b.scope_type} budget</p>
                   {b.daily_limit_usd > 0 ? (
                     <div className="mt-2">
-                      <div className="flex justify-between text-xs text-slate-500">
+                      <div className="flex justify-between text-xs text-[var(--text-tertiary)]">
                         <span>Daily: ${Number(b.today_spend).toFixed(4)} / ${b.daily_limit_usd.toFixed(2)}</span>
                         <span>{dailyPct.toFixed(0)}%</span>
                       </div>
-                      <div className="mt-1 h-1.5 rounded-full bg-[#1E1E2A]">
+                      <div className="mt-1 h-1.5 rounded-full bg-[var(--bg-surface-2)]">
                         <div className={`h-full rounded-full transition-all ${dailyPct > 80 ? "bg-red-500" : dailyPct > 50 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${Math.min(dailyPct, 100)}%` }} />
                       </div>
                     </div>
                   ) : null}
                   {b.monthly_limit_usd > 0 ? (
                     <div className="mt-2">
-                      <div className="flex justify-between text-xs text-slate-500">
+                      <div className="flex justify-between text-xs text-[var(--text-tertiary)]">
                         <span>Monthly: ${Number(b.month_spend).toFixed(4)} / ${b.monthly_limit_usd.toFixed(2)}</span>
                         <span>{monthPct.toFixed(0)}%</span>
                       </div>
-                      <div className="mt-1 h-1.5 rounded-full bg-[#1E1E2A]">
+                      <div className="mt-1 h-1.5 rounded-full bg-[var(--bg-surface-2)]">
                         <div className={`h-full rounded-full transition-all ${monthPct > 80 ? "bg-red-500" : monthPct > 50 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${Math.min(monthPct, 100)}%` }} />
                       </div>
                     </div>

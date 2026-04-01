@@ -63,22 +63,22 @@ export function TenantSwitcher() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex h-9 items-center gap-2 rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 text-xs font-medium text-[#E4E4ED] transition hover:border-[rgba(0,212,126,0.25)]"
+        className="flex h-9 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-primary)] transition hover:border-[rgba(0,212,126,0.25)]"
       >
         <div className="flex h-5 w-5 items-center justify-center rounded-md" style={{ backgroundColor: `${planColor}15` }}>
           {currentTenant ? (
             <Building2 className="h-3 w-3" style={{ color: planColor }} />
           ) : (
-            <Globe className="h-3 w-3 text-[#00D47E]" />
+            <Globe className="h-3 w-3 text-[var(--accent)]" />
           )}
         </div>
         <span className="max-w-[120px] truncate">{label}</span>
-        <ChevronDown className={`h-3 w-3 text-[#555566] transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-3 w-3 text-[var(--text-tertiary)] transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-[#1E1E2A] bg-[#111118] p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-          <p className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#555566]">
+        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+          <p className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
             Switch Tenant
           </p>
 
@@ -87,8 +87,8 @@ export function TenantSwitcher() {
             onClick={() => { setActiveTenant(null); setOpen(false); }}
             className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs transition ${
               !activeTenant
-                ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
-                : "text-[#8888A0] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+                ? "bg-[rgba(0,212,126,0.08)] text-[var(--accent)]"
+                : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
             }`}
           >
             <Globe className="h-3.5 w-3.5 shrink-0" />
@@ -96,7 +96,7 @@ export function TenantSwitcher() {
             {!activeTenant && <Check className="h-3 w-3" />}
           </button>
 
-          <div className="my-1 border-t border-[#1E1E2A]" />
+          <div className="my-1 border-t border-[var(--border)]" />
 
           {tenants.map((t) => {
             const color = PLAN_COLORS[t.plan] ?? "#8888A0";
@@ -108,8 +108,8 @@ export function TenantSwitcher() {
                 onClick={() => { setActiveTenant(t.id); setOpen(false); }}
                 className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs transition ${
                   active
-                    ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
-                    : "text-[#8888A0] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+                    ? "bg-[rgba(0,212,126,0.08)] text-[var(--accent)]"
+                    : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                 }`}
               >
                 <div className="flex h-6 w-6 items-center justify-center rounded-md" style={{ backgroundColor: `${color}15` }}>
@@ -117,9 +117,9 @@ export function TenantSwitcher() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{t.name}</span>
-                  <span className="block text-[10px] text-[#555566]">{t.plan}</span>
+                  <span className="block text-[10px] text-[var(--text-tertiary)]">{t.plan}</span>
                 </div>
-                {active && <Check className="h-3 w-3 shrink-0 text-[#00D47E]" />}
+                {active && <Check className="h-3 w-3 shrink-0 text-[var(--accent)]" />}
               </button>
             );
           })}

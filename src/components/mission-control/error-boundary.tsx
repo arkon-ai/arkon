@@ -33,17 +33,17 @@ export class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) return this.props.fallback;
 
       return (
-        <div className="relative card-hover flex min-h-[300px] flex-col items-center justify-center gap-4 rounded-2xl border border-[#1E1E2A] bg-[#111118] p-8">
+        <div className="relative card-hover flex min-h-[300px] flex-col items-center justify-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-8">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <AlertTriangle className="h-8 w-8 text-[#f59e0b]" />
-          <h2 className="text-lg font-semibold text-[#e2e8f0]">Something went wrong</h2>
-          <p className="max-w-md text-center text-sm text-[#64748b]">
+          <AlertTriangle className="h-8 w-8 text-[var(--warning)]" />
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Something went wrong</h2>
+          <p className="max-w-md text-center text-sm text-[var(--text-secondary)]">
             {this.state.error?.message ?? "An unexpected error occurred"}
           </p>
           <button
             type="button"
             onClick={() => this.setState({ hasError: false, error: null })}
-            className="flex items-center gap-2 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-4 py-2 text-sm text-[#e2e8f0] transition hover:border-[#3E3E4A]"
+            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-2 text-sm text-[var(--text-primary)] transition hover:border-[var(--border-strong)]"
           >
             <RotateCcw className="h-4 w-4" />
             Try again

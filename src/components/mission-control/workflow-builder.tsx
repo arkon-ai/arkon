@@ -88,7 +88,7 @@ function ManualTriggerNode({ data, selected }: NodeProps) {
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Trigger</span>
       </div>
       <div className="text-sm text-white font-medium">{d.label || "Manual Trigger"}</div>
-      <Handle type="source" position={Position.Bottom} className="!bg-[#00D47E] !w-3 !h-3 !border-2 !border-[#0a0a14]" />
+      <Handle type="source" position={Position.Bottom} className="!bg-[var(--accent)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
     </div>
   );
 }
@@ -111,9 +111,9 @@ function CronTriggerNode({ data, selected }: NodeProps) {
       </div>
       <div className="text-sm text-white font-medium">{d.label || "Cron Trigger"}</div>
       {d.cron_expression && (
-        <div className="text-[11px] text-slate-400 mt-1 font-mono">{d.cron_expression}</div>
+        <div className="text-[11px] text-[var(--text-secondary)] mt-1 font-mono">{d.cron_expression}</div>
       )}
-      <Handle type="source" position={Position.Bottom} className="!bg-[#06b6d4] !w-3 !h-3 !border-2 !border-[#0a0a14]" />
+      <Handle type="source" position={Position.Bottom} className="!bg-[var(--info)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
     </div>
   );
 }
@@ -130,7 +130,7 @@ function HttpRequestNode({ data, selected }: NodeProps) {
         boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-[#3b82f6] !w-3 !h-3 !border-2 !border-[#0a0a14]" />
+      <Handle type="target" position={Position.Top} className="!bg-[var(--info)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
       <div className="flex items-center gap-2 mb-1">
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>HTTP</span>
@@ -141,8 +141,8 @@ function HttpRequestNode({ data, selected }: NodeProps) {
         )}
       </div>
       <div className="text-sm text-white font-medium">{d.label || "HTTP Request"}</div>
-      {d.url && <div className="text-[11px] text-slate-400 mt-1 truncate max-w-[220px]">{d.url}</div>}
-      <Handle type="source" position={Position.Bottom} className="!bg-[#3b82f6] !w-3 !h-3 !border-2 !border-[#0a0a14]" />
+      {d.url && <div className="text-[11px] text-[var(--text-secondary)] mt-1 truncate max-w-[220px]">{d.url}</div>}
+      <Handle type="source" position={Position.Bottom} className="!bg-[var(--info)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
     </div>
   );
 }
@@ -159,14 +159,14 @@ function ConditionNode({ data, selected }: NodeProps) {
         boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-[#f59e0b] !w-3 !h-3 !border-2 !border-[#0a0a14]" />
+      <Handle type="target" position={Position.Top} className="!bg-[var(--warning)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
       <div className="flex items-center gap-2 mb-1">
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Condition</span>
       </div>
       <div className="text-sm text-white font-medium">{d.label || "If / Else"}</div>
       {d.field && (
-        <div className="text-[11px] text-slate-400 mt-1">
+        <div className="text-[11px] text-[var(--text-secondary)] mt-1">
           {d.field} {d.operator} {d.value}
         </div>
       )}
@@ -174,8 +174,8 @@ function ConditionNode({ data, selected }: NodeProps) {
         <span className="text-green-400">True</span>
         <span className="text-red-400">False</span>
       </div>
-      <Handle type="source" position={Position.Bottom} id="true" className="!bg-green-400 !w-3 !h-3 !border-2 !border-[#0a0a14]" style={{ left: "30%" }} />
-      <Handle type="source" position={Position.Bottom} id="false" className="!bg-red-400 !w-3 !h-3 !border-2 !border-[#0a0a14]" style={{ left: "70%" }} />
+      <Handle type="source" position={Position.Bottom} id="true" className="!bg-green-400 !w-3 !h-3 !border-2 !border-[var(--border)]" style={{ left: "30%" }} />
+      <Handle type="source" position={Position.Bottom} id="false" className="!bg-red-400 !w-3 !h-3 !border-2 !border-[var(--border)]" style={{ left: "70%" }} />
     </div>
   );
 }
@@ -192,7 +192,7 @@ function NotifyNode({ data, selected }: NodeProps) {
         boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-[#00D47E] !w-3 !h-3 !border-2 !border-[#0a0a14]" />
+      <Handle type="target" position={Position.Top} className="!bg-[var(--accent)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
       <div className="flex items-center gap-2 mb-1">
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Notify</span>
@@ -203,8 +203,8 @@ function NotifyNode({ data, selected }: NodeProps) {
         )}
       </div>
       <div className="text-sm text-white font-medium">{d.label || "Notify"}</div>
-      {d.message && <div className="text-[11px] text-slate-400 mt-1 truncate max-w-[200px]">{d.message}</div>}
-      <Handle type="source" position={Position.Bottom} className="!bg-[#00D47E] !w-3 !h-3 !border-2 !border-[#0a0a14]" />
+      {d.message && <div className="text-[11px] text-[var(--text-secondary)] mt-1 truncate max-w-[200px]">{d.message}</div>}
+      <Handle type="source" position={Position.Bottom} className="!bg-[var(--accent)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
     </div>
   );
 }
@@ -236,40 +236,40 @@ function NodeConfigPanel({
   };
 
   return (
-    <div className="absolute right-4 top-4 z-50 w-80 rounded-xl border border-[#1E1E2A] bg-[#111118] p-4 shadow-2xl">
+    <div className="absolute right-4 top-4 z-50 w-80 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-2xl">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold text-white">Configure Node</h3>
-        <button onClick={onClose} className="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+        <button onClick={onClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg leading-none">&times;</button>
       </div>
       {NODE_HELP[nodeType] && (
-        <div className="mb-4 rounded-lg bg-[#0a0a14] border border-[#1E1E2A] px-3 py-2">
-          <p className="text-[11px] text-slate-400 leading-relaxed">{NODE_HELP[nodeType]}</p>
+        <div className="mb-4 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)] px-3 py-2">
+          <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">{NODE_HELP[nodeType]}</p>
         </div>
       )}
 
       <div className="space-y-3">
         <div>
-          <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Label</label>
+          <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Label</label>
           <input
             type="text"
             value={d.label ?? ""}
             onChange={(e) => updateField("label", e.target.value)}
-            className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
           />
         </div>
 
         {nodeType === "cron-trigger" && (
           <div>
-            <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Cron Expression</label>
+            <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Cron Expression</label>
             <input
               type="text"
               value={String(d.cron_expression ?? "")}
               onChange={(e) => updateField("cron_expression", e.target.value)}
               placeholder="*/5 * * * *"
-              className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none"
             />
             <div className="mt-2 space-y-1">
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider">Presets</p>
+              <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">Presets</p>
               {[
                 { expr: "*/5 * * * *", label: "Every 5 min" },
                 { expr: "*/15 * * * *", label: "Every 15 min" },
@@ -281,10 +281,10 @@ function NodeConfigPanel({
                 <button
                   key={p.expr}
                   onClick={() => updateField("cron_expression", p.expr)}
-                  className="block w-full text-left rounded px-2 py-1 text-[11px] text-slate-400 hover:bg-white/5 hover:text-white transition"
+                  className="block w-full text-left rounded px-2 py-1 text-[11px] text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition"
                 >
                   <span className="font-mono text-cyan-400">{p.expr}</span>
-                  <span className="ml-2 text-slate-500">{p.label}</span>
+                  <span className="ml-2 text-[var(--text-tertiary)]">{p.label}</span>
                 </button>
               ))}
             </div>
@@ -295,11 +295,11 @@ function NodeConfigPanel({
           <>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Method</label>
+                <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Method</label>
                 <select
                   value={String(d.method ?? "GET")}
                   onChange={(e) => updateField("method", e.target.value)}
-                  className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
                 >
                   <option>GET</option>
                   <option>POST</option>
@@ -309,33 +309,33 @@ function NodeConfigPanel({
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Timeout (ms)</label>
+                <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Timeout (ms)</label>
                 <input
                   type="number"
                   value={Number(d.timeout ?? 10000)}
                   onChange={(e) => updateField("timeout", Number(e.target.value))}
-                  className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">URL</label>
+              <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">URL</label>
               <input
                 type="text"
                 value={String(d.url ?? "")}
                 onChange={(e) => updateField("url", e.target.value)}
                 placeholder="https://example.com/api/..."
-                className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Body (JSON)</label>
+              <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Body (JSON)</label>
               <textarea
                 value={String(d.body ?? "")}
                 onChange={(e) => updateField("body", e.target.value)}
                 rows={3}
                 placeholder='{"key": "value"}'
-                className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
               />
             </div>
           </>
@@ -344,22 +344,22 @@ function NodeConfigPanel({
         {nodeType === "condition" && (
           <>
             <div>
-              <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Field</label>
+              <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Field</label>
               <input
                 type="text"
                 value={String(d.field ?? "")}
                 onChange={(e) => updateField("field", e.target.value)}
                 placeholder="status, body, httpStatus..."
-                className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Operator</label>
+                <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Operator</label>
                 <select
                   value={String(d.operator ?? "eq")}
                   onChange={(e) => updateField("operator", e.target.value)}
-                  className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
                 >
                   <option value="eq">equals</option>
                   <option value="neq">not equals</option>
@@ -372,13 +372,13 @@ function NodeConfigPanel({
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Value</label>
+                <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Value</label>
                 <input
                   type="text"
                   value={String(d.value ?? "")}
                   onChange={(e) => updateField("value", e.target.value)}
                   placeholder="200"
-                  className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
                 />
               </div>
             </div>
@@ -388,26 +388,26 @@ function NodeConfigPanel({
         {nodeType === "notify" && (
           <>
             <div>
-              <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">Channel</label>
+              <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">Channel</label>
               <select
                 value={String(d.channel ?? "telegram")}
                 onChange={(e) => updateField("channel", e.target.value)}
-                className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
               >
                 <option value="telegram">Telegram</option>
                 <option value="log">Log Only</option>
               </select>
             </div>
             <div>
-              <label className="block text-[11px] uppercase tracking-wider text-slate-500 mb-1">
-                Message <span className="normal-case text-slate-600">({'{{'}status{'}}'}  {'{{'}body{'}}'})</span>
+              <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">
+                Message <span className="normal-case text-[var(--text-tertiary)]">({'{{'}status{'}}'}  {'{{'}body{'}}'})</span>
               </label>
               <textarea
                 value={String(d.message ?? "")}
                 onChange={(e) => updateField("message", e.target.value)}
                 rows={3}
                 placeholder="Workflow completed. Status: {{status}}"
-                className="w-full rounded-lg border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
               />
             </div>
           </>
@@ -449,8 +449,8 @@ function NodePalette({ onAdd }: { onAdd: (type: string) => void }) {
             <span>{item.label}</span>
           </button>
           {hoveredItem === item.type && (
-            <div className="absolute top-full left-0 mt-2 z-50 w-52 rounded-lg border border-[#1E1E2A] bg-[#111118] px-3 py-2 shadow-xl pointer-events-none">
-              <p className="text-[11px] text-slate-300">{item.description}</p>
+            <div className="absolute top-full left-0 mt-2 z-50 w-52 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 shadow-xl pointer-events-none">
+              <p className="text-[11px] text-[var(--text-primary)]">{item.description}</p>
             </div>
           )}
         </div>
@@ -647,16 +647,16 @@ export function WorkflowBuilder({
         minZoom={0.3}
         maxZoom={2}
         proOptions={{ hideAttribution: true }}
-        className="bg-[#0a0a14]"
+        className="bg-[var(--bg-primary)]"
       >
         <Background color="#1E1E2A" gap={20} size={1} />
         <MiniMap
           nodeStrokeColor="#1E1E2A"
           nodeColor="#111118"
           maskColor="rgba(10,10,20,0.8)"
-          className="!bg-[#111118] !border-[#1E1E2A]"
+          className="!bg-[var(--bg-surface)] !border-[var(--border)]"
         />
-        <Controls className="!bg-[#111118] !border-[#1E1E2A] !shadow-lg [&>button]:!bg-[#111118] [&>button]:!border-[#1E1E2A] [&>button]:!text-slate-400 [&>button:hover]:!bg-[#1a1a2e]" />
+        <Controls className="!bg-[var(--bg-surface)] !border-[var(--border)] !shadow-lg [&>button]:!bg-[var(--bg-surface)] [&>button]:!border-[var(--border)] [&>button]:!text-[var(--text-secondary)] [&>button:hover]:!bg-[#1a1a2e]" />
 
         {!readOnly && (
           <Panel position="top-left">

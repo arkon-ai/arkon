@@ -37,7 +37,7 @@ const ROLE_COLOURS: Record<string, string> = {
   owner: "bg-[rgba(0,212,126,0.15)] text-purple-400",
   admin: "bg-[rgba(0,212,126,0.15)] text-cyan-400",
   agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
-  viewer: "bg-[rgba(100,116,139,0.15)] text-slate-400",
+  viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
 };
 
 function RoleBadge({ role }: { role: string }) {
@@ -50,7 +50,7 @@ function RoleBadge({ role }: { role: string }) {
 
 /* ─── Section wrapper ────────────────────────────────────── */
 function AdminSection({
-  icon, title, description, colour = "border-[#1E1E2A]", children,
+  icon, title, description, colour = "border-[var(--border)]", children,
 }: {
   icon: string; title: string; description: string; colour?: string; children: React.ReactNode;
 }) {
@@ -59,8 +59,8 @@ function AdminSection({
       <div className="mb-4 flex items-start gap-3">
         <div className="mt-0.5 text-2xl">{icon}</div>
         <div>
-          <h3 className="text-base font-semibold text-[#E4E4ED]">{title}</h3>
-          <p className="mt-1 text-sm leading-relaxed text-[#8888A0]">{description}</p>
+          <h3 className="text-base font-semibold text-[var(--text-primary)]">{title}</h3>
+          <p className="mt-1 text-sm leading-relaxed text-[var(--text-secondary)]">{description}</p>
         </div>
       </div>
       {children}
@@ -72,10 +72,10 @@ function AdminSection({
 function Input({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#8888A0]">{label}</label>
+      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">{label}</label>
       <input
         {...props}
-        className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition"
       />
     </div>
   );
@@ -84,11 +84,11 @@ function Input({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> 
 function Textarea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#8888A0]">{label}</label>
+      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">{label}</label>
       <textarea
         {...props}
         rows={3}
-        className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition resize-y"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition resize-y"
       />
     </div>
   );
@@ -97,10 +97,10 @@ function Textarea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextArea
 function Select({ label, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[#8888A0]">{label}</label>
+      <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">{label}</label>
       <select
         {...props}
-        className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition"
       >
         {children}
       </select>
@@ -113,9 +113,9 @@ function Btn({ children, variant = "primary", disabled, onClick, type = "button"
 }) {
   const base = "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed";
   const styles = {
-    primary: "bg-[#00D47E] text-[#0A0A0C] hover:opacity-90",
+    primary: "bg-[var(--accent)] text-[var(--accent-foreground)] hover:opacity-90",
     danger: "bg-[rgba(239,68,68,0.15)] text-red-400 border border-red-500/30 hover:bg-[rgba(239,68,68,0.25)]",
-    ghost: "border border-[#1E1E2A] text-[#8888A0] hover:border-[#00D47E] hover:text-[#00D47E]",
+    ghost: "border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)]",
   };
   return (
     <button type={type} disabled={disabled} onClick={onClick} className={`${base} ${styles[variant]}`}>
@@ -132,15 +132,15 @@ function TokenReveal({ token, onDismiss }: { token: string; onDismiss: () => voi
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-2 text-xs font-semibold text-amber-400">⚠️ Copy this token now — it will never be shown again</p>
       <div className="flex items-center gap-2">
-        <code className="flex-1 break-all rounded-lg bg-[#0A0A0C] px-3 py-2 text-xs font-mono text-[#00D47E]">{token}</code>
+        <code className="flex-1 break-all rounded-lg bg-[var(--bg-primary)] px-3 py-2 text-xs font-mono text-[var(--accent)]">{token}</code>
         <button
           onClick={() => { navigator.clipboard.writeText(token); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          className="rounded-lg border border-[#1E1E2A] px-3 py-2 text-xs text-[#8888A0] hover:text-[#00D47E] transition"
+          className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition"
         >
           {copied ? "✓" : "Copy"}
         </button>
       </div>
-      <button onClick={onDismiss} className="mt-3 text-xs text-[#8888A0] hover:text-[#E4E4ED] transition">
+      <button onClick={onDismiss} className="mt-3 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition">
         I've saved the token — dismiss
       </button>
     </div>
@@ -396,15 +396,15 @@ export function AdminPanel() {
       <Card>
         <SectionTitle title="Registered Agents" note={loadingAgents ? "Loading..." : `${agents.length} agents`} />
         {loadingAgents ? (
-          <div className="text-sm text-[#8888A0]">Loading agents...</div>
+          <div className="text-sm text-[var(--text-secondary)]">Loading agents...</div>
         ) : (
           <div className="space-y-2">
             {agents.map((a) => (
-              <div key={a.id} className="relative card-hover flex items-center justify-between rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3">
+              <div key={a.id} className="relative card-hover flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-4 py-3">
               <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                 <div>
-                  <span className="text-sm font-semibold text-[#E4E4ED]">{a.name}</span>
-                  <span className="ml-2 text-xs text-[#8888A0]">id: {a.id}</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">{a.name}</span>
+                  <span className="ml-2 text-xs text-[var(--text-secondary)]">id: {a.id}</span>
                 </div>
                 <RoleBadge role={a.role} />
               </div>
@@ -549,7 +549,7 @@ export function AdminPanel() {
           <Btn onClick={handleSync} disabled={syncBusy}>
             {syncBusy ? "Syncing..." : "🔄 Sync Workspace Docs"}
           </Btn>
-          {lastSync && <span className="text-xs text-[#8888A0]">Last synced: {lastSync}</span>}
+          {lastSync && <span className="text-xs text-[var(--text-secondary)]">Last synced: {lastSync}</span>}
         </div>
       </AdminSection>}
 
@@ -582,7 +582,7 @@ export function AdminPanel() {
 
       {/* ── Role badge for current session ── */}
       <div className="flex items-center gap-2 pt-2 pb-4">
-        <span className="text-xs text-[#8888A0]">Logged in as:</span>
+        <span className="text-xs text-[var(--text-secondary)]">Logged in as:</span>
         <RoleBadge role={sessionRole} />
       </div>
     </div>

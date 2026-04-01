@@ -54,7 +54,7 @@ export function ComplianceDashboard() {
         ] as const).map(([t, label]) => (
           <button key={t} type="button" onClick={() => setTab(t)}
             className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-              tab === t ? "bg-[rgba(0,212,126,0.15)] text-[#00D47E]" : "text-slate-400 hover:text-white"
+              tab === t ? "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >{label}</button>
         ))}
@@ -97,7 +97,7 @@ function AuditLogTab() {
 
   if (!data) {
     return <div className="space-y-2">{[1, 2, 3].map((i) => (
-      <div key={i} className="h-12 animate-pulse rounded-xl bg-[#111118]" />
+      <div key={i} className="h-12 animate-pulse rounded-xl bg-[var(--bg-surface)]" />
     ))}</div>;
   }
 
@@ -114,8 +114,8 @@ function AuditLogTab() {
               actionFilter === f
                 ? f === "agent.kill"
                   ? "bg-red-500/15 text-red-400"
-                  : "bg-[rgba(0,212,126,0.15)] text-[#00D47E]"
-                : "text-slate-500 hover:text-slate-300"
+                  : "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]"
+                : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
             }`}
           >
             {f === "" ? "All" : f === "agent.kill" ? "Kills" : f === "agent.pause" ? "Pauses" : "Resumes"}
@@ -126,16 +126,16 @@ function AuditLogTab() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <select value={actionFilter} onChange={(e) => { setActionFilter(e.target.value); setOffset(0); }}
-          className="rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2 text-sm text-white">
+          className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-white">
           <option value="">All Actions</option>
           {data.filters.actions.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
         <select value={resourceFilter} onChange={(e) => { setResourceFilter(e.target.value); setOffset(0); }}
-          className="rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2 text-sm text-white">
+          className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-white">
           <option value="">All Resources</option>
           {data.filters.resourceTypes.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
-        <span className="flex items-center text-xs text-slate-500">{data.total} entries</span>
+        <span className="flex items-center text-xs text-[var(--text-tertiary)]">{data.total} entries</span>
       </div>
 
       {/* Log entries */}
@@ -146,11 +146,11 @@ function AuditLogTab() {
           description="Actions are automatically logged as you and your agents interact with the system. Recent activity will appear here."
         />
       ) : (
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#1E1E2A] text-xs uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-[var(--border)] text-xs uppercase tracking-wider text-[var(--text-tertiary)]">
                 <th className="px-4 py-3">Time</th>
                 <th className="px-4 py-3">Actor</th>
                 <th className="px-4 py-3">Action</th>
@@ -161,8 +161,8 @@ function AuditLogTab() {
             </thead>
             <tbody>
               {data.entries.map((e) => (
-                <tr key={e.id} className="border-b border-[#1E1E2A]/50 text-slate-300 hover:bg-white/[0.02]">
-                  <td className="px-4 py-2.5 text-xs text-slate-500">{new Date(e.created_at).toLocaleString()}</td>
+                <tr key={e.id} className="border-b border-[var(--border)]/50 text-[var(--text-primary)] hover:bg-white/[0.02]">
+                  <td className="px-4 py-2.5 text-xs text-[var(--text-tertiary)]">{new Date(e.created_at).toLocaleString()}</td>
                   <td className="px-4 py-2.5 text-white">{e.actor}</td>
                   <td className="px-4 py-2.5">
                     <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${
@@ -170,13 +170,13 @@ function AuditLogTab() {
                       e.action === "agent.pause" ? "bg-amber-500/15 text-amber-400" :
                       e.action === "agent.resume" ? "bg-green-500/15 text-green-400" :
                       e.action.includes("delete") || e.action.includes("purge") ? "bg-red-500/10 text-red-400" :
-                      e.action.includes("create") ? "bg-[rgba(0,212,126,0.1)] text-[#00D47E]" :
-                      "bg-[#1E1E2A] text-slate-300"
+                      e.action.includes("create") ? "bg-[rgba(0,212,126,0.1)] text-[var(--accent)]" :
+                      "bg-[var(--bg-surface-2)] text-[var(--text-primary)]"
                     }`}>{e.action}</span>
                   </td>
-                  <td className="px-4 py-2.5 text-slate-400">{e.resource_type}</td>
-                  <td className="px-4 py-2.5 text-xs text-slate-500 font-mono">{e.resource_id ?? "-"}</td>
-                  <td className="px-4 py-2.5 text-xs text-slate-500">{e.tenant_id}</td>
+                  <td className="px-4 py-2.5 text-[var(--text-secondary)]">{e.resource_type}</td>
+                  <td className="px-4 py-2.5 text-xs text-[var(--text-tertiary)] font-mono">{e.resource_id ?? "-"}</td>
+                  <td className="px-4 py-2.5 text-xs text-[var(--text-tertiary)]">{e.tenant_id}</td>
                 </tr>
               ))}
             </tbody>
@@ -189,14 +189,14 @@ function AuditLogTab() {
         <div className="flex items-center justify-between">
           <button type="button" disabled={offset === 0}
             onClick={() => setOffset(Math.max(0, offset - limit))}
-            className="rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white disabled:opacity-30"
+            className="rounded-xl px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-30"
           >Previous</button>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-[var(--text-tertiary)]">
             {offset + 1}–{Math.min(offset + limit, data.total)} of {data.total}
           </span>
           <button type="button" disabled={offset + limit >= data.total}
             onClick={() => setOffset(offset + limit)}
-            className="rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white disabled:opacity-30"
+            className="rounded-xl px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-30"
           >Next</button>
         </div>
       )}
@@ -250,15 +250,15 @@ function ExportTab() {
 
   return (
     <div className="space-y-6">
-      <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-6 space-y-4">
+      <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 space-y-4">
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-        <h3 className="text-sm font-semibold text-slate-300">Export Data</h3>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">Export Data</h3>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Data Type</label>
+            <label className="block text-xs text-[var(--text-tertiary)] mb-1">Data Type</label>
             <select value={dataType} onChange={(e) => setDataType(e.target.value)}
-              className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white">
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white">
               <option value="events">Events</option>
               <option value="costs">Costs (daily_stats)</option>
               <option value="agents">Agents</option>
@@ -267,32 +267,32 @@ function ExportTab() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Format</label>
+            <label className="block text-xs text-[var(--text-tertiary)] mb-1">Format</label>
             <select value={format} onChange={(e) => setFormat(e.target.value)}
-              className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white">
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white">
               <option value="json">JSON</option>
               <option value="csv">CSV</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Since</label>
+            <label className="block text-xs text-[var(--text-tertiary)] mb-1">Since</label>
             <input type="date" value={since} onChange={(e) => setSince(e.target.value)}
-              className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white" />
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white" />
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Until</label>
+            <label className="block text-xs text-[var(--text-tertiary)] mb-1">Until</label>
             <input type="date" value={until} onChange={(e) => setUntil(e.target.value)}
-              className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white" />
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white" />
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           <button type="button" onClick={handleExport} disabled={loading}
-            className="rounded-xl bg-[#00D47E] px-6 py-2.5 text-sm font-semibold text-[#0a0a14] transition hover:brightness-110 disabled:opacity-50">
+            className="rounded-xl bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-[var(--accent-foreground)] transition hover:brightness-110 disabled:opacity-50">
             {loading ? "Exporting..." : "Export"}
           </button>
           {result && (
-            <span className="text-sm text-[#00D47E]">
+            <span className="text-sm text-[var(--accent)]">
               {result.count === -1 ? "CSV downloaded" : `Exported ${result.count} rows`}
             </span>
           )}
@@ -343,35 +343,35 @@ function PurgeTab() {
 
   return (
     <div className="space-y-6">
-      <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[#111118] p-6 space-y-4">
+      <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[var(--bg-surface)] p-6 space-y-4">
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-red-400" />
           <h3 className="text-sm font-semibold text-red-400">GDPR Data Purge</h3>
         </div>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-[var(--text-secondary)]">
           Permanently delete all data for a tenant or agent. Use dry run first to preview affected rows.
         </p>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Scope</label>
+            <label className="block text-xs text-[var(--text-tertiary)] mb-1">Scope</label>
             <select value={scope} onChange={(e) => setScope(e.target.value as "tenant" | "agent")}
-              className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white">
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white">
               <option value="tenant">Tenant</option>
               <option value="agent">Agent</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">{scope === "tenant" ? "Tenant ID" : "Agent ID"}</label>
+            <label className="block text-xs text-[var(--text-tertiary)] mb-1">{scope === "tenant" ? "Tenant ID" : "Agent ID"}</label>
             <input type="text" value={scopeId} onChange={(e) => setScopeId(e.target.value)}
               placeholder={scope === "tenant" ? "e.g. my-client" : "e.g. agent_abc123"}
-              className="w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-sm text-white" />
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white" />
           </div>
           <div className="flex items-end gap-3">
-            <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-[var(--text-primary)] cursor-pointer">
               <input type="checkbox" checked={dryRun} onChange={(e) => setDryRun(e.target.checked)}
-                className="rounded border-[#1E1E2A]" />
+                className="rounded border-[var(--border)]" />
               Dry Run (preview only)
             </label>
           </div>
@@ -381,14 +381,14 @@ function PurgeTab() {
           <div>
             <label className="block text-xs text-red-400 mb-1">Type PURGE to confirm</label>
             <input type="text" value={confirmText} onChange={(e) => setConfirmText(e.target.value)}
-              className="w-48 rounded-xl border border-red-500/30 bg-[#0a0a14] px-3 py-2 text-sm text-white" />
+              className="w-48 rounded-xl border border-red-500/30 bg-[var(--bg-primary)] px-3 py-2 text-sm text-white" />
           </div>
         )}
 
         <button type="button" onClick={handlePurge} disabled={loading || !scopeId}
           className={`rounded-xl px-6 py-2.5 text-sm font-semibold transition ${
             dryRun
-              ? "bg-amber-500 text-[#0a0a14] hover:brightness-110"
+              ? "bg-amber-500 text-[var(--accent-foreground)] hover:brightness-110"
               : "bg-red-500 text-white hover:brightness-110"
           } disabled:opacity-50`}
         >
@@ -404,16 +404,16 @@ function PurgeTab() {
             <p className={`font-semibold ${result.dry_run ? "text-amber-400" : "text-red-400"}`}>
               {result.dry_run ? "Dry Run Preview" : "Purge Complete"}
             </p>
-            <div className="mt-2 space-y-1 text-slate-300">
+            <div className="mt-2 space-y-1 text-[var(--text-primary)]">
               {Object.entries(result.rows_affected).map(([table, count]) => (
                 <div key={table} className="flex justify-between">
-                  <span className="text-slate-500">{table}</span>
+                  <span className="text-[var(--text-tertiary)]">{table}</span>
                   <span>{count} rows</span>
                 </div>
               ))}
             </div>
             {result.purged_at && (
-              <p className="mt-2 text-xs text-slate-500">Purged at: {String(result.purged_at)}</p>
+              <p className="mt-2 text-xs text-[var(--text-tertiary)]">Purged at: {String(result.purged_at)}</p>
             )}
           </motion.div>
         )}

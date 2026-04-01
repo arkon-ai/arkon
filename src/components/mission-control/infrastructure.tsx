@@ -183,8 +183,8 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
         </div>
 
         {/* Name & IP */}
-        <p className="mb-0.5 text-[14px] font-semibold text-[#e5e5e5]">{d.name}</p>
-        <p className="mb-2 font-mono text-[11px] text-[#525252]">{d.ip}</p>
+        <p className="mb-0.5 text-[14px] font-semibold text-[var(--text-primary)]">{d.name}</p>
+        <p className="mb-2 font-mono text-[11px] text-[var(--text-tertiary)]">{d.ip}</p>
 
         {/* Role badge */}
         <span
@@ -209,8 +209,8 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
             )}
             {d.metrics?.dockerRunning != null && d.metrics.dockerRunning > 0 && !isCompact && (
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-wider text-[#525252]">Docker</p>
-                <p className="mt-1 font-mono text-[11px] text-[#a3a3a3]">{d.metrics.dockerRunning} up</p>
+                <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-tertiary)]">Docker</p>
+                <p className="mt-1 font-mono text-[11px] text-[var(--text-secondary)]">{d.metrics.dockerRunning} up</p>
               </div>
             )}
           </div>
@@ -256,11 +256,11 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
 function StatBar({ label, value, color, suffix }: { label: string; value: number; color: string; suffix?: string }) {
   return (
     <div>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-[#525252]">{label}</p>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-tertiary)]">{label}</p>
       <div className="mt-1 h-[3px] overflow-hidden rounded-full bg-white/5">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${value}%`, background: color }} />
       </div>
-      <p className="mt-0.5 font-mono text-[11px] text-[#737373]">{suffix || `${value}%`}</p>
+      <p className="mt-0.5 font-mono text-[11px] text-[var(--text-tertiary)]">{suffix || `${value}%`}</p>
     </div>
   );
 }
@@ -330,13 +330,13 @@ function DetailPanel({
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 400, opacity: 0 }}
       transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="absolute right-0 top-0 z-50 h-full w-[380px] overflow-y-auto border-l border-[#1E1E2A] bg-[#0a0a0a]"
+      className="absolute right-0 top-0 z-50 h-full w-[380px] overflow-y-auto border-l border-[var(--border)] bg-[var(--bg-primary)]"
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-[#1E1E2A] bg-[#0a0a0a] px-5 py-5">
+      <div className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--bg-primary)] px-5 py-5">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-lg border border-[#1E1E2A] text-xs text-[#525252] transition hover:border-[#2a2a2a] hover:text-white"
+          className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--border)] text-xs text-[var(--text-tertiary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
         >
           {"\u2715"}
         </button>
@@ -348,10 +348,10 @@ function DetailPanel({
               {node.status.charAt(0).toUpperCase() + node.status.slice(1)}
             </span>
           </span>
-          <span className="text-[#2a2a2a]">{"\u00B7"}</span>
+          <span className="text-[var(--text-tertiary)]">{"\u00B7"}</span>
           <span style={{ color: roleStyle.color }}>{ROLE_LABELS[node.role]}</span>
-          <span className="text-[#2a2a2a]">{"\u00B7"}</span>
-          <span className="font-mono text-[#525252]">{node.ip}</span>
+          <span className="text-[var(--text-tertiary)]">{"\u00B7"}</span>
+          <span className="font-mono text-[var(--text-tertiary)]">{node.ip}</span>
         </div>
       </div>
 
@@ -382,8 +382,8 @@ function DetailPanel({
           )}
           {node.metrics.latencyMs != null && (
             <div className="flex items-center justify-between py-1.5">
-              <span className="text-xs font-medium text-[#737373]">Latency</span>
-              <span className="font-mono text-xs text-[#a3a3a3]">{node.metrics.latencyMs.toFixed(1)} ms</span>
+              <span className="text-xs font-medium text-[var(--text-tertiary)]">Latency</span>
+              <span className="font-mono text-xs text-[var(--text-secondary)]">{node.metrics.latencyMs.toFixed(1)} ms</span>
             </div>
           )}
         </Section>
@@ -392,20 +392,20 @@ function DetailPanel({
       {/* Agents */}
       <Section title="Agents">
         {node.agents.length === 0 ? (
-          <p className="text-xs text-[#525252]">No agents on this node</p>
+          <p className="text-xs text-[var(--text-tertiary)]">No agents on this node</p>
         ) : (
           node.agents.map((agent) => (
-            <div key={agent.id} className="mb-2 flex items-center justify-between rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2.5">
+            <div key={agent.id} className="mb-2 flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2.5">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(34,197,94,0.08)] text-xs font-semibold text-[#22c55e]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(34,197,94,0.08)] text-xs font-semibold text-[var(--success)]">
                   {agent.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-[13px] font-medium text-[#e5e5e5]">{agent.name}</p>
-                  <p className="font-mono text-[10px] text-[#525252]">{agent.role}</p>
+                  <p className="text-[13px] font-medium text-[var(--text-primary)]">{agent.name}</p>
+                  <p className="font-mono text-[10px] text-[var(--text-tertiary)]">{agent.role}</p>
                 </div>
               </div>
-              <span className="rounded-full bg-[rgba(34,197,94,0.06)] px-2.5 py-0.5 text-[10px] font-semibold text-[#22c55e]">
+              <span className="rounded-full bg-[rgba(34,197,94,0.06)] px-2.5 py-0.5 text-[10px] font-semibold text-[var(--success)]">
                 {agent.role}
               </span>
             </div>
@@ -418,9 +418,9 @@ function DetailPanel({
         <Section title="Services">
           <div className="grid grid-cols-2 gap-2">
             {(node.services as Array<{ name: string; active: boolean }>).map((svc) => (
-              <div key={svc.name} className="flex items-center gap-2 rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2">
+              <div key={svc.name} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2">
                 <div className="h-1.5 w-1.5 rounded-full" style={{ background: svc.active ? "#22c55e" : "#525252" }} />
-                <span className="text-[11px] font-medium text-[#a3a3a3]">{svc.name}</span>
+                <span className="text-[11px] font-medium text-[var(--text-secondary)]">{svc.name}</span>
               </div>
             ))}
           </div>
@@ -437,10 +437,10 @@ function DetailPanel({
               disabled={loading !== null}
               className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition
                 ${action.style === "primary"
-                  ? "border-[rgba(34,197,94,0.15)] bg-[rgba(34,197,94,0.05)] text-[#22c55e] hover:bg-[rgba(34,197,94,0.1)]"
+                  ? "border-[rgba(34,197,94,0.15)] bg-[rgba(34,197,94,0.05)] text-[var(--success)] hover:bg-[rgba(34,197,94,0.1)]"
                   : action.style === "danger"
-                    ? "border-[rgba(239,68,68,0.12)] text-[#ef4444] hover:bg-[rgba(239,68,68,0.05)]"
-                    : "border-[#1E1E2A] text-[#737373] hover:bg-white/[0.03] hover:text-[#e5e5e5]"
+                    ? "border-[rgba(239,68,68,0.12)] text-[var(--danger)] hover:bg-[rgba(239,68,68,0.05)]"
+                    : "border-[var(--border)] text-[var(--text-tertiary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                 }
                 disabled:opacity-40`}
             >
@@ -458,7 +458,7 @@ function DetailPanel({
       {/* Action Output */}
       {actionResult && (
         <Section title="Output">
-          <pre className="max-h-60 overflow-auto rounded-xl border border-[#1E1E2A] bg-[#050505] p-3 font-mono text-[11px] leading-relaxed text-[#a3a3a3]">
+          <pre className="max-h-60 overflow-auto rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3 font-mono text-[11px] leading-relaxed text-[var(--text-secondary)]">
             {actionResult.output || actionResult.error || "No output"}
           </pre>
         </Section>
@@ -482,8 +482,8 @@ function DetailPanel({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="border-b border-[#1E1E2A] px-5 py-4">
-      <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#525252]">{title}</p>
+    <div className="border-b border-[var(--border)] px-5 py-4">
+      <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--text-tertiary)]">{title}</p>
       {children}
     </div>
   );
@@ -494,11 +494,11 @@ function ResourceRow({ label, value, total, display }: { label: string; value: n
   const color = pct > 85 ? "#ef4444" : pct > 65 ? "#f59e0b" : "#22c55e";
   return (
     <div className="mb-2.5 flex items-center gap-3">
-      <span className="w-9 text-xs font-medium text-[#737373]">{label}</span>
+      <span className="w-9 text-xs font-medium text-[var(--text-tertiary)]">{label}</span>
       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/5">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="w-20 text-right font-mono text-[11px] text-[#737373]">{display}</span>
+      <span className="w-20 text-right font-mono text-[11px] text-[var(--text-tertiary)]">{display}</span>
     </div>
   );
 }
@@ -506,8 +506,8 @@ function ResourceRow({ label, value, total, display }: { label: string; value: n
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between">
-      <span className="text-[#525252]">{label}</span>
-      <span className="font-mono text-[#a3a3a3]">{value}</span>
+      <span className="text-[var(--text-tertiary)]">{label}</span>
+      <span className="font-mono text-[var(--text-secondary)]">{value}</span>
     </div>
   );
 }
@@ -632,8 +632,8 @@ export function InfrastructureTopology() {
     return (
       <div className="flex h-[70vh] items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#22c55e] border-t-transparent" />
-          <p className="text-sm text-[#525252]">Loading infrastructure topology...</p>
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[var(--success)] border-t-transparent" />
+          <p className="text-sm text-[var(--text-tertiary)]">Loading infrastructure topology...</p>
         </div>
       </div>
     );
@@ -644,8 +644,8 @@ export function InfrastructureTopology() {
       <div className="flex h-[70vh] items-center justify-center">
         <div className="text-center">
           <p className="mb-2 text-lg text-red-400">{"\u26A0"} Failed to load topology</p>
-          <p className="mb-4 text-sm text-[#525252]">{error}</p>
-          <button onClick={fetchTopology} className="rounded-xl border border-[#1E1E2A] bg-[#111118] px-4 py-2 text-sm text-[#a3a3a3] transition hover:border-[#2a2a2a] hover:text-white">
+          <p className="mb-4 text-sm text-[var(--text-tertiary)]">{error}</p>
+          <button onClick={fetchTopology} className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2 text-sm text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]">
             Retry
           </button>
         </div>
@@ -668,9 +668,9 @@ export function InfrastructureTopology() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Infrastructure</h1>
-          <p className="mt-1 text-sm text-[#737373]">
+          <p className="mt-1 text-sm text-[var(--text-tertiary)]">
             {onlineCount}/{totalCount} nodes online
-            {degradedCount > 0 && <span className="text-[#f59e0b]"> {"\u00B7"} {degradedCount} degraded</span>}
+            {degradedCount > 0 && <span className="text-[var(--warning)]"> {"\u00B7"} {degradedCount} degraded</span>}
           </p>
         </div>
 
@@ -683,8 +683,8 @@ export function InfrastructureTopology() {
                 onClick={() => setFilter(f)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition
                   ${filter === f
-                    ? "bg-[rgba(34,197,94,0.08)] text-[#22c55e] ring-1 ring-[rgba(34,197,94,0.2)]"
-                    : "text-[#525252] hover:bg-white/5 hover:text-[#a3a3a3]"
+                    ? "bg-[rgba(34,197,94,0.08)] text-[var(--success)] ring-1 ring-[rgba(34,197,94,0.2)]"
+                    : "text-[var(--text-tertiary)] hover:bg-white/5 hover:text-[var(--text-secondary)]"
                   }`}
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -692,12 +692,12 @@ export function InfrastructureTopology() {
             ))}
           </div>
 
-          <span className="font-mono text-[11px] text-[#525252]">Updated {timeSince}</span>
+          <span className="font-mono text-[11px] text-[var(--text-tertiary)]">Updated {timeSince}</span>
 
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#1E1E2A] text-[#525252] transition hover:border-[#2a2a2a] hover:text-white disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-tertiary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] disabled:opacity-40"
           >
             <svg className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
@@ -708,7 +708,7 @@ export function InfrastructureTopology() {
       </div>
 
       {/* Topology Canvas */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#1E1E2A] bg-[#050505]" style={{ height: "calc(100vh - 200px)" }}>
+      <div className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]" style={{ height: "calc(100vh - 200px)" }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -753,9 +753,9 @@ export function InfrastructureTopology() {
         </AnimatePresence>
 
         {/* Legend */}
-        <div className="absolute bottom-4 left-4 flex gap-4 rounded-xl border border-[#1E1E2A] bg-[#111118] px-4 py-2.5">
+        <div className="absolute bottom-4 left-4 flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5">
           {Object.entries(STATUS_COLORS).filter(([k]) => k !== "unknown").map(([status, color]) => (
-            <div key={status} className="flex items-center gap-1.5 text-[11px] text-[#737373]">
+            <div key={status} className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)]">
               <div className="h-2 w-2 rounded-full" style={{ background: color }} />
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </div>

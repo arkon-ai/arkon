@@ -150,21 +150,21 @@ export default function LoginPage() {
     }
   }
 
-  const inputClass = "w-full rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[rgba(0,212,126,0.5)] focus:outline-none focus:ring-1 focus:ring-[rgba(0,212,126,0.5)] transition";
-  const submitClass = "w-full rounded-xl bg-[#00D47E] px-4 py-3 font-semibold text-[#0A0A0C] transition hover:bg-[#00E88A] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]";
+  const inputClass = "w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[rgba(0,212,126,0.5)] focus:outline-none focus:ring-1 focus:ring-[rgba(0,212,126,0.5)] transition";
+  const submitClass = "w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0A0A0C] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-primary)] px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[rgba(0,212,126,0.25)] bg-[rgba(0,212,126,0.08)]">
-            <span className="text-3xl font-extrabold text-[#00D47E] font-[family-name:var(--font-display)]">A</span>
+            <span className="text-3xl font-extrabold text-[var(--accent)] font-[family-name:var(--font-display)]">A</span>
           </div>
           <h1 className="text-2xl font-extrabold text-white font-[family-name:var(--font-display)]">Arkon</h1>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">AI Control Plane</p>
         </div>
 
-        <div className="mb-6 flex rounded-xl border border-[#1E1E2A] bg-[#111118] p-1">
+        <div className="mb-6 flex rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-1">
           {(["passphrase", "email", "magic"] as AuthMode[]).map((m) => (
             <button
               key={m}
@@ -172,7 +172,7 @@ export default function LoginPage() {
               onClick={() => { setMode(m); setError(""); setMagicSent(false); }}
               className={`flex-1 rounded-lg py-2 text-xs font-medium transition ${
                 mode === m
-                  ? "bg-[rgba(0,212,126,0.15)] text-[#00D47E]"
+                  ? "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
@@ -255,13 +255,13 @@ export default function LoginPage() {
         {mode === "magic" && magicSent && (
           <div className="space-y-4 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[rgba(0,212,126,0.08)]">
-              <svg className="h-8 w-8 text-[#00D47E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="h-8 w-8 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <p className="text-sm font-medium text-[#E4E4ED]">Check your email</p>
+            <p className="text-sm font-medium text-[var(--text-primary)]">Check your email</p>
             <p className="text-xs text-[var(--text-secondary)]">
-              If an account exists for <span className="text-[#00D47E]">{magicEmail}</span>, a sign-in link was sent.
+              If an account exists for <span className="text-[var(--accent)]">{magicEmail}</span>, a sign-in link was sent.
               The link expires in 15 minutes.
             </p>
             <button

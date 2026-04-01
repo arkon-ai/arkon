@@ -91,12 +91,12 @@ function StatCard({ label, value, sub, color }: { label: string; value: string; 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-      className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
+      className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
     >
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">{label}</p>
       <p className="mt-1.5 text-2xl font-bold" style={{ color }}>{value}</p>
-      {sub && <p className="mt-1 text-xs text-[#8888A0]">{sub}</p>}
+      {sub && <p className="mt-1 text-xs text-[var(--text-secondary)]">{sub}</p>}
     </motion.div>
   );
 }
@@ -106,11 +106,11 @@ function StatCard({ label, value, sub, color }: { label: string; value: string; 
 /* ── range selector ── */
 function RangeSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div className="flex gap-1 rounded-xl bg-[#111118] p-1">
+    <div className="flex gap-1 rounded-xl bg-[var(--bg-surface)] p-1">
       {["24h", "7d", "30d"].map((r) => (
         <button key={r} onClick={() => onChange(r)}
           className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-            value === r ? "bg-[#1E1E2A] text-white" : "text-[#555566] hover:text-[#8888A0]"
+            value === r ? "bg-[var(--bg-surface-2)] text-white" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
           }`}>{r}</button>
       ))}
     </div>
@@ -121,8 +121,8 @@ function RangeSelector({ value, onChange }: { value: string; onChange: (v: strin
 function CostTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-[#1E1E2A] bg-[#111118] px-3 py-2 text-xs shadow-xl">
-      <p className="text-[#8888A0] mb-1">{label}</p>
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-xs shadow-xl">
+      <p className="text-[var(--text-secondary)] mb-1">{label}</p>
       <p className="text-white font-medium">{fmt$(payload[0].value)}</p>
     </div>
   );
@@ -226,14 +226,14 @@ export default function CostsScreen() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#E4E4ED]">Cost Tracker</h1>
-          <p className="mt-1 text-sm text-[#8888A0]">AI spend across all agents and models</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">Cost Tracker</h1>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">AI spend across all agents and models</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={exportCostCSV}
             disabled={!overview || !agentData}
-            className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs font-medium text-[#8888A0] hover:text-white hover:border-[#3E3E4A] transition disabled:opacity-30 disabled:cursor-not-allowed"
+            className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Export CSV
           </button>
@@ -255,14 +255,14 @@ export default function CostsScreen() {
         {(["overview", "agents", "models"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-              tab === t ? "bg-[rgba(0,212,126,0.15)] text-[#00D47E]" : "text-[#8888A0] hover:text-[#E4E4ED]"
+              tab === t ? "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}>{t === "overview" ? "Overview" : t === "agents" ? "By Agent" : "By Model"}</button>
         ))}
       </div>
 
       {loading && !overview ? (
         <div className="flex items-center justify-center py-20">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00D47E] border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
         </div>
       ) : tab === "overview" ? (
         <OverviewTab overview={overview} dailyBurn={dailyBurn} projected={projected} agentData={agentData} />
@@ -302,16 +302,16 @@ function BudgetProgress({ label, spent, limit, threshold, dailyBurn, isMonthly }
   return (
     <div className="mb-4">
       <div className="flex justify-between text-xs mb-1.5">
-        <span className="text-[#8888A0] font-medium">{label}</span>
-        <span className="text-[#8888A0]">
+        <span className="text-[var(--text-secondary)] font-medium">{label}</span>
+        <span className="text-[var(--text-secondary)]">
           {fmt$(spent)} / {fmt$(limit)}
           <span className="ml-1.5 font-medium" style={{ color: barColor }}>({Math.round(pct)}%)</span>
         </span>
       </div>
-      <div className="relative h-2.5 rounded-full bg-[#1E1E2A] overflow-hidden">
+      <div className="relative h-2.5 rounded-full bg-[var(--bg-surface-2)] overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${pct}%`, backgroundColor: barColor }} />
         {/* Threshold marker */}
-        <div className="absolute top-0 h-full w-px bg-[#555566]" style={{ left: `${threshold}%` }} />
+        <div className="absolute top-0 h-full w-px bg-[var(--text-tertiary)]" style={{ left: `${threshold}%` }} />
       </div>
       {projectionText && (
         <p className="text-[10px] mt-1" style={{ color: pct >= threshold ? C.amber : "#555566" }}>{projectionText}</p>
@@ -324,16 +324,16 @@ function BudgetProgress({ label, spent, limit, threshold, dailyBurn, isMonthly }
 function AnomalyAlert({ anomalies }: { anomalies: AgentAnomaly[] }) {
   if (anomalies.length === 0) return null;
   return (
-    <div className="rounded-[16px] border border-[#f59e0b]/30 bg-[#f59e0b]/5 p-4">
-      <h3 className="text-sm font-medium text-[#f59e0b] mb-2">Spending Anomalies Detected</h3>
+    <div className="rounded-[16px] border border-[var(--warning)]/30 bg-[var(--warning)]/5 p-4">
+      <h3 className="text-sm font-medium text-[var(--warning)] mb-2">Spending Anomalies Detected</h3>
       <div className="space-y-2">
         {anomalies.map((a) => (
           <div key={a.agent_id} className="flex items-center justify-between text-xs">
-            <span className="text-[#E4E4ED]">
+            <span className="text-[var(--text-primary)]">
               <span className="font-medium">{a.agent_name}</span>
-              <span className="text-[#f59e0b] ml-2">{a.ratio.toFixed(1)}x higher than 7-day average</span>
+              <span className="text-[var(--warning)] ml-2">{a.ratio.toFixed(1)}x higher than 7-day average</span>
             </span>
-            <span className="text-[#8888A0]">
+            <span className="text-[var(--text-secondary)]">
               Today: <span className="text-white">{fmt$(a.today_cost)}</span>
               <span className="mx-1">vs</span>
               avg: <span className="text-white">{fmt$(a.avg_7d)}</span>/day
@@ -398,21 +398,21 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
   if (tips.length === 0) return null;
 
   return (
-    <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+    <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <button onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full text-left">
-        <h3 className="text-sm font-medium text-[#8888A0]">
+        <h3 className="text-sm font-medium text-[var(--text-secondary)]">
           Optimization Tips
-          <span className="ml-2 text-xs text-[#555566]">({tips.length})</span>
+          <span className="ml-2 text-xs text-[var(--text-tertiary)]">({tips.length})</span>
         </h3>
-        <span className="text-xs text-[#555566]">{expanded ? "\u25B2" : "\u25BC"}</span>
+        <span className="text-xs text-[var(--text-tertiary)]">{expanded ? "\u25B2" : "\u25BC"}</span>
       </button>
       {expanded && (
         <div className="mt-3 space-y-2">
           {tips.map((tip, i) => (
             <div key={i} className="flex items-start gap-2 text-xs">
               <span className="shrink-0 mt-0.5 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tip.color }} />
-              <span className="text-[#8888A0]">{tip.text}</span>
+              <span className="text-[var(--text-secondary)]">{tip.text}</span>
             </div>
           ))}
         </div>
@@ -455,9 +455,9 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
 
       {/* Budget progress (enhanced) */}
       {budgets.length > 0 && (
-        <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h3 className="text-sm font-medium text-[#8888A0] mb-4">Budget Status</h3>
+          <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Budget Status</h3>
           {budgets.map((b) => (
             <React.Fragment key={b.id}>
               {b.daily_limit_usd != null && (
@@ -486,16 +486,16 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
       )}
 
       {budgets.length === 0 && summary.total_cost_usd > 0 && (
-        <div className="rounded-[16px] border border-dashed border-[#1E1E2A] bg-[#111118]/50 p-4 text-center">
-          <p className="text-sm text-[#8888A0]">No budget limits configured.</p>
-          <p className="text-xs text-[#555566] mt-1">Set a budget to track spending against a target and get alerts.</p>
+        <div className="rounded-[16px] border border-dashed border-[var(--border)] bg-[var(--bg-surface)]/50 p-4 text-center">
+          <p className="text-sm text-[var(--text-secondary)]">No budget limits configured.</p>
+          <p className="text-xs text-[var(--text-tertiary)] mt-1">Set a budget to track spending against a target and get alerts.</p>
         </div>
       )}
 
       {/* Cost trend chart */}
-      <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+      <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-        <h3 className="text-sm font-medium text-[#8888A0] mb-4">Daily Cost Trend</h3>
+        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Daily Cost Trend</h3>
         <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={daily_trend}>
             <defs>
@@ -516,9 +516,9 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Top agents by cost */}
-        <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h3 className="text-sm font-medium text-[#8888A0] mb-4">Top Agents by Cost</h3>
+          <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Top Agents by Cost</h3>
           {by_agent.length === 0 ? (
             <CostsEmpty />
           ) : (
@@ -539,15 +539,15 @@ function OverviewTab({ overview, dailyBurn, projected, agentData }: {
         </div>
 
         {/* Tenant breakdown */}
-        <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h3 className="text-sm font-medium text-[#8888A0] mb-4">Tenant Spend</h3>
+          <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Tenant Spend</h3>
           {by_tenant.map((t) => (
-            <div key={t.tenant_id} className="flex items-center justify-between py-2 border-b border-[#1E1E2A]/50 last:border-0">
-              <span className="text-sm text-[#E4E4ED]">{t.tenant_id}</span>
+            <div key={t.tenant_id} className="flex items-center justify-between py-2 border-b border-[var(--border)]/50 last:border-0">
+              <span className="text-sm text-[var(--text-primary)]">{t.tenant_id}</span>
               <div className="text-right">
                 <span className="text-sm font-medium text-white">{fmt$(t.cost)}</span>
-                <span className="text-xs text-[#555566] ml-2">{fmtK(t.tokens)} tokens</span>
+                <span className="text-xs text-[var(--text-tertiary)] ml-2">{fmtK(t.tokens)} tokens</span>
               </div>
             </div>
           ))}
@@ -570,7 +570,7 @@ function AgentsTab({ agents, loading, anomalies }: { agents: AgentDetailRow[] | 
   if (loading || !agents) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00D47E] border-t-transparent" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
       </div>
     );
   }
@@ -585,7 +585,7 @@ function AgentsTab({ agents, loading, anomalies }: { agents: AgentDetailRow[] | 
         <motion.div key={a.agent_id}
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }}
-          className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-4"
+          className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-4"
         >
             <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <div className="flex items-start justify-between">
@@ -593,24 +593,24 @@ function AgentsTab({ agents, loading, anomalies }: { agents: AgentDetailRow[] | 
               <div className="flex items-center gap-2">
                 <h4 className="text-sm font-medium text-white">{a.agent_name || a.agent_id}</h4>
                 {anomalyMap[a.agent_id] && (
-                  <span className="inline-flex items-center rounded-full bg-[#f59e0b]/15 px-2 py-0.5 text-[10px] font-semibold text-[#f59e0b]">
+                  <span className="inline-flex items-center rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)]">
                     {anomalyMap[a.agent_id].ratio.toFixed(1)}x avg
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#555566]">{a.tenant_id} · {a.active_days}d active</p>
+              <p className="text-xs text-[var(--text-tertiary)]">{a.tenant_id} · {a.active_days}d active</p>
             </div>
             <div className="text-right">
               <p className="text-lg font-semibold" style={{ color: AGENT_COLORS[i % AGENT_COLORS.length] }}>
                 {fmt$(a.total_cost)}
               </p>
-              <p className="text-xs text-[#555566]">{fmtK(a.total_tokens)} tokens</p>
+              <p className="text-xs text-[var(--text-tertiary)]">{fmtK(a.total_tokens)} tokens</p>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-3 text-xs">
-            <div><span className="text-[#555566]">Messages</span><p className="text-[#8888A0]">{a.total_messages}</p></div>
-            <div><span className="text-[#555566]">Tool Calls</span><p className="text-[#8888A0]">{a.total_tool_calls}</p></div>
-            <div><span className="text-[#555566]">$/1K tokens</span><p className="text-[#8888A0]">{fmt$(a.cost_per_1k_tokens)}</p></div>
+            <div><span className="text-[var(--text-tertiary)]">Messages</span><p className="text-[var(--text-secondary)]">{a.total_messages}</p></div>
+            <div><span className="text-[var(--text-tertiary)]">Tool Calls</span><p className="text-[var(--text-secondary)]">{a.total_tool_calls}</p></div>
+            <div><span className="text-[var(--text-tertiary)]">$/1K tokens</span><p className="text-[var(--text-secondary)]">{fmt$(a.cost_per_1k_tokens)}</p></div>
           </div>
           {a.daily_trend.length > 1 && (
             <div className="mt-3 h-12">
@@ -635,7 +635,7 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
   if (loading || !models) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#00D47E] border-t-transparent" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
       </div>
     );
   }
@@ -652,12 +652,12 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
       {/* Paid models */}
       {paid.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-[#8888A0] mb-3">Paid Models</h3>
-          <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+          <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">Paid Models</h3>
+          <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden">
             <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#1E1E2A] text-[#555566] text-xs">
+                <tr className="border-b border-[var(--border)] text-[var(--text-tertiary)] text-xs">
                   <th className="text-left p-3 font-medium">Model</th>
                   <th className="text-left p-3 font-medium">Provider</th>
                   <th className="text-right p-3 font-medium">Events</th>
@@ -667,12 +667,12 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
               </thead>
               <tbody>
                 {paid.map((m) => (
-                  <tr key={`${m.provider}::${m.model}`} className="border-b border-[#1E1E2A]/50 last:border-0">
+                  <tr key={`${m.provider}::${m.model}`} className="border-b border-[var(--border)]/50 last:border-0">
                     <td className="p-3 text-white">{m.display_name}</td>
-                    <td className="p-3 text-[#8888A0]">{m.provider}</td>
-                    <td className="p-3 text-right text-[#8888A0]">{m.event_count}</td>
-                    <td className="p-3 text-right text-[#8888A0]">{fmtK(m.total_tokens)}</td>
-                    <td className="p-3 text-right font-medium text-[#f59e0b]">{fmt$(m.estimated_cost)}</td>
+                    <td className="p-3 text-[var(--text-secondary)]">{m.provider}</td>
+                    <td className="p-3 text-right text-[var(--text-secondary)]">{m.event_count}</td>
+                    <td className="p-3 text-right text-[var(--text-secondary)]">{fmtK(m.total_tokens)}</td>
+                    <td className="p-3 text-right font-medium text-[var(--warning)]">{fmt$(m.estimated_cost)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -684,12 +684,12 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
       {/* Free models */}
       {free.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-[#8888A0] mb-3">Free / Local Models</h3>
-          <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] overflow-hidden">
+          <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">Free / Local Models</h3>
+          <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden">
             <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#1E1E2A] text-[#555566] text-xs">
+                <tr className="border-b border-[var(--border)] text-[var(--text-tertiary)] text-xs">
                   <th className="text-left p-3 font-medium">Model</th>
                   <th className="text-left p-3 font-medium">Provider</th>
                   <th className="text-right p-3 font-medium">Events</th>
@@ -699,12 +699,12 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
               </thead>
               <tbody>
                 {free.map((m) => (
-                  <tr key={`${m.provider}::${m.model}`} className="border-b border-[#1E1E2A]/50 last:border-0">
+                  <tr key={`${m.provider}::${m.model}`} className="border-b border-[var(--border)]/50 last:border-0">
                     <td className="p-3 text-white">{m.display_name}</td>
-                    <td className="p-3 text-[#8888A0]">{m.provider}</td>
-                    <td className="p-3 text-right text-[#8888A0]">{m.event_count}</td>
-                    <td className="p-3 text-right text-[#8888A0]">{fmtK(m.total_tokens)}</td>
-                    <td className="p-3 text-right text-[#00D47E]">Free</td>
+                    <td className="p-3 text-[var(--text-secondary)]">{m.provider}</td>
+                    <td className="p-3 text-right text-[var(--text-secondary)]">{m.event_count}</td>
+                    <td className="p-3 text-right text-[var(--text-secondary)]">{fmtK(m.total_tokens)}</td>
+                    <td className="p-3 text-right text-[var(--accent)]">Free</td>
                   </tr>
                 ))}
               </tbody>

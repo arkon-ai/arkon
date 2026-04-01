@@ -115,11 +115,11 @@ export default function SessionsPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-2xl bg-[#111118]" />
+            <div key={i} className="h-20 animate-pulse rounded-2xl bg-[var(--bg-surface)]" />
           ))}
         </div>
       ) : sessions.length === 0 ? (
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-8 text-center">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-8 text-center">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[var(--text-secondary)]">No active sessions found. You may be using passphrase auth.</p>
         </div>
@@ -128,7 +128,7 @@ export default function SessionsPage() {
           {sessions.map((session) => (
             <div
               key={session.id}
-              className="relative card-hover flex items-center justify-between rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4"
+              className="relative card-hover flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4"
             >
               <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
               <div className="space-y-1 relative z-10">
@@ -152,7 +152,7 @@ export default function SessionsPage() {
                 <button
                   onClick={() => revokeSession(session.id)}
                   disabled={revoking === session.id}
-                  className="relative z-10 rounded-lg border border-[#1E1E2A] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] transition hover:border-[var(--danger)]/50 hover:text-[var(--danger)] disabled:opacity-50"
+                  className="relative z-10 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] transition hover:border-[var(--danger)]/50 hover:text-[var(--danger)] disabled:opacity-50"
                 >
                   {revoking === session.id ? "Revoking..." : "Revoke"}
                 </button>

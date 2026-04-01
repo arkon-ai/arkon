@@ -48,18 +48,18 @@ export function SpanDetail({ span }: { span: Span }) {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-[#1E1E2A] px-4 py-3">
+      <div className="border-b border-[var(--border)] px-4 py-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-[#E4E4ED]">{span.name || "Unnamed Span"}</h3>
-          <span className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#8888A0]" style={{ background: "rgba(136,136,160,0.1)" }}>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">{span.name || "Unnamed Span"}</h3>
+          <span className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--text-secondary)]" style={{ background: "rgba(136,136,160,0.1)" }}>
             {TYPE_LABELS[span.type] || span.type}
           </span>
         </div>
-        <p className="mt-0.5 font-mono text-[10px] text-[#555566]">{span.span_id}</p>
+        <p className="mt-0.5 font-mono text-[10px] text-[var(--text-tertiary)]">{span.span_id}</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-[#1E1E2A]">
+      <div className="flex border-b border-[var(--border)]">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.key;
           const Icon = tab.icon;
@@ -69,8 +69,8 @@ export function SpanDetail({ span }: { span: Span }) {
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium transition-colors ${
                 isActive
-                  ? "border-b-2 border-[#00D47E] text-[#00D47E]"
-                  : "text-[#555566] hover:text-[#8888A0]"
+                  ? "border-b-2 border-[var(--accent)] text-[var(--accent)]"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
               }`}
             >
               <Icon className="h-3 w-3" />
@@ -87,10 +87,10 @@ export function SpanDetail({ span }: { span: Span }) {
             {/* Error banner */}
             {isError && span.error && (
               <div className="flex items-start gap-3 rounded-xl border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.06)] p-3">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#EF4444]" />
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--danger)]" />
                 <div>
-                  <p className="text-xs font-semibold text-[#EF4444]">Error</p>
-                  <p className="mt-1 font-mono text-xs text-[#EF4444]/80">{span.error}</p>
+                  <p className="text-xs font-semibold text-[var(--danger)]">Error</p>
+                  <p className="mt-1 font-mono text-xs text-[var(--danger)]/80">{span.error}</p>
                 </div>
               </div>
             )}
@@ -103,10 +103,10 @@ export function SpanDetail({ span }: { span: Span }) {
                 { label: "Cost", value: fmtCost(Number(span.cost)), icon: Coins, color: "#00D47E" },
                 { label: "Status", value: span.status.toUpperCase(), icon: Hash, color: isError ? "#EF4444" : "#10B981" },
               ].map((s) => (
-                <div key={s.label} className="rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3">
+                <div key={s.label} className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">
                   <div className="flex items-center gap-1.5">
-                    <s.icon className="h-3 w-3 text-[#555566]" />
-                    <span className="text-[10px] uppercase tracking-widest text-[#555566]">{s.label}</span>
+                    <s.icon className="h-3 w-3 text-[var(--text-tertiary)]" />
+                    <span className="text-[10px] uppercase tracking-widest text-[var(--text-tertiary)]">{s.label}</span>
                   </div>
                   <p className="mt-1.5 font-mono text-sm font-semibold" style={{ color: s.color }}>{s.value}</p>
                 </div>
@@ -123,8 +123,8 @@ export function SpanDetail({ span }: { span: Span }) {
                 { label: "Ended", value: span.ended_at ? new Date(span.ended_at).toLocaleString() : "—" },
               ].map((d) => (
                 <div key={d.label} className="flex items-baseline justify-between">
-                  <span className="text-xs text-[#555566]">{d.label}</span>
-                  <span className="font-mono text-xs text-[#8888A0]">{d.value}</span>
+                  <span className="text-xs text-[var(--text-tertiary)]">{d.label}</span>
+                  <span className="font-mono text-xs text-[var(--text-secondary)]">{d.value}</span>
                 </div>
               ))}
             </div>
@@ -134,11 +134,11 @@ export function SpanDetail({ span }: { span: Span }) {
         {activeTab === "input" && (
           <div>
             {span.input ? (
-              <pre className="overflow-x-auto rounded-xl bg-[#0A0A0C] p-4 font-mono text-xs text-[#8888A0]">
+              <pre className="overflow-x-auto rounded-xl bg-[var(--bg-primary)] p-4 font-mono text-xs text-[var(--text-secondary)]">
                 {typeof span.input === "string" ? span.input : JSON.stringify(span.input, null, 2)}
               </pre>
             ) : (
-              <p className="py-8 text-center text-sm text-[#555566]">No input data recorded</p>
+              <p className="py-8 text-center text-sm text-[var(--text-tertiary)]">No input data recorded</p>
             )}
           </div>
         )}
@@ -146,11 +146,11 @@ export function SpanDetail({ span }: { span: Span }) {
         {activeTab === "output" && (
           <div>
             {span.output ? (
-              <pre className="overflow-x-auto rounded-xl bg-[#0A0A0C] p-4 font-mono text-xs text-[#8888A0]">
+              <pre className="overflow-x-auto rounded-xl bg-[var(--bg-primary)] p-4 font-mono text-xs text-[var(--text-secondary)]">
                 {typeof span.output === "string" ? span.output : JSON.stringify(span.output, null, 2)}
               </pre>
             ) : (
-              <p className="py-8 text-center text-sm text-[#555566]">No output data recorded</p>
+              <p className="py-8 text-center text-sm text-[var(--text-tertiary)]">No output data recorded</p>
             )}
           </div>
         )}
@@ -158,11 +158,11 @@ export function SpanDetail({ span }: { span: Span }) {
         {activeTab === "metadata" && (
           <div>
             {span.metadata && Object.keys(span.metadata).length > 0 ? (
-              <pre className="overflow-x-auto rounded-xl bg-[#0A0A0C] p-4 font-mono text-xs text-[#8888A0]">
+              <pre className="overflow-x-auto rounded-xl bg-[var(--bg-primary)] p-4 font-mono text-xs text-[var(--text-secondary)]">
                 {JSON.stringify(span.metadata, null, 2)}
               </pre>
             ) : (
-              <p className="py-8 text-center text-sm text-[#555566]">No metadata recorded</p>
+              <p className="py-8 text-center text-sm text-[var(--text-tertiary)]">No metadata recorded</p>
             )}
           </div>
         )}

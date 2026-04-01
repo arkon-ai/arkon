@@ -178,25 +178,25 @@ export function CommandPalette({
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
       <Command
-        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[#1E1E2A] bg-[#111118] shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
         label="Command palette"
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 border-b border-[#1E1E2A] px-4 py-3">
-          <Search className="h-4 w-4 shrink-0 text-[#555566]" />
+        <div className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
+          <Search className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
           <Command.Input
             placeholder="Search pages, agents, workflows..."
-            className="flex-1 bg-transparent text-sm text-[#E4E4ED] outline-none placeholder:text-[#555566]"
+            className="flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
             autoFocus
           />
-          <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
+          <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-tertiary)]">
             ESC
           </kbd>
         </div>
 
         {/* Results */}
         <Command.List className="max-h-[360px] overflow-y-auto p-2">
-          <Command.Empty className="py-8 text-center text-sm text-[#555566]">
+          <Command.Empty className="py-8 text-center text-sm text-[var(--text-tertiary)]">
             No results found.
           </Command.Empty>
 
@@ -207,7 +207,7 @@ export function CommandPalette({
               <Command.Group
                 key={cat}
                 heading={categoryLabels[cat]}
-                className="mb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.2em] [&_[cmdk-group-heading]]:text-[#555566]"
+                className="mb-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.2em] [&_[cmdk-group-heading]]:text-[var(--text-tertiary)]"
               >
                 {items.map((item) => {
                   const Icon = item.icon;
@@ -216,9 +216,9 @@ export function CommandPalette({
                       key={item.id}
                       value={`${item.label} ${item.keywords ?? ""}`}
                       onSelect={() => select(item)}
-                      className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-[#8888A0] transition data-[selected=true]:bg-[rgba(0,212,126,0.08)] data-[selected=true]:text-[#E4E4ED]"
+                      className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-[var(--text-secondary)] transition data-[selected=true]:bg-[rgba(0,212,126,0.08)] data-[selected=true]:text-[var(--text-primary)]"
                     >
-                      <Icon className="h-4 w-4 shrink-0 [[data-selected=true]_&]:text-[#00D47E]" />
+                      <Icon className="h-4 w-4 shrink-0 [[data-selected=true]_&]:text-[var(--accent)]" />
                       <span className="flex-1 truncate">{item.label}</span>
                     </Command.Item>
                   );
@@ -229,10 +229,10 @@ export function CommandPalette({
         </Command.List>
 
         {/* Footer hint */}
-        <div className="flex items-center gap-4 border-t border-[#1E1E2A] px-4 py-2 text-[10px] text-[#555566]">
-          <span><kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&uarr;</kbd> <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&darr;</kbd> navigate</span>
-          <span><kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Enter</kbd> open</span>
-          <span><kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Esc</kbd> close</span>
+        <div className="flex items-center gap-4 border-t border-[var(--border)] px-4 py-2 text-[10px] text-[var(--text-tertiary)]">
+          <span><kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">&uarr;</kbd> <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">&darr;</kbd> navigate</span>
+          <span><kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">Enter</kbd> open</span>
+          <span><kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">Esc</kbd> close</span>
         </div>
       </Command>
     </div>

@@ -17,14 +17,14 @@ interface StatusBadgeProps {
 }
 
 const statusConfig: Record<BadgeStatus, { bg: string; text: string; dot: string; pulse?: boolean }> = {
-  running:   { bg: "bg-[rgba(0,212,126,0.15)]", text: "text-[#00D47E]",  dot: "bg-[#00D47E]",  pulse: true },
+  running:   { bg: "bg-[rgba(0,212,126,0.15)]", text: "text-[var(--accent)]",  dot: "bg-[var(--accent)]",  pulse: true },
   healthy:   { bg: "bg-[rgba(16,185,129,0.15)]", text: "text-[#10B981]",  dot: "bg-[#10B981]" },
-  paused:    { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[#8888A0]", dot: "bg-[#8888A0]" },
+  paused:    { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[#8888A0]" },
   scheduled: { bg: "bg-[rgba(6,182,212,0.15)]",  text: "text-[#06B6D4]",  dot: "bg-[#06B6D4]" },
-  degraded:  { bg: "bg-[rgba(245,158,11,0.15)]", text: "text-[#F59E0B]",  dot: "bg-[#F59E0B]",  pulse: true },
-  failed:    { bg: "bg-[rgba(239,68,68,0.15)]",  text: "text-[#EF4444]",  dot: "bg-[#EF4444]" },
-  offline:   { bg: "bg-[rgba(85,85,102,0.15)]",  text: "text-[#555566]",  dot: "bg-[#555566]" },
-  idle:      { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[#8888A0]", dot: "bg-[#8888A0]" },
+  degraded:  { bg: "bg-[rgba(245,158,11,0.15)]", text: "text-[var(--warning)]",  dot: "bg-[#F59E0B]",  pulse: true },
+  failed:    { bg: "bg-[rgba(239,68,68,0.15)]",  text: "text-[var(--danger)]",  dot: "bg-[#EF4444]" },
+  offline:   { bg: "bg-[rgba(85,85,102,0.15)]",  text: "text-[var(--text-tertiary)]",  dot: "bg-[#555566]" },
+  idle:      { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[#8888A0]" },
 };
 
 export function StatusBadge({ status, label, className = "" }: StatusBadgeProps) {

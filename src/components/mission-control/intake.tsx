@@ -125,19 +125,19 @@ function PayloadModal({ sub, onClose }: { sub: IntakeSubmission; onClose: () => 
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl border border-[#1E1E2A] bg-[#0a0a14] p-6 shadow-2xl"
+        className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl border border-[var(--border)] bg-[var(--bg-primary)] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-bold text-[#E4E4ED]">{sub.full_name}</h3>
-          <button onClick={onClose} className="text-[#8888A0] hover:text-[#E4E4ED] transition text-xl">×</button>
+          <h3 className="text-base font-bold text-[var(--text-primary)]">{sub.full_name}</h3>
+          <button onClick={onClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition text-xl">×</button>
         </div>
 
         <div className="space-y-3">
           {fields.map(([label, value]) => (
             <div key={label}>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8888A0]">{label}</p>
-              <p className="mt-0.5 text-sm text-[#E4E4ED] whitespace-pre-wrap">{value}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">{label}</p>
+              <p className="mt-0.5 text-sm text-[var(--text-primary)] whitespace-pre-wrap">{value}</p>
             </div>
           ))}
         </div>
@@ -177,29 +177,29 @@ function SubmissionCard({ sub, onProcessed, onExpand }: {
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-2xl border px-4 py-4 transition ${sub.processed ? "border-[#1E1E2A]/50 bg-[#0A0A0C]/40 opacity-70" : "border-[#00D47E]/30 bg-[#0A0A0C]/80"}`}
+      className={`rounded-2xl border px-4 py-4 transition ${sub.processed ? "border-[var(--border)]/50 bg-[var(--bg-primary)]/40 opacity-70" : "border-[var(--accent)]/30 bg-[var(--bg-primary)]/80"}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             {!sub.processed && (
-              <span className="rounded-full bg-[#00D47E]/20 px-2 py-0.5 text-[10px] font-bold text-[#00D47E] animate-pulse">
+              <span className="rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-[10px] font-bold text-[var(--accent)] animate-pulse">
                 NEW
               </span>
             )}
-            <span className="text-sm font-semibold text-[#E4E4ED]">{sub.full_name}</span>
-            {sub.email && <span className="text-xs text-[#8888A0]">{sub.email}</span>}
+            <span className="text-sm font-semibold text-[var(--text-primary)]">{sub.full_name}</span>
+            {sub.email && <span className="text-xs text-[var(--text-secondary)]">{sub.email}</span>}
           </div>
-          <p className="mt-0.5 text-xs text-[#555566]">{fmtDate(sub.submitted_at)}</p>
+          <p className="mt-0.5 text-xs text-[var(--text-tertiary)]">{fmtDate(sub.submitted_at)}</p>
           {sub.client_label && (
-            <p className="mt-0.5 text-xs text-[#00D47E]">{sub.client_label}</p>
+            <p className="mt-0.5 text-xs text-[var(--accent)]">{sub.client_label}</p>
           )}
         </div>
 
         <div className="flex shrink-0 gap-1.5">
           <button
             onClick={onExpand}
-            className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#E4E4ED] transition"
+            className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
           >
             View All
           </button>
@@ -207,7 +207,7 @@ function SubmissionCard({ sub, onProcessed, onExpand }: {
             <button
               onClick={() => void markProcessed()}
               disabled={marking}
-              className="rounded-xl bg-[#00D47E] px-3 py-1.5 text-xs font-semibold text-[#0A0A0C] hover:opacity-90 disabled:opacity-50 transition"
+              className="rounded-xl bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-foreground)] hover:opacity-90 disabled:opacity-50 transition"
             >
               {marking ? "…" : "✓ Done"}
             </button>
@@ -219,28 +219,28 @@ function SubmissionCard({ sub, onProcessed, onExpand }: {
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {sub.channels && sub.channels.length > 0 && (
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8888A0]">Channels</p>
-            <p className="mt-0.5 text-xs text-[#8888A0]">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Channels</p>
+            <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
               {(sub.channels as string[]).map(c => `${channelEmoji[c.toLowerCase()] ?? "💬"} ${c}`).join(" · ")}
             </p>
           </div>
         )}
         {sub.ssh_comfort && (
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8888A0]">Technical</p>
-            <p className="mt-0.5 text-xs text-[#8888A0]">{sub.ssh_comfort}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Technical</p>
+            <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{sub.ssh_comfort}</p>
           </div>
         )}
         {sub.priorities && (
           <div className="sm:col-span-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8888A0]">Top Priorities</p>
-            <p className="mt-0.5 line-clamp-2 text-xs text-[#8888A0]">{sub.priorities}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Top Priorities</p>
+            <p className="mt-0.5 line-clamp-2 text-xs text-[var(--text-secondary)]">{sub.priorities}</p>
           </div>
         )}
         {sub.automation_wish && (
           <div className="sm:col-span-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8888A0]">Automation Wish</p>
-            <p className="mt-0.5 line-clamp-2 text-xs text-[#8888A0]">{sub.automation_wish}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Automation Wish</p>
+            <p className="mt-0.5 line-clamp-2 text-xs text-[var(--text-secondary)]">{sub.automation_wish}</p>
           </div>
         )}
       </div>
@@ -285,10 +285,10 @@ export function IntakeViewer() {
         title="Intake Submissions"
         subtitle="DFY client onboarding form responses"
         action={
-          <div className="text-right text-xs text-[#8888A0]">
+          <div className="text-right text-xs text-[var(--text-secondary)]">
             <div>{submissions.length} total</div>
             {newCount > 0 && (
-              <div className="text-[#00D47E] font-semibold">{newCount} unprocessed</div>
+              <div className="text-[var(--accent)] font-semibold">{newCount} unprocessed</div>
             )}
           </div>
         }
@@ -301,11 +301,11 @@ export function IntakeViewer() {
         <Card>
           <div className="py-16 text-center">
             <p className="text-4xl mb-3">📋</p>
-            <p className="text-sm font-semibold text-[#E4E4ED]">No submissions yet</p>
-            <p className="mt-2 text-xs text-[#8888A0]">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">No submissions yet</p>
+            <p className="mt-2 text-xs text-[var(--text-secondary)]">
               Share the intake form with your client:
             </p>
-            <p className="mt-2 text-xs text-[#8888A0]">
+            <p className="mt-2 text-xs text-[var(--text-secondary)]">
               Configure your intake form URL in Settings.
             </p>
           </div>
@@ -324,10 +324,10 @@ export function IntakeViewer() {
                 onClick={() => setFilter(key as typeof filter)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   filter === key
-                    ? "bg-[#00D47E] text-[#0A0A0C]"
+                    ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
                     : highlight
-                    ? "border border-[#00D47E]/40 text-[#00D47E] animate-pulse"
-                    : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"
+                    ? "border border-[var(--accent)]/40 text-[var(--accent)] animate-pulse"
+                    : "border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 {label}
@@ -345,7 +345,7 @@ export function IntakeViewer() {
               />
             ))}
             {filtered.length === 0 && (
-              <div className="py-8 text-center text-sm text-[#8888A0]">No submissions match this filter</div>
+              <div className="py-8 text-center text-sm text-[var(--text-secondary)]">No submissions match this filter</div>
             )}
           </div>
         </>

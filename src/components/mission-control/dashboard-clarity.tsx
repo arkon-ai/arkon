@@ -15,13 +15,13 @@ export function MetricTooltip({ text }: { text: string }) {
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
         onClick={() => setOpen((p) => !p)}
-        className="inline-flex items-center justify-center rounded-full p-0.5 text-[#555566] transition hover:text-[#8888A0]"
+        className="inline-flex items-center justify-center rounded-full p-0.5 text-[var(--text-tertiary)] transition hover:text-[var(--text-secondary)]"
         aria-label="More info"
       >
         <Info className="h-3 w-3" />
       </button>
       {open && (
-        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-xl border border-[#1E1E2A] bg-[#111118] px-3 py-2.5 text-xs leading-relaxed text-[#cbd5e1] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2.5 text-xs leading-relaxed text-[#cbd5e1] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
           {text}
           <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#1E1E2A]" />
         </div>
@@ -113,8 +113,8 @@ export function HealthGauge({
 
       {/* Tooltip breakdown on hover */}
       {hover && (
-        <div className="absolute top-full z-50 mt-2 w-52 rounded-xl border border-[#1E1E2A] bg-[#111118] p-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
+        <div className="absolute top-full z-50 mt-2 w-52 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
             Score Breakdown
           </p>
           <BreakdownRow label="Agent Uptime" value={breakdown.agents} max={25} color="#00D47E" />
@@ -141,10 +141,10 @@ function BreakdownRow({
   return (
     <div className="mb-1.5 last:mb-0">
       <div className="flex justify-between text-[11px]">
-        <span className="text-[#8888A0]">{label}</span>
-        <span className="font-semibold text-[#E4E4ED]">{value}/{max}</span>
+        <span className="text-[var(--text-secondary)]">{label}</span>
+        <span className="font-semibold text-[var(--text-primary)]">{value}/{max}</span>
       </div>
-      <div className="mt-0.5 h-1 overflow-hidden rounded-full bg-[#1E1E2A]">
+      <div className="mt-0.5 h-1 overflow-hidden rounded-full bg-[var(--bg-surface-2)]">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${(value / max) * 100}%`, backgroundColor: color }}
@@ -177,12 +177,12 @@ export function StatusSummary({
 
   // Agent summary
   const serverPart = serverCount && serverCount > 0
-    ? <> across <strong className="text-[#E4E4ED]">{serverCount} server{serverCount !== 1 ? "s" : ""}</strong></>
+    ? <> across <strong className="text-[var(--text-primary)]">{serverCount} server{serverCount !== 1 ? "s" : ""}</strong></>
     : null;
   parts.push(
     <span key="agents">
-      You have <strong className="text-[#E4E4ED]">{totalAgents} agent{totalAgents !== 1 ? "s" : ""}</strong>
-      {activeAgents > 0 ? <> (<strong className="text-[#00D47E]">{activeAgents} active</strong>)</> : null}
+      You have <strong className="text-[var(--text-primary)]">{totalAgents} agent{totalAgents !== 1 ? "s" : ""}</strong>
+      {activeAgents > 0 ? <> (<strong className="text-[var(--accent)]">{activeAgents} active</strong>)</> : null}
       {serverPart}.
     </span>
   );
@@ -191,8 +191,8 @@ export function StatusSummary({
   if (eventsToday > 0) {
     parts.push(
       <span key="events">
-        {" "}<strong className="text-[#E4E4ED]">{eventsToday.toLocaleString()}</strong> event{eventsToday !== 1 ? "s" : ""} today
-        {costToday ? <>, spending <strong className="text-[#f59e0b]">{costToday}</strong></> : null}.
+        {" "}<strong className="text-[var(--text-primary)]">{eventsToday.toLocaleString()}</strong> event{eventsToday !== 1 ? "s" : ""} today
+        {costToday ? <>, spending <strong className="text-[var(--warning)]">{costToday}</strong></> : null}.
       </span>
     );
   } else {
@@ -203,8 +203,8 @@ export function StatusSummary({
   if (threatCount > 0) {
     parts.push(
       <span key="threats">
-        {" "}<strong className="text-[#ef4444]">{threatCount} threat{threatCount !== 1 ? "s" : ""} detected</strong> &mdash;{" "}
-        <a href="/security" className="font-semibold text-[#00D47E] hover:underline">
+        {" "}<strong className="text-[var(--danger)]">{threatCount} threat{threatCount !== 1 ? "s" : ""} detected</strong> &mdash;{" "}
+        <a href="/security" className="font-semibold text-[var(--accent)] hover:underline">
           review now &rarr;
         </a>
       </span>
@@ -212,7 +212,7 @@ export function StatusSummary({
   }
 
   return (
-    <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118]/80 px-4 py-3 text-sm leading-relaxed text-[#8888A0]">
+    <div className="rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)]/80 px-4 py-3 text-sm leading-relaxed text-[var(--text-secondary)]">
       {parts}
     </div>
   );
@@ -247,12 +247,12 @@ export function SectionDescription({
   return (
     <div className="mb-4">
       {expanded ? (
-        <div className="rounded-[14px] border border-[#1E1E2A]/60 bg-[#111118]/60 px-4 py-3">
-          <div className="text-sm leading-relaxed text-[#8888A0]">{children}</div>
+        <div className="rounded-[14px] border border-[var(--border)]/60 bg-[var(--bg-surface)]/60 px-4 py-3">
+          <div className="text-sm leading-relaxed text-[var(--text-secondary)]">{children}</div>
           <button
             type="button"
             onClick={() => setExpanded(false)}
-            className="mt-2 text-[11px] font-semibold text-[#555566] transition hover:text-[#8888A0]"
+            className="mt-2 text-[11px] font-semibold text-[var(--text-tertiary)] transition hover:text-[var(--text-secondary)]"
           >
             Got it, hide this
           </button>
@@ -261,7 +261,7 @@ export function SectionDescription({
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="flex items-center gap-1.5 text-[11px] font-semibold text-[#555566] transition hover:text-[#8888A0]"
+          className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--text-tertiary)] transition hover:text-[var(--text-secondary)]"
         >
           <Info className="h-3 w-3" />
           What is this?

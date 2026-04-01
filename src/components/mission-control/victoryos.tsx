@@ -212,13 +212,13 @@ export default function VictoryOSScreen() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#E4E4ED]">VictoryOS</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">VictoryOS</h1>
           <SectionDescription id="vos-overview">
             Chat engine metrics, token usage, and agent activity.
           </SectionDescription>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-xl border border-[#1E1E2A] bg-[#111118] p-0.5">
+          <div className="flex rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-0.5">
             {RANGE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
@@ -226,8 +226,8 @@ export default function VictoryOSScreen() {
                 onClick={() => setRange(opt.value)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                   range === opt.value
-                    ? "bg-[rgba(0,212,126,0.1)] text-[#00D47E]"
-                    : "text-[#8888A0] hover:text-[#8888A0]"
+                    ? "bg-[rgba(0,212,126,0.1)] text-[var(--accent)]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                 }`}
               >
                 {opt.label}
@@ -238,7 +238,7 @@ export default function VictoryOSScreen() {
             type="button"
             onClick={() => fetchData(range)}
             disabled={loading}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#1E1E2A] bg-[#111118] text-[#8888A0] transition hover:text-[#E4E4ED] disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] transition hover:text-[var(--text-primary)] disabled:opacity-50"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -246,7 +246,7 @@ export default function VictoryOSScreen() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-[#ef4444]/30 bg-[#ef4444]/5 p-4 text-sm text-[#ef4444]">
+        <div className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/5 p-4 text-sm text-[var(--danger)]">
           {error}
         </div>
       )}
@@ -254,7 +254,7 @@ export default function VictoryOSScreen() {
       {loading && !data ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-xl bg-[#1E1E2A]/30" />
+            <div key={i} className="h-24 animate-pulse rounded-xl bg-[var(--bg-surface-2)]/30" />
           ))}
         </div>
       ) : data ? (
@@ -290,7 +290,7 @@ export default function VictoryOSScreen() {
               icon={AlertTriangle}
               className={
                 Number(errorRate) > 10
-                  ? "border-[#ef4444]/30"
+                  ? "border-[var(--danger)]/30"
                   : ""
               }
             />
@@ -352,7 +352,7 @@ export default function VictoryOSScreen() {
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="py-8 text-center text-sm text-[#555566]">No data in range</p>
+                <p className="py-8 text-center text-sm text-[var(--text-tertiary)]">No data in range</p>
               )}
             </DetailCard>
 
@@ -403,19 +403,19 @@ export default function VictoryOSScreen() {
                             className="h-2 w-2 rounded-full"
                             style={{ backgroundColor: color }}
                           />
-                          <span className="font-medium text-[#E4E4ED]">{ch.channel_name}</span>
+                          <span className="font-medium text-[var(--text-primary)]">{ch.channel_name}</span>
                         </div>
-                        <div className="flex items-center gap-3 text-[#8888A0]">
+                        <div className="flex items-center gap-3 text-[var(--text-secondary)]">
                           <span>{ch.message_count} msgs</span>
                           {ch.error_count > 0 && (
-                            <span className="text-[#ef4444]">{ch.error_count} err</span>
+                            <span className="text-[var(--danger)]">{ch.error_count} err</span>
                           )}
                           {ch.last_message_at && (
                             <span className="text-[10px]">{timeAgo(ch.last_message_at)}</span>
                           )}
                         </div>
                       </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-[#1E1E2A]">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-[var(--bg-surface-2)]">
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
@@ -429,7 +429,7 @@ export default function VictoryOSScreen() {
                   );
                 })}
                 {data.channelActivity.length === 0 && (
-                  <p className="py-4 text-center text-sm text-[#555566]">No channel activity</p>
+                  <p className="py-4 text-center text-sm text-[var(--text-tertiary)]">No channel activity</p>
                 )}
               </div>
             </ListCard>
@@ -477,9 +477,9 @@ export default function VictoryOSScreen() {
                             className="h-2.5 w-2.5 rounded-sm"
                             style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }}
                           />
-                          <span className="text-[#E4E4ED]">{m.model}</span>
+                          <span className="text-[var(--text-primary)]">{m.model}</span>
                         </div>
-                        <div className="flex items-center gap-3 text-[#8888A0]">
+                        <div className="flex items-center gap-3 text-[var(--text-secondary)]">
                           <span>{m.message_count} msgs</span>
                           <span>{formatMs(m.avg_duration_ms)} avg</span>
                           <span>{formatTokens(Number(m.total_tokens))} tok</span>
@@ -489,7 +489,7 @@ export default function VictoryOSScreen() {
                   </div>
                 </div>
               ) : (
-                <p className="py-8 text-center text-sm text-[#555566]">No model data yet</p>
+                <p className="py-8 text-center text-sm text-[var(--text-tertiary)]">No model data yet</p>
               )}
             </DetailCard>
           </div>
@@ -506,38 +506,38 @@ export default function VictoryOSScreen() {
                   >
                     <div className="mt-0.5 shrink-0">
                       {msg.role === "user" ? (
-                        <User className="h-3.5 w-3.5 text-[#3B82F6]" />
+                        <User className="h-3.5 w-3.5 text-[var(--info)]" />
                       ) : (
-                        <Bot className="h-3.5 w-3.5 text-[#22C55E]" />
+                        <Bot className="h-3.5 w-3.5 text-[var(--success)]" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-[#8888A0]">
+                        <span className="text-[10px] font-medium text-[var(--text-secondary)]">
                           {msg.channel_slug}
                         </span>
                         {msg.status === "error" && (
-                          <span className="rounded bg-[#ef4444]/10 px-1 py-0.5 text-[9px] font-semibold text-[#ef4444]">
+                          <span className="rounded bg-[var(--danger)]/10 px-1 py-0.5 text-[9px] font-semibold text-[var(--danger)]">
                             ERROR
                           </span>
                         )}
                         {msg.status === "interrupted" && (
-                          <span className="rounded bg-[#f59e0b]/10 px-1 py-0.5 text-[9px] font-semibold text-[#f59e0b]">
+                          <span className="rounded bg-[var(--warning)]/10 px-1 py-0.5 text-[9px] font-semibold text-[var(--warning)]">
                             INTERRUPTED
                           </span>
                         )}
-                        <span className="ml-auto text-[10px] text-[#555566]">
+                        <span className="ml-auto text-[10px] text-[var(--text-tertiary)]">
                           {timeAgo(msg.created_at)}
                         </span>
                       </div>
-                      <p className="mt-0.5 truncate text-xs text-[#8888A0]">
+                      <p className="mt-0.5 truncate text-xs text-[var(--text-secondary)]">
                         {msg.content_preview || "(empty)"}
                       </p>
                     </div>
                   </div>
                 ))}
                 {data.recentMessages.length === 0 && (
-                  <p className="py-4 text-center text-sm text-[#555566]">No messages yet</p>
+                  <p className="py-4 text-center text-sm text-[var(--text-tertiary)]">No messages yet</p>
                 )}
               </div>
             </ListCard>
@@ -548,34 +548,34 @@ export default function VictoryOSScreen() {
                 {data.recentErrors.map((err) => (
                   <div
                     key={err.id}
-                    className="rounded-lg border border-[#ef4444]/10 px-3 py-2"
+                    className="rounded-lg border border-[var(--danger)]/10 px-3 py-2"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-[#E4E4ED]">
+                      <span className="text-xs font-medium text-[var(--text-primary)]">
                         {err.channel_name}
                       </span>
                       <div className="flex items-center gap-2">
                         <span
                           className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ${
                             err.status === "error"
-                              ? "bg-[#ef4444]/10 text-[#ef4444]"
-                              : "bg-[#f59e0b]/10 text-[#f59e0b]"
+                              ? "bg-[var(--danger)]/10 text-[var(--danger)]"
+                              : "bg-[var(--warning)]/10 text-[var(--warning)]"
                           }`}
                         >
                           {err.status.toUpperCase()}
                         </span>
-                        <span className="text-[10px] text-[#555566]">
+                        <span className="text-[10px] text-[var(--text-tertiary)]">
                           {timeAgo(err.created_at)}
                         </span>
                       </div>
                     </div>
-                    <p className="mt-1 text-xs text-[#8888A0]">
+                    <p className="mt-1 text-xs text-[var(--text-secondary)]">
                       {err.content_preview || "(no content)"}
                     </p>
                   </div>
                 ))}
                 {data.recentErrors.length === 0 && (
-                  <p className="py-4 text-center text-sm text-[#22C55E]">No errors</p>
+                  <p className="py-4 text-center text-sm text-[var(--success)]">No errors</p>
                 )}
               </div>
             </ListCard>
@@ -592,7 +592,7 @@ export default function VictoryOSScreen() {
                 { label: "Total", value: Number(data.tokenUsage.total_tokens), color: "#00D47E" },
               ].map((t) => (
                 <div key={t.label} className="text-center">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#555566]">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--text-tertiary)]">
                     {t.label}
                   </p>
                   <p className="mt-1 text-lg font-bold" style={{ color: t.color }}>

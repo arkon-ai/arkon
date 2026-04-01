@@ -11,7 +11,7 @@ interface KeyboardShortcutModalProps {
 
 function Kbd({ children }: { children: string }) {
   return (
-    <kbd className="inline-flex min-w-[22px] items-center justify-center rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1.5 py-0.5 text-[11px] font-medium text-[#8888A0]">
+    <kbd className="inline-flex min-w-[22px] items-center justify-center rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--text-secondary)]">
       {children}
     </kbd>
   );
@@ -23,7 +23,7 @@ function formatKeys(keys: string) {
     <span className="inline-flex items-center gap-1">
       {parts.map((k, i) => (
         <span key={k} className="inline-flex items-center gap-1">
-          {i > 0 ? <span className="text-[#555566] text-[10px]">then</span> : null}
+          {i > 0 ? <span className="text-[var(--text-tertiary)] text-[10px]">then</span> : null}
           <Kbd>{k === "/" ? "/" : k === "?" ? "?" : k.toUpperCase()}</Kbd>
         </span>
       ))}
@@ -63,11 +63,11 @@ export function KeyboardShortcutModal({ open, onClose }: KeyboardShortcutModalPr
         aria-label="Close shortcuts"
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
-      <div className="relative w-full max-w-md rounded-2xl border border-[#1E1E2A] bg-[#111118] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+      <div className="relative w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#1E1E2A]/50 px-5 py-3">
+        <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-5 py-3">
           <h2
-            className="text-base font-bold text-[#E4E4ED]"
+            className="text-base font-bold text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-display)" }}
           >
             Keyboard Shortcuts
@@ -75,7 +75,7 @@ export function KeyboardShortcutModal({ open, onClose }: KeyboardShortcutModalPr
           <button
             type="button"
             onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-[#555566] transition hover:bg-white/[0.04] hover:text-[#E4E4ED]"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition hover:bg-white/[0.04] hover:text-[var(--text-primary)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -85,7 +85,7 @@ export function KeyboardShortcutModal({ open, onClose }: KeyboardShortcutModalPr
         <div className="max-h-[60vh] overflow-y-auto px-5 py-4">
           {Object.entries(groups).map(([category, items]) => (
             <div key={category} className="mb-5 last:mb-0">
-              <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
+              <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
                 {category}
               </h3>
               <div className="space-y-2">
@@ -94,7 +94,7 @@ export function KeyboardShortcutModal({ open, onClose }: KeyboardShortcutModalPr
                     key={s.keys}
                     className="flex items-center justify-between py-1"
                   >
-                    <span className="text-[13px] text-[#8888A0]">
+                    <span className="text-[13px] text-[var(--text-secondary)]">
                       {s.description}
                     </span>
                     {formatKeys(s.keys)}
@@ -106,7 +106,7 @@ export function KeyboardShortcutModal({ open, onClose }: KeyboardShortcutModalPr
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[#1E1E2A]/50 px-5 py-2.5 text-center text-[11px] text-[#555566]">
+        <div className="border-t border-[var(--border)]/50 px-5 py-2.5 text-center text-[11px] text-[var(--text-tertiary)]">
           Press <Kbd>?</Kbd> to toggle this dialog
         </div>
       </div>

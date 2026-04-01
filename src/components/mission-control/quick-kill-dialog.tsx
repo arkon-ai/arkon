@@ -74,12 +74,12 @@ export function QuickKillDialog({
         tabIndex={-1}
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-red-500/30 bg-[#111118] shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-red-500/30 bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-red-500/20 px-4 py-3">
           <OctagonX className="h-4 w-4 text-red-400" />
           <span className="flex-1 text-sm font-semibold text-red-200">Quick Kill</span>
-          <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-medium text-[#555566]">
+          <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-tertiary)]">
             ESC
           </kbd>
         </div>
@@ -87,7 +87,7 @@ export function QuickKillDialog({
         {/* Runs list */}
         <div ref={listRef} className="max-h-[300px] overflow-y-auto p-2">
           {runs.length === 0 ? (
-            <div className="py-8 text-center text-sm text-[#555566]">
+            <div className="py-8 text-center text-sm text-[var(--text-tertiary)]">
               No active runs to kill
             </div>
           ) : (
@@ -100,7 +100,7 @@ export function QuickKillDialog({
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
                   i === selected
                     ? "bg-red-500/10 text-red-200"
-                    : "text-[#8888A0] hover:bg-white/[0.03]"
+                    : "text-[var(--text-secondary)] hover:bg-white/[0.03]"
                 } disabled:opacity-50`}
               >
                 <div className="relative flex h-2 w-2 shrink-0">
@@ -109,12 +109,12 @@ export function QuickKillDialog({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold text-[#E4E4ED]">{run.agent_name}</span>
+                    <span className="text-[13px] font-semibold text-[var(--text-primary)]">{run.agent_name}</span>
                     {run.status === "paused" && (
                       <span className="text-[10px] text-amber-400">(paused)</span>
                     )}
                   </div>
-                  <p className="mt-0.5 truncate text-[11px] text-[#8888A0]">
+                  <p className="mt-0.5 truncate text-[11px] text-[var(--text-secondary)]">
                     {run.current_action}
                   </p>
                 </div>
@@ -133,18 +133,18 @@ export function QuickKillDialog({
 
         {/* Footer */}
         {runs.length > 0 && (
-          <div className="flex items-center gap-4 border-t border-red-500/20 px-4 py-2 text-[10px] text-[#555566]">
+          <div className="flex items-center gap-4 border-t border-red-500/20 px-4 py-2 text-[10px] text-[var(--text-tertiary)]">
             <span>
-              <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&uarr;</kbd>{" "}
-              <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">&darr;</kbd>{" "}
+              <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">&uarr;</kbd>{" "}
+              <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">&darr;</kbd>{" "}
               select
             </span>
             <span>
-              <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Enter</kbd>{" "}
+              <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">Enter</kbd>{" "}
               kill
             </span>
             <span>
-              <kbd className="rounded border border-[#1E1E2A] bg-[#0A0A0C] px-1 py-0.5 text-[9px]">Esc</kbd>{" "}
+              <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">Esc</kbd>{" "}
               close
             </span>
           </div>

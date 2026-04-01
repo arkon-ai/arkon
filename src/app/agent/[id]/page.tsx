@@ -97,8 +97,8 @@ const EVENT_ICON: Record<string, string> = {
 };
 
 const EVENT_COLOUR: Record<string, string> = {
-  message_received: "border-[#00D47E]/30 bg-[rgba(6,214,160,0.04)]",
-  message_sent: "border-[#00D47E]/30 bg-[rgba(139,92,246,0.04)]",
+  message_received: "border-[var(--accent)]/30 bg-[rgba(6,214,160,0.04)]",
+  message_sent: "border-[var(--accent)]/30 bg-[rgba(139,92,246,0.04)]",
   tool_call: "border-[#f59e0b]/30 bg-[rgba(245,158,11,0.04)]",
   error: "border-red-500/30 bg-[rgba(239,68,68,0.04)]",
   cron: "border-sky-500/30 bg-[rgba(14,165,233,0.04)]",
@@ -112,14 +112,14 @@ const SEVERITY_COLORS: Record<string, string> = {
 };
 
 const ROLE_COLOURS: Record<string, string> = {
-  owner: "bg-[rgba(0,212,126,0.15)] text-[#00D47E]",
+  owner: "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]",
   admin: "bg-[rgba(6,214,160,0.15)] text-cyan-400",
   agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
-  viewer: "bg-[rgba(100,116,139,0.15)] text-slate-400",
+  viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
 };
 
 function eventColour(type: string) {
-  return EVENT_COLOUR[type] ?? "border-[#1E1E2A] bg-[#0d0d18]";
+  return EVENT_COLOUR[type] ?? "border-[var(--border)] bg-[var(--bg-primary)]";
 }
 
 function fmtTime(iso: string) {
@@ -172,8 +172,8 @@ function parseJsonField<T>(value: string | T): T {
 function ChartTip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; fill?: string; stroke?: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[#1E1E2A] bg-[#0a0a14] px-3 py-2 text-xs">
-      <p className="mb-1 font-semibold text-[#8888A0]">{label}</p>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-xs">
+      <p className="mb-1 font-semibold text-[var(--text-secondary)]">{label}</p>
       {payload.map((p) => (
         <p key={p.name} style={{ color: p.fill ?? p.stroke ?? "#00D47E" }}>{p.name}: {p.value}</p>
       ))}
@@ -194,13 +194,13 @@ const TABS: Array<{ key: ProfileTab; label: string; icon: React.ReactNode }> = [
 
 /* ─── Stat pill ──────────────────────────────────────────── */
 
-function StatPill({ label, value, colour = "text-[#00D47E]", subtext }: { label: string; value: string | number; colour?: string; subtext?: string }) {
+function StatPill({ label, value, colour = "text-[var(--accent)]", subtext }: { label: string; value: string | number; colour?: string; subtext?: string }) {
   return (
-    <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3 text-center">
+    <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-4 py-3 text-center">
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className={`text-xl font-bold ${colour}`}>{value}</div>
-      <div className="mt-0.5 text-xs text-[#8888A0]">{label}</div>
-      {subtext && <div className="mt-0.5 text-[10px] text-[#555566]">{subtext}</div>}
+      <div className="mt-0.5 text-xs text-[var(--text-secondary)]">{label}</div>
+      {subtext && <div className="mt-0.5 text-[10px] text-[var(--text-tertiary)]">{subtext}</div>}
     </div>
   );
 }
@@ -302,7 +302,7 @@ export default function AgentDetailPage() {
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
               isOnline ? "bg-green/15 text-green" : "bg-white/5 text-text-dim"
             }`}>
-              <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-green animate-pulse" : "bg-[#555566]"}`} />
+              <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-green animate-pulse" : "bg-[var(--text-tertiary)]"}`} />
               {isOnline ? "Active" : "Offline"}
             </span>
 
@@ -368,21 +368,21 @@ export default function AgentDetailPage() {
       {/* ── Quick Stats Row ── */}
       <CardEntranceWrapper>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-          <StatPill label="Cost (30d)" value={formatCost(costThisMonth)} colour="text-[#00D47E]" />
-          <StatPill label="Messages (7d)" value={totalMessages} colour="text-[#00D47E]" />
+          <StatPill label="Cost (30d)" value={formatCost(costThisMonth)} colour="text-[var(--accent)]" />
+          <StatPill label="Messages (7d)" value={totalMessages} colour="text-[var(--accent)]" />
           <StatPill
             label="Threats (30d)"
             value={threatCount30d}
-            colour={severeCount30d > 0 ? "text-red-400" : threatCount30d > 0 ? "text-amber-400" : "text-[#8888A0]"}
+            colour={severeCount30d > 0 ? "text-red-400" : threatCount30d > 0 ? "text-amber-400" : "text-[var(--text-secondary)]"}
             subtext={severeCount30d > 0 ? `${severeCount30d} severe` : undefined}
           />
-          <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[#8888A0]"} />
+          <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[var(--text-secondary)]"} />
           <StatPill label="Last Active" value={timeAgo(data.lastActive)} colour="text-text-dim" />
         </div>
       </CardEntranceWrapper>
 
       {/* ── Tab Bar ── */}
-      <div className="flex gap-1 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C]/70 p-1">
+      <div className="flex gap-1 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)]/70 p-1">
         {TABS.map((tab) => (
           <button
             key={tab.key}
@@ -485,13 +485,13 @@ function OverviewTab({ data, chartData, model, framework }: {
           <SectionTitle title="Recent Sessions" note={`${data.sessions.length} sessions`} />
           <div className="space-y-2">
             {data.sessions.slice(0, 5).map((s) => (
-              <div key={s.session_key} className="relative card-hover flex items-center justify-between rounded-2xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-4 py-3">
+              <div key={s.session_key} className="relative card-hover flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-4 py-3">
                 <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                 <div>
-                  <div className="font-mono text-xs text-[#00D47E] truncate max-w-[200px] sm:max-w-none">{s.session_key}</div>
-                  <div className="mt-0.5 text-xs text-[#8888A0]">{s.channel_id || "unknown channel"}</div>
+                  <div className="font-mono text-xs text-[var(--accent)] truncate max-w-[200px] sm:max-w-none">{s.session_key}</div>
+                  <div className="mt-0.5 text-xs text-[var(--text-secondary)]">{s.channel_id || "unknown channel"}</div>
                 </div>
-                <div className="text-right text-xs text-[#8888A0]">
+                <div className="text-right text-xs text-[var(--text-secondary)]">
                   <div>{s.message_count} msgs</div>
                   <div>{fmtTime(s.last_active)}</div>
                 </div>
@@ -518,17 +518,17 @@ function SecurityTab({ data }: { data: AgentData }) {
         <StatPill
           label="Threats (30d)"
           value={threats.threat_count_30d}
-          colour={threats.severe_count_30d > 0 ? "text-red-400" : threats.threat_count_30d > 0 ? "text-amber-400" : "text-[#8888A0]"}
+          colour={threats.severe_count_30d > 0 ? "text-red-400" : threats.threat_count_30d > 0 ? "text-amber-400" : "text-[var(--text-secondary)]"}
         />
         <StatPill
           label="Severe (30d)"
           value={threats.severe_count_30d}
-          colour={threats.severe_count_30d > 0 ? "text-red-400" : "text-[#8888A0]"}
+          colour={threats.severe_count_30d > 0 ? "text-red-400" : "text-[var(--text-secondary)]"}
         />
         <StatPill
           label="Error Rate (7d)"
           value={`${data.errorRate.total_events_7d ? Math.round((data.errorRate.errors_7d / data.errorRate.total_events_7d) * 100) : 0}%`}
-          colour={data.errorRate.errors_7d > 0 ? "text-amber-400" : "text-[#8888A0]"}
+          colour={data.errorRate.errors_7d > 0 ? "text-amber-400" : "text-[var(--text-secondary)]"}
         />
       </div>
 
@@ -537,7 +537,7 @@ function SecurityTab({ data }: { data: AgentData }) {
         <SectionTitle title="Recent Threat Events" note={`${threats.recent.length} events`} />
         {threats.recent.length === 0 ? (
           <div className="py-8 text-center">
-            <Shield className="mx-auto h-8 w-8 text-[#1E1E2A]" />
+            <Shield className="mx-auto h-8 w-8 text-[var(--border)]" />
             <p className="mt-2 text-sm text-text-dim">No threats detected for this agent</p>
           </div>
         ) : (
@@ -548,7 +548,7 @@ function SecurityTab({ data }: { data: AgentData }) {
                 <Link
                   key={t.id}
                   href="/threatguard"
-                  className="flex items-center justify-between rounded-xl border border-[#1E1E2A] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
+                  className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
                 >
                   <div className="flex items-center gap-3">
                     <AlertTriangle className="h-4 w-4" style={{ color: SEVERITY_COLORS[t.threat_level] ?? "#8888A0" }} />
@@ -602,10 +602,10 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
     <div className="space-y-5">
       {/* Summary pills */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatPill label="Cost (30d)" value={formatCost(data.cost.cost_30d)} colour="text-[#00D47E]" />
-        <StatPill label="Tokens (30d)" value={formatCompact(Number(data.cost.tokens_30d))} colour="text-[#f59e0b]" />
+        <StatPill label="Cost (30d)" value={formatCost(data.cost.cost_30d)} colour="text-[var(--accent)]" />
+        <StatPill label="Tokens (30d)" value={formatCompact(Number(data.cost.tokens_30d))} colour="text-[var(--warning)]" />
         <StatPill label="Messages (7d)" value={totalMessages} />
-        <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[#8888A0]"} />
+        <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[var(--text-secondary)]"} />
       </div>
 
       {/* Cost chart */}
@@ -677,8 +677,8 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
                       <span className="truncate text-sm text-text">{t.tool_name || "(unnamed)"}</span>
                       <span className="ml-2 shrink-0 text-xs font-semibold text-text-dim">{t.call_count}</span>
                     </div>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#1E1E2A]">
-                      <div className="h-full rounded-full bg-[#00D47E] transition-all" style={{ width: `${pct}%` }} />
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--bg-surface-2)]">
+                      <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 </div>
@@ -721,7 +721,7 @@ function ActivityTab({
             <button
               key={t}
               onClick={() => setFilter(t)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[#00D47E] text-[#0A0A0C]" : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === t ? "bg-[var(--accent)] text-[var(--accent-foreground)]" : "border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
             >
               {t === "all" ? "All" : t.replace("_", " ")}
             </button>
@@ -731,7 +731,7 @@ function ActivityTab({
 
       <div className="space-y-2">
         {filteredEvents.length === 0 ? (
-          <div className="py-12 text-center text-sm text-[#8888A0]">
+          <div className="py-12 text-center text-sm text-[var(--text-secondary)]">
             No events yet. Connect your agent to the Arkon ingest endpoint to start capturing data.
           </div>
         ) : (
@@ -745,7 +745,7 @@ function ActivityTab({
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="shrink-0">{EVENT_ICON[event.event_type] ?? "\u{1F4CC}"}</span>
-                  <span className="text-sm font-semibold text-[#E4E4ED] truncate">
+                  <span className="text-sm font-semibold text-[var(--text-primary)] truncate">
                     {event.event_type.replace(/_/g, " ")}
                   </span>
                   {event.content_redacted && (
@@ -763,14 +763,14 @@ function ActivityTab({
                     </span>
                   )}
                 </div>
-                <div className="shrink-0 text-right text-xs text-[#8888A0]">
+                <div className="shrink-0 text-right text-xs text-[var(--text-secondary)]">
                   <div>{fmtTime(event.created_at)}</div>
                   {event.token_estimate > 0 && <div>{event.token_estimate}t</div>}
                 </div>
               </div>
 
               {event.content && (
-                <p className="mt-1.5 text-sm text-[#8888A0] line-clamp-2">
+                <p className="mt-1.5 text-sm text-[var(--text-secondary)] line-clamp-2">
                   {event.content.slice(0, 200)}{event.content.length > 200 ? "\u2026" : ""}
                 </p>
               )}
@@ -779,12 +779,12 @@ function ActivityTab({
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="mt-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3"
+                  className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3"
                 >
-                  <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[#8888A0]">
+                  <pre className="whitespace-pre-wrap break-words font-mono text-xs text-[var(--text-secondary)]">
                     {event.content}
                   </pre>
-                  <div className="mt-2 flex flex-wrap gap-3 text-xs text-[#8888A0]">
+                  <div className="mt-2 flex flex-wrap gap-3 text-xs text-[var(--text-secondary)]">
                     {event.session_key && <span>Session: {event.session_key}</span>}
                     {event.sender && <span>From: {event.sender}</span>}
                     {event.channel_id && <span>Channel: {event.channel_id}</span>}

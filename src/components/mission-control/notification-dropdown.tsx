@@ -52,31 +52,31 @@ function typeIcon(type: string, severity: string) {
   switch (type) {
     case "threat":
       return severity === "critical"
-        ? <ShieldAlert className="h-4 w-4 text-[#ef4444]" />
-        : <ShieldAlert className="h-4 w-4 text-[#f59e0b]" />;
+        ? <ShieldAlert className="h-4 w-4 text-[var(--danger)]" />
+        : <ShieldAlert className="h-4 w-4 text-[var(--warning)]" />;
     case "anomaly":
-      return <AlertTriangle className="h-4 w-4 text-[#f59e0b]" />;
+      return <AlertTriangle className="h-4 w-4 text-[var(--warning)]" />;
     case "approval":
-      return <Inbox className="h-4 w-4 text-[#00D47E]" />;
+      return <Inbox className="h-4 w-4 text-[var(--accent)]" />;
     case "budget":
-      return <Wallet className="h-4 w-4 text-[#f59e0b]" />;
+      return <Wallet className="h-4 w-4 text-[var(--warning)]" />;
     case "agent_offline":
-      return <Bot className="h-4 w-4 text-[#8888A0]" />;
+      return <Bot className="h-4 w-4 text-[var(--text-secondary)]" />;
     case "infra_offline":
-      return <Server className="h-4 w-4 text-[#ef4444]" />;
+      return <Server className="h-4 w-4 text-[var(--danger)]" />;
     case "intake":
-      return <Inbox className="h-4 w-4 text-[#00D47E]" />;
+      return <Inbox className="h-4 w-4 text-[var(--accent)]" />;
     case "workflow_failure":
-      return <Workflow className="h-4 w-4 text-[#ef4444]" />;
+      return <Workflow className="h-4 w-4 text-[var(--danger)]" />;
     default:
-      return <Info className="h-4 w-4 text-[#8888A0]" />;
+      return <Info className="h-4 w-4 text-[var(--text-secondary)]" />;
   }
 }
 
 function severityDot(severity: string) {
-  if (severity === "critical") return "bg-[#ef4444]";
-  if (severity === "warning") return "bg-[#f59e0b]";
-  return "bg-[#00D47E]";
+  if (severity === "critical") return "bg-[var(--danger)]";
+  if (severity === "warning") return "bg-[var(--warning)]";
+  return "bg-[var(--accent)]";
 }
 
 export function NotificationDropdown() {
@@ -173,7 +173,7 @@ export function NotificationDropdown() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="relative flex h-10 w-10 items-center justify-center rounded-xl text-[#8888A0] hover:bg-white/[0.03] hover:text-[#E4E4ED] transition"
+        className="relative flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)] transition"
         aria-label={`${unreadCount} notifications`}
       >
         <Bell className="h-5 w-5" />
@@ -185,10 +185,10 @@ export function NotificationDropdown() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-96 rounded-2xl border border-[#1E1E2A] bg-[#111118] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+        <div className="absolute right-0 top-12 z-50 w-96 rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[#1E1E2A]/50 px-4 py-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">
+          <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-4 py-3">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
               Notifications
               {unreadCount > 0 ? (
                 <span className="ml-2 rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] font-bold text-red-400">
@@ -201,7 +201,7 @@ export function NotificationDropdown() {
                 <button
                   type="button"
                   onClick={() => void markAllRead()}
-                  className="flex h-6 items-center gap-1 rounded-lg px-2 text-[10px] font-medium text-[#8888A0] hover:text-[#00D47E] transition"
+                  className="flex h-6 items-center gap-1 rounded-lg px-2 text-[10px] font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] transition"
                   title="Mark all as read"
                 >
                   <CheckCheck className="h-3 w-3" />
@@ -211,7 +211,7 @@ export function NotificationDropdown() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="flex h-6 w-6 items-center justify-center rounded-lg text-[#555566] hover:text-[#E4E4ED] transition"
+                className="flex h-6 w-6 items-center justify-center rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -221,13 +221,13 @@ export function NotificationDropdown() {
           {/* Content */}
           <div className="max-h-96 overflow-y-auto">
             {loading && notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-[#555566]">
+              <div className="px-4 py-8 text-center text-sm text-[var(--text-tertiary)]">
                 Loading...
               </div>
             ) : notifications.length === 0 ? (
               <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
-                <Activity className="h-5 w-5 text-[#00D47E]" />
-                <p className="text-sm text-[#8888A0]">All clear — no notifications</p>
+                <Activity className="h-5 w-5 text-[var(--accent)]" />
+                <p className="text-sm text-[var(--text-secondary)]">All clear — no notifications</p>
               </div>
             ) : (
               <div className="py-1">
@@ -243,21 +243,21 @@ export function NotificationDropdown() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start gap-2">
-                          <p className="text-sm text-[#E4E4ED] flex-1">
+                          <p className="text-sm text-[var(--text-primary)] flex-1">
                             {!notif.read ? (
                               <span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${severityDot(notif.severity)}`} />
                             ) : null}
-                            <span className={notif.read ? "text-[#8888A0]" : "font-medium"}>
+                            <span className={notif.read ? "text-[var(--text-secondary)]" : "font-medium"}>
                               {notif.title}
                             </span>
                           </p>
                         </div>
                         {notif.body ? (
-                          <p className="mt-0.5 text-[12px] text-[#8888A0] line-clamp-2">
+                          <p className="mt-0.5 text-[12px] text-[var(--text-secondary)] line-clamp-2">
                             {notif.body}
                           </p>
                         ) : null}
-                        <p className="mt-0.5 text-[11px] text-[#555566]">
+                        <p className="mt-0.5 text-[11px] text-[var(--text-tertiary)]">
                           {timeAgo(notif.created_at)}
                         </p>
                       </div>
@@ -269,7 +269,7 @@ export function NotificationDropdown() {
                             e.stopPropagation();
                             void markRead([notif.id]);
                           }}
-                          className="mt-0.5 shrink-0 rounded-lg p-1 text-[#555566] hover:text-[#E4E4ED] transition"
+                          className="mt-0.5 shrink-0 rounded-lg p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"
                           aria-label="Mark as read"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -298,18 +298,18 @@ export function NotificationDropdown() {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between border-t border-[#1E1E2A]/50 px-4 py-2.5">
+          <div className="flex items-center justify-between border-t border-[var(--border)]/50 px-4 py-2.5">
             <Link
               href="/activity"
               onClick={() => setOpen(false)}
-              className="text-[12px] font-semibold text-[#00D47E] transition hover:text-[#00D47E]/80"
+              className="text-[12px] font-semibold text-[var(--accent)] transition hover:text-[var(--accent)]/80"
             >
               View all activity &rarr;
             </Link>
             <Link
               href="/settings/notifications"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-1 text-[12px] text-[#555566] transition hover:text-[#8888A0]"
+              className="flex items-center gap-1 text-[12px] text-[var(--text-tertiary)] transition hover:text-[var(--text-secondary)]"
             >
               <Settings className="h-3 w-3" />
               <span>Settings</span>

@@ -207,25 +207,25 @@ export function DataTable<T>({
   const rowHeight = densityMap[density];
 
   return (
-    <div className={`rounded-[16px] border border-[#1E1E2A] bg-[#111118] ${className}`}>
+    <div className={`rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] ${className}`}>
       {/* Toolbar */}
       {(searchable || columns.some((c) => c.hideable)) ? (
-        <div className="flex items-center gap-2 border-b border-[#1E1E2A]/50 px-4 py-2.5">
+        <div className="flex items-center gap-2 border-b border-[var(--border)]/50 px-4 py-2.5">
           {searchable ? (
             <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#555566]" />
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-tertiary)]" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setVisibleCount(pageSize); }}
                 placeholder={searchPlaceholder}
-                className="w-full rounded-lg border border-[#1E1E2A] bg-[#0A0A0C] py-1.5 pl-8 pr-8 text-[13px] text-[#E4E4ED] outline-none placeholder:text-[#555566] focus:border-[#00D47E]/40"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] py-1.5 pl-8 pr-8 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/40"
               />
               {search ? (
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#555566] hover:text-[#8888A0]"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -239,24 +239,24 @@ export function DataTable<T>({
               <button
                 type="button"
                 onClick={() => setShowColumnPicker(!showColumnPicker)}
-                className="flex h-8 items-center gap-1.5 rounded-lg border border-[#1E1E2A] bg-[#0A0A0C] px-2.5 text-[11px] text-[#8888A0] transition hover:border-[#3E3E4A] hover:text-[#E4E4ED]"
+                className="flex h-8 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2.5 text-[11px] text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
               >
                 <Columns3 className="h-3.5 w-3.5" />
                 Columns
               </button>
               {showColumnPicker ? (
-                <div className="absolute right-0 top-10 z-30 min-w-[180px] rounded-xl border border-[#1E1E2A] bg-[#111118] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
+                <div className="absolute right-0 top-10 z-30 min-w-[180px] rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
                   {columns.filter((c) => c.hideable).map((col) => (
                     <button
                       key={col.id}
                       type="button"
                       onClick={() => toggleColumn(col.id)}
-                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#8888A0] transition hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[var(--text-secondary)] transition hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                     >
                       {hiddenColumns.has(col.id) ? (
-                        <Square className="h-3.5 w-3.5 text-[#555566]" />
+                        <Square className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
                       ) : (
-                        <CheckSquare className="h-3.5 w-3.5 text-[#00D47E]" />
+                        <CheckSquare className="h-3.5 w-3.5 text-[var(--accent)]" />
                       )}
                       {col.header}
                     </button>
@@ -270,15 +270,15 @@ export function DataTable<T>({
 
       {/* Bulk action bar */}
       {selected.size > 0 && bulkActions ? (
-        <div className="flex items-center gap-3 border-b border-[#00D47E]/20 bg-[rgba(0,212,126,0.04)] px-4 py-2">
-          <span className="text-[12px] font-medium text-[#00D47E]">
+        <div className="flex items-center gap-3 border-b border-[var(--accent)]/20 bg-[rgba(0,212,126,0.04)] px-4 py-2">
+          <span className="text-[12px] font-medium text-[var(--accent)]">
             {selected.size} selected
           </span>
           <div className="flex-1">{bulkActions(Array.from(selected), clearSelection)}</div>
           <button
             type="button"
             onClick={clearSelection}
-            className="text-[11px] text-[#555566] transition hover:text-[#8888A0]"
+            className="text-[11px] text-[var(--text-tertiary)] transition hover:text-[var(--text-secondary)]"
           >
             Clear
           </button>
@@ -290,17 +290,17 @@ export function DataTable<T>({
         <table className="w-full border-collapse">
           <thead>
             <tr
-              className={`border-b border-[#1E1E2A]/50 ${
-                stickyHeader ? "sticky top-0 z-10 bg-[#111118]" : ""
+              className={`border-b border-[var(--border)]/50 ${
+                stickyHeader ? "sticky top-0 z-10 bg-[var(--bg-surface)]" : ""
               }`}
             >
               {selectable ? (
                 <th className="w-10 px-3 py-2.5">
-                  <button type="button" onClick={toggleAll} className="text-[#555566] hover:text-[#8888A0]">
+                  <button type="button" onClick={toggleAll} className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
                     {allSelected ? (
-                      <CheckSquare className="h-4 w-4 text-[#00D47E]" />
+                      <CheckSquare className="h-4 w-4 text-[var(--accent)]" />
                     ) : someSelected ? (
-                      <MinusSquare className="h-4 w-4 text-[#00D47E]" />
+                      <MinusSquare className="h-4 w-4 text-[var(--accent)]" />
                     ) : (
                       <Square className="h-4 w-4" />
                     )}
@@ -310,9 +310,9 @@ export function DataTable<T>({
               {visibleColumns.map((col) => (
                 <th
                   key={col.id}
-                  className={`px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-[#555566] ${
+                  className={`px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--text-tertiary)] ${
                     col.align === "right" ? "text-right" : "text-left"
-                  } cursor-pointer select-none transition hover:text-[#8888A0]`}
+                  } cursor-pointer select-none transition hover:text-[var(--text-secondary)]`}
                   style={{ width: col.width }}
                   onClick={() => handleSort(col.id)}
                 >
@@ -320,9 +320,9 @@ export function DataTable<T>({
                     {col.header}
                     {sort?.column === col.id ? (
                       sort.direction === "asc" ? (
-                        <ChevronUp className="h-3 w-3 text-[#00D47E]" />
+                        <ChevronUp className="h-3 w-3 text-[var(--accent)]" />
                       ) : (
-                        <ChevronDown className="h-3 w-3 text-[#00D47E]" />
+                        <ChevronDown className="h-3 w-3 text-[var(--accent)]" />
                       )
                     ) : (
                       <ChevronsUpDown className="h-3 w-3 opacity-0 group-hover:opacity-100" />
@@ -340,7 +340,7 @@ export function DataTable<T>({
                   className="px-4 py-12 text-center"
                 >
                   {emptyState ?? (
-                    <p className="text-sm text-[#555566]">No data</p>
+                    <p className="text-sm text-[var(--text-tertiary)]">No data</p>
                   )}
                 </td>
               </tr>
@@ -351,7 +351,7 @@ export function DataTable<T>({
                 return (
                   <tr
                     key={key}
-                    className={`${rowHeight} border-b border-[#1E1E2A]/30 transition ${
+                    className={`${rowHeight} border-b border-[var(--border)]/30 transition ${
                       isSelected
                         ? "bg-[rgba(0,212,126,0.04)]"
                         : "hover:bg-white/[0.015]"
@@ -366,10 +366,10 @@ export function DataTable<T>({
                             e.stopPropagation();
                             toggleRow(key);
                           }}
-                          className="text-[#555566] hover:text-[#8888A0]"
+                          className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
                         >
                           {isSelected ? (
-                            <CheckSquare className="h-4 w-4 text-[#00D47E]" />
+                            <CheckSquare className="h-4 w-4 text-[var(--accent)]" />
                           ) : (
                             <Square className="h-4 w-4" />
                           )}
@@ -379,7 +379,7 @@ export function DataTable<T>({
                     {visibleColumns.map((col) => (
                       <td
                         key={col.id}
-                        className={`px-4 py-0 text-[13px] text-[#E4E4ED] ${
+                        className={`px-4 py-0 text-[13px] text-[var(--text-primary)] ${
                           col.align === "right" ? "text-right" : "text-left"
                         } ${col.mono ? "font-mono" : ""}`}
                       >
@@ -396,17 +396,17 @@ export function DataTable<T>({
 
       {/* Load More */}
       {sorted.length > visibleCount ? (
-        <div className="border-t border-[#1E1E2A]/50 px-4 py-3 text-center">
+        <div className="border-t border-[var(--border)]/50 px-4 py-3 text-center">
           <button
             type="button"
             onClick={() => setVisibleCount((v) => v + pageSize)}
-            className="text-[12px] font-semibold text-[#00D47E] transition hover:text-[#00E88A]"
+            className="text-[12px] font-semibold text-[var(--accent)] transition hover:text-[var(--accent-hover)]"
           >
             Load more ({visibleCount} of {sorted.length})
           </button>
         </div>
       ) : sorted.length > 0 ? (
-        <div className="border-t border-[#1E1E2A]/50 px-4 py-2 text-center text-[11px] text-[#555566]">
+        <div className="border-t border-[var(--border)]/50 px-4 py-2 text-center text-[11px] text-[var(--text-tertiary)]">
           Showing {sorted.length} of {data.length}{search ? " (filtered)" : ""}
         </div>
       ) : null}

@@ -108,13 +108,13 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-64 animate-pulse rounded-lg bg-[#1E1E2A]" />
+        <div className="h-8 w-64 animate-pulse rounded-lg bg-[var(--bg-surface-2)]" />
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl bg-[#111118] border border-[#1E1E2A]" />
+            <div key={i} className="h-24 animate-pulse rounded-2xl bg-[var(--bg-surface)] border border-[var(--border)]" />
           ))}
         </div>
-        <div className="h-96 animate-pulse rounded-2xl bg-[#111118] border border-[#1E1E2A]" />
+        <div className="h-96 animate-pulse rounded-2xl bg-[var(--bg-surface)] border border-[var(--border)]" />
       </div>
     );
   }
@@ -122,9 +122,9 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
   if (!trace) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center">
-        <p className="text-lg font-medium text-[#E4E4ED]">Trace not found</p>
-        <p className="mt-2 text-sm text-[#555566]">This trace may have expired or been deleted.</p>
-        <Link href="/traces" className="mt-4 text-sm text-[#00D47E] hover:underline">
+        <p className="text-lg font-medium text-[var(--text-primary)]">Trace not found</p>
+        <p className="mt-2 text-sm text-[var(--text-tertiary)]">This trace may have expired or been deleted.</p>
+        <Link href="/traces" className="mt-4 text-sm text-[var(--accent)] hover:underline">
           &larr; Back to traces
         </Link>
       </div>
@@ -140,15 +140,15 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
       <div className="flex items-center gap-4">
         <Link
           href="/traces"
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#1E1E2A] bg-[#111118] text-[#8888A0] hover:border-[rgba(0,212,126,0.25)] hover:text-[#E4E4ED]"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[rgba(0,212,126,0.25)] hover:text-[var(--text-primary)]"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-[#E4E4ED]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
             {trace.name || "Unnamed Trace"}
           </h1>
-          <p className="mt-0.5 font-mono text-xs text-[#555566]">{trace.trace_id}</p>
+          <p className="mt-0.5 font-mono text-xs text-[var(--text-tertiary)]">{trace.trace_id}</p>
         </div>
         <div className="ml-auto flex items-center gap-2 rounded-xl px-3 py-1.5" style={{ background: `${cfg.color}15` }}>
           <StatusIcon className="h-4 w-4" style={{ color: cfg.color }} />
@@ -168,12 +168,12 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
           <motion.div
             key={s.label}
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4"
+            className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4"
           >
             <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <div className="flex items-center gap-2">
-              <s.icon className="h-3.5 w-3.5 text-[#555566]" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#555566]">{s.label}</span>
+              <s.icon className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">{s.label}</span>
             </div>
             <p className="mt-2 font-mono text-lg font-bold" style={{ color: s.color }}>{s.value}</p>
           </motion.div>
@@ -183,15 +183,15 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
       {/* Span Tree + Detail Split */}
       <div className="grid gap-4 lg:grid-cols-5">
         {/* Span Tree (left 2/5) */}
-        <div className="relative card-hover overflow-hidden rounded-2xl border border-[#1E1E2A] bg-[#111118] lg:col-span-2">
+        <div className="relative card-hover overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] lg:col-span-2">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <div className="border-b border-[#1E1E2A] px-4 py-3">
-            <h3 className="text-sm font-semibold text-[#E4E4ED]">Span Tree</h3>
-            <p className="text-[11px] text-[#555566]">{spans.length} spans</p>
+          <div className="border-b border-[var(--border)] px-4 py-3">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">Span Tree</h3>
+            <p className="text-[11px] text-[var(--text-tertiary)]">{spans.length} spans</p>
           </div>
           <div className="max-h-[600px] overflow-y-auto p-2">
             {spans.length === 0 ? (
-              <p className="p-4 text-center text-sm text-[#555566]">No spans recorded</p>
+              <p className="p-4 text-center text-sm text-[var(--text-tertiary)]">No spans recorded</p>
             ) : (
               <SpanTree
                 spans={spans}
@@ -204,14 +204,14 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
         </div>
 
         {/* Span Detail (right 3/5) */}
-        <div className="relative card-hover overflow-hidden rounded-2xl border border-[#1E1E2A] bg-[#111118] lg:col-span-3">
+        <div className="relative card-hover overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] lg:col-span-3">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           {selectedSpan ? (
             <SpanDetail span={selectedSpan} />
           ) : (
             <div className="flex h-full min-h-[400px] flex-col items-center justify-center text-center">
-              <Activity className="mb-3 h-10 w-10 text-[#1E1E2A]" />
-              <p className="text-sm text-[#555566]">Select a span to view details</p>
+              <Activity className="mb-3 h-10 w-10 text-[var(--border)]" />
+              <p className="text-sm text-[var(--text-tertiary)]">Select a span to view details</p>
             </div>
           )}
         </div>
@@ -219,10 +219,10 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
 
       {/* Metadata */}
       {trace.metadata && Object.keys(trace.metadata).length > 0 && (
-        <div className="relative card-hover rounded-2xl border border-[#1E1E2A] bg-[#111118] p-4">
+        <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <h3 className="mb-3 text-sm font-semibold text-[#E4E4ED]">Trace Metadata</h3>
-          <pre className="overflow-x-auto rounded-lg bg-[#0A0A0C] p-3 font-mono text-xs text-[#8888A0]">
+          <h3 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Trace Metadata</h3>
+          <pre className="overflow-x-auto rounded-lg bg-[var(--bg-primary)] p-3 font-mono text-xs text-[var(--text-secondary)]">
             {JSON.stringify(trace.metadata, null, 2)}
           </pre>
         </div>

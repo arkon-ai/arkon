@@ -67,19 +67,19 @@ export function ClientShell({ children }: { children: ReactNode }) {
   const currentPage = clientNav.find((item) => isRouteActive(pathname, item.href));
 
   const sidebar = (
-    <div className="flex h-full flex-col bg-[#080810] text-[#8888A0]">
-      <div className="border-b border-[#1E1E2A]/50 px-4 py-4">
+    <div className="flex h-full flex-col bg-[var(--bg-primary)] text-[var(--text-secondary)]">
+      <div className="border-b border-[var(--border)]/50 px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[rgba(0,212,126,0.1)] text-[#00D47E]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[rgba(0,212,126,0.1)] text-[var(--accent)]">
             <span className="text-sm font-extrabold font-[family-name:var(--font-display)]">
               {tenantName?.charAt(0)?.toUpperCase() || "?"}
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-[#E4E4ED]">
+            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
               {tenantName || "Loading..."}
             </p>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-[#555566]">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-tertiary)]">
               {tenantPlan || "Client Portal"}
             </p>
           </div>
@@ -97,29 +97,29 @@ export function ClientShell({ children }: { children: ReactNode }) {
                 href={item.href}
                 className={`group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                   active
-                    ? "bg-[rgba(0,212,126,0.08)] text-[#00D47E]"
-                    : "text-[#8888A0] hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+                    ? "bg-[rgba(0,212,126,0.08)] text-[var(--accent)]"
+                    : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                 }`}
               >
-                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[#00D47E]" : "text-[#555566] group-hover:text-[#8888A0]"}`} />
+                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[var(--accent)]" : "text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]"}`} />
                 <div className="min-w-0 flex-1">
                   <span className="block">{item.label}</span>
-                  <span className={`block text-[10px] ${active ? "text-[#00D47E]/60" : "text-[#555566]"}`}>
+                  <span className={`block text-[10px] ${active ? "text-[var(--accent)]/60" : "text-[var(--text-tertiary)]"}`}>
                     {item.subtitle}
                   </span>
                 </div>
-                {active && <ChevronRight className="h-3 w-3 text-[#00D47E]/50" />}
+                {active && <ChevronRight className="h-3 w-3 text-[var(--accent)]/50" />}
               </Link>
             );
           })}
         </div>
       </div>
 
-      <div className="border-t border-[#1E1E2A] p-3">
+      <div className="border-t border-[var(--border)] p-3">
         <button
           type="button"
           onClick={handleLogout}
-          className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[#8888A0] transition hover:bg-red-500/[0.06] hover:text-red-400"
+          className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[var(--text-secondary)] transition hover:bg-red-500/[0.06] hover:text-red-400"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           <span>Sign Out</span>
@@ -129,37 +129,37 @@ export function ClientShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0C] text-slate-200">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <div className="flex min-h-screen">
-        <aside className="hidden w-64 shrink-0 border-r border-[#1E1E2A] md:block">
+        <aside className="hidden w-64 shrink-0 border-r border-[var(--border)] md:block">
           <div className="sticky top-0 h-screen">{sidebar}</div>
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 border-b border-[#1E1E2A]/80 bg-[#0A0A0C]/95 backdrop-blur">
+          <header className="sticky top-0 z-40 border-b border-[var(--border)]/80 bg-[var(--bg-primary)]/95 backdrop-blur">
             <div className="flex h-16 items-center justify-between px-4 sm:px-6">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsOpen(true)}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1E1E2A] bg-[#111118] text-[#E4E4ED] md:hidden active:scale-95 transition-transform touch-manipulation"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] md:hidden active:scale-95 transition-transform touch-manipulation"
                   aria-label="Open sidebar"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
                 <div>
-                  <p className="text-sm font-semibold text-[#E4E4ED]">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
                     {currentPage?.label ?? "Client Portal"}
                   </p>
                   {currentPage?.subtitle && (
-                    <p className="text-[10px] text-[#555566]">{currentPage.subtitle}</p>
+                    <p className="text-[10px] text-[var(--text-tertiary)]">{currentPage.subtitle}</p>
                   )}
                 </div>
               </div>
               {tenantName && (
                 <div className="hidden items-center gap-2 sm:flex">
-                  <span className="text-xs text-[#555566]">Powered by</span>
-                  <span className="text-xs font-bold text-[#00D47E] font-[family-name:var(--font-display)]">Arkon</span>
+                  <span className="text-xs text-[var(--text-tertiary)]">Powered by</span>
+                  <span className="text-xs font-bold text-[var(--accent)] font-[family-name:var(--font-display)]">Arkon</span>
                 </div>
               )}
             </div>
@@ -183,13 +183,13 @@ export function ClientShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
           />
-          <div className="relative h-full w-[280px] max-w-[85vw] border-r border-[#1E1E2A] shadow-[0_20px_60px_rgba(0,0,0,0.5)]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative h-full w-[280px] max-w-[85vw] border-r border-[var(--border)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]" onClick={(e) => e.stopPropagation()}>
             {sidebar}
           </div>
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1E1E2A]/80 bg-[#0a0a14]/95 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--border)]/80 bg-[var(--bg-primary)]/95 backdrop-blur md:hidden">
         <div className="mx-auto grid h-[60px] max-w-3xl grid-cols-4 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2">
           {clientNav.map((tab) => {
             const active = isRouteActive(pathname, tab.href);
@@ -199,7 +199,7 @@ export function ClientShell({ children }: { children: ReactNode }) {
                 key={tab.href}
                 href={tab.href}
                 className={`flex min-h-11 flex-col items-center justify-center rounded-xl text-[10px] font-semibold transition ${
-                  active ? "text-[#00D47E]" : "text-[#8888A0] hover:text-[#8888A0]"
+                  active ? "text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                 }`}
               >
                 <Icon className="mb-0.5 h-5 w-5" />

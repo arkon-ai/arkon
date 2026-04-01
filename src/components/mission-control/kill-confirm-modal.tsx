@@ -63,31 +63,31 @@ export function KillConfirmModal({
         tabIndex={-1}
         onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}
       />
-      <div className="relative w-full max-w-md rounded-2xl border border-red-500/30 bg-[#111118] p-6 shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
+      <div className="relative w-full max-w-md rounded-2xl border border-red-500/30 bg-[var(--bg-surface)] p-6 shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
         <div className="mb-4 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10">
             <AlertTriangle className="h-5 w-5 text-red-400" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-[#E4E4ED]">Kill Agent</h3>
-            <p className="text-[12px] text-[#8888A0]">This action cannot be undone</p>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">Kill Agent</h3>
+            <p className="text-[12px] text-[var(--text-secondary)]">This action cannot be undone</p>
           </div>
         </div>
 
-        <div className="mb-4 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3">
-          <p className="text-[13px] text-[#8888A0]">
+        <div className="mb-4 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">
+          <p className="text-[13px] text-[var(--text-secondary)]">
             This will immediately terminate{" "}
-            <span className="font-semibold text-[#E4E4ED]">{run.agent_name}</span>&apos;s
+            <span className="font-semibold text-[var(--text-primary)]">{run.agent_name}</span>&apos;s
             current action.
           </p>
-          <div className="mt-2 space-y-1 text-[12px] text-[#8888A0]">
+          <div className="mt-2 space-y-1 text-[12px] text-[var(--text-secondary)]">
             <p>
               Currently running:{" "}
-              <span className="text-[#8888A0]">{run.current_action}</span>
+              <span className="text-[var(--text-secondary)]">{run.current_action}</span>
             </p>
             <p>
               Duration:{" "}
-              <span className="text-[#8888A0]">{formatDuration(run.started_at)}</span>
+              <span className="text-[var(--text-secondary)]">{formatDuration(run.started_at)}</span>
             </p>
           </div>
           <p className="mt-2 text-[11px] text-amber-400/70">
@@ -98,7 +98,7 @@ export function KillConfirmModal({
         <div className="mb-4">
           <label
             htmlFor="kill-reason"
-            className="mb-1.5 block text-[11px] font-medium text-[#8888A0]"
+            className="mb-1.5 block text-[11px] font-medium text-[var(--text-secondary)]"
           >
             Reason (optional)
           </label>
@@ -110,7 +110,7 @@ export function KillConfirmModal({
             onChange={(e) => setReason(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleConfirm(); }}
             placeholder="e.g. Agent producing incorrect outputs"
-            className="w-full rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2 text-[13px] text-[#E4E4ED] outline-none placeholder:text-[#555566] focus:border-red-500/40"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-red-500/40"
           />
         </div>
 
@@ -118,7 +118,7 @@ export function KillConfirmModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-[#1E1E2A] px-4 py-2 text-[13px] font-medium text-[#8888A0] transition hover:bg-white/[0.03] hover:text-[#E4E4ED]"
+            className="rounded-xl border border-[var(--border)] px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] transition hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
           >
             Cancel
           </button>

@@ -59,10 +59,10 @@ function fmtRelative(iso: string | null): string {
 
 function statusColour(status: string | null, errors: number): string {
   if (errors >= 3) return "text-red-400";
-  if (status === "ok" || status === "success") return "text-[#00D47E]";
+  if (status === "ok" || status === "success") return "text-[var(--accent)]";
   if (status === "error") return "text-red-400";
-  if (status === "running") return "text-[#f59e0b] animate-pulse";
-  return "text-[#8888A0]";
+  if (status === "running") return "text-[var(--warning)] animate-pulse";
+  return "text-[var(--text-secondary)]";
 }
 
 function scheduleLabel(job: CronJob): string {
@@ -106,22 +106,22 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="w-full max-w-lg rounded-3xl border border-[#1E1E2A] bg-[#0a0a14] p-6 shadow-2xl"
+        className="w-full max-w-lg rounded-3xl border border-[var(--border)] bg-[var(--bg-primary)] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="mb-1 text-base font-bold text-[#E4E4ED]">Message Agent</h3>
-        <p className="mb-4 text-xs text-[#8888A0]">
-          About: <span className="text-[#00D47E]">{job.name ?? job.id}</span> · {scheduleLabel(job)}
+        <h3 className="mb-1 text-base font-bold text-[var(--text-primary)]">Message Agent</h3>
+        <p className="mb-4 text-xs text-[var(--text-secondary)]">
+          About: <span className="text-[var(--accent)]">{job.name ?? job.id}</span> · {scheduleLabel(job)}
         </p>
 
-        <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[#8888A0]">Your message</div>
-        <div className="relative card-hover mb-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C]/70 px-3 py-2 text-xs text-[#8888A0]">
+        <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Your message</div>
+        <div className="relative card-hover mb-3 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-3 py-2 text-xs text-[var(--text-secondary)]">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <p className="text-[#8888A0] font-medium mb-1">Suggestions:</p>
+          <p className="text-[var(--text-secondary)] font-medium mb-1">Suggestions:</p>
           <ul className="space-y-1">
             {["Change the schedule to run at 8AM daily", "Disable this cron job", "Delete this cron job", "Run this cron job right now", "Change the model to Fast"].map((s) => (
               <li key={s}>
-                <button onClick={() => setText(s)} className="text-left hover:text-[#00D47E] transition">→ {s}</button>
+                <button onClick={() => setText(s)} className="text-left hover:text-[var(--accent)] transition">→ {s}</button>
               </li>
             ))}
           </ul>
@@ -132,20 +132,20 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
           onChange={(e) => setText(e.target.value)}
           rows={3}
           placeholder="What would you like Agent to do with this cron job?"
-          className="w-full resize-none rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] px-3 py-2.5 text-sm text-[#E4E4ED] outline-none focus:border-[#00D47E] transition"
+          className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition"
           onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) void send(); }}
         />
-        <p className="mb-4 mt-1 text-[10px] text-[#8888A0]">⌘+Enter to send</p>
+        <p className="mb-4 mt-1 text-[10px] text-[var(--text-secondary)]">⌘+Enter to send</p>
 
         <div className="flex gap-2">
           <button
             onClick={() => void send()}
             disabled={busy || !text.trim()}
-            className="flex-1 rounded-xl bg-[#00D47E] px-4 py-2.5 text-sm font-semibold text-[#0A0A0C] hover:opacity-90 disabled:opacity-50 transition"
+            className="flex-1 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--accent-foreground)] hover:opacity-90 disabled:opacity-50 transition"
           >
             {busy ? "Sending…" : "Send to Agent"}
           </button>
-          <button onClick={onClose} className="rounded-xl border border-[#1E1E2A] px-4 py-2.5 text-sm text-[#8888A0] hover:text-[#E4E4ED] transition">
+          <button onClick={onClose} className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition">
             Cancel
           </button>
         </div>
@@ -163,12 +163,12 @@ function CronCard({ job, onMessage, onAction }: {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <motion.div layout className={`relative card-hover rounded-2xl border px-4 py-4 transition ${job.enabled ? "border-[#1E1E2A] bg-[#0A0A0C]/70" : "border-[#1E1E2A]/50 bg-[#0A0A0C]/40 opacity-60"}`}>
+    <motion.div layout className={`relative card-hover rounded-2xl border px-4 py-4 transition ${job.enabled ? "border-[var(--border)] bg-[var(--bg-primary)]/70" : "border-[var(--border)]/50 bg-[var(--bg-primary)]/40 opacity-60"}`}>
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1" onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer" }}>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-xs font-bold ${job.enabled ? "text-[#00D47E]" : "text-[#8888A0]"}`}>
+            <span className={`text-xs font-bold ${job.enabled ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"}`}>
               {job.enabled ? "● ACTIVE" : "○ DISABLED"}
             </span>
             {job.consecutive_errors >= 3 && (
@@ -177,16 +177,16 @@ function CronCard({ job, onMessage, onAction }: {
               </span>
             )}
           </div>
-          <h3 className="mt-1 text-sm font-semibold text-[#E4E4ED] truncate">
+          <h3 className="mt-1 text-sm font-semibold text-[var(--text-primary)] truncate">
             {job.name ?? job.id}
           </h3>
-          <p className="mt-0.5 text-xs text-[#8888A0]">{scheduleLabel(job)}</p>
+          <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{scheduleLabel(job)}</p>
         </div>
 
         <div className="flex shrink-0 gap-1.5">
           <button
             onClick={onMessage}
-            className="rounded-xl border border-[#00D47E]/30 px-3 py-1.5 text-xs font-semibold text-[#00D47E] hover:bg-[rgba(0,212,126,0.08)] transition"
+            className="rounded-xl border border-[var(--accent)]/30 px-3 py-1.5 text-xs font-semibold text-[var(--accent)] hover:bg-[rgba(0,212,126,0.08)] transition"
           >
             Message Agent
           </button>
@@ -194,14 +194,14 @@ function CronCard({ job, onMessage, onAction }: {
       </div>
 
       {/* Stats row */}
-      <div className="mt-3 flex flex-wrap gap-4 text-xs text-[#8888A0]">
+      <div className="mt-3 flex flex-wrap gap-4 text-xs text-[var(--text-secondary)]">
         <div>
           <span className="text-[10px] uppercase tracking-wider">Last run</span>
-          <div className="text-[#8888A0]">{fmtRelative(job.last_run_at)}</div>
+          <div className="text-[var(--text-secondary)]">{fmtRelative(job.last_run_at)}</div>
         </div>
         <div>
           <span className="text-[10px] uppercase tracking-wider">Next run</span>
-          <div className="text-[#8888A0]">{fmtRelative(job.next_run_at)}</div>
+          <div className="text-[var(--text-secondary)]">{fmtRelative(job.next_run_at)}</div>
         </div>
         <div>
           <span className="text-[10px] uppercase tracking-wider">Status</span>
@@ -212,7 +212,7 @@ function CronCard({ job, onMessage, onAction }: {
         {job.payload_model && (
           <div>
             <span className="text-[10px] uppercase tracking-wider">Model</span>
-            <div className="text-[#8888A0]">{job.payload_model}</div>
+            <div className="text-[var(--text-secondary)]">{job.payload_model}</div>
           </div>
         )}
       </div>
@@ -234,31 +234,31 @@ function CronCard({ job, onMessage, onAction }: {
             className="overflow-hidden"
           >
             {job.payload_message && (
-              <div className="relative card-hover mt-3 rounded-xl border border-[#1E1E2A] bg-[#0A0A0C] p-3">
+              <div className="relative card-hover mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">
                 <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[#8888A0]">Payload Preview</p>
-                <p className="line-clamp-4 text-xs text-[#8888A0]">{job.payload_message}</p>
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Payload Preview</p>
+                <p className="line-clamp-4 text-xs text-[var(--text-secondary)]">{job.payload_message}</p>
               </div>
             )}
 
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 onClick={() => onAction("run")}
-                className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
+                className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition"
               >
                 ▶ Run Now
               </button>
               {job.enabled ? (
                 <button
                   onClick={() => onAction("disable")}
-                  className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-amber-400 hover:border-amber-500/30 transition"
+                  className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-amber-400 hover:border-amber-500/30 transition"
                 >
                   ⏸ Disable
                 </button>
               ) : (
                 <button
                   onClick={() => onAction("enable")}
-                  className="rounded-xl border border-[#1E1E2A] px-3 py-1.5 text-xs text-[#8888A0] hover:text-[#00D47E] hover:border-[#00D47E]/30 transition"
+                  className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition"
                 >
                   ▶ Enable
                 </button>
@@ -334,9 +334,9 @@ export function CronManager() {
         title="Cron Jobs"
         subtitle="All scheduled tasks running on your OpenClaw gateway"
         action={
-          <div className="text-right text-xs text-[#8888A0]">
+          <div className="text-right text-xs text-[var(--text-secondary)]">
             {lastSync && <div>Synced {fmtRelative(lastSync)}</div>}
-            <div className="text-[10px] text-[#555566]">{jobs.length} total jobs</div>
+            <div className="text-[10px] text-[var(--text-tertiary)]">{jobs.length} total jobs</div>
           </div>
         }
       />
@@ -344,11 +344,11 @@ export function CronManager() {
       {jobs.length === 0 ? (
         <Card>
           <div className="py-12 text-center">
-            <p className="text-sm text-[#8888A0]">No cron jobs synced yet.</p>
-            <p className="mt-2 text-xs text-[#555566]">
+            <p className="text-sm text-[var(--text-secondary)]">No cron jobs synced yet.</p>
+            <p className="mt-2 text-xs text-[var(--text-tertiary)]">
               Run the sync script on your Dell to push OpenClaw cron jobs here:
             </p>
-            <code className="mt-2 block rounded-xl bg-[#0A0A0C] px-4 py-2 text-xs text-[#00D47E]">
+            <code className="mt-2 block rounded-xl bg-[var(--bg-primary)] px-4 py-2 text-xs text-[var(--accent)]">
               python3 ~/.openclaw/workspace/scripts/sync-crons-to-mc.py
             </code>
           </div>
@@ -368,8 +368,8 @@ export function CronManager() {
                 onClick={() => setFilter(key as typeof filter)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   filter === key
-                    ? danger ? "bg-red-500/20 text-red-400" : "bg-[#00D47E] text-[#0A0A0C]"
-                    : "border border-[#1E1E2A] text-[#8888A0] hover:text-[#E4E4ED]"
+                    ? danger ? "bg-red-500/20 text-red-400" : "bg-[var(--accent)] text-[var(--accent-foreground)]"
+                    : "border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 {label}
@@ -388,7 +388,7 @@ export function CronManager() {
               />
             ))}
             {filtered.length === 0 && (
-              <div className="py-8 text-center text-sm text-[#8888A0]">No jobs match this filter</div>
+              <div className="py-8 text-center text-sm text-[var(--text-secondary)]">No jobs match this filter</div>
             )}
           </div>
         </>

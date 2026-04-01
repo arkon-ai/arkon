@@ -58,7 +58,7 @@ function StatusDot({ status }: { status: string }) {
     ? "bg-emerald-400"
     : status === "idle"
     ? "bg-amber-400"
-    : "bg-slate-500";
+    : "bg-[var(--text-tertiary)]";
   return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />;
 }
 
@@ -89,7 +89,7 @@ export function ClientDashboard() {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="text-center text-slate-500">
+        <div className="text-center text-[var(--text-tertiary)]">
           <div className="mb-3 text-4xl animate-pulse">MC</div>
           <p>Loading dashboard...</p>
         </div>
@@ -113,9 +113,9 @@ export function ClientDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome banner */}
-      <div className="rounded-[16px] border border-[#1E1E2A] bg-[linear-gradient(135deg,rgba(0,212,126,0.04),rgba(0,212,126,0.04))] p-6">
-        <h1 className="text-2xl font-bold text-[#E4E4ED]">Welcome back, {data.tenant.name}</h1>
-        <p className="mt-1 text-sm text-[#8888A0]">
+      <div className="rounded-[16px] border border-[var(--border)] bg-[linear-gradient(135deg,rgba(0,212,126,0.04),rgba(0,212,126,0.04))] p-6">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Welcome back, {data.tenant.name}</h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
           {data.tenant.plan === "dfy" ? "Done-For-You" : data.tenant.plan === "owner" ? "Owner" : "Starter"} Plan
           {data.tenant.domain ? ` \u00B7 ${data.tenant.domain}` : ""}
         </p>
@@ -132,21 +132,21 @@ export function ClientDashboard() {
       {/* Agents & Infra */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Agents */}
-        <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
           <div className="mb-4 flex items-center gap-2">
-            <Bot className="h-4 w-4 text-[#8888A0]" />
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">My Agents</h2>
+            <Bot className="h-4 w-4 text-[var(--text-secondary)]" />
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">My Agents</h2>
           </div>
           {data.agents.length === 0 ? (
             <EmptyCard icon={Bot} title="No agents yet" description="Agents will appear here once provisioned for your account." />
           ) : (
             <div className="space-y-3">
               {data.agents.map((agent) => (
-                <div key={agent.id} className="flex items-center gap-3 rounded-xl bg-[#0A0A0C] px-4 py-3">
+                <div key={agent.id} className="flex items-center gap-3 rounded-xl bg-[var(--bg-primary)] px-4 py-3">
                   <StatusDot status={onlineAgents.some((a) => a.id === agent.id) ? "active" : "offline"} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-white">{agent.name}</p>
-                    <p className="text-xs text-slate-500">{agent.role} &middot; Last seen {timeAgo(agent.last_seen_at)}</p>
+                    <p className="text-xs text-[var(--text-tertiary)]">{agent.role} &middot; Last seen {timeAgo(agent.last_seen_at)}</p>
                   </div>
                 </div>
               ))}
@@ -155,21 +155,21 @@ export function ClientDashboard() {
         </div>
 
         {/* Infrastructure */}
-        <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+        <div className="rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
           <div className="mb-4 flex items-center gap-2">
-            <Server className="h-4 w-4 text-[#8888A0]" />
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">Infrastructure</h2>
+            <Server className="h-4 w-4 text-[var(--text-secondary)]" />
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">Infrastructure</h2>
           </div>
           {data.infra_nodes.length === 0 ? (
             <EmptyCard icon={Server} title="No infrastructure nodes" description="Infrastructure nodes will appear here once connected." />
           ) : (
             <div className="space-y-3">
               {data.infra_nodes.map((node) => (
-                <div key={node.hostname} className="flex items-center gap-3 rounded-xl bg-[#0A0A0C] px-4 py-3">
+                <div key={node.hostname} className="flex items-center gap-3 rounded-xl bg-[var(--bg-primary)] px-4 py-3">
                   <StatusDot status={node.status} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-white">{node.hostname}</p>
-                    <p className="text-xs text-slate-500">{node.os} &middot; {node.ip_address} &middot; {timeAgo(node.last_seen_at)}</p>
+                    <p className="text-xs text-[var(--text-tertiary)]">{node.os} &middot; {node.ip_address} &middot; {timeAgo(node.last_seen_at)}</p>
                   </div>
                 </div>
               ))}
@@ -179,10 +179,10 @@ export function ClientDashboard() {
       </div>
 
       {/* Recent activity */}
-      <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
+      <div className="rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
         <div className="mb-4 flex items-center gap-2">
-          <Radio className="h-4 w-4 text-[#8888A0]" />
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#555566]">Recent Activity</h2>
+          <Radio className="h-4 w-4 text-[var(--text-secondary)]" />
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">Recent Activity</h2>
         </div>
         {data.recent_events.length === 0 ? (
           <EmptyCard icon={Radio} title="No recent activity" description="Events from your agents will appear here in real-time." />
@@ -190,14 +190,14 @@ export function ClientDashboard() {
           <div className="space-y-2">
             {data.recent_events.slice(0, 10).map((event) => (
               <div key={event.id} className="flex items-start gap-3 rounded-xl px-3 py-2 hover:bg-white/5 transition">
-                <span className="mt-0.5 text-xs text-slate-500 whitespace-nowrap">{timeAgo(event.created_at)}</span>
+                <span className="mt-0.5 text-xs text-[var(--text-tertiary)] whitespace-nowrap">{timeAgo(event.created_at)}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-slate-300">
+                  <p className="text-sm text-[var(--text-primary)]">
                     <span className="font-medium text-white">{event.agent_name}</span>
                     {" \u00B7 "}
-                    <span className="text-slate-400">{event.event_type}</span>
+                    <span className="text-[var(--text-secondary)]">{event.event_type}</span>
                   </p>
-                  {event.summary ? <p className="mt-0.5 truncate text-xs text-slate-500">{event.summary}</p> : null}
+                  {event.summary ? <p className="mt-0.5 truncate text-xs text-[var(--text-tertiary)]">{event.summary}</p> : null}
                 </div>
               </div>
             ))}
