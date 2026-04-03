@@ -373,7 +373,7 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
         tips.push({
           text: `${a.agent_name || a.agent_id} averages ${fmt$(costPerMsg)}/msg. Switching sub-tasks to a smaller model could reduce costs.`,
           savings: potentialSavings > 1 ? `~${fmt$(potentialSavings)}/period` : undefined,
-          color: C.cyan,
+          color: C.teal,
           priority: 1,
         });
       }
