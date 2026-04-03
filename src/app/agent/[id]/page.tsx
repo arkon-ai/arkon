@@ -223,6 +223,7 @@ export default function AgentDetailPage() {
       const token = getToken();
       const res = await fetch(`/api/dashboard/agent/${agentId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "include",
       });
       const json = await res.json() as AgentData;
       setData(json);

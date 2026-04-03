@@ -280,7 +280,7 @@ export default function SetupPage() {
           {step === 1 && (
             <div className="space-y-4">
               <p className="text-sm leading-6 text-[#8888A0]">
-                Let&apos;s get your control plane running in a few minutes.
+                Let&apos;s get your governance platform running in a few minutes.
               </p>
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[#8888A0]">
@@ -531,7 +531,7 @@ export default function SetupPage() {
           {step === 5 && (
             <div className="space-y-5">
               <p className="text-sm leading-6 text-[#8888A0]">
-                Your control plane is ready. Here&apos;s what to explore:
+                Your governance platform is ready. Here&apos;s what to explore:
               </p>
 
               <div className="grid grid-cols-2 gap-2.5">

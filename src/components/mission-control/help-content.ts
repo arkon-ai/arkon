@@ -417,6 +417,125 @@ export const helpContent: Record<string, HelpSection> = {
       { label: "Create an event", detail: "Click on any date to create a new calendar event." },
     ],
   },
+
+  "/agent": {
+    title: "Agent Profile",
+    description:
+      "Detailed view of a single agent — identity, security posture, performance metrics, and activity timeline. Use the tabs to switch between views.",
+    concepts: [
+      {
+        term: "Status",
+        explanation:
+          "Live (active in last 5 minutes), Warm (active in last hour), or Offline.",
+      },
+      {
+        term: "Error Rate",
+        explanation:
+          "Percentage of events that resulted in errors over the last 7 days. Below 5% is normal.",
+      },
+      {
+        term: "Threat Score",
+        explanation:
+          "Count of detected threats in the last 30 days, with severe threats highlighted.",
+      },
+    ],
+    tasks: [
+      { label: "Kill this agent", detail: "Use the Emergency Stop button in the header if the agent has an active run." },
+      { label: "Review threats", detail: "Switch to the Security tab to see recent threat events for this agent." },
+      { label: "Check costs", detail: "The Performance tab shows daily cost and token usage charts." },
+    ],
+    tips: [
+      "The quick stats row at the top gives you a snapshot without needing to switch tabs.",
+      "Click any threat event in the Security tab to jump to ThreatGuard with that event highlighted.",
+    ],
+  },
+
+  "/traces": {
+    title: "Trace Explorer",
+    description:
+      "View end-to-end execution traces for your agents. Each trace captures a full request lifecycle — LLM calls, tool invocations, retrieval steps, and chain orchestration — with timing and cost data.",
+    concepts: [
+      {
+        term: "Trace",
+        explanation:
+          "A complete record of one agent execution, from request to response. Contains one or more spans.",
+      },
+      {
+        term: "Span",
+        explanation:
+          "A single operation within a trace — an LLM call, tool invocation, or retrieval step. Spans are nested to show parent-child relationships.",
+      },
+    ],
+    tasks: [
+      { label: "Inspect a trace", detail: "Click any trace row to see its full span tree with timing, tokens, and cost per operation." },
+      { label: "Filter traces", detail: "Use the status and agent filters to narrow down to specific trace types." },
+    ],
+  },
+
+  "/incidents": {
+    title: "Incident Management",
+    description:
+      "Track and manage operational incidents across your AI infrastructure. Create incidents, assign severity, track SLA compliance, and document post-mortems.",
+    concepts: [
+      {
+        term: "SLA",
+        explanation:
+          "Service Level Agreement — the target resolution time based on severity. P1: 1 hour, P2: 4 hours, P3: 24 hours, P4: 72 hours.",
+      },
+      {
+        term: "Lifecycle",
+        explanation:
+          "Incidents progress through states: Created \u2192 Assigned \u2192 Investigating \u2192 Resolved \u2192 Post-mortem \u2192 Closed.",
+      },
+    ],
+    tasks: [
+      { label: "Create an incident", detail: "Click Create Incident to log a new operational issue with severity and description." },
+      { label: "Transition status", detail: "Use the status buttons on an incident detail view to move it through the lifecycle." },
+      { label: "Add a comment", detail: "Post timeline updates or post-mortem notes on any open incident." },
+    ],
+  },
+
+  "/client": {
+    title: "Client Portal",
+    description:
+      "A simplified view for your DFY (done-for-you) clients. Shows their agents, costs, and activity without exposing admin-level controls. Share portal access via magic links.",
+    tasks: [
+      { label: "Switch tabs", detail: "Navigate between Dashboard, Agents, Costs, and API Keys using the tab bar." },
+      { label: "Generate API key", detail: "Use the API Keys tab to create scoped access tokens for client integrations." },
+    ],
+  },
+
+  "/victoryos": {
+    title: "VictoryOS",
+    description:
+      "Chat engine metrics and token usage for the VictoryOS system. Monitor message throughput, model utilization, and conversation quality.",
+    tasks: [
+      { label: "Check token usage", detail: "View daily and cumulative token consumption across all VictoryOS conversations." },
+    ],
+  },
+
+  "/admin": {
+    title: "Admin Panel",
+    description:
+      "System-level configuration for your Arkon instance. Manage tenants, users, agent provisioning, and global settings.",
+    concepts: [
+      {
+        term: "Tenant",
+        explanation:
+          "An isolated workspace in Arkon. Each tenant has its own agents, data, and configuration. Used for multi-client deployments.",
+      },
+      {
+        term: "Provisioning Token",
+        explanation:
+          "A secret token used by agents to register themselves with Arkon on first connection.",
+      },
+    ],
+    tasks: [
+      { label: "Add a tenant", detail: "Create a new tenant for a client or team with its own isolated workspace." },
+      { label: "Provision an agent", detail: "Generate a provisioning token for a new agent to connect." },
+      { label: "Manage users", detail: "Create user accounts and assign roles (owner, admin, operator, viewer)." },
+    ],
+  },
 };
 
 /* ── Glossary terms ───────────────────────────────────────────────────────── */
@@ -433,7 +552,7 @@ export const glossaryTerms: GlossaryTerm[] = [
   { term: "Approval", definition: "A request from an agent asking for human permission before performing a sensitive action. Approvals are configured per agent and action type.", link: "/tools/approvals" },
   { term: "Baseline", definition: "The expected range of normal behavior for an agent, computed from its rolling 7-day history. Used to detect anomalies.", link: "/analytics" },
   { term: "Budget Limit", definition: "A spending cap set per tenant. Arkon sends alerts at 80% and 100% of the limit. Configurable as daily or monthly.", link: "/costs" },
-  { term: "Control Plane", definition: "The management layer that monitors, governs, and orchestrates AI agents. Arkon is an AI Operations Control Plane." },
+  { term: "Governance Platform", definition: "The management layer that monitors, governs, and orchestrates AI agents. Arkon is an AI Governance Platform." },
   { term: "Credential Leak", definition: "A threat class where an agent exposes an API key, password, or secret in its output. Requires immediate purging and credential rotation.", link: "/security" },
   { term: "Event", definition: "Any logged action from an agent — messages sent/received, tool calls, errors, or system actions. Events are the core data unit in Arkon.", link: "/activity" },
   { term: "Health Score", definition: "A composite 0–100 score combining agent uptime (25pts), threat level (25pts), budget status (25pts), and infrastructure health (25pts).", link: "/" },
