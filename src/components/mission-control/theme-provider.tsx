@@ -33,16 +33,10 @@ function resolveTheme(mode: ThemeMode): "light" | "dark" {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>(() => {
-    if (typeof window === "undefined") return "dark";
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-      if (stored && ["system", "light", "dark"].includes(stored)) return stored;
-    } catch {}
-    return "dark";
-  });
-
-  const [resolved, setResolved] = useState<"light" | "dark">(() => resolveTheme(mode));
+  // Always start with "dark" to match server HTML (data-theme="dark")
+  // Stored preference is applied in useEffect to avoid hydration mismatch
+  const [mode, setModeState] = useState<ThemeMode>("dark");
+  const [resolved, setResolved] = useState<"light" | "dark">("dark");
 
   const applyTheme = useCallback((theme: "light" | "dark") => {
     const root = document.documentElement;
@@ -61,10 +55,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme(resolveTheme(newMode));
   }, [applyTheme]);
 
-  // Apply on mount
+  // Restore stored preference on mount (after hydration)
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
+      if (stored && ["system", "light", "dark"].includes(stored)) {
+        setModeState(stored);
+        applyTheme(resolveTheme(stored));
+        return;
+      }
+    } catch {}
     applyTheme(resolveTheme(mode));
-  }, [applyTheme, mode]);
+  }, [applyTheme]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Listen for system preference changes
   useEffect(() => {
