@@ -233,12 +233,19 @@ export function NotionShell({ children }: { children: ReactNode }) {
   // alertCount removed — NotificationDropdown now self-manages via /api/notifications
   const [isOpen, setIsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => loadCollapsedGroups());
+  // Initialize with server-safe defaults, restore from localStorage after hydration
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [pinnedDocs, setPinnedDocs] = useState<PinnedDoc[]>([]);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try { return localStorage.getItem("arkon-sidebar-collapsed") === "true"; } catch { return false; }
-  });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setCollapsedGroups(loadCollapsedGroups());
+    try {
+      setSidebarCollapsed(localStorage.getItem("arkon-sidebar-collapsed") === "true");
+    } catch {}
+  }, []);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [quickKillOpen, setQuickKillOpen] = useState(false);
 
@@ -404,7 +411,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
           <Search className="h-3.5 w-3.5" />
           <span className="flex-1 text-left">Search</span>
           <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-tertiary)]">
-            {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
+            {mounted && typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
           </kbd>
         </button>
       </div>}
@@ -542,7 +549,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                   <Search className="h-3.5 w-3.5" />
                   <span>Search</span>
                   <kbd className="ml-2 rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-0.5 text-[10px] font-medium">
-                    {typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
+                    {mounted && typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
                   </kbd>
                 </button>
                 

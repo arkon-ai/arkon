@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 
 const STORAGE_KEY = "arkon-active-tenant";
 
@@ -16,14 +16,15 @@ const TenantContext = createContext<TenantContextValue>({
 });
 
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const [activeTenant, setActiveTenantRaw] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
+  const [activeTenant, setActiveTenantRaw] = useState<string | null>(null);
+
+  // Restore from localStorage after hydration
+  useEffect(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) || null;
-    } catch {
-      return null;
-    }
-  });
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) setActiveTenantRaw(stored);
+    } catch {}
+  }, []);
 
   const setActiveTenant = useCallback((id: string | null) => {
     setActiveTenantRaw(id);
