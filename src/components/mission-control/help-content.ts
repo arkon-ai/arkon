@@ -417,6 +417,56 @@ export const helpContent: Record<string, HelpSection> = {
       { label: "Create an event", detail: "Click on any date to create a new calendar event." },
     ],
   },
+
+  "/traces": {
+    title: "Trace Explorer",
+    description:
+      "Inspect the full execution path of any agent request — from initial prompt to final response, including every tool call and sub-agent invocation.",
+    concepts: [
+      { term: "Trace", explanation: "A complete request lifecycle, from user prompt to agent response. Contains one or more spans." },
+      { term: "Span", explanation: "A single operation within a trace — an LLM call, tool invocation, or sub-agent delegation." },
+    ],
+    tasks: [
+      { label: "Find slow requests", detail: "Sort by duration to identify traces that took longest to complete." },
+      { label: "Debug errors", detail: "Filter by status to find failed traces and drill into the failing span." },
+    ],
+    tips: [
+      "Click any trace to see its full span tree with timing waterfall.",
+      "Use the search bar to filter by agent name, trace ID, or status.",
+    ],
+  },
+
+  "/incidents": {
+    title: "Incident Management",
+    description:
+      "Track, triage, and resolve incidents across your AI operations. Full lifecycle from detection through post-mortem.",
+    concepts: [
+      { term: "Severity", explanation: "P1 (critical, 1h SLA) through P4 (low, 72h SLA). Determines response urgency and SLA deadlines." },
+      { term: "SLA", explanation: "Service Level Agreement — the maximum time allowed to resolve an incident based on its severity." },
+    ],
+    tasks: [
+      { label: "Create an incident", detail: "Click 'New Incident' and set severity, title, and assignee." },
+      { label: "Transition status", detail: "Use the status buttons to move through: created → assigned → investigating → resolved → postmortem → closed." },
+    ],
+    tips: [
+      "SLA timers are auto-calculated from severity. P1 incidents page if not resolved within 1 hour.",
+      "Add post-mortem notes before closing to build an institutional knowledge base.",
+    ],
+  },
+
+  "/admin": {
+    title: "Admin Panel",
+    description:
+      "Manage tenants, users, API keys, and system-wide settings. Restricted to admin-role users.",
+    tasks: [
+      { label: "Manage API keys", detail: "Create, rotate, or revoke API keys for agent authentication." },
+      { label: "View audit log", detail: "Review all admin actions with timestamps and actor details." },
+    ],
+    tips: [
+      "Use tenant switcher in the header to manage different organizations.",
+      "API key permissions can be scoped per agent or tenant-wide.",
+    ],
+  },
 };
 
 /* ── Glossary terms ───────────────────────────────────────────────────────── */
@@ -433,7 +483,7 @@ export const glossaryTerms: GlossaryTerm[] = [
   { term: "Approval", definition: "A request from an agent asking for human permission before performing a sensitive action. Approvals are configured per agent and action type.", link: "/tools/approvals" },
   { term: "Baseline", definition: "The expected range of normal behavior for an agent, computed from its rolling 7-day history. Used to detect anomalies.", link: "/analytics" },
   { term: "Budget Limit", definition: "A spending cap set per tenant. Arkon sends alerts at 80% and 100% of the limit. Configurable as daily or monthly.", link: "/costs" },
-  { term: "Control Plane", definition: "The management layer that monitors, governs, and orchestrates AI agents. Arkon is an AI Operations Control Plane." },
+  { term: "Governance Platform", definition: "The management layer that monitors, governs, and orchestrates AI agents. Arkon is an AI Governance Platform." },
   { term: "Credential Leak", definition: "A threat class where an agent exposes an API key, password, or secret in its output. Requires immediate purging and credential rotation.", link: "/security" },
   { term: "Event", definition: "Any logged action from an agent — messages sent/received, tool calls, errors, or system actions. Events are the core data unit in Arkon.", link: "/activity" },
   { term: "Health Score", definition: "A composite 0–100 score combining agent uptime (25pts), threat level (25pts), budget status (25pts), and infrastructure health (25pts).", link: "/" },

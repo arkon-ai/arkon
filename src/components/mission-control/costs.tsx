@@ -350,19 +350,57 @@ function AnomalyAlert({ anomalies }: { anomalies: AgentAnomaly[] }) {
 
 /* ═══ Optimization Tips ═══ */
 function OptimizationTips({ overview, agentData }: { overview: OverviewData; agentData: AgentDetailRow[] | null }) {
-  const [expanded, setExpanded] = useState(false);
-  const tips: Array<{ text: string; savings?: string; color: string }> = [];
+  const [expanded, setExpanded] = useState(true);
+  const tips: Array<{ text: string; savings?: string; color: string; priority: number }> = [];
 
-  // Tip: high error rate agents wasting tokens
+  // Tip: budget nearly exceeded (highest priority)
+  for (const b of overview.budgets) {
+    if (b.monthly_limit_usd && b.month_spend / b.monthly_limit_usd > 0.8) {
+      tips.push({
+        text: `Budget for ${b.scope_type}:${b.scope_id} is at ${Math.round((b.month_spend / b.monthly_limit_usd) * 100)}%. Consider reviewing high-cost agents.`,
+        color: C.red,
+        priority: 0,
+      });
+    }
+  }
+
+  // Tip: model downgrade suggestions
+  if (agentData) {
+    for (const a of agentData) {
+      const costPerMsg = a.total_cost / Math.max(a.total_messages, 1);
+      if (costPerMsg > 0.05 && a.total_cost > 2) {
+        const potentialSavings = a.total_cost * 0.6;
+        tips.push({
+          text: `${a.agent_name || a.agent_id} averages ${fmt$(costPerMsg)}/msg. Switching sub-tasks to a smaller model could reduce costs.`,
+          savings: potentialSavings > 1 ? `~${fmt$(potentialSavings)}/period` : undefined,
+          color: C.cyan,
+          priority: 1,
+        });
+      }
+    }
+  }
+
+  // Tip: anomaly cost alerts — agents spending >2x their 7-day average
+  if (overview.agent_anomalies && overview.agent_anomalies.length > 0) {
+    for (const anom of overview.agent_anomalies) {
+      tips.push({
+        text: `${anom.agent_name || anom.agent_id} is spending ${anom.ratio?.toFixed(1) ?? ">2"}x its 7-day average. Investigate for runaway loops.`,
+        color: C.red,
+        priority: 1,
+      });
+    }
+  }
+
+  // Tip: high cost per message
   if (agentData) {
     for (const a of agentData) {
       if (a.total_messages > 0) {
-        // Use daily_trend to estimate error cost
         const costPerMsg = a.total_cost / Math.max(a.total_messages, 1);
         if (costPerMsg > 0.1 && a.total_cost > 1) {
           tips.push({
             text: `${a.agent_name || a.agent_id} has high cost per message (${fmt$(costPerMsg)}). Check for retries or excessive tool calls.`,
             color: C.amber,
+            priority: 2,
           });
         }
       }
@@ -376,6 +414,7 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
       tips.push({
         text: `${inactive.length} agent${inactive.length > 1 ? "s" : ""} active for 2 or fewer days in this period. Consider deactivating unused agents.`,
         color: C.slate,
+        priority: 3,
       });
     }
   }
@@ -385,37 +424,38 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
     tips.push({
       text: "No budget limits configured. Set a monthly budget to prevent overspending.",
       color: C.purple,
+      priority: 2,
     });
   }
 
-  // Tip: budget nearly exceeded
-  for (const b of overview.budgets) {
-    if (b.monthly_limit_usd && b.month_spend / b.monthly_limit_usd > 0.8) {
-      tips.push({
-        text: `Budget for ${b.scope_type}:${b.scope_id} is at ${Math.round((b.month_spend / b.monthly_limit_usd) * 100)}%. Consider reviewing high-cost agents.`,
-        color: C.red,
-      });
-    }
-  }
+  // Sort by priority
+  tips.sort((a, b) => a.priority - b.priority);
 
   if (tips.length === 0) return null;
 
   return (
     <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-      <button onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full text-left">
+      <button type="button" onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full text-left">
         <h3 className="text-sm font-medium text-[var(--text-secondary)]">
           Optimization Tips
-          <span className="ml-2 text-xs text-[var(--text-tertiary)]">({tips.length})</span>
+          <span className="ml-2 rounded-full bg-[var(--accent)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--accent)]">{tips.length}</span>
         </h3>
         <span className="text-xs text-[var(--text-tertiary)]">{expanded ? "\u25B2" : "\u25BC"}</span>
       </button>
       {expanded && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-2.5">
           {tips.map((tip, i) => (
-            <div key={i} className="flex items-start gap-2 text-xs">
-              <span className="shrink-0 mt-0.5 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tip.color }} />
-              <span className="text-[var(--text-secondary)]">{tip.text}</span>
+            <div key={i} className="flex items-start gap-2.5 rounded-xl border border-[var(--border)]/50 bg-[var(--bg-primary)]/60 px-3 py-2.5">
+              <span className="shrink-0 mt-1 w-2 h-2 rounded-full" style={{ backgroundColor: tip.color }} />
+              <div className="min-w-0 flex-1">
+                <span className="text-xs leading-relaxed text-[var(--text-secondary)]">{tip.text}</span>
+                {tip.savings && (
+                  <span className="ml-2 inline-flex rounded-full bg-[var(--accent)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--accent)]">
+                    Save {tip.savings}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>

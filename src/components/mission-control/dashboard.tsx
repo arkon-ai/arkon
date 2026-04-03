@@ -37,6 +37,13 @@ import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { StatusSummary, HealthGauge, MetricTooltip, SectionDescription } from "./dashboard-clarity";
 import { computeHealthScore } from "@/lib/health-score";
 import { FreshnessIndicator } from "@/components/ui/freshness-indicator";
+import { Drawer } from "@/components/ui/drawer";
+
+interface ThreatSummary {
+  total: number;
+  severityBreakdown: Array<{ threat_level: string; count: number }>;
+  recentEvents?: Array<{ id: string; threat_class: string; threat_level: string; summary: string; created_at: string }>;
+}
 
 export function ShellHeader({
   title,
@@ -410,10 +417,14 @@ function MobileDashboardView({
   health,
   metrics,
   agents,
+  threatCount,
+  onThreatClick,
 }: {
   health: { score: number; color: string; breakdown: { agents: number; threats: number; budget: number; infra: number } };
   metrics: ReturnType<typeof getOverviewMetrics>;
   agents: Array<{ id: string; name: string; last_active: string | null; events_24h: string }>;
+  threatCount: number;
+  onThreatClick?: () => void;
 }) {
   const { data: recentData } = usePollingFetch<{ events: RecentEvent[] }>(
     "/api/dashboard/overview/recent?limit=5",
@@ -430,7 +441,8 @@ function MobileDashboardView({
           totalAgents={metrics.totalAgents}
           activeAgents={metrics.activeAgents}
           eventsToday={metrics.events24h}
-          threatCount={0}
+          threatCount={threatCount}
+          onThreatClick={onThreatClick}
         />
       </div>
 
@@ -603,12 +615,21 @@ function OverviewContent() {
   const tokensDelta = calcDelta(tokensSparkData);
   const toolsDelta = calcDelta(toolsSparkData);
 
+  // Poll threat data
+  const { data: threatData } = usePollingFetch<ThreatSummary>("/api/security/overview?range=7d", 60000);
+  const [threatDrawerOpen, setThreatDrawerOpen] = useState(false);
+
+  const criticalCount = threatData?.severityBreakdown?.find(s => s.threat_level === "critical")?.count ?? 0;
+  const highCount = threatData?.severityBreakdown?.find(s => s.threat_level === "high")?.count ?? 0;
+  const totalThreatCount = (threatData?.severityBreakdown ?? []).reduce((s, b) => s + b.count, 0);
+  const highestThreat = criticalCount > 0 ? "critical" : highCount > 0 ? "high" : totalThreatCount > 0 ? "medium" : "none";
+
   // Compute health score
   const health = computeHealthScore({
     totalAgents: metrics.totalAgents,
     activeAgents: metrics.activeAgents,
-    highestThreat: "none", // will be enriched when security data is available
-    threatCount: 0,
+    highestThreat,
+    threatCount: totalThreatCount,
     monthSpend: 0,
     budgetLimit: 0,
     totalNodes: 0,
@@ -618,7 +639,7 @@ function OverviewContent() {
   return (
     <>
       {/* Mobile-optimized dashboard — simplified layout */}
-      <MobileDashboardView health={health} metrics={metrics} agents={agents} />
+      <MobileDashboardView health={health} metrics={metrics} agents={agents} threatCount={totalThreatCount} onThreatClick={() => setThreatDrawerOpen(true)} />
 
       {/* Desktop dashboard — full layout */}
       <div className="hidden md:block space-y-5">
@@ -644,7 +665,8 @@ function OverviewContent() {
               totalAgents={metrics.totalAgents}
               activeAgents={metrics.activeAgents}
               eventsToday={metrics.events24h}
-              threatCount={0}
+              threatCount={totalThreatCount}
+              onThreatClick={() => setThreatDrawerOpen(true)}
             />
           </div>
         </div>
@@ -742,6 +764,43 @@ function OverviewContent() {
 
         {error ? <ErrorState error={error} /> : null}
       </div>
+
+      {/* Threat detail drawer */}
+      <Drawer open={threatDrawerOpen} onClose={() => setThreatDrawerOpen(false)} title="Threat Overview">
+        <div className="space-y-4">
+          {/* Severity grid */}
+          <div className="grid grid-cols-2 gap-2">
+            {(threatData?.severityBreakdown ?? []).map((b) => (
+              <div key={b.threat_level} className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                <p className="text-xs font-semibold capitalize text-[var(--text-primary)]">{b.threat_level}</p>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">{b.count}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Recent severe events */}
+          {threatData?.recentEvents && threatData.recentEvents.length > 0 && (
+            <div>
+              <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">Recent Events</h3>
+              <div className="space-y-2">
+                {threatData.recentEvents.slice(0, 5).map((ev) => (
+                  <div key={ev.id} className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold capitalize text-[var(--text-primary)]">{ev.threat_class}</span>
+                      <span className={`text-[10px] font-bold uppercase ${ev.threat_level === "critical" ? "text-[var(--danger)]" : ev.threat_level === "high" ? "text-[var(--warning)]" : "text-[var(--text-tertiary)]"}`}>{ev.threat_level}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--text-secondary)]">{ev.summary}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Link href="/security" className="inline-flex w-full items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] py-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/10">
+            View all in ThreatGuard &rarr;
+          </Link>
+        </div>
+      </Drawer>
     </>
   );
 }

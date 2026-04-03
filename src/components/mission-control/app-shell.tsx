@@ -67,7 +67,7 @@ const pageLabels: Record<string, string> = {
   "/tools/agents-live": "Live Agents",
   "/workflows": "Workflows",
   "/tools/command": "Command",
-  "/security": "ThreatGuard",
+  "/security": "Threats",
   "/analytics": "Anomaly Detection",
   "/traces": "Traces",
   "/costs": "Costs",
@@ -79,7 +79,7 @@ const pageLabels: Record<string, string> = {
   "/activity": "Activity",
   "/tools/crons": "Cron Jobs",
   "/tools/intake": "Client Intake",
-  "/tools/mcp": "MCP Servers",
+  "/tools/mcp": "MCP",
   "/tools/mcp-gateway": "MCP Gateway",
   "/admin": "Admin Panel",
   "/infrastructure": "Infrastructure",
@@ -106,19 +106,19 @@ type NavItem = {
 
 const mobileTabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/tools", label: "Tools", icon: Wrench },
   { href: "/agents", label: "Agents", icon: Bot },
+  { href: "/security", label: "Threats", icon: ShieldCheck },
+  { href: "/costs", label: "Costs", icon: Wallet },
   { href: "##more##", label: "More", icon: MoreHorizontal },
 ];
 
 const moreSheetItems: NavItem[] = [
+  { href: "/incidents", label: "Incidents", icon: AlertTriangle },
   { href: "/infrastructure", label: "Infrastructure", icon: Network },
-  { href: "/activity", label: "Activity", icon: Radio },
-  { href: "/tools/crons", label: "Cron Jobs", icon: Clock },
-  { href: "/tools/command", label: "Command", icon: Terminal },
-  { href: "/tools/intake", label: "Client Intake", icon: Inbox },
-  { href: "/tools/mcp", label: "MCP Servers", icon: Plug },
-  { href: "/admin", label: "Admin Panel", icon: Lock },
+  { href: "/traces", label: "Traces", icon: GitBranch },
+  { href: "/workflows", label: "Workflows", icon: Workflow },
+  { href: "/tools/mcp", label: "MCP", icon: Plug },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
@@ -127,48 +127,37 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     key: "observe",
     items: [
       { href: "/", label: "Dashboard", subtitle: "System health & key metrics", icon: LayoutDashboard },
-      { href: "/infrastructure", label: "Infrastructure", subtitle: "Server topology & resources", icon: Network },
       { href: "/agents", label: "Agents", subtitle: "Monitor your AI agents", icon: Bot },
-      { href: "/activity", label: "Activity", subtitle: "Real-time event stream", icon: Radio },
-      { href: "/analytics", label: "Anomaly Detection", subtitle: "Rate spikes & silence alerts", icon: BarChart3 },
+      { href: "/security", label: "Threats", subtitle: "Detect & respond to threats", icon: ShieldCheck },
+      { href: "/costs", label: "Costs", subtitle: "Spending by agent & model", icon: Wallet },
       { href: "/traces", label: "Traces", subtitle: "Agent execution traces & spans", icon: GitBranch },
-      { href: "/victoryos", label: "VictoryOS", subtitle: "Chat engine metrics", icon: MessageSquare },
+      { href: "/infrastructure", label: "Infrastructure", subtitle: "Server topology & resources", icon: Network },
     ],
   },
   {
     label: "Respond",
     key: "respond",
     items: [
-      { href: "/security", label: "ThreatGuard", subtitle: "Detect & respond to threats", icon: ShieldCheck },
-      { href: "/tools/command", label: "Command", subtitle: "Run agent commands", icon: Terminal },
-      { href: "/tools/approvals", label: "Approvals", subtitle: "Review pending requests", icon: CheckCircle },
-      { href: "/tools/agents-live", label: "Live Agents", subtitle: "Active agent sessions", icon: Activity },
       { href: "/incidents", label: "Incidents", subtitle: "Track operational incidents", icon: AlertTriangle },
+      { href: "/tools/approvals", label: "Approvals", subtitle: "Review pending requests", icon: CheckCircle },
       { href: "/workflows", label: "Workflows", subtitle: "Automate operations", icon: Workflow },
-      { href: "/tools/crons", label: "Cron Jobs", subtitle: "Scheduled automations", icon: Clock },
-      { href: "/tools/tasks", label: "Tasks", subtitle: "Track action items", icon: ListTodo },
     ],
   },
   {
     label: "Manage",
     key: "manage",
     items: [
-      { href: "/costs", label: "Costs", subtitle: "Spending by agent & model", icon: Wallet },
+      { href: "/tools/mcp", label: "MCP", subtitle: "Manage tool providers", icon: Plug },
+      { href: "/tools/docs", label: "Docs", subtitle: "Agent documentation", icon: FileText },
       { href: "/compliance", label: "Compliance", subtitle: "Audit logs & data export", icon: Shield },
-      { href: "/benchmarks", label: "Benchmarks", subtitle: "Compare agent performance", icon: Gauge },
-      { href: "/admin", label: "Admin Panel", subtitle: "System configuration", icon: Lock },
+      { href: "/settings", label: "Settings", subtitle: "Notifications & preferences", icon: Settings },
     ],
   },
   {
-    label: "Configure",
-    key: "configure",
+    label: "Admin",
+    key: "admin",
     items: [
-      { href: "/settings", label: "Settings", subtitle: "Notifications & preferences", icon: Settings },
-      { href: "/tools/docs", label: "Docs", subtitle: "Agent documentation", icon: FileText },
-      { href: "/tools/mcp", label: "MCP Servers", subtitle: "Manage tool providers", icon: Plug },
-      { href: "/tools/mcp-gateway", label: "MCP Gateway", subtitle: "Secure external tools", icon: Globe },
-      { href: "/tools/intake", label: "Client Intake", subtitle: "Client onboarding forms", icon: Inbox },
-      { href: "/tools/calendar", label: "Calendar", subtitle: "Schedule & events", icon: Calendar },
+      { href: "/admin", label: "Admin Panel", subtitle: "System configuration", icon: Lock },
     ],
   },
 ];
