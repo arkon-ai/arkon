@@ -347,60 +347,32 @@ function AnomalyAlert({ anomalies }: { anomalies: AgentAnomaly[] }) {
 
 /* ═══ Optimization Tips ═══ */
 function OptimizationTips({ overview, agentData }: { overview: OverviewData; agentData: AgentDetailRow[] | null }) {
-  const [expanded, setExpanded] = useState(true);
-  const tips: Array<{ text: string; savings?: string; color: string; priority: number }> = [];
+  const [expanded, setExpanded] = useState(false);
+  const tips: Array<{ text: string; savings?: string; color: string }> = [];
 
-  // Tip: high cost per message (potential retry loops / excessive tool calls)
+  // Tip: high error rate agents wasting tokens
   if (agentData) {
     for (const a of agentData) {
       if (a.total_messages > 0) {
+        // Use daily_trend to estimate error cost
         const costPerMsg = a.total_cost / Math.max(a.total_messages, 1);
         if (costPerMsg > 0.1 && a.total_cost > 1) {
           tips.push({
             text: `${a.agent_name || a.agent_id} has high cost per message (${fmt$(costPerMsg)}). Check for retries or excessive tool calls.`,
             color: C.amber,
-            priority: 2,
           });
         }
       }
     }
   }
 
-  // Tip: model downgrade suggestion — agents spending > $1/day on premium models
-  if (agentData) {
-    for (const a of agentData) {
-      const avgDaily = a.active_days > 0 ? a.total_cost / a.active_days : 0;
-      if (avgDaily > 1 && a.cost_per_1k_tokens > 0.01) {
-        const potentialSavings = avgDaily * 0.6; // ~60% savings switching routine calls to smaller model
-        tips.push({
-          text: `${a.agent_name || a.agent_id} averages ${fmt$(avgDaily)}/day. Routing routine calls to a smaller model (e.g., Haiku) could save ~${fmt$(potentialSavings)}/day.`,
-          savings: fmt$(potentialSavings * 30) + "/mo",
-          color: C.green,
-          priority: 1,
-        });
-      }
-    }
-  }
-
-  // Tip: anomaly agents spending way above average
-  for (const anomaly of overview.agent_anomalies) {
-    if (anomaly.ratio > 2 && anomaly.today_cost > 0.5) {
-      tips.push({
-        text: `${anomaly.agent_name || anomaly.agent_id} is spending ${anomaly.ratio.toFixed(1)}x its 7-day average today (${fmt$(anomaly.today_cost)} vs avg ${fmt$(anomaly.avg_7d)}). Investigate for runaway loops.`,
-        color: C.red,
-        priority: 0,
-      });
-    }
-  }
-
-  // Tip: inactive agents still incurring cost
+  // Tip: inactive agents
   if (agentData) {
     const inactive = agentData.filter((a) => a.active_days <= 2 && a.total_cost > 0);
     if (inactive.length > 0) {
       tips.push({
-        text: `${inactive.length} agent${inactive.length > 1 ? "s" : ""} active for 2 or fewer days but still incurring cost. Consider deactivating unused agents.`,
+        text: `${inactive.length} agent${inactive.length > 1 ? "s" : ""} active for 2 or fewer days in this period. Consider deactivating unused agents.`,
         color: C.slate,
-        priority: 3,
       });
     }
   }
@@ -408,9 +380,8 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
   // Tip: no budget set
   if (overview.budgets.length === 0 && overview.summary.total_cost_usd > 0) {
     tips.push({
-      text: "No budget limits configured. Set a monthly budget in Admin Panel to prevent overspending.",
+      text: "No budget limits configured. Set a monthly budget to prevent overspending.",
       color: C.purple,
-      priority: 4,
     });
   }
 
@@ -418,41 +389,30 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
   for (const b of overview.budgets) {
     if (b.monthly_limit_usd && b.month_spend / b.monthly_limit_usd > 0.8) {
       tips.push({
-        text: `Budget for ${b.scope_type}:${b.scope_id} is at ${Math.round((b.month_spend / b.monthly_limit_usd) * 100)}%. Review high-cost agents or increase the limit.`,
+        text: `Budget for ${b.scope_type}:${b.scope_id} is at ${Math.round((b.month_spend / b.monthly_limit_usd) * 100)}%. Consider reviewing high-cost agents.`,
         color: C.red,
-        priority: 1,
       });
     }
   }
-
-  // Sort by priority (lower = more urgent)
-  tips.sort((a, b) => a.priority - b.priority);
 
   if (tips.length === 0) return null;
 
   return (
     <div className="relative card-hover rounded-[16px] border border-[#1E1E2A] bg-[#111118] p-5">
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-      <button type="button" onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full text-left">
+      <button onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full text-left">
         <h3 className="text-sm font-medium text-[#8888A0]">
           Optimization Tips
-          <span className="ml-2 rounded-full bg-[#00D47E]/10 px-2 py-0.5 text-[10px] font-bold text-[#00D47E]">{tips.length}</span>
+          <span className="ml-2 text-xs text-[#555566]">({tips.length})</span>
         </h3>
         <span className="text-xs text-[#555566]">{expanded ? "\u25B2" : "\u25BC"}</span>
       </button>
       {expanded && (
-        <div className="mt-3 space-y-2.5">
+        <div className="mt-3 space-y-2">
           {tips.map((tip, i) => (
-            <div key={i} className="flex items-start gap-2.5 rounded-xl border border-[#1E1E2A]/50 bg-[#0A0A0C]/60 px-3 py-2.5">
-              <span className="shrink-0 mt-1 w-2 h-2 rounded-full" style={{ backgroundColor: tip.color }} />
-              <div className="min-w-0 flex-1">
-                <span className="text-xs leading-relaxed text-[#8888A0]">{tip.text}</span>
-                {tip.savings && (
-                  <span className="ml-2 inline-flex rounded-full bg-[#00D47E]/10 px-2 py-0.5 text-[10px] font-bold text-[#00D47E]">
-                    Save {tip.savings}
-                  </span>
-                )}
-              </div>
+            <div key={i} className="flex items-start gap-2 text-xs">
+              <span className="shrink-0 mt-0.5 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tip.color }} />
+              <span className="text-[#8888A0]">{tip.text}</span>
             </div>
           ))}
         </div>

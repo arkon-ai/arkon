@@ -37,7 +37,6 @@ import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { StatusSummary, HealthGauge, MetricTooltip, SectionDescription } from "./dashboard-clarity";
 import { computeHealthScore } from "@/lib/health-score";
 import { FreshnessIndicator } from "@/components/ui/freshness-indicator";
-import { DetailDrawer } from "./detail-drawer";
 
 export function ShellHeader({
   title,
@@ -411,14 +410,10 @@ function MobileDashboardView({
   health,
   metrics,
   agents,
-  threatCount = 0,
-  onThreatClick,
 }: {
   health: { score: number; color: string; breakdown: { agents: number; threats: number; budget: number; infra: number } };
   metrics: ReturnType<typeof getOverviewMetrics>;
   agents: Array<{ id: string; name: string; last_active: string | null; events_24h: string }>;
-  threatCount?: number;
-  onThreatClick?: () => void;
 }) {
   const { data: recentData } = usePollingFetch<{ events: RecentEvent[] }>(
     "/api/dashboard/overview/recent?limit=5",
@@ -435,8 +430,7 @@ function MobileDashboardView({
           totalAgents={metrics.totalAgents}
           activeAgents={metrics.activeAgents}
           eventsToday={metrics.events24h}
-          threatCount={threatCount}
-          onThreatClick={onThreatClick}
+          threatCount={0}
         />
       </div>
 
@@ -563,16 +557,9 @@ function MobileStatTile({
   );
 }
 
-type ThreatSummary = {
-  severityBreakdown: Array<{ threat_level: string; count: number }>;
-  events: Array<{ id: number; agent_id: string; agent_name?: string; threat_level: string; threat_classes?: string | string[]; created_at: string }>;
-};
-
 function OverviewContent() {
   const { data, error, loading } = useOverviewData();
   const { data: trendData } = useTrendData("7d");
-  const { data: threatData } = usePollingFetch<ThreatSummary>("/api/security/overview?range=7d", 60000);
-  const [threatDrawerOpen, setThreatDrawerOpen] = useState(false);
 
   if (loading && !data) return <LoadingState label="Loading overview" />;
   if (error && !data) return <ErrorState error={error} />;
@@ -616,19 +603,12 @@ function OverviewContent() {
   const tokensDelta = calcDelta(tokensSparkData);
   const toolsDelta = calcDelta(toolsSparkData);
 
-  // Derive threat counts from live data
-  const criticalCount = threatData?.severityBreakdown?.find(s => s.threat_level === "critical")?.count ?? 0;
-  const highCount = threatData?.severityBreakdown?.find(s => s.threat_level === "high")?.count ?? 0;
-  const totalThreatCount = (threatData?.severityBreakdown ?? []).reduce((s, b) => s + b.count, 0);
-  const highestThreat = criticalCount > 0 ? "critical" : highCount > 0 ? "high" : totalThreatCount > 0 ? "medium" : "none";
-  const severeEvents = (threatData?.events ?? []).filter(e => e.threat_level === "critical" || e.threat_level === "high").slice(0, 5);
-
   // Compute health score
   const health = computeHealthScore({
     totalAgents: metrics.totalAgents,
     activeAgents: metrics.activeAgents,
-    highestThreat,
-    threatCount: totalThreatCount,
+    highestThreat: "none", // will be enriched when security data is available
+    threatCount: 0,
     monthSpend: 0,
     budgetLimit: 0,
     totalNodes: 0,
@@ -638,7 +618,7 @@ function OverviewContent() {
   return (
     <>
       {/* Mobile-optimized dashboard — simplified layout */}
-      <MobileDashboardView health={health} metrics={metrics} agents={agents} threatCount={totalThreatCount} onThreatClick={totalThreatCount > 0 ? () => setThreatDrawerOpen(true) : undefined} />
+      <MobileDashboardView health={health} metrics={metrics} agents={agents} />
 
       {/* Desktop dashboard — full layout */}
       <div className="hidden md:block space-y-5">
@@ -664,8 +644,7 @@ function OverviewContent() {
               totalAgents={metrics.totalAgents}
               activeAgents={metrics.activeAgents}
               eventsToday={metrics.events24h}
-              threatCount={totalThreatCount}
-              onThreatClick={totalThreatCount > 0 ? () => setThreatDrawerOpen(true) : undefined}
+              threatCount={0}
             />
           </div>
         </div>
@@ -763,101 +742,6 @@ function OverviewContent() {
 
         {error ? <ErrorState error={error} /> : null}
       </div>
-
-      {/* Threat detail drawer */}
-      <DetailDrawer
-        open={threatDrawerOpen}
-        onClose={() => setThreatDrawerOpen(false)}
-        title="Active Threats"
-        subtitle={`${totalThreatCount} threat${totalThreatCount !== 1 ? "s" : ""} detected (7d)`}
-        icon={<Shield className="h-4 w-4" />}
-      >
-        <div className="space-y-4">
-          {/* Severity summary */}
-          <div className="grid grid-cols-2 gap-2">
-            {(threatData?.severityBreakdown ?? []).map(s => (
-              <div key={s.threat_level} className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-center">
-                <div className={`text-lg font-bold ${
-                  s.threat_level === "critical" ? "text-red-400" :
-                  s.threat_level === "high" ? "text-amber-400" :
-                  s.threat_level === "medium" ? "text-cyan" : "text-[var(--text-tertiary)]"
-                }`}>{s.count}</div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{s.threat_level}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Recent severe events */}
-          {severeEvents.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--text-tertiary)]">
-                Recent Severe Events
-              </h3>
-              <div className="space-y-2">
-                {severeEvents.map(e => {
-                  const classes = typeof e.threat_classes === "string"
-                    ? (() => { try { return JSON.parse(e.threat_classes) as string[]; } catch { return []; } })()
-                    : (e.threat_classes ?? []);
-                  return (
-                    <Link
-                      key={e.id}
-                      href={`/security?highlight=${e.id}`}
-                      onClick={() => setThreatDrawerOpen(false)}
-                      className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 transition hover:bg-white/[0.03]"
-                    >
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                        e.threat_level === "critical" ? "bg-red-500/15 text-red-400" : "bg-amber-500/15 text-amber-400"
-                      }`}>
-                        {e.threat_level}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm text-[var(--text-primary)]">{e.agent_name ?? e.agent_id}</div>
-                        {classes.length > 0 && (
-                          <div className="text-[10px] text-[var(--text-tertiary)]">{classes.join(", ").replace(/_/g, " ")}</div>
-                        )}
-                      </div>
-                      <span className="shrink-0 text-[10px] text-[var(--text-tertiary)]">{timeAgo(e.created_at)}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Recommended actions */}
-          <div>
-            <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--text-tertiary)]">
-              Recommended Actions
-            </h3>
-            <div className="space-y-1.5 text-sm text-[var(--text-secondary)]">
-              {criticalCount > 0 && (
-                <div className="rounded-xl border border-red-500/20 bg-red-500/[0.04] px-3 py-2">
-                  <span className="font-semibold text-red-400">Credential Leak:</span> Purge immediately, then rotate all exposed credentials.
-                </div>
-              )}
-              {highCount > 0 && (
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] px-3 py-2">
-                  <span className="font-semibold text-amber-400">Shell Command:</span> Kill the agent if running, then review the execution log.
-                </div>
-              )}
-              {totalThreatCount > 0 && (
-                <div className="rounded-xl border border-cyan/20 bg-cyan/[0.04] px-3 py-2">
-                  <span className="font-semibold text-cyan">Prompt Injection:</span> Review the agent&apos;s system prompt and add guardrails.
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* View all link */}
-          <Link
-            href="/security"
-            onClick={() => setThreatDrawerOpen(false)}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
-          >
-            View all in ThreatGuard &rarr;
-          </Link>
-        </div>
-      </DetailDrawer>
     </>
   );
 }

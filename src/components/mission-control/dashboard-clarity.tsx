@@ -163,8 +163,6 @@ export function StatusSummary({
   threatCount,
   costToday,
   serverCount,
-  budgetPct,
-  onThreatClick,
 }: {
   totalAgents: number;
   activeAgents: number;
@@ -172,8 +170,6 @@ export function StatusSummary({
   threatCount: number;
   costToday?: string;
   serverCount?: number;
-  budgetPct?: number;
-  onThreatClick?: () => void;
 }) {
   if (totalAgents === 0) return null;
 
@@ -203,64 +199,22 @@ export function StatusSummary({
     parts.push(<span key="events"> No activity yet today.</span>);
   }
 
-  // Budget warning
-  if (budgetPct != null && budgetPct >= 80 && threatCount === 0) {
-    parts.push(
-      <span key="budget">
-        {" "}<strong className="text-[#f59e0b]">Budget at {budgetPct}%</strong> &mdash;{" "}
-        <a href="/costs" className="font-semibold text-[#00D47E] hover:underline">
-          review spending &rarr;
-        </a>
-      </span>
-    );
-  }
-
   // Threats
   if (threatCount > 0) {
     parts.push(
       <span key="threats">
         {" "}<strong className="text-[#ef4444]">{threatCount} threat{threatCount !== 1 ? "s" : ""} detected</strong> &mdash;{" "}
-        {onThreatClick ? (
-          <button type="button" onClick={onThreatClick} className="font-semibold text-[#00D47E] hover:underline">
-            review now &rarr;
-          </button>
-        ) : (
-          <a href="/security" className="font-semibold text-[#00D47E] hover:underline">
-            review now &rarr;
-          </a>
-        )}
+        <a href="/security" className="font-semibold text-[#00D47E] hover:underline">
+          review now &rarr;
+        </a>
       </span>
     );
   }
 
-  // Determine border/bg color based on status
-  const hasThreat = threatCount > 0;
-  const hasBudgetWarn = !hasThreat && budgetPct != null && budgetPct >= 80;
-  const borderColor = hasThreat
-    ? "border-red-500/40"
-    : hasBudgetWarn
-    ? "border-[#f59e0b]/40"
-    : "border-[#1E1E2A]";
-  const bgColor = hasThreat
-    ? "bg-red-500/[0.04]"
-    : hasBudgetWarn
-    ? "bg-[#f59e0b]/[0.04]"
-    : "bg-[#111118]/80";
-
-  const Wrapper = hasThreat && onThreatClick ? "button" : "div";
-  const wrapperProps = hasThreat && onThreatClick
-    ? { type: "button" as const, onClick: onThreatClick }
-    : {};
-
   return (
-    <Wrapper
-      {...wrapperProps}
-      className={`w-full rounded-[16px] border ${borderColor} ${bgColor} px-4 py-3 text-left text-sm leading-relaxed text-[#8888A0] transition-colors ${
-        hasThreat && onThreatClick ? "cursor-pointer hover:border-red-500/60" : ""
-      }`}
-    >
+    <div className="rounded-[16px] border border-[#1E1E2A] bg-[#111118]/80 px-4 py-3 text-sm leading-relaxed text-[#8888A0]">
       {parts}
-    </Wrapper>
+    </div>
   );
 }
 
