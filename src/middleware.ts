@@ -29,11 +29,11 @@ export function middleware(request: NextRequest) {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob:",
       "font-src 'self' https://fonts.gstatic.com data:",
-      `connect-src 'self' wss: ws: ${process.env.ARKON_BASE_URL ?? ""}`.trim(),
+      `connect-src 'self' wss: ws: https://cloudflareinsights.com ${process.env.ARKON_BASE_URL ?? ""}`.trim(),
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",
     ].join("; ")
