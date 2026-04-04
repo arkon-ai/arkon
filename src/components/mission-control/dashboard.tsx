@@ -573,6 +573,10 @@ function OverviewContent() {
   const { data, error, loading } = useOverviewData();
   const { data: trendData } = useTrendData("7d");
 
+  // Threat data hooks — must be before early returns (Rules of Hooks)
+  const { data: threatData } = usePollingFetch<ThreatSummary>("/api/security/overview?range=7d", 60000);
+  const [threatDrawerOpen, setThreatDrawerOpen] = useState(false);
+
   if (loading && !data) return <LoadingState label="Loading overview" />;
   if (error && !data) return <ErrorState error={error} />;
 
@@ -615,9 +619,6 @@ function OverviewContent() {
   const tokensDelta = calcDelta(tokensSparkData);
   const toolsDelta = calcDelta(toolsSparkData);
 
-  // Poll threat data
-  const { data: threatData } = usePollingFetch<ThreatSummary>("/api/security/overview?range=7d", 60000);
-  const [threatDrawerOpen, setThreatDrawerOpen] = useState(false);
 
   const criticalCount = threatData?.severityBreakdown?.find(s => s.threat_level === "critical")?.count ?? 0;
   const highCount = threatData?.severityBreakdown?.find(s => s.threat_level === "high")?.count ?? 0;
@@ -1550,33 +1551,57 @@ export function AnomalyWidget() {
 }
 
 export function OverviewScreen() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <LoadingState />;
   return <OverviewContent />;
 }
 
 export function ActionsScreen() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <LoadingState />;
   return <ActionsContent />;
 }
 
 export function HealthScreen() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <LoadingState />;
   return <HealthContent />;
 }
 
 export function AgentsScreen() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <LoadingState />;
   return <AgentsContent />;
 }
 
 export function SystemsScreen() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <LoadingState />;
   return <SystemsContent />;
 }
 
 export function ConfessionsScreen() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <LoadingState />;
   return <ConfessionsContent />;
 }
 
 export function VisualsScreen() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <LoadingState />;
   return <VisualsContent />;
 }
 
 export function AgentDetailScreen() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <LoadingState />;
   return <AgentDetailContent />;
 }

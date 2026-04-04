@@ -1,4 +1,4 @@
-const CACHE_NAME = "arkon-shell-v3";
+const CACHE_NAME = "arkon-shell-v5";
 const OFFLINE_CACHE = "arkon-offline-v1";
 
 const APP_SHELL = [
@@ -60,7 +60,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets — stale-while-revalidate
+  // Next.js build assets (content-hashed) — network-first
+  // These filenames change every build, so stale versions are always wrong
+  if (url.pathname.startsWith("/_next/")) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || Promise.reject(new Error("offline"))))
+    );
+    return;
+  }
+
+  // Other static assets — stale-while-revalidate
   if (url.origin === self.location.origin) {
     event.respondWith(
       caches.match(request).then((cached) => {

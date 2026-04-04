@@ -162,10 +162,10 @@ export function usePollingFetch<T>(url: string, intervalMs = 15000): State<T> {
     };
 
     run();
-    const timer = window.setInterval(run, intervalMs);
+    const timer = typeof window !== "undefined" ? window.setInterval(run, intervalMs) : (0 as unknown as ReturnType<typeof setInterval>);
     return () => {
       mounted = false;
-      window.clearInterval(timer);
+      if (typeof window !== "undefined") window.clearInterval(timer);
     };
   }, [intervalMs, url]);
 
@@ -180,6 +180,7 @@ export function useEventStream(onEvent?: (event: { type: string; payload: Record
   onEventRef.current = onEvent;
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const es = new EventSource("/api/dashboard/stream");
     eventSourceRef.current = es;
 
@@ -234,6 +235,7 @@ export function useLivePollingFetch<T>(url: string, intervalMs = 15000): State<T
 
   // SSE connection
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const es = new EventSource("/api/dashboard/stream");
     es.onopen = () => setConnected(true);
     es.onmessage = (e) => {
@@ -253,6 +255,7 @@ export function useLivePollingFetch<T>(url: string, intervalMs = 15000): State<T
 
   // Regular polling as fallback
   useEffect(() => {
+    if (typeof window === "undefined") return;
     void refresh();
     const timer = window.setInterval(refresh, intervalMs);
     return () => window.clearInterval(timer);
