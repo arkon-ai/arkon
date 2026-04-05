@@ -1,4 +1,4 @@
-const CACHE_NAME = "arkon-shell-v5";
+const CACHE_NAME = "arkon-shell-v4";
 const OFFLINE_CACHE = "arkon-offline-v1";
 
 const APP_SHELL = [

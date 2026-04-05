@@ -622,7 +622,8 @@ function SdkStep({
   onNext: () => void;
 }) {
   const [tab, setTab] = useState<"node" | "python" | "curl" | "openclaw" | "nemoclaw">("curl");
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://your-arkon-instance.com";
+  const [baseUrl, setBaseUrl] = useState("https://your-arkon-instance.com");
+  useEffect(() => { setBaseUrl(window.location.origin); }, []);
 
   const snippets: Record<string, { label: string; code: string }> = {
     curl: {

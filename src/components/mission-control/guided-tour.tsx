@@ -78,7 +78,6 @@ export function GuidedTour() {
     const shouldTour = searchParams.get("tour") === "1";
     const dismissed = localStorage.getItem(TOUR_DISMISSED_KEY);
     if (shouldTour && !dismissed) {
-      // Small delay to let the page render
       const timer = setTimeout(() => setActive(true), 500);
       return () => clearTimeout(timer);
     }

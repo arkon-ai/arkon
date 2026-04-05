@@ -612,10 +612,13 @@ function ThreatHealthBar({ total, threats }: { total: number; threats: number })
 const EXPLAINERS_KEY = "arkon-threat-explainers-seen";
 
 function ThreatClassExplainers() {
-  const [open, setOpen] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    return !localStorage.getItem(EXPLAINERS_KEY);
-  });
+  const [open, setOpen] = useState(true);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(EXPLAINERS_KEY)) setOpen(false);
+    } catch {}
+  }, []);
 
   function handleToggle() {
     setOpen((prev) => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { PageTransitionWrapper } from "./charts";
 import {
   AlertTriangle,
@@ -701,7 +701,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
       {/* Guided Tour (activated by ?tour=1 after setup wizard) */}
       {/* Global Keyboard Shortcuts */}
       <GlobalShortcuts onOpenPalette={() => setPaletteOpen(true)} onOpenKill={() => setQuickKillOpen(true)} />
-      <GuidedTour />
+      <Suspense fallback={null}><GuidedTour /></Suspense>
     </div>
   );
 }
