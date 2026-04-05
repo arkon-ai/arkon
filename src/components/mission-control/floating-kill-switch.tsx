@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { OctagonX, Pause, Play, Zap, X, ChevronUp } from "lucide-react";
+import { OctagonX, Pause, Play, Zap, X, ChevronUp, Power, RotateCcw, Loader2 } from "lucide-react";
 import { useActiveRuns, type ActiveRun } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "./kill-confirm-modal";
+import { NuclearGatewayStopModal, RestartGatewayButton } from "./nuclear-gateway-stop";
 
 function formatDuration(startedAt: string): string {
   const ms = Date.now() - new Date(startedAt).getTime();
@@ -24,11 +25,57 @@ function formatLastSeen(startedAt: string): string {
   return `${Math.floor(minutes / 60)}h ago`;
 }
 
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (typeof document !== "undefined") {
+    const csrf = document.cookie.match(/mc_csrf=([^;]+)/)?.[1];
+    if (csrf) headers["x-csrf-token"] = decodeURIComponent(csrf);
+  }
+  return headers;
+}
+
+/** Compact restart button for the floating panel */
+function RestartGatewayInline() {
+  const [state, setState] = useState<"idle" | "restarting" | "done">("idle");
+
+  const handleRestart = useCallback(async () => {
+    setState("restarting");
+    try {
+      await fetch("/api/gateway/restart-gateway", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ reason: "Restart from kill switch panel" }),
+      });
+      setState("done");
+      setTimeout(() => setState("idle"), 3000);
+    } catch {
+      setState("idle");
+    }
+  }, []);
+
+  return (
+    <button
+      type="button"
+      onClick={handleRestart}
+      disabled={state === "restarting"}
+      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-600/10 py-2 text-[10px] font-bold uppercase tracking-wide text-emerald-300/80 transition hover:border-emerald-500/50 hover:bg-emerald-600/20 hover:text-emerald-200 disabled:opacity-50"
+    >
+      {state === "restarting" ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <RotateCcw className="h-3 w-3" />
+      )}
+      {state === "done" ? "Restarted" : state === "restarting" ? "Restarting..." : "Restart"}
+    </button>
+  );
+}
+
 export function FloatingKillSwitch() {
   const { runs, killRun, pauseRun, resumeRun } = useActiveRuns(undefined, 3000);
   const [expanded, setExpanded] = useState(false);
   const [killTarget, setKillTarget] = useState<ActiveRun | null>(null);
   const [killingAll, setKillingAll] = useState(false);
+  const [showNuclear, setShowNuclear] = useState(false);
   const [, setTick] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -261,6 +308,30 @@ export function FloatingKillSwitch() {
               </div>
             )}
 
+            {/* Nuclear Options section */}
+            <div className="border-t border-amber-500/20 bg-amber-500/[0.02] px-4 py-3">
+              <div className="mb-2 flex items-center gap-1.5">
+                <Power className="h-3 w-3 text-amber-400/70" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-400/70">
+                  Gateway Control
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setExpanded(false); setShowNuclear(true); }}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-amber-500/30 bg-amber-600/10 py-2 text-[10px] font-bold uppercase tracking-wide text-amber-300/80 transition hover:border-amber-500/50 hover:bg-amber-600/20 hover:text-amber-200"
+                >
+                  <Power className="h-3 w-3" />
+                  Nuclear Stop
+                </button>
+                <RestartGatewayInline />
+              </div>
+              <p className="mt-1.5 text-center text-[9px] text-amber-500/40">
+                Stop or restart the OpenCLAW gateway
+              </p>
+            </div>
+
             {/* Keyboard hint */}
             <div className="border-t border-[var(--border)]/50 px-4 py-2 text-center">
               <span className="text-[10px] text-[var(--text-tertiary)]">
@@ -314,6 +385,10 @@ export function FloatingKillSwitch() {
           onConfirm={handleKillConfirm}
           onCancel={() => setKillTarget(null)}
         />
+      )}
+
+      {showNuclear && (
+        <NuclearGatewayStopModal onClose={() => setShowNuclear(false)} />
       )}
     </>
   );
