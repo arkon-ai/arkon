@@ -110,11 +110,8 @@ export function useActiveRuns(agentId?: string, pollInterval = 5000) {
       });
       if (res.ok) {
         const data = (await res.json()) as KillResponse;
-        // Only remove from local state if verified dead
-        if (data.verification?.verified_dead) {
-          setRuns((prev) => prev.filter((r) => r.run_id !== runId));
-        }
-        // Either way, start burst polling to catch state changes
+        // Don't eagerly remove from local state — let the modal complete its
+        // phase transitions first. Burst polling will update the list naturally.
         triggerBurstPoll();
         return data;
       }

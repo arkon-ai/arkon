@@ -133,7 +133,8 @@ export function FloatingKillSwitch() {
     setExpanded(false);
   }, [runs, killRun]);
 
-  if (runs.length === 0) return null;
+  // Don't unmount while a modal is open — otherwise kill verification UI disappears
+  if (runs.length === 0 && !killTarget && !showNuclear) return null;
 
   const mainAgents = runs.filter((r) => r.is_main_agent);
   const subRuns = runs.filter((r) => !r.is_main_agent);
