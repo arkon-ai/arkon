@@ -359,8 +359,9 @@ export default function AgentDetailPage() {
         <KillConfirmModal
           run={killTarget}
           onConfirm={async (reason) => {
-            await killRun(killTarget.run_id, reason);
+            const result = await killRun(killTarget.run_id, reason);
             setKillTarget(null);
+            return result;
           }}
           onCancel={() => setKillTarget(null)}
         />
