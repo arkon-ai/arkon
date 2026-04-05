@@ -115,18 +115,19 @@ export function ActiveRunBanner() {
   }, []);
 
   const handleKillConfirm = useCallback(
-    async (reason: string) => {
-      if (!killTarget) return;
+    async (reason: string): Promise<boolean> => {
+      if (!killTarget) return false;
       try {
-        await fetch(`/api/tools/agents-live/${killTarget.run_id}/kill`, {
+        const res = await fetch(`/api/tools/agents-live/${killTarget.run_id}/kill`, {
           method: "POST",
           headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
           body: JSON.stringify({ reason: reason || undefined }),
         });
         setRuns((prev) => prev.filter((r) => r.run_id !== killTarget.run_id));
         setKillTarget(null);
+        return res.ok;
       } catch {
-        // Silent
+        return false;
       }
     },
     [killTarget]
