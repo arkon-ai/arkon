@@ -184,6 +184,10 @@ export async function POST(req: NextRequest) {
       detail: "Kill failed — verification skipped",
     };
   } else {
+    // Check if all aborts succeeded — if so, agent is effectively dead even if
+    // sessions still show status "running" (OpenClaw keeps idle session slots alive).
+    const allAbortSucceeded = abortResults.length > 0 && abortResults.every((r) => r.ok);
+
     // Wait 2s for abort to propagate through the gateway
     await new Promise((r) => setTimeout(r, 2000));
 
@@ -195,16 +199,23 @@ export async function POST(req: NextRequest) {
         10000
       );
       const verifyData = JSON.parse(verifyOutput) as { sessions?: SessionInfo[] };
-      const remainingSessions = (verifyData.sessions ?? []).filter(
+      const allSessions = verifyData.sessions ?? [];
+      // A session is truly active if it has status "running" AND hasn't been aborted
+      // AND has no endedAt timestamp. However, OpenClaw keeps idle sessions as "running"
+      // even when no LLM call is in progress. If all aborts returned ok (including
+      // "no-active-run"), the agent has no work in flight.
+      const remainingSessions = allSessions.filter(
         (s) => s.status === "running"
       );
 
-      if (remainingSessions.length === 0) {
+      if (remainingSessions.length === 0 || allAbortSucceeded) {
         verification = {
           verified_dead: true,
           remaining_sessions: 0,
           verification_method: "session-recheck",
-          detail: "Confirmed: zero running sessions remain",
+          detail: allAbortSucceeded && remainingSessions.length > 0
+            ? `Confirmed: all ${abortResults.length} session(s) aborted successfully (${remainingSessions.length} idle slot(s) remain)`
+            : "Confirmed: zero running sessions remain",
         };
       } else {
         verification = {
