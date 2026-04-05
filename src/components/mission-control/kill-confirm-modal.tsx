@@ -55,7 +55,7 @@ export function KillConfirmModal({
   const [phase, setPhase] = useState<Phase>("confirm");
   const [result, setResult] = useState<KillResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const autoCloseRef = useRef<ReturnType<typeof setTimeout>>();
+  const autoCloseRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     setTimeout(() => inputRef.current?.focus(), 50);
