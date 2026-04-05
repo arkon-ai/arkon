@@ -79,7 +79,27 @@ export function KillConfirmModal({
   const handleConfirm = useCallback(async () => {
     setPhase("killing");
 
-    const response = await onConfirm(reason);
+    let response: KillResult | boolean | undefined;
+    try {
+      response = await onConfirm(reason);
+      console.log("[kill-modal] onConfirm response:", typeof response, response);
+    } catch (err) {
+      console.error("[kill-modal] onConfirm threw:", err);
+      setResult({
+        ok: false,
+        detail: `Kill request failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+        method: "error",
+        sessions: [],
+        verification: {
+          verified_dead: false,
+          remaining_sessions: -1,
+          verification_method: "failed",
+          detail: String(err),
+        },
+      });
+      setPhase("result");
+      return;
+    }
 
     // Handle the response — could be KillResult object or boolean (sub-agent runs)
     if (typeof response === "boolean") {
@@ -108,14 +128,15 @@ export function KillConfirmModal({
       setPhase("verifying");
       // Brief pause to show "Verifying..." state (verification already happened server-side)
       await new Promise((r) => setTimeout(r, 800));
-      setResult(response);
+      setResult(response as KillResult);
       setPhase("result");
 
-      if (response.verification?.verified_dead) {
+      if ((response as KillResult).verification?.verified_dead) {
         autoCloseRef.current = setTimeout(onCancel, 4000);
       }
     } else {
-      // Unexpected response
+      // Unexpected response (undefined, null, etc.)
+      console.warn("[kill-modal] Unexpected response type:", typeof response, response);
       setResult({
         ok: false,
         detail: "Unexpected response from kill endpoint",
