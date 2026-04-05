@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface ActiveRun {
   run_id: string;
@@ -15,6 +15,26 @@ export interface ActiveRun {
   is_main_agent?: boolean;
 }
 
+/** Kill verification result from the kill-agent API */
+export interface KillVerification {
+  verified_dead: boolean;
+  remaining_sessions: number;
+  verification_method: "session-recheck" | "skipped" | "failed";
+  detail: string;
+}
+
+/** Full kill response from POST /api/gateway/kill-agent */
+export interface KillResponse {
+  ok: boolean;
+  agent_id: string;
+  agent_name: string;
+  method: string;
+  detail: string;
+  sessions: { session_key: string; label: string; ok: boolean; detail: string }[];
+  verification: KillVerification;
+  reason: string | null;
+}
+
 function getAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
   if (typeof document !== "undefined") {
@@ -24,38 +44,62 @@ function getAuthHeaders(): Record<string, string> {
   return headers;
 }
 
+/** Burst polling duration (ms) — after a kill, poll fast for this long */
+const BURST_DURATION_MS = 10_000;
+/** Burst polling interval (ms) */
+const BURST_INTERVAL_MS = 1_000;
+
 export function useActiveRuns(agentId?: string, pollInterval = 5000) {
   const [runs, setRuns] = useState<ActiveRun[]>([]);
+  const burstUntilRef = useRef<number>(0);
+  const mountedRef = useRef(true);
+
+  const poll = useCallback(async () => {
+    try {
+      const url = agentId
+        ? `/api/active-runs?agent_id=${agentId}`
+        : "/api/active-runs";
+      const res = await fetch(url, {
+        headers: getAuthHeaders(),
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { runs: ActiveRun[] };
+      if (mountedRef.current) setRuns(data.runs);
+    } catch {
+      // Silent
+    }
+  }, [agentId]);
 
   useEffect(() => {
-    let mounted = true;
-
-    const poll = async () => {
-      try {
-        const url = agentId
-          ? `/api/active-runs?agent_id=${agentId}`
-          : "/api/active-runs";
-        const res = await fetch(url, {
-          headers: getAuthHeaders(),
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-        const data = (await res.json()) as { runs: ActiveRun[] };
-        if (mounted) setRuns(data.runs);
-      } catch {
-        // Silent
-      }
-    };
+    mountedRef.current = true;
 
     poll();
-    const timer = setInterval(poll, pollInterval);
-    return () => {
-      mounted = false;
-      clearInterval(timer);
-    };
-  }, [agentId, pollInterval]);
 
-  const killRun = useCallback(async (runId: string, reason?: string) => {
+    // Dynamic interval: use burst rate if within burst window, else normal
+    let timer: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      const isBursting = Date.now() < burstUntilRef.current;
+      const interval = isBursting ? BURST_INTERVAL_MS : pollInterval;
+      timer = setTimeout(async () => {
+        await poll();
+        if (mountedRef.current) schedule();
+      }, interval);
+    };
+    schedule();
+
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(timer);
+    };
+  }, [agentId, pollInterval, poll]);
+
+  /** Trigger burst polling (1s intervals for 10s) to quickly reflect kill results */
+  const triggerBurstPoll = useCallback(() => {
+    burstUntilRef.current = Date.now() + BURST_DURATION_MS;
+  }, []);
+
+  const killRun = useCallback(async (runId: string, reason?: string): Promise<KillResponse | boolean> => {
     // Main agents use agent:id format — kill via gateway proxy
     if (runId.startsWith("agent:")) {
       const agentIdFromRun = runId.replace("agent:", "");
@@ -65,9 +109,16 @@ export function useActiveRuns(agentId?: string, pollInterval = 5000) {
         body: JSON.stringify({ agent_id: agentIdFromRun, reason: reason || undefined }),
       });
       if (res.ok) {
-        setRuns((prev) => prev.filter((r) => r.run_id !== runId));
+        const data = (await res.json()) as KillResponse;
+        // Only remove from local state if verified dead
+        if (data.verification?.verified_dead) {
+          setRuns((prev) => prev.filter((r) => r.run_id !== runId));
+        }
+        // Either way, start burst polling to catch state changes
+        triggerBurstPoll();
+        return data;
       }
-      return res.ok;
+      return false;
     }
 
     // Sub-agent runs — existing kill endpoint
@@ -78,9 +129,10 @@ export function useActiveRuns(agentId?: string, pollInterval = 5000) {
     });
     if (res.ok) {
       setRuns((prev) => prev.filter((r) => r.run_id !== runId));
+      triggerBurstPoll();
     }
     return res.ok;
-  }, []);
+  }, [triggerBurstPoll]);
 
   const pauseRun = useCallback(async (runId: string) => {
     if (runId.startsWith("agent:")) {
@@ -115,5 +167,5 @@ export function useActiveRuns(agentId?: string, pollInterval = 5000) {
     return res.ok;
   }, []);
 
-  return { runs, killRun, pauseRun, resumeRun };
+  return { runs, killRun, pauseRun, resumeRun, triggerBurstPoll };
 }

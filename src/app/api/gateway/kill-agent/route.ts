@@ -7,9 +7,13 @@ import { broadcast } from "@/lib/event-bus";
 /**
  * Kill a main agent by aborting its running sessions on the OpenClaw gateway.
  * Uses SSH + `openclaw gateway call sessions.abort` (Option A — Operation Extinguisher).
+ * Phase 7: After abort, re-checks sessions to VERIFY the agent is actually dead.
  *
  * POST /api/gateway/kill-agent
  * Body: { agent_id: string, reason?: string, kill_all?: boolean }
+ *
+ * Response includes `verified_dead: boolean` — true only if post-kill session
+ * check confirms zero running sessions remain.
  */
 
 interface SessionInfo {
@@ -23,6 +27,13 @@ interface AbortResult {
   session_key: string;
   label: string;
   ok: boolean;
+  detail: string;
+}
+
+interface VerificationResult {
+  verified_dead: boolean;
+  remaining_sessions: number;
+  verification_method: "session-recheck" | "skipped" | "failed";
   detail: string;
 }
 
@@ -154,6 +165,70 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // ── Phase 7: Kill Verification ──────────────────────────────────────
+  // After abort, wait briefly then re-check sessions to confirm agent is dead.
+  let verification: VerificationResult;
+
+  if (!sshHost || killMethod === "event-only") {
+    verification = {
+      verified_dead: false,
+      remaining_sessions: -1,
+      verification_method: "skipped",
+      detail: "No SSH host — verification skipped",
+    };
+  } else if (!killOk) {
+    verification = {
+      verified_dead: false,
+      remaining_sessions: -1,
+      verification_method: "skipped",
+      detail: "Kill failed — verification skipped",
+    };
+  } else {
+    // Wait 2s for abort to propagate through the gateway
+    await new Promise((r) => setTimeout(r, 2000));
+
+    try {
+      const verifyOutput = await sshExec(
+        sshHost,
+        sshUser,
+        "openclaw gateway call sessions.list --json",
+        10000
+      );
+      const verifyData = JSON.parse(verifyOutput) as { sessions?: SessionInfo[] };
+      const remainingSessions = (verifyData.sessions ?? []).filter(
+        (s) => s.status === "running"
+      );
+
+      if (remainingSessions.length === 0) {
+        verification = {
+          verified_dead: true,
+          remaining_sessions: 0,
+          verification_method: "session-recheck",
+          detail: "Confirmed: zero running sessions remain",
+        };
+      } else {
+        verification = {
+          verified_dead: false,
+          remaining_sessions: remainingSessions.length,
+          verification_method: "session-recheck",
+          detail: `WARNING: ${remainingSessions.length} session(s) still running after abort`,
+        };
+        console.warn(
+          `[kill-agent] Verification failed: ${remainingSessions.length} sessions still running`,
+          remainingSessions.map((s) => s.key)
+        );
+      }
+    } catch (err) {
+      verification = {
+        verified_dead: false,
+        remaining_sessions: -1,
+        verification_method: "failed",
+        detail: `Verification SSH failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+      };
+      console.error("[kill-agent] Verification error:", err);
+    }
+  }
+
   // Log to audit trail
   try {
     await query(
@@ -172,6 +247,7 @@ export async function POST(req: NextRequest) {
           kill_detail: killDetail,
           sessions_aborted: abortResults,
           is_main_agent: true,
+          verification,
         }),
         req.headers.get("x-forwarded-for") ?? null,
         tenantId,
@@ -195,6 +271,7 @@ export async function POST(req: NextRequest) {
           kill_method: killMethod,
           kill_success: killOk,
           sessions_aborted: abortResults.length,
+          verified_dead: verification.verified_dead,
         }),
       ]
     );
@@ -210,6 +287,7 @@ export async function POST(req: NextRequest) {
       agent_name: agentName,
       method: killMethod,
       sessions_aborted: abortResults.length,
+      verified_dead: verification.verified_dead,
       reason: reason ?? null,
     },
   });
@@ -221,6 +299,7 @@ export async function POST(req: NextRequest) {
     method: killMethod,
     detail: killDetail,
     sessions: abortResults,
+    verification,
     reason: reason ?? null,
   });
 }

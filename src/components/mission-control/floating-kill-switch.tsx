@@ -115,9 +115,11 @@ export function FloatingKillSwitch() {
 
   const handleKillConfirm = useCallback(
     async (reason: string) => {
-      if (!killTarget) return;
-      await killRun(killTarget.run_id, reason || undefined);
-      setKillTarget(null);
+      if (!killTarget) return false;
+      const result = await killRun(killTarget.run_id, reason || undefined);
+      // Return the result to the modal for verification display.
+      // Modal will auto-close after showing verification status.
+      return result;
     },
     [killTarget, killRun]
   );
