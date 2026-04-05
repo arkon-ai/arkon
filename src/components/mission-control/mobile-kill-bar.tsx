@@ -29,9 +29,10 @@ export function MobileKillBar() {
 
   const handleKillConfirm = useCallback(
     async (reason: string) => {
-      if (!killTarget) return;
-      await killRun(killTarget.run_id, reason || undefined);
+      if (!killTarget) return false;
+      const result = await killRun(killTarget.run_id, reason || undefined);
       setKillTarget(null);
+      return result;
     },
     [killTarget, killRun]
   );
