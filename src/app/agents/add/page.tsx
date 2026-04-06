@@ -20,9 +20,15 @@ export default function AddAgentPage() {
   const router = useRouter();
 
   const handleComplete = useCallback(async (data: WizardData) => {
+    const csrfMatch = document.cookie.match(/mc_csrf=([^;]+)/);
+    const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : "";
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (csrfToken) headers["x-csrf-token"] = csrfToken;
+
     const res = await fetch("/api/agents/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      headers,
       body: JSON.stringify({
         frameworkId: data.frameworkId,
         tenantId: data.tenantId,

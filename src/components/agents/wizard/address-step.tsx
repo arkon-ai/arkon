@@ -39,9 +39,15 @@ export function AddressStep({ address, port, onUpdate, config }: AddressStepProp
     setProbeMessage("");
 
     try {
+      const csrfMatch = document.cookie.match(/mc_csrf=([^;]+)/);
+      const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : "";
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (csrfToken) headers["x-csrf-token"] = csrfToken;
+
       const res = await fetch("/api/gateway/probe", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers,
         body: JSON.stringify({
           host: address,
           port,
