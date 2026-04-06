@@ -4,6 +4,38 @@ All notable changes to Arkon are documented in this file.
 
 ---
 
+## [Unreleased] — Operation Extinguisher (Kill Switch Rebuild)
+
+### Phase 4: WS-RPC Adapter System (2026-04-05)
+- Reverse-engineered OpenCLAW gateway WS-RPC protocol v3 (no public docs existed)
+- Ed25519 device identity with challenge-response auth
+- `ws-rpc-client.ts` — full protocol client
+- `adapter.ts` — KillAdapter interface, AgentConnectivityConfig, resolveConnectivityConfig()
+- `openclaw-ws-adapter.ts` — WS-RPC adapter (health, listSessions, killSession, killAll)
+- `openclaw-ssh-adapter.ts` — SSH fallback (nuclear ops only)
+- `noop-adapter.ts` — unknown framework fallback
+- `index.ts` — adapter factory with ws-rpc → ssh → local → noop routing
+- `kill-agent/route.ts` — refactored to adapter pattern
+- `probe/route.ts` — wizard endpoint (validates connectivity, returns agents/sessions/channels)
+- Live tested: probe returns 10 agents, 188 sessions, 3 channels
+
+### Phase 4b: Agent Registration Wizard — Steps 1-3 (2026-04-05)
+- `AGENT-FRAMEWORK-INTEGRATION-RESEARCH.md` — 11 frameworks evaluated (kill protocols, APIs, adapter requirements)
+- Architecture: single data-driven wizard driven by framework config schema (not separate screens per framework)
+- `framework-configs.ts` — 13 framework configs with types, helpers, kill capability badges
+  - Supported: OpenCLAW, Custom
+  - Beta: Paperclip, LangGraph, n8n, AutoGen/AG2, Dify, OpenHands
+  - Coming Soon: Haystack, Semantic Kernel, CrewAI, Flowise
+- `wizard-shell.tsx` — wizard chrome (progress bar, step routing, nav, auto-skip logic)
+- `framework-step.tsx` — Step 1: framework selection grouped by status
+- `tenant-step.tsx` — Step 2: tenant assignment with auto-select
+- `location-step.tsx` — Step 3: local/remote/unsure with auto-config and helper commands
+- `src/app/agents/add/page.tsx` — wizard page container
+- Route `/agents/add` live on Hetzner EU, build clean, PM2 restarted
+- **Remaining:** Steps 4-10 (address, tls, auth, test, naming, emergency, summary)
+
+---
+
 ## [0.1.1] — 2026-03-18
 
 ### Brand: Revert Foundation Colors (`1f9a7dd`)
