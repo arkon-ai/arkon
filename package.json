@@ -9,6 +9,23 @@
     "lint": "eslint",
     "test:e2e": "playwright test",
     "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "test:api": "playwright test tests/api/",
+    "test:ui": "playwright test tests/ui/",
+    "test:edge": "playwright test tests/edge/",
+    "test:visual": "playwright test tests/visual/",
+    "test:visual:update": "playwright test tests/visual/ --update-snapshots",
+    "test:a11y": "playwright test tests/a11y/",
+    "test:a11y:pages": "playwright test tests/a11y/pages.a11y.spec.ts",
+    "test:perf": "playwright test tests/performance/",
+    "test:perf:vitals": "playwright test tests/performance/core-web-vitals.perf.spec.ts",
+    "test:perf:api": "playwright test tests/performance/api-latency.perf.spec.ts",
+    "test:perf:bundle": "playwright test tests/performance/bundle-size.perf.spec.ts",
+    "test:mobile": "playwright test tests/mobile/",
+    "test:security": "playwright test --grep @security",
+    "test:cross-browser": "playwright test --project=firefox --project=webkit",
+    "test:report": "playwright show-report",
+    "test:update-snapshots": "playwright test --update-snapshots",
     "db:migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
@@ -31,6 +48,7 @@
     "sonner": "^2.0.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
