@@ -69,3 +69,6 @@ playwright-report/
 
 # OS
 Thumbs.db
+
+# Screenshots with sensitive data (IP addresses, server topology)
+docs/screenshots/20-infrastructure.png

@@ -65,10 +65,13 @@ Threats are scored by severity (low — critical), surfaced instantly, and can t
 
 When your agent is going off the rails, you need a big red button — not an API call buried in documentation.
 
-- **Global banner** — persistent alert when any agent has an active run, with a kill button always visible
-- **Per-agent emergency stop** — prominent on every agent's profile page
+- **Floating kill button** — pulsing red FAB on every page, always one click away
+- **Per-agent emergency stop** — pause, resume, or kill individual agents
+- **Nuclear gateway stop** — SIGTERM the entire gateway process as a last resort, with auto-restart verification
 - **Keyboard shortcut** — `Ctrl+Shift+K` to open the quick-kill dialog from anywhere
-- **Confirmation + audit** — every kill is logged with who stopped it, what was running, and why
+- **Kill verification** — 4-phase modal confirms your agent is actually dead (Confirm → Killing → Verifying → Confirmed Dead)
+- **Full audit trail** — every kill logged with who, what, when, and why
+- **WS-RPC adapter** — native protocol support for OpenClaw/NemoClaw gateways with Ed25519 device identity
 
 ### Cost Tracking — Know What You're Spending Before It's Too Late
 
@@ -100,11 +103,14 @@ A visual workflow builder with drag-and-drop nodes. No code required.
 | **Approval Workflows** | Human-in-the-loop for sensitive agent operations. Queue, review, approve/reject. |
 | **MCP Gateway Proxy** | Register, proxy, and log traffic to MCP servers. Per-server auth and rate limiting. |
 | **Multi-Tenant** | Manage multiple clients from one instance. Per-tenant budgets, agents, and data isolation. |
+| **Trace Explorer** | Distributed tracing with recursive span trees. LLM, Tool, Retrieval, Chain, and Agent span types. |
+| **Incident Management** | P1-P4 severity, 6 lifecycle states, SLA tracking (1h/4h/24h/72h), timeline with comments. |
 | **Audit Log** | Complete event history — who did what, when, to which agent. GDPR purge included. |
 | **Compliance Export** | Export events, costs, agents, and audit logs to JSON/CSV with date filters. |
 | **Benchmarking** | Compare agent performance across models — tokens, latency, cost efficiency. |
 | **Infrastructure Monitoring** | Server health, Docker status, GPU metrics, network latency — all from the dashboard. |
 | **Live Activity Feed** | Real-time event stream via SSE. See what your agents are doing right now. |
+| **Light/Dark/System Theme** | Full theme support with CSS variable overrides. |
 | **160+ features total** | [See the full feature list](FEATURES.md) |
 
 ---
@@ -148,35 +154,42 @@ For the full installation guide with environment configuration, troubleshooting,
 
 Arkon was built on OpenClaw and has first-class integration with the OpenClaw/NemoClaw ecosystem. If you're running NemoClaw (NVIDIA's enterprise wrapper around OpenClaw, announced at GTC 2026), Arkon is the governance layer that sits on top.
 
-**But Arkon is not locked to any framework.** Anything that can send an HTTP POST can report to Arkon:
+**But Arkon is not locked to any framework.** Register any agent through the 10-step wizard — Arkon auto-detects capabilities:
 
-| Framework | Integration |
-|-----------|-------------|
-| **OpenClaw / NemoClaw** | Native — built-in gateway integration, agent control, health checks |
-| **CrewAI** | SDK — `pip install arkon-sdk` (coming soon) |
-| **AutoGen** | SDK — `pip install arkon-sdk` (coming soon) |
-| **LangChain / LangGraph** | SDK — `npm install @arkon/sdk` (coming soon) |
-| **Custom agents** | REST API — `POST /api/ingest` with any HTTP client |
-| **n8n / Make / Zapier** | Webhook triggers — send events via HTTP node |
+| Framework | Status | Kill Capability |
+|-----------|--------|-----------------|
+| **OpenCLAW / NemoClaw** | Supported | Full control (WS-RPC) |
+| **Custom / HTTP** | Supported | Callback or SSH |
+| Paperclip | Beta | Full control |
+| LangGraph | Beta | Full control |
+| n8n | Beta | Limited (workflow deactivation) |
+| AutoGen / AG2 | Beta | Full control |
+| Dify | Beta | Full control |
+| OpenHands | Beta | Full control |
+| Haystack | Coming soon | Limited |
+| Semantic Kernel | Coming soon | Limited |
+| CrewAI | Coming soon | Monitor only |
+| Flowise | Coming soon | Monitor only |
+
+Anything that can send an HTTP POST can report to Arkon via `POST /api/ingest`.
 
 ---
 
 ## Why Arkon Instead of X?
 
-| | Arkon | RunLayer | LangSmith | Langfuse | Helicone | Portkey |
+| | Arkon | RunLayer | Langfuse | Helicone | Portkey | Datadog |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| Agent monitoring | Y | Y | Y | Y | Y | Y |
-| Threat detection | Y | - | - | - | - | partial |
-| **Workflow builder** | **Y** | - | - | - | - | - |
-| **Infrastructure monitoring** | **Y** | - | - | - | - | - |
-| **Multi-tenant** | **Y** | - | - | - | - | - |
-| Approval workflows | Y | - | - | - | - | - |
-| Budget limits | Y | - | - | - | - | partial |
-| MCP proxy | Y | - | - | - | - | - |
-| Anomaly detection | Y | - | - | - | partial | - |
-| Self-hosted option | Y | - | - | Y | - | - |
-| **No per-seat pricing** | **Y** | - | - | - | - | - |
-| **Price** | **Free / $97mo** | **$50K+/yr** | **$39/seat/mo** | **Free / $29mo** | **$79/mo** | **5.5% fee** |
+| Self-Hosted Free | **Yes** | Partial | Yes | Yes | Yes | No |
+| Kill Switch | **Yes** | No | No | No | No | No |
+| Threat Detection | **Yes** | Yes | No | No | Guardrails | No |
+| Cost Tracking | **Yes** | No | Yes | Yes | Yes | Yes |
+| Workflow Builder | **Yes** | No | No | No | No | No |
+| Multi-Tenant | **Yes** | Yes | No | No | No | Yes |
+| Client Portal | **Yes** | No | No | No | No | No |
+| Infra Monitoring | **Yes** | No | No | No | No | Yes |
+| No Per-Seat Pricing | **Yes** | No | No | No | Yes | No |
+| Open Source (MIT) | **Yes** | Partial | Yes | Yes | Yes | No |
+| **Price** | **Free / $97mo** | **$50K+/yr** | **Free / $29mo** | **$79/mo** | **5.5% fee** | **$23/host/mo** |
 
 ---
 
