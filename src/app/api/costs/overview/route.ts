@@ -17,10 +17,12 @@ export async function GET(req: NextRequest) {
   if (tenantId) params.push(tenantId);
 
   try {
-    // Total cost this period
+    // Total cost this period (with input/output token breakdown)
     const totalCost = await query(
       `SELECT COALESCE(SUM(estimated_cost_usd), 0) as total_cost,
               COALESCE(SUM(estimated_tokens), 0) as total_tokens,
+              COALESCE(SUM(input_tokens), 0) as total_input_tokens,
+              COALESCE(SUM(output_tokens), 0) as total_output_tokens,
               COUNT(DISTINCT agent_id) as active_agents
        FROM daily_stats ds
        WHERE day >= CURRENT_DATE - $1::interval ${tenantFilter}`,
@@ -29,7 +31,8 @@ export async function GET(req: NextRequest) {
 
     // Daily cost trend
     const dailyCost = await query(
-      `SELECT day, SUM(estimated_cost_usd) as cost, SUM(estimated_tokens) as tokens
+      `SELECT day, SUM(estimated_cost_usd) as cost, SUM(estimated_tokens) as tokens,
+              SUM(input_tokens) as input_tokens, SUM(output_tokens) as output_tokens
        FROM daily_stats ds
        WHERE day >= CURRENT_DATE - $1::interval ${tenantFilter}
        GROUP BY day ORDER BY day`,
@@ -110,17 +113,35 @@ export async function GET(req: NextRequest) {
        FROM budget_limits bl`
     );
 
+    // Cost accuracy score: % of events with actual token data
+    const accuracyResult = await query(
+      `SELECT
+         COUNT(*) as total_events,
+         COUNT(input_tokens) as events_with_actual_tokens
+       FROM events
+       WHERE created_at >= NOW() - $1::interval`,
+      [interval]
+    );
+    const totalEvents = parseInt(accuracyResult.rows[0]?.total_events || "0");
+    const eventsWithActual = parseInt(accuracyResult.rows[0]?.events_with_actual_tokens || "0");
+    const accuracyPct = totalEvents > 0 ? Math.round((eventsWithActual / totalEvents) * 100) : 0;
+
     return NextResponse.json({
       summary: {
         total_cost_usd: parseFloat(totalCost.rows[0]?.total_cost || "0"),
         total_tokens: parseInt(totalCost.rows[0]?.total_tokens || "0"),
+        total_input_tokens: parseInt(totalCost.rows[0]?.total_input_tokens || "0"),
+        total_output_tokens: parseInt(totalCost.rows[0]?.total_output_tokens || "0"),
         active_agents: parseInt(totalCost.rows[0]?.active_agents || "0"),
+        cost_accuracy_pct: accuracyPct,
         range,
       },
       daily_trend: dailyCost.rows.map((r: Record<string, string>) => ({
         day: r.day,
         cost: parseFloat(r.cost),
         tokens: parseInt(r.tokens),
+        input_tokens: parseInt(r.input_tokens),
+        output_tokens: parseInt(r.output_tokens),
       })),
       by_agent: byAgent.rows.map((r: Record<string, string>) => ({
         agent_id: r.agent_id,

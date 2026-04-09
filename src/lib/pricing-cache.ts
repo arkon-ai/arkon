@@ -60,15 +60,21 @@ export async function getAllPricing(): Promise<PricingEntry[]> {
 }
 
 /**
- * Estimate cost for an event. Uses provider+model from metadata if available,
- * otherwise falls back to default Anthropic Sonnet pricing.
+ * Estimate cost for an event.
+ * When actual input_tokens and output_tokens are provided, uses them directly.
+ * Otherwise falls back to 60/40 split of tokenEstimate (legacy path).
  * Returns cost in USD.
  */
 export async function estimateCost(
   tokenEstimate: number,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
+  inputTokens?: number,
+  outputTokens?: number
 ): Promise<number> {
-  if (!tokenEstimate || tokenEstimate <= 0) return 0;
+  const hasActualTokens = typeof inputTokens === "number" && typeof outputTokens === "number"
+    && (inputTokens > 0 || outputTokens > 0);
+
+  if (!hasActualTokens && (!tokenEstimate || tokenEstimate <= 0)) return 0;
 
   const provider = (metadata?.provider as string) || "anthropic";
   const model = (metadata?.model as string) || "claude-sonnet-4-6";
@@ -76,18 +82,27 @@ export async function estimateCost(
   const pricing = await getPricing(provider, model);
 
   if (pricing && pricing.is_free) return 0;
-  if (!pricing) {
-    // Fallback: assume Anthropic Sonnet rates, rough 50/50 input/output split
-    const inputTokens = tokenEstimate * 0.6;
-    const outputTokens = tokenEstimate * 0.4;
-    return (inputTokens / 1000) * 0.003 + (outputTokens / 1000) * 0.015;
+
+  // Determine token counts
+  let inTok: number;
+  let outTok: number;
+
+  if (hasActualTokens) {
+    inTok = inputTokens!;
+    outTok = outputTokens!;
+  } else {
+    // Legacy fallback: 60/40 split
+    inTok = tokenEstimate * 0.6;
+    outTok = tokenEstimate * 0.4;
   }
 
-  // Rough 60/40 input/output split (most events don't separate them)
-  const inputTokens = tokenEstimate * 0.6;
-  const outputTokens = tokenEstimate * 0.4;
-  return (inputTokens / 1000) * pricing.cost_per_1k_input +
-         (outputTokens / 1000) * pricing.cost_per_1k_output;
+  if (!pricing) {
+    // Fallback: assume Anthropic Sonnet rates
+    return (inTok / 1000) * 0.003 + (outTok / 1000) * 0.015;
+  }
+
+  return (inTok / 1000) * pricing.cost_per_1k_input +
+         (outTok / 1000) * pricing.cost_per_1k_output;
 }
 
 export function invalidateCache(): void {

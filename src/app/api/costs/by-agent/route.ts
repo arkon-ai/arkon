@@ -16,6 +16,8 @@ export async function GET(req: NextRequest) {
       `SELECT ds.agent_id, a.name as agent_name, a.tenant_id,
               SUM(ds.estimated_cost_usd) as total_cost,
               SUM(ds.estimated_tokens) as total_tokens,
+              SUM(ds.input_tokens) as total_input_tokens,
+              SUM(ds.output_tokens) as total_output_tokens,
               SUM(ds.messages_received + ds.messages_sent) as total_messages,
               SUM(ds.tool_calls) as total_tool_calls,
               COUNT(DISTINCT ds.day) as active_days,
@@ -32,17 +34,23 @@ export async function GET(req: NextRequest) {
 
     // Daily breakdown per agent (for sparklines)
     const daily = await query(
-      `SELECT agent_id, day, estimated_cost_usd as cost
+      `SELECT agent_id, day, estimated_cost_usd as cost,
+              input_tokens, output_tokens
        FROM daily_stats
        WHERE day >= CURRENT_DATE - $1::interval
        ORDER BY agent_id, day`,
       [interval]
     );
 
-    const dailyByAgent: Record<string, { day: string; cost: number }[]> = {};
+    const dailyByAgent: Record<string, { day: string; cost: number; input_tokens: number; output_tokens: number }[]> = {};
     for (const row of daily.rows) {
       if (!dailyByAgent[row.agent_id]) dailyByAgent[row.agent_id] = [];
-      dailyByAgent[row.agent_id].push({ day: row.day, cost: parseFloat(row.cost) });
+      dailyByAgent[row.agent_id].push({
+        day: row.day,
+        cost: parseFloat(row.cost),
+        input_tokens: parseInt(row.input_tokens) || 0,
+        output_tokens: parseInt(row.output_tokens) || 0,
+      });
     }
 
     return NextResponse.json({
@@ -53,6 +61,8 @@ export async function GET(req: NextRequest) {
         tenant_id: r.tenant_id,
         total_cost: parseFloat(r.total_cost),
         total_tokens: parseInt(r.total_tokens),
+        total_input_tokens: parseInt(r.total_input_tokens) || 0,
+        total_output_tokens: parseInt(r.total_output_tokens) || 0,
         total_messages: parseInt(r.total_messages),
         total_tool_calls: parseInt(r.total_tool_calls),
         active_days: parseInt(r.active_days),

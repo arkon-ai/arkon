@@ -12,13 +12,16 @@ export async function GET(req: NextRequest) {
   const interval = range === "24h" ? "24 hours" : range === "7d" ? "7 days" : "30 days";
 
   try {
-    // Model usage from events metadata (where provider/model fields exist)
+    // Model usage from events metadata — now with actual input/output token columns
     const byModel = await query(
       `SELECT
          COALESCE(metadata->>'provider', 'unknown') as provider,
          COALESCE(metadata->>'model', 'unknown') as model,
          COUNT(*) as event_count,
-         COALESCE(SUM(token_estimate), 0) as total_tokens
+         COALESCE(SUM(token_estimate), 0) as total_tokens,
+         COALESCE(SUM(input_tokens), 0) as total_input_tokens,
+         COALESCE(SUM(output_tokens), 0) as total_output_tokens,
+         COUNT(input_tokens) as events_with_actual_tokens
        FROM events
        WHERE created_at >= NOW() - $1::interval
          AND metadata IS NOT NULL
@@ -47,10 +50,17 @@ export async function GET(req: NextRequest) {
 
     const models = byModel.rows.map((r: Record<string, string>) => {
       const tokens = parseInt(r.total_tokens);
+      const actualInputTokens = parseInt(r.total_input_tokens);
+      const actualOutputTokens = parseInt(r.total_output_tokens);
+      const hasActualTokens = actualInputTokens > 0 || actualOutputTokens > 0;
+
       const price = priceMap.get(`${r.provider}::${r.model}`) ||
                     priceMap.get(`anthropic::claude-sonnet-4-6`);
-      const inputTokens = tokens * 0.6;
-      const outputTokens = tokens * 0.4;
+
+      // Use actual token split when available, fall back to 60/40
+      const inputTokens = hasActualTokens ? actualInputTokens : tokens * 0.6;
+      const outputTokens = hasActualTokens ? actualOutputTokens : tokens * 0.4;
+
       const cost = price && !price.free
         ? (inputTokens / 1000) * price.input + (outputTokens / 1000) * price.output
         : 0;
@@ -61,6 +71,10 @@ export async function GET(req: NextRequest) {
         display_name: price?.name || r.model,
         event_count: parseInt(r.event_count),
         total_tokens: tokens,
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        has_actual_tokens: hasActualTokens,
+        events_with_actual_tokens: parseInt(r.events_with_actual_tokens),
         estimated_cost: Math.round(cost * 10000) / 10000,
         is_free: price?.free || false,
       };

@@ -19,6 +19,8 @@ interface IngestPayload {
   content?: string;
   metadata?: Record<string, unknown>;
   token_estimate?: number;
+  input_tokens?: number;
+  output_tokens?: number;
   timestamp?: string;
 }
 
@@ -59,14 +61,16 @@ export async function POST(request: NextRequest) {
     // 6. ThreatGuard — scan before writing to DB
     const threatResult = scanEvent(safeContent, body.event_type);
 
-    // 7. Write to PostgreSQL (with threat columns)
+    // 7. Write to PostgreSQL (with threat columns + token split)
     const result = await query(
       `INSERT INTO events (
         agent_id, event_type, direction, session_key, channel_id, sender,
-        content, content_redacted, metadata, token_estimate, created_at,
+        content, content_redacted, metadata, token_estimate,
+        input_tokens, output_tokens,
+        created_at,
         threat_level, threat_classes, threat_matches
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        RETURNING id, created_at`,
       [
         agentId,
@@ -79,6 +83,8 @@ export async function POST(request: NextRequest) {
         redacted,
         JSON.stringify(body.metadata || {}),
         body.token_estimate || null,
+        body.input_tokens || null,
+        body.output_tokens || null,
         body.timestamp ? new Date(body.timestamp) : new Date(),
         threatResult.level,
         JSON.stringify(threatResult.classes),
@@ -105,7 +111,6 @@ export async function POST(request: NextRequest) {
 
     // 9. Update session tracking
     if (body.session_key) {
-      // Look up tenant_id for this agent
       const agentRow = await query("SELECT tenant_id FROM agents WHERE id = $1 LIMIT 1", [agentId]);
       const tenantId = agentRow.rows[0]?.tenant_id ?? "transformate";
 
@@ -122,10 +127,15 @@ export async function POST(request: NextRequest) {
     const tenantRow2 = await query("SELECT tenant_id FROM agents WHERE id = $1 LIMIT 1", [agentId]);
     const resolvedTenantId = tenantRow2.rows[0]?.tenant_id ?? "transformate";
 
-    // 10. Calculate cost (lightweight — uses in-memory pricing cache)
-    const costUsd = await estimateCost(body.token_estimate || 0, body.metadata);
+    // 11. Calculate cost (uses actual tokens when available, falls back to estimate)
+    const costUsd = await estimateCost(
+      body.token_estimate || 0,
+      body.metadata,
+      body.input_tokens,
+      body.output_tokens
+    );
 
-    // 11. Update daily stats (with cost)
+    // 12. Update daily stats (with cost + token split)
     const statField = body.event_type === "message_received" ? "messages_received"
       : body.event_type === "message_sent" ? "messages_sent"
       : body.event_type === "tool_call" ? "tool_calls"
@@ -136,13 +146,22 @@ export async function POST(request: NextRequest) {
       const tenantId = agentRow.rows[0]?.tenant_id ?? "transformate";
 
       await query(
-        `INSERT INTO daily_stats (agent_id, day, ${statField}, estimated_tokens, estimated_cost_usd, tenant_id)
-         VALUES ($1, CURRENT_DATE, 1, $2, $4, $3)
+        `INSERT INTO daily_stats (agent_id, day, ${statField}, estimated_tokens, estimated_cost_usd, input_tokens, output_tokens, tenant_id)
+         VALUES ($1, CURRENT_DATE, 1, $2, $4, $5, $6, $3)
          ON CONFLICT (agent_id, day)
          DO UPDATE SET ${statField} = daily_stats.${statField} + 1,
                        estimated_tokens = daily_stats.estimated_tokens + $2,
-                       estimated_cost_usd = daily_stats.estimated_cost_usd + $4`,
-        [agentId, body.token_estimate || 0, tenantId, costUsd]
+                       estimated_cost_usd = daily_stats.estimated_cost_usd + $4,
+                       input_tokens = daily_stats.input_tokens + $5,
+                       output_tokens = daily_stats.output_tokens + $6`,
+        [
+          agentId,
+          body.token_estimate || 0,
+          tenantId,
+          costUsd,
+          body.input_tokens || 0,
+          body.output_tokens || 0,
+        ]
       );
     }
 
