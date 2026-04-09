@@ -94,7 +94,7 @@ const pageLabels: Record<string, string> = {
   "/settings/appearance": "Appearance",
   "/settings/notifications": "Notifications",
   "/help/glossary": "Glossary",
-  "/victoryos": "VictoryOS",
+  "/victoryos": "ArkonOS",
 };
 
 type NavItem = {
@@ -106,7 +106,7 @@ type NavItem = {
 
 const mobileTabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/agents", label: "Agents", icon: Bot },
+  { href: "/victoryos", label: "ArkonOS", icon: MessageSquare },
   { href: "/security", label: "Threats", icon: ShieldCheck },
   { href: "/costs", label: "Costs", icon: Wallet },
   { href: "##more##", label: "More", icon: MoreHorizontal },
@@ -114,6 +114,7 @@ const mobileTabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
 
 const moreSheetItems: NavItem[] = [
   { href: "/incidents", label: "Incidents", icon: AlertTriangle },
+  { href: "/agents", label: "Agents", icon: Bot },
   { href: "/infrastructure", label: "Infrastructure", icon: Network },
   { href: "/traces", label: "Traces", icon: GitBranch },
   { href: "/workflows", label: "Workflows", icon: Workflow },
@@ -127,7 +128,8 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     key: "observe",
     items: [
       { href: "/", label: "Dashboard", subtitle: "System health & key metrics", icon: LayoutDashboard },
-      { href: "/agents", label: "Agents", subtitle: "Monitor your AI agents", icon: Bot },
+      { href: "/victoryos", label: "ArkonOS", subtitle: "Chat with Lumina", icon: MessageSquare },
+      { href: "/agents", label: "Agents", subtitle: "Monitor agent fleet", icon: Bot },
       { href: "/security", label: "Threats", subtitle: "Detect & respond to threats", icon: ShieldCheck },
       { href: "/costs", label: "Costs", subtitle: "Spending by agent & model", icon: Wallet },
       { href: "/traces", label: "Traces", subtitle: "Agent execution traces & spans", icon: GitBranch },

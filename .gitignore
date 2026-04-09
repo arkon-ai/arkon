@@ -72,3 +72,28 @@ Thumbs.db
 
 # Screenshots with sensitive data (IP addresses, server topology)
 docs/screenshots/20-infrastructure.png
+
+# --- Internal docs & plans (never push to GitHub) ---
+CONTINUE-*.md
+ARKON-GTM-*.md
+ARKON-MASTER-BUILD-PLAN-*.md
+ARKON-BRAND-IDENTITY-*.md
+ARKON-OS-CARD-DESIGN-*.md
+DEPLOY-PLAN.md
+FLEET-ADMIN-PLAN.md
+HOFMI-FLEET-PLAN-*.md
+SESSION-*-PROMPT.md
+
+# --- Assets & legal ---
+*.zip
+legal-extracted/
+Arkon Brand Assets/
+.arkon/
+
+# --- Patch/migration scripts ---
+tier*-patch.py
+patch-*.py
+phase*-files/
+
+# --- Session backups ---
+*.bak-*
