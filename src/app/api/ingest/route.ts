@@ -21,6 +21,7 @@ interface IngestPayload {
   token_estimate?: number;
   input_tokens?: number;
   output_tokens?: number;
+  cached_input_tokens?: number;
   timestamp?: string;
 }
 
@@ -61,16 +62,16 @@ export async function POST(request: NextRequest) {
     // 6. ThreatGuard — scan before writing to DB
     const threatResult = scanEvent(safeContent, body.event_type);
 
-    // 7. Write to PostgreSQL (with threat columns + token split)
+    // 7. Write to PostgreSQL (with threat columns + token split + cached tokens)
     const result = await query(
       `INSERT INTO events (
         agent_id, event_type, direction, session_key, channel_id, sender,
         content, content_redacted, metadata, token_estimate,
-        input_tokens, output_tokens,
+        input_tokens, output_tokens, cached_input_tokens,
         created_at,
         threat_level, threat_classes, threat_matches
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
        RETURNING id, created_at`,
       [
         agentId,
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
         body.token_estimate || null,
         body.input_tokens || null,
         body.output_tokens || null,
+        body.cached_input_tokens || null,
         body.timestamp ? new Date(body.timestamp) : new Date(),
         threatResult.level,
         JSON.stringify(threatResult.classes),
@@ -127,15 +129,16 @@ export async function POST(request: NextRequest) {
     const tenantRow2 = await query("SELECT tenant_id FROM agents WHERE id = $1 LIMIT 1", [agentId]);
     const resolvedTenantId = tenantRow2.rows[0]?.tenant_id ?? "transformate";
 
-    // 11. Calculate cost (uses actual tokens when available, falls back to estimate)
+    // 11. Calculate cost (uses actual tokens when available, with caching discount)
     const costUsd = await estimateCost(
       body.token_estimate || 0,
       body.metadata,
       body.input_tokens,
-      body.output_tokens
+      body.output_tokens,
+      body.cached_input_tokens
     );
 
-    // 12. Update daily stats (with cost + token split)
+    // 12. Update daily stats (with cost + token split + cached tokens)
     const statField = body.event_type === "message_received" ? "messages_received"
       : body.event_type === "message_sent" ? "messages_sent"
       : body.event_type === "tool_call" ? "tool_calls"
@@ -146,14 +149,15 @@ export async function POST(request: NextRequest) {
       const tenantId = agentRow.rows[0]?.tenant_id ?? "transformate";
 
       await query(
-        `INSERT INTO daily_stats (agent_id, day, ${statField}, estimated_tokens, estimated_cost_usd, input_tokens, output_tokens, tenant_id)
-         VALUES ($1, CURRENT_DATE, 1, $2, $4, $5, $6, $3)
+        `INSERT INTO daily_stats (agent_id, day, ${statField}, estimated_tokens, estimated_cost_usd, input_tokens, output_tokens, cached_input_tokens, tenant_id)
+         VALUES ($1, CURRENT_DATE, 1, $2, $4, $5, $6, $7, $3)
          ON CONFLICT (agent_id, day)
          DO UPDATE SET ${statField} = daily_stats.${statField} + 1,
                        estimated_tokens = daily_stats.estimated_tokens + $2,
                        estimated_cost_usd = daily_stats.estimated_cost_usd + $4,
                        input_tokens = daily_stats.input_tokens + $5,
-                       output_tokens = daily_stats.output_tokens + $6`,
+                       output_tokens = daily_stats.output_tokens + $6,
+                       cached_input_tokens = daily_stats.cached_input_tokens + $7`,
         [
           agentId,
           body.token_estimate || 0,
@@ -161,6 +165,7 @@ export async function POST(request: NextRequest) {
           costUsd,
           body.input_tokens || 0,
           body.output_tokens || 0,
+          body.cached_input_tokens || 0,
         ]
       );
     }

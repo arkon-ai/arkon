@@ -6,6 +6,10 @@ interface PricingEntry {
   cost_per_1k_input: number;
   cost_per_1k_output: number;
   is_free: boolean;
+  pricing_type: "per_token" | "subscription" | "free";
+  monthly_cost_usd: number | null;
+  cached_input_discount_pct: number;
+  batch_discount_pct: number;
 }
 
 let cache: Map<string, PricingEntry> = new Map();
@@ -19,7 +23,8 @@ function cacheKey(provider: string, modelId: string): string {
 async function refreshCache(): Promise<void> {
   try {
     const result = await query(
-      `SELECT provider, model_id, cost_per_1k_input, cost_per_1k_output, is_free
+      `SELECT provider, model_id, cost_per_1k_input, cost_per_1k_output, is_free,
+              pricing_type, monthly_cost_usd, cached_input_discount_pct, batch_discount_pct
        FROM model_pricing
        WHERE effective_from <= CURRENT_DATE
          AND (effective_until IS NULL OR effective_until >= CURRENT_DATE)
@@ -35,6 +40,10 @@ async function refreshCache(): Promise<void> {
           cost_per_1k_input: parseFloat(row.cost_per_1k_input),
           cost_per_1k_output: parseFloat(row.cost_per_1k_output),
           is_free: row.is_free,
+          pricing_type: row.pricing_type || "per_token",
+          monthly_cost_usd: row.monthly_cost_usd ? parseFloat(row.monthly_cost_usd) : null,
+          cached_input_discount_pct: parseFloat(row.cached_input_discount_pct) || 0,
+          batch_discount_pct: parseFloat(row.batch_discount_pct) || 0,
         });
       }
     }
@@ -61,6 +70,11 @@ export async function getAllPricing(): Promise<PricingEntry[]> {
 
 /**
  * Estimate cost for an event.
+ * Supports three pricing types:
+ *   - per_token: standard input/output token rates with optional caching discount
+ *   - subscription: returns 0 per-event (fixed monthly shown separately)
+ *   - free: returns 0
+ *
  * When actual input_tokens and output_tokens are provided, uses them directly.
  * Otherwise falls back to 60/40 split of tokenEstimate (legacy path).
  * Returns cost in USD.
@@ -69,7 +83,8 @@ export async function estimateCost(
   tokenEstimate: number,
   metadata?: Record<string, unknown>,
   inputTokens?: number,
-  outputTokens?: number
+  outputTokens?: number,
+  cachedInputTokens?: number
 ): Promise<number> {
   const hasActualTokens = typeof inputTokens === "number" && typeof outputTokens === "number"
     && (inputTokens > 0 || outputTokens > 0);
@@ -81,7 +96,9 @@ export async function estimateCost(
 
   const pricing = await getPricing(provider, model);
 
-  if (pricing && pricing.is_free) return 0;
+  // Free or subscription models return 0 per-event
+  if (pricing && (pricing.pricing_type === "free" || pricing.is_free)) return 0;
+  if (pricing && pricing.pricing_type === "subscription") return 0;
 
   // Determine token counts
   let inTok: number;
@@ -101,8 +118,20 @@ export async function estimateCost(
     return (inTok / 1000) * 0.003 + (outTok / 1000) * 0.015;
   }
 
-  return (inTok / 1000) * pricing.cost_per_1k_input +
-         (outTok / 1000) * pricing.cost_per_1k_output;
+  // Apply caching discount: cached input tokens cost less
+  const cached = cachedInputTokens || 0;
+  const uncachedInput = Math.max(0, inTok - cached);
+  const discountMultiplier = 1 - (pricing.cached_input_discount_pct / 100);
+
+  const inputCost =
+    (uncachedInput / 1000) * pricing.cost_per_1k_input +
+    (cached / 1000) * pricing.cost_per_1k_input * discountMultiplier;
+
+  // Apply batch discount to output if applicable
+  const batchMultiplier = 1 - (pricing.batch_discount_pct / 100);
+  const outputCost = (outTok / 1000) * pricing.cost_per_1k_output * batchMultiplier;
+
+  return inputCost + outputCost;
 }
 
 export function invalidateCache(): void {
