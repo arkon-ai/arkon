@@ -170,7 +170,7 @@ export async function GET(req: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
-    console.error("[victoryos/overview] Error:", err);
+    console.error("[arkonos/overview] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

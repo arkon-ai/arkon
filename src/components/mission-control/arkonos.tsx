@@ -168,7 +168,7 @@ const PIE_COLORS = ["#22C55E", "#3B82F6", "#00D47E", "#F59E0B", "#06B6D4"];
 
 // ─── Component ───────────────────────────────────────────────────
 
-export default function VictoryOSScreen() {
+export default function ArkonOSScreen() {
   const [data, setData] = useState<VosOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -177,11 +177,11 @@ export default function VictoryOSScreen() {
   const fetchData = (r: string) => {
     setLoading(true);
     setError(null);
-    apiFetch<VosOverview>(`/api/victoryos/overview?range=${r}`)
+    apiFetch<VosOverview>(`/api/arkonos/overview?range=${r}`)
       .then(setData)
       .catch((e) => {
         setError(String(e));
-        toast.error("Failed to load VictoryOS data");
+        toast.error("Failed to load ArkonOS data");
       })
       .finally(() => setLoading(false));
   };
@@ -212,7 +212,7 @@ export default function VictoryOSScreen() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">VictoryOS</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">ArkonOS</h1>
           <SectionDescription id="vos-overview">
             Chat engine metrics, token usage, and agent activity.
           </SectionDescription>

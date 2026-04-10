@@ -16,7 +16,7 @@ export const pageMeta: Record<string, PageMeta> = {
   "/infrastructure":      { title: "Infrastructure",    description: "Server topology and resource monitoring",        group: "Observe" },
   "/analytics":           { title: "Anomaly Detection", description: "Rate spikes, silence alerts, and anomalies",    group: "Observe" },
   "/costs":               { title: "Costs",             description: "Track spending by agent, model, and provider",   group: "Observe" },
-  "/victoryos":           { title: "VictoryOS",         description: "Chat engine metrics and token usage",           group: "Observe" },
+  "/arkonos":           { title: "ArkonOS",         description: "Chat engine metrics and token usage",           group: "Observe" },
   "/security":            { title: "ThreatGuard",       description: "Detect and respond to threats in agent activity", group: "Respond" },
   "/tools/command":       { title: "Command",           description: "Run agent commands directly",                    group: "Respond" },
   "/tools/approvals":     { title: "Approvals",         description: "Review pending agent requests",                  group: "Respond" },

@@ -94,7 +94,7 @@ const pageLabels: Record<string, string> = {
   "/settings/appearance": "Appearance",
   "/settings/notifications": "Notifications",
   "/help/glossary": "Glossary",
-  "/victoryos": "ArkonOS",
+  "/arkonos": "ArkonOS",
 };
 
 type NavItem = {
@@ -106,7 +106,7 @@ type NavItem = {
 
 const mobileTabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/victoryos", label: "ArkonOS", icon: MessageSquare },
+  { href: "/arkonos", label: "ArkonOS", icon: MessageSquare },
   { href: "/security", label: "Threats", icon: ShieldCheck },
   { href: "/costs", label: "Costs", icon: Wallet },
   { href: "##more##", label: "More", icon: MoreHorizontal },
@@ -128,7 +128,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     key: "observe",
     items: [
       { href: "/", label: "Dashboard", subtitle: "System health & key metrics", icon: LayoutDashboard },
-      { href: "/victoryos", label: "ArkonOS", subtitle: "Chat with Lumina", icon: MessageSquare },
+      { href: "/arkonos", label: "ArkonOS", subtitle: "Chat with Lumina", icon: MessageSquare },
       { href: "/agents", label: "Agents", subtitle: "Monitor agent fleet", icon: Bot },
       { href: "/security", label: "Threats", subtitle: "Detect & respond to threats", icon: ShieldCheck },
       { href: "/costs", label: "Costs", subtitle: "Spending by agent & model", icon: Wallet },

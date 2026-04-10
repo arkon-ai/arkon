@@ -67,7 +67,7 @@ const staticPages: PaletteItem[] = [
   { id: "p-compliance", label: "Compliance", href: "/compliance", icon: Shield, category: "page", keywords: "audit export purge gdpr" },
   { id: "p-admin", label: "Admin Panel", href: "/admin", icon: Lock, category: "page" },
   { id: "p-settings", label: "Settings", href: "/settings", icon: Settings, category: "page" },
-  { id: "p-victoryos", label: "VictoryOS", href: "/victoryos", icon: MessageSquare, category: "page" },
+  { id: "p-arkonos", label: "ArkonOS", href: "/arkonos", icon: MessageSquare, category: "page" },
   { id: "a-kill", label: "Kill Active Agent", href: "", icon: OctagonX, category: "action", keywords: "kill stop emergency agent", action: "quick-kill" },
 ];
 
