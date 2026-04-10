@@ -160,6 +160,12 @@ export function validateAdmin(req: NextRequest): boolean {
   return constantTimeEqual(token, adminToken);
 }
 
+export async function isOwnerOrAdmin(req: NextRequest): Promise<boolean> {
+  if (validateAdmin(req)) return true;
+  const role = await resolveRole(req);
+  return role === "owner";
+}
+
 export function unauthorized(message = "Unauthorized") {
   return NextResponse.json({ error: message }, { status: 401 });
 }

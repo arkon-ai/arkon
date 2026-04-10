@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { isOwnerOrAdmin, unauthorized } from "@/app/api/tools/_utils";
 import { syncOpenRouterPricing } from "@/lib/openrouter-sync";
 
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) {
-    return unauthorized();
-  }
+  if (!(await isOwnerOrAdmin(req))) return unauthorized();
 
   try {
     const result = await syncOpenRouterPricing();
@@ -22,9 +20,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
-    return unauthorized();
-  }
+  if (!(await isOwnerOrAdmin(req))) return unauthorized();
 
   // Return last sync status
   try {

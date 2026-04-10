@@ -134,7 +134,7 @@ function CostTooltip({ active, payload, label }: { active?: boolean; payload?: A
    ════════════════════════════════════════════════════════════ */
 export default function CostsScreen() {
   const [range, setRange] = useState("30d");
-  const [tab, setTab] = useState<"overview" | "agents" | "models">("overview");
+  const [tab, setTab] = useState<"overview" | "agents" | "models" | "pricing">("overview");
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [agentData, setAgentData] = useState<AgentDetailRow[] | null>(null);
   const [modelData, setModelData] = useState<ModelRow[] | null>(null);
@@ -254,12 +254,12 @@ export default function CostsScreen() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2">
-        {(["overview", "agents", "models"] as const).map((t) => (
+      <div className="flex gap-2 flex-wrap">
+        {(["overview", "agents", "models", "pricing"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
               tab === t ? "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}>{t === "overview" ? "Overview" : t === "agents" ? "By Agent" : "By Model"}</button>
+            }`}>{t === "overview" ? "Overview" : t === "agents" ? "By Agent" : t === "models" ? "By Model" : "Pricing"}</button>
         ))}
       </div>
 
@@ -271,8 +271,10 @@ export default function CostsScreen() {
         <OverviewTab overview={overview} dailyBurn={dailyBurn} projected={projected} agentData={agentData} onBudgetChange={refresh} />
       ) : tab === "agents" ? (
         <AgentsTab agents={agentData} loading={loading} anomalies={overview?.agent_anomalies || []} />
-      ) : (
+      ) : tab === "models" ? (
         <ModelsTab models={modelData} loading={loading} />
+      ) : (
+        <PricingTab />
       )}
     </div>
   );
@@ -967,6 +969,399 @@ function BudgetDialog({ agents, existingBudgets, onClose, onSaved }: {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
+   PRICING TAB — agent→model linkage, model_pricing editor, infra costs
+   ════════════════════════════════════════════════════════════ */
+
+interface PricingRow {
+  id: number;
+  provider: string;
+  model_id: string;
+  display_name: string | null;
+  pricing_type: "per_token" | "subscription" | "free";
+  cost_per_1k_input: number | null;
+  cost_per_1k_output: number | null;
+  monthly_cost_usd: number | null;
+  cached_input_discount_pct: number | null;
+  is_free: boolean;
+  notes: string | null;
+  effective_from: string;
+  effective_until: string | null;
+}
+interface AgentModelRow {
+  id: string;
+  name: string;
+  tenant_id: string;
+  tenant_name: string | null;
+  default_provider: string | null;
+  default_model_id: string | null;
+  default_model_display_name: string | null;
+  default_model_pricing_type: string | null;
+  default_model_cost_per_1k_input: number | null;
+  default_model_cost_per_1k_output: number | null;
+  default_model_monthly_cost_usd: number | null;
+}
+interface InfraCostRow {
+  id: number;
+  name: string;
+  category: string;
+  monthly_cost_usd: number;
+  currency: string;
+  tenant_allocations: Record<string, number>;
+  notes: string | null;
+  active: boolean;
+}
+
+async function mutate(url: string, method: string, body?: unknown): Promise<Response> {
+  const csrf = document.cookie.match(/mc_csrf=([^;]+)/)?.[1] || "";
+  return fetch(url, {
+    method,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "x-csrf-token": csrf,
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+}
+
+function PricingTab() {
+  const [agents, setAgents] = useState<AgentModelRow[] | null>(null);
+  const [pricing, setPricing] = useState<PricingRow[] | null>(null);
+  const [infra, setInfra] = useState<InfraCostRow[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const refresh = () => setRefreshKey((k) => k + 1);
+
+  const [newSub, setNewSub] = useState({ provider: "", model_id: "", display_name: "", monthly_cost_usd: "" });
+  const [newInfra, setNewInfra] = useState({ name: "", category: "server", monthly_cost_usd: "", tenant_allocations: "{\"transformate\":1.0}", notes: "" });
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    Promise.all([
+      apiFetch<{ agents: AgentModelRow[] }>("/api/admin/agents"),
+      apiFetch<{ pricing: PricingRow[] }>("/api/admin/pricing"),
+      apiFetch<{ infra_costs: InfraCostRow[] }>("/api/admin/infra-costs"),
+    ])
+      .then(([a, p, i]) => {
+        if (cancelled) return;
+        setAgents(a.agents);
+        setPricing(p.pricing);
+        setInfra(i.infra_costs);
+      })
+      .catch((e) => { if (!cancelled) setError(String(e)); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [refreshKey]);
+
+  async function setDefaultModel(agentId: string, providerModel: string) {
+    setBusy(`agent:${agentId}`);
+    try {
+      const [default_provider, default_model_id] = providerModel ? providerModel.split("|") : [null, null];
+      const res = await mutate("/api/admin/agents", "PATCH", {
+        id: agentId,
+        action: "set_default_model",
+        default_provider,
+        default_model_id,
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || `${res.status}`);
+      }
+      refresh();
+    } catch (e) {
+      setError(`set_default_model: ${e instanceof Error ? e.message : e}`);
+    }
+    setBusy(null);
+  }
+
+  async function syncOpenRouter() {
+    setBusy("sync");
+    try {
+      const res = await mutate("/api/admin/pricing/sync", "POST");
+      if (!res.ok) throw new Error(`${res.status}`);
+      refresh();
+    } catch (e) {
+      setError(`sync: ${e instanceof Error ? e.message : e}`);
+    }
+    setBusy(null);
+  }
+
+  async function createSubscription() {
+    if (!newSub.provider || !newSub.model_id || !newSub.monthly_cost_usd) return;
+    setBusy("sub");
+    try {
+      const res = await mutate("/api/admin/pricing", "POST", {
+        provider: newSub.provider.trim(),
+        model_id: newSub.model_id.trim(),
+        display_name: newSub.display_name.trim() || newSub.model_id.trim(),
+        pricing_type: "subscription",
+        monthly_cost_usd: parseFloat(newSub.monthly_cost_usd),
+        is_free: false,
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || `${res.status}`);
+      }
+      setNewSub({ provider: "", model_id: "", display_name: "", monthly_cost_usd: "" });
+      refresh();
+    } catch (e) {
+      setError(`createSub: ${e instanceof Error ? e.message : e}`);
+    }
+    setBusy(null);
+  }
+
+  async function createInfra() {
+    if (!newInfra.name || !newInfra.monthly_cost_usd) return;
+    setBusy("infra");
+    try {
+      let allocations: Record<string, number>;
+      try { allocations = JSON.parse(newInfra.tenant_allocations); } catch { throw new Error("tenant_allocations must be valid JSON"); }
+      const res = await mutate("/api/admin/infra-costs", "POST", {
+        name: newInfra.name.trim(),
+        category: newInfra.category,
+        monthly_cost_usd: parseFloat(newInfra.monthly_cost_usd),
+        tenant_allocations: allocations,
+        notes: newInfra.notes.trim() || null,
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || `${res.status}`);
+      }
+      setNewInfra({ name: "", category: "server", monthly_cost_usd: "", tenant_allocations: "{\"transformate\":1.0}", notes: "" });
+      refresh();
+    } catch (e) {
+      setError(`createInfra: ${e instanceof Error ? e.message : e}`);
+    }
+    setBusy(null);
+  }
+
+  async function deleteInfra(id: number) {
+    if (!confirm("Delete this infrastructure cost?")) return;
+    setBusy(`infra:${id}`);
+    try {
+      const res = await mutate(`/api/admin/infra-costs?id=${id}`, "DELETE");
+      if (!res.ok) throw new Error(`${res.status}`);
+      refresh();
+    } catch (e) {
+      setError(`deleteInfra: ${e instanceof Error ? e.message : e}`);
+    }
+    setBusy(null);
+  }
+
+  if (loading && !agents) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+      </div>
+    );
+  }
+
+  // Build a sorted dropdown of pricing options grouped by type for agent→model picker
+  const pricingOptions = (pricing || []).slice().sort((a, b) => {
+    if (a.provider !== b.provider) return a.provider.localeCompare(b.provider);
+    return a.model_id.localeCompare(b.model_id);
+  });
+
+  const totalInfra = (infra || []).reduce((s, r) => s + Number(r.monthly_cost_usd), 0);
+
+  return (
+    <div className="space-y-8">
+      {error && (
+        <div className="rounded-[16px] border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-400 flex justify-between items-start">
+          <span className="whitespace-pre-wrap">{error}</span>
+          <button onClick={() => setError(null)} className="ml-4 text-red-400 hover:text-red-300"><X className="h-4 w-4" /></button>
+        </div>
+      )}
+
+      {/* ── Agents → Default Model ── */}
+      <section className="rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)]">Agents → Default Model</h2>
+        <p className="mt-1 text-xs text-[var(--text-secondary)]">
+          Each agent is assigned a default model. The model's pricing row determines its runtime cost (per-token or monthly subscription).
+        </p>
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">
+              <tr className="border-b border-[var(--border)]">
+                <th className="py-2 text-left">Agent</th>
+                <th className="py-2 text-left">Tenant</th>
+                <th className="py-2 text-left">Default Model</th>
+                <th className="py-2 text-right">Type</th>
+                <th className="py-2 text-right">Rate / Subscription</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(agents || []).map((a) => {
+                const currentKey = a.default_provider && a.default_model_id ? `${a.default_provider}|${a.default_model_id}` : "";
+                const rateLabel = a.default_model_pricing_type === "subscription"
+                  ? `$${Number(a.default_model_monthly_cost_usd || 0).toFixed(2)}/mo`
+                  : a.default_model_pricing_type === "per_token"
+                    ? `$${Number(a.default_model_cost_per_1k_input || 0).toFixed(4)} / $${Number(a.default_model_cost_per_1k_output || 0).toFixed(4)} per 1k`
+                    : a.default_model_pricing_type === "free"
+                      ? "Free"
+                      : "—";
+                return (
+                  <tr key={a.id} className="border-b border-[var(--border)]/40 hover:bg-white/[0.02]">
+                    <td className="py-3 text-[var(--text-primary)]">
+                      <div className="font-medium">{a.name}</div>
+                      <div className="text-xs text-[var(--text-tertiary)] font-mono">{a.id}</div>
+                    </td>
+                    <td className="py-3 text-[var(--text-secondary)]">{a.tenant_name || a.tenant_id}</td>
+                    <td className="py-3">
+                      <select
+                        value={currentKey}
+                        onChange={(e) => setDefaultModel(a.id, e.target.value)}
+                        disabled={busy === `agent:${a.id}`}
+                        className="rounded-lg border border-[var(--border)] bg-[var(--bg-base)] px-3 py-1.5 text-xs text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none disabled:opacity-40"
+                      >
+                        <option value="">— none —</option>
+                        {pricingOptions.map((p) => (
+                          <option key={`${p.provider}|${p.model_id}|${p.id}`} value={`${p.provider}|${p.model_id}`}>
+                            {p.provider} / {p.display_name || p.model_id} {p.pricing_type === "subscription" ? `(sub $${Number(p.monthly_cost_usd).toFixed(0)}/mo)` : p.pricing_type === "free" ? "(free)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-3 text-right text-xs text-[var(--text-secondary)]">{a.default_model_pricing_type || "—"}</td>
+                    <td className="py-3 text-right font-mono text-xs text-[var(--text-primary)]">{rateLabel}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ── Model Pricing ── */}
+      <section className="rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Model Pricing</h2>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              {(pricing || []).length} models. Subscriptions shown in bold.
+            </p>
+          </div>
+          <button
+            onClick={syncOpenRouter}
+            disabled={busy === "sync"}
+            className="rounded-xl bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-hover)] disabled:opacity-40"
+          >
+            {busy === "sync" ? "Syncing..." : "Sync OpenRouter"}
+          </button>
+        </div>
+
+        {/* Add subscription form */}
+        <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-5 rounded-xl border border-[var(--border)] bg-[var(--bg-base)] p-3">
+          <input placeholder="provider" value={newSub.provider} onChange={(e) => setNewSub({ ...newSub, provider: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs" />
+          <input placeholder="model_id" value={newSub.model_id} onChange={(e) => setNewSub({ ...newSub, model_id: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs" />
+          <input placeholder="display name" value={newSub.display_name} onChange={(e) => setNewSub({ ...newSub, display_name: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs" />
+          <input placeholder="$/mo" value={newSub.monthly_cost_usd} onChange={(e) => setNewSub({ ...newSub, monthly_cost_usd: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs" />
+          <button onClick={createSubscription} disabled={busy === "sub"} className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-foreground)] hover:bg-[var(--accent-hover)] disabled:opacity-40">
+            <Plus className="inline h-3 w-3" /> Add Subscription
+          </button>
+        </div>
+
+        <div className="mt-4 max-h-[400px] overflow-auto">
+          <table className="min-w-full text-xs">
+            <thead className="sticky top-0 bg-[var(--bg-surface)] text-[10px] uppercase tracking-wider text-[var(--text-tertiary)]">
+              <tr className="border-b border-[var(--border)]">
+                <th className="py-2 text-left">Provider</th>
+                <th className="py-2 text-left">Model</th>
+                <th className="py-2 text-left">Type</th>
+                <th className="py-2 text-right">In $/1k</th>
+                <th className="py-2 text-right">Out $/1k</th>
+                <th className="py-2 text-right">$/mo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pricingOptions.map((p) => (
+                <tr key={p.id} className={`border-b border-[var(--border)]/40 ${p.pricing_type === "subscription" ? "font-semibold" : ""}`}>
+                  <td className="py-1.5 text-[var(--text-secondary)]">{p.provider}</td>
+                  <td className="py-1.5 text-[var(--text-primary)]">{p.display_name || p.model_id}</td>
+                  <td className="py-1.5 text-[var(--text-secondary)]">{p.pricing_type}</td>
+                  <td className="py-1.5 text-right font-mono text-[var(--text-primary)]">{p.cost_per_1k_input != null ? Number(p.cost_per_1k_input).toFixed(5) : "—"}</td>
+                  <td className="py-1.5 text-right font-mono text-[var(--text-primary)]">{p.cost_per_1k_output != null ? Number(p.cost_per_1k_output).toFixed(5) : "—"}</td>
+                  <td className="py-1.5 text-right font-mono text-[var(--text-primary)]">{p.monthly_cost_usd != null ? `$${Number(p.monthly_cost_usd).toFixed(2)}` : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ── Infrastructure Costs ── */}
+      <section className="rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Infrastructure Costs</h2>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              Servers & services. Total: <span className="font-mono text-[var(--text-primary)]">${totalInfra.toFixed(2)}/mo</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Add infra form */}
+        <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-6 rounded-xl border border-[var(--border)] bg-[var(--bg-base)] p-3">
+          <input placeholder="name" value={newInfra.name} onChange={(e) => setNewInfra({ ...newInfra, name: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs md:col-span-2" />
+          <select value={newInfra.category} onChange={(e) => setNewInfra({ ...newInfra, category: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs">
+            <option value="server">server</option>
+            <option value="service">service</option>
+            <option value="api_subscription">api_subscription</option>
+          </select>
+          <input placeholder="$/mo" value={newInfra.monthly_cost_usd} onChange={(e) => setNewInfra({ ...newInfra, monthly_cost_usd: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs" />
+          <input placeholder='{"transformate":1.0}' value={newInfra.tenant_allocations} onChange={(e) => setNewInfra({ ...newInfra, tenant_allocations: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs font-mono" />
+          <button onClick={createInfra} disabled={busy === "infra"} className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-foreground)] hover:bg-[var(--accent-hover)] disabled:opacity-40">
+            <Plus className="inline h-3 w-3" /> Add
+          </button>
+        </div>
+
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="text-[11px] uppercase tracking-wider text-[var(--text-tertiary)]">
+              <tr className="border-b border-[var(--border)]">
+                <th className="py-2 text-left">Name</th>
+                <th className="py-2 text-left">Category</th>
+                <th className="py-2 text-right">$/mo</th>
+                <th className="py-2 text-left">Allocation</th>
+                <th className="py-2 text-right"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {(infra || []).map((i) => (
+                <tr key={i.id} className="border-b border-[var(--border)]/40 hover:bg-white/[0.02]">
+                  <td className="py-2 text-[var(--text-primary)]">
+                    {i.name}
+                    {i.notes && <div className="text-xs text-[var(--text-tertiary)]">{i.notes}</div>}
+                  </td>
+                  <td className="py-2 text-[var(--text-secondary)] text-xs">{i.category}</td>
+                  <td className="py-2 text-right font-mono text-[var(--text-primary)]">${Number(i.monthly_cost_usd).toFixed(2)}</td>
+                  <td className="py-2 text-xs font-mono text-[var(--text-secondary)]">
+                    {Object.entries(i.tenant_allocations || {}).map(([k, v]) => `${k}:${(Number(v) * 100).toFixed(0)}%`).join(" ")}
+                  </td>
+                  <td className="py-2 text-right">
+                    <button
+                      onClick={() => deleteInfra(i.id)}
+                      disabled={busy === `infra:${i.id}`}
+                      className="text-red-400 hover:text-red-300 disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

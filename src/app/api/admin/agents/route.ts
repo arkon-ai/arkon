@@ -12,9 +12,24 @@ export async function GET(req: NextRequest) {
 
   const result = await query(
     `SELECT a.id, a.name, a.role, a.tenant_id, a.created_at, a.updated_at, a.metadata,
-            t.name as tenant_name
+            a.default_provider, a.default_model_id,
+            t.name as tenant_name,
+            mp.display_name      as default_model_display_name,
+            mp.pricing_type      as default_model_pricing_type,
+            mp.cost_per_1k_input as default_model_cost_per_1k_input,
+            mp.cost_per_1k_output as default_model_cost_per_1k_output,
+            mp.monthly_cost_usd  as default_model_monthly_cost_usd
      FROM agents a
      LEFT JOIN tenants t ON t.id = a.tenant_id
+     LEFT JOIN LATERAL (
+       SELECT display_name, pricing_type, cost_per_1k_input, cost_per_1k_output, monthly_cost_usd
+       FROM model_pricing
+       WHERE provider = a.default_provider
+         AND model_id = a.default_model_id
+         AND (effective_until IS NULL OR effective_until >= CURRENT_DATE)
+       ORDER BY effective_from DESC
+       LIMIT 1
+     ) mp ON true
      ORDER BY t.name, a.name`
   );
   return NextResponse.json({ agents: result.rows });
@@ -138,9 +153,11 @@ export async function PATCH(req: NextRequest) {
     action?: string;
     newRole?: string;
     tenant_id?: string;
+    default_provider?: string | null;
+    default_model_id?: string | null;
   };
 
-  const { id, action, newRole, tenant_id } = body;
+  const { id, action, newRole, tenant_id, default_provider, default_model_id } = body;
   if (!id || !action) {
     return NextResponse.json({ error: "id and action required" }, { status: 400 });
   }
@@ -215,6 +232,49 @@ export async function PATCH(req: NextRequest) {
     });
 
     return NextResponse.json({ ok: true, tenant_id });
+  }
+
+  if (action === "set_default_model") {
+    // default_provider + default_model_id may be null to clear, or a valid model_pricing row
+    if (default_provider && default_model_id) {
+      const exists = await query(
+        `SELECT 1 FROM model_pricing
+         WHERE provider = $1 AND model_id = $2
+         LIMIT 1`,
+        [default_provider, default_model_id]
+      );
+      if (exists.rows.length === 0) {
+        return NextResponse.json(
+          { error: `No model_pricing row for ${default_provider}/${default_model_id}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    const oldResult = await query(
+      "SELECT default_provider, default_model_id FROM agents WHERE id = $1",
+      [id]
+    );
+    const oldRow = oldResult.rows[0] as { default_provider: string | null; default_model_id: string | null } | undefined;
+
+    await query(
+      "UPDATE agents SET default_provider = $1, default_model_id = $2, updated_at = NOW() WHERE id = $3",
+      [default_provider ?? null, default_model_id ?? null, id]
+    );
+
+    logAudit({
+      actorType: user ? "user" : "system",
+      actorId,
+      action: "agent.default_model_changed",
+      targetType: "agent",
+      targetId: id,
+      description: `Set default model for ${id} to ${default_provider ?? "null"}/${default_model_id ?? "null"}`,
+      oldValue: oldRow,
+      newValue: { default_provider, default_model_id },
+      ipAddress: getClientIp(req.headers),
+    });
+
+    return NextResponse.json({ ok: true, default_provider, default_model_id });
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });

@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { isOwnerOrAdmin, unauthorized } from "@/app/api/tools/_utils";
 import { invalidateCache } from "@/lib/pricing-cache";
 import { getSubscriptionCosts } from "@/lib/subscription-amortize";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
-    return unauthorized();
-  }
+  if (!(await isOwnerOrAdmin(req))) return unauthorized();
 
   try {
     const result = await query(
@@ -28,9 +26,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) {
-    return unauthorized();
-  }
+  if (!(await isOwnerOrAdmin(req))) return unauthorized();
 
   try {
     const body = await req.json();

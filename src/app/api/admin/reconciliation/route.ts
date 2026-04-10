@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { isOwnerOrAdmin, unauthorized } from "@/app/api/tools/_utils";
 
 /**
  * Calculates Arkon's tracked cost for a provider over a date range.
@@ -35,9 +35,7 @@ async function getTrackedAmount(provider: string, periodStart: string, periodEnd
 }
 
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) {
-    return unauthorized();
-  }
+  if (!(await isOwnerOrAdmin(req))) return unauthorized();
 
   try {
     const body = await req.json();
@@ -69,9 +67,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
-    return unauthorized();
-  }
+  if (!(await isOwnerOrAdmin(req))) return unauthorized();
 
   try {
     const { searchParams } = new URL(req.url);
@@ -132,9 +128,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!validateAdmin(req)) {
-    return unauthorized();
-  }
+  if (!(await isOwnerOrAdmin(req))) return unauthorized();
 
   try {
     const { searchParams } = new URL(req.url);
