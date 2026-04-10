@@ -126,6 +126,41 @@ export async function GET(req: NextRequest) {
     const eventsWithActual = parseInt(accuracyResult.rows[0]?.events_with_actual_tokens || "0");
     const accuracyPct = totalEvents > 0 ? Math.round((eventsWithActual / totalEvents) * 100) : 0;
 
+    // Phase 4: Infrastructure costs — active only, with per-tenant allocation
+    const infraResult = await query(
+      `SELECT id, name, category, monthly_cost_usd, tenant_allocations, notes
+       FROM infra_costs
+       WHERE active = true
+       ORDER BY category, name`
+    );
+    const infraRows = infraResult.rows;
+    const totalInfraMonthly = infraRows.reduce(
+      (sum, r) => sum + parseFloat(r.monthly_cost_usd),
+      0
+    );
+    // Per-tenant infra allocation
+    const infraPerTenant: Record<string, number> = {};
+    for (const cost of infraRows) {
+      const allocations = (cost.tenant_allocations || {}) as Record<string, number>;
+      const amount = parseFloat(cost.monthly_cost_usd);
+      for (const [tenant, pct] of Object.entries(allocations)) {
+        infraPerTenant[tenant] = (infraPerTenant[tenant] || 0) + amount * pct;
+      }
+    }
+
+    // Total monthly burn = API cost (this month) + prorated infra
+    const monthApiTenantFilter = tenantId ? "AND ds.tenant_id = $1" : "";
+    const monthApiParams = tenantId ? [tenantId] : [];
+    const monthApiCostResult = await query(
+      `SELECT COALESCE(SUM(estimated_cost_usd), 0) as cost
+       FROM daily_stats ds
+       WHERE day >= date_trunc('month', CURRENT_DATE) ${monthApiTenantFilter}`,
+      monthApiParams
+    );
+    const monthApiCost = parseFloat(monthApiCostResult.rows[0]?.cost || "0");
+    const tenantInfraShare = tenantId ? (infraPerTenant[tenantId] || 0) : totalInfraMonthly;
+    const totalMonthlyBurn = monthApiCost + tenantInfraShare;
+
     return NextResponse.json({
       summary: {
         total_cost_usd: parseFloat(totalCost.rows[0]?.total_cost || "0"),
@@ -135,6 +170,9 @@ export async function GET(req: NextRequest) {
         active_agents: parseInt(totalCost.rows[0]?.active_agents || "0"),
         cost_accuracy_pct: accuracyPct,
         range,
+        total_monthly_burn_usd: Math.round(totalMonthlyBurn * 100) / 100,
+        month_api_cost_usd: Math.round(monthApiCost * 100) / 100,
+        month_infra_cost_usd: Math.round(tenantInfraShare * 100) / 100,
       },
       daily_trend: dailyCost.rows.map((r: Record<string, string>) => ({
         day: r.day,
@@ -163,6 +201,20 @@ export async function GET(req: NextRequest) {
         month_spend: parseFloat(String(r.month_spend)) || 0,
       })),
       last_month_cost: parseFloat(lastMonth.rows[0]?.cost || "0"),
+      infra_costs: {
+        items: infraRows.map((r: Record<string, unknown>) => ({
+          id: r.id,
+          name: r.name,
+          category: r.category,
+          monthly_cost_usd: parseFloat(String(r.monthly_cost_usd)),
+          tenant_allocations: r.tenant_allocations,
+          notes: r.notes,
+        })),
+        total_monthly_usd: Math.round(totalInfraMonthly * 100) / 100,
+        per_tenant_monthly: Object.fromEntries(
+          Object.entries(infraPerTenant).map(([k, v]) => [k, Math.round(v * 100) / 100])
+        ),
+      },
       agent_anomalies: (() => {
         const avgMap: Record<string, number> = {};
         for (const r of agentAvg7d.rows) avgMap[r.agent_id] = parseFloat(r.avg_daily_cost);
