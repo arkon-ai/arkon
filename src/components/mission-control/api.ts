@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 
 export interface Tenant {
   id: string;
@@ -176,8 +176,9 @@ export function usePollingFetch<T>(url: string, intervalMs = 15000): State<T> {
 export function useEventStream(onEvent?: (event: { type: string; payload: Record<string, unknown> }) => void) {
   const [connected, setConnected] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
-  const onEventRef = useRef(onEvent);
-  onEventRef.current = onEvent;
+  const handleEvent = useEffectEvent((event: { type: string; payload: Record<string, unknown> }) => {
+    onEvent?.(event);
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -189,7 +190,7 @@ export function useEventStream(onEvent?: (event: { type: string; payload: Record
     es.onmessage = (e) => {
       try {
         const parsed = JSON.parse(e.data);
-        onEventRef.current?.(parsed);
+        handleEvent(parsed);
       } catch {
         // ignore malformed messages
       }

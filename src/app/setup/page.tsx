@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ArrowLeft,
-  Building2,
   Bot,
-  Code2,
   Zap,
   Rocket,
   Check,
@@ -32,6 +30,10 @@ const FRAMEWORKS = [
   { value: "autogen", label: "AutoGen" },
   { value: "custom", label: "Custom / Other" },
 ];
+
+const subscribeToOrigin = () => () => {};
+const getClientOriginSnapshot = () => window.location.origin;
+const getServerOriginSnapshot = () => "https://your-arkon-instance.com";
 
 /* ── Main Setup Wizard ─────────────────────────────────────────────────────── */
 
@@ -622,8 +624,11 @@ function SdkStep({
   onNext: () => void;
 }) {
   const [tab, setTab] = useState<"node" | "python" | "curl" | "openclaw" | "nemoclaw">("curl");
-  const [baseUrl, setBaseUrl] = useState("https://your-arkon-instance.com");
-  useEffect(() => { setBaseUrl(window.location.origin); }, []);
+  const baseUrl = useSyncExternalStore(
+    subscribeToOrigin,
+    getClientOriginSnapshot,
+    getServerOriginSnapshot,
+  );
 
   const snippets: Record<string, { label: string; code: string }> = {
     curl: {
@@ -824,20 +829,33 @@ function FeatureCard({
 
 function ConfettiEffect() {
   const colors = ["#00D47E", "#00D47E", "#f59e0b", "#06b6d4", "#ef4444"];
+  const [particles] = useState(() =>
+    Array.from({ length: 30 }, (_, i) => ({
+      key: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 40}%`,
+      width: `${6 + Math.random() * 6}px`,
+      height: `${6 + Math.random() * 6}px`,
+      backgroundColor: colors[i % colors.length],
+      borderRadius: Math.random() > 0.5 ? "50%" : "2px",
+      animationDelay: `${Math.random() * 0.5}s`,
+    })),
+  );
+
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {Array.from({ length: 30 }, (_, i) => (
+      {particles.map((particle) => (
         <div
-          key={i}
+          key={particle.key}
           className="absolute animate-[confetti_1.5s_ease-out_forwards]"
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 40}%`,
-            width: `${6 + Math.random() * 6}px`,
-            height: `${6 + Math.random() * 6}px`,
-            backgroundColor: colors[i % colors.length],
-            borderRadius: Math.random() > 0.5 ? "50%" : "2px",
-            animationDelay: `${Math.random() * 0.5}s`,
+            left: particle.left,
+            top: particle.top,
+            width: particle.width,
+            height: particle.height,
+            backgroundColor: particle.backgroundColor,
+            borderRadius: particle.borderRadius,
+            animationDelay: particle.animationDelay,
             opacity: 0,
           }}
         />

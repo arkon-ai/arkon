@@ -39,8 +39,12 @@ export async function POST(req: NextRequest) {
       [email, tokenHash, expiresAt.toISOString()]
     );
 
-    const baseUrl = process.env.ARKON_BASE_URL || process.env.NEXTAUTH_URL || "https://arkonhq.com";
-    const magicUrl = `${baseUrl}/login?magic=${rawToken}&email=${encodeURIComponent(email)}`;
+    const allowDebugMagicLink =
+      process.env.NODE_ENV !== "production" &&
+      process.env.ARKON_ALLOW_MAGIC_LINK_DEBUG_URL === "true";
+    const magicUrl = allowDebugMagicLink
+      ? `${process.env.ARKON_BASE_URL || process.env.NEXTAUTH_URL || "https://arkonhq.com"}/login?magic=${rawToken}&email=${encodeURIComponent(email)}`
+      : null;
 
     logAudit({
       actorType: "system",
@@ -49,12 +53,14 @@ export async function POST(req: NextRequest) {
       ipAddress: getClientIp(req.headers),
     });
 
-    console.log(`[auth/magic-link] Magic link generated for ${email}: ${magicUrl}`);
+    if (allowDebugMagicLink) {
+      console.warn(`[auth/magic-link] Debug URL response enabled for ${email}`);
+    }
 
     return NextResponse.json({
       ok: true,
       message: "If an account exists for this email, a login link has been sent.",
-      _debug_url: magicUrl,
+      ...(magicUrl ? { _debug_url: magicUrl } : {}),
     });
   } catch (err) {
     console.error("[auth/magic-link] Error:", err);

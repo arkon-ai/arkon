@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 
 export type ThemeMode = "system" | "light" | "dark";
 
@@ -22,21 +22,42 @@ export function useTheme() {
 
 const STORAGE_KEY = "arkon-theme";
 
+function isThemeMode(value: string | null): value is ThemeMode {
+  return value === "system" || value === "light" || value === "dark";
+}
+
+function getInitialThemeMode(): ThemeMode {
+  if (typeof window === "undefined") return "dark";
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return isThemeMode(stored) ? stored : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
 function getSystemPreference(): "light" | "dark" {
   if (typeof window === "undefined") return "dark";
   return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
-function resolveTheme(mode: ThemeMode): "light" | "dark" {
-  if (mode === "system") return getSystemPreference();
-  return mode;
+function subscribeToSystemPreference(onStoreChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+  const mql = window.matchMedia("(prefers-color-scheme: light)");
+  mql.addEventListener("change", onStoreChange);
+  return () => mql.removeEventListener("change", onStoreChange);
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Always start with "dark" to match server HTML (data-theme="dark")
-  // Stored preference is applied in useEffect to avoid hydration mismatch
-  const [mode, setModeState] = useState<ThemeMode>("dark");
-  const [resolved, setResolved] = useState<"light" | "dark">("dark");
+  const [mode, setModeState] = useState<ThemeMode>(getInitialThemeMode);
+  const systemPreference = useSyncExternalStore<"light" | "dark">(
+    subscribeToSystemPreference,
+    getSystemPreference,
+    () => "dark",
+  );
+  const resolved: "light" | "dark" = mode === "system" ? systemPreference : mode;
 
   const applyTheme = useCallback((theme: "light" | "dark") => {
     const root = document.documentElement;
@@ -46,36 +67,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // Update theme-color meta tag
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", theme === "light" ? "#F5F5F7" : "#0A0A0C");
-    setResolved(theme);
   }, []);
 
   const setMode = useCallback((newMode: ThemeMode) => {
     setModeState(newMode);
     try { localStorage.setItem(STORAGE_KEY, newMode); } catch {}
-    applyTheme(resolveTheme(newMode));
-  }, [applyTheme]);
+  }, []);
 
-  // Restore stored preference on mount (after hydration)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-      if (stored && ["system", "light", "dark"].includes(stored)) {
-        setModeState(stored);
-        applyTheme(resolveTheme(stored));
-        return;
-      }
-    } catch {}
-    applyTheme(resolveTheme(mode));
-  }, [applyTheme]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Listen for system preference changes
-  useEffect(() => {
-    if (mode !== "system") return;
-    const mql = window.matchMedia("(prefers-color-scheme: light)");
-    const handler = () => applyTheme(getSystemPreference());
-    mql.addEventListener("change", handler);
-    return () => mql.removeEventListener("change", handler);
-  }, [mode, applyTheme]);
+    applyTheme(resolved);
+  }, [applyTheme, resolved]);
 
   return (
     <ThemeContext.Provider value={{ mode, resolved, setMode }}>
