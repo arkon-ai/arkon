@@ -39,13 +39,15 @@ except Exception as e:
 `.trim();
 
   try {
+    // Pass the script through base64 — shell + ssh quoting mangle multiline Python otherwise.
+    const b64 = Buffer.from(pyScript, "utf8").toString("base64");
     const { stdout } = await execFileP(
       "ssh",
       [
         "-o", "StrictHostKeyChecking=no",
         "-o", "ConnectTimeout=8",
         "brynn@100.90.212.53",
-        `cd ~/.openclaw/workspace/youtube-kb && python3 -c ${JSON.stringify(pyScript)}`,
+        `echo ${b64} | base64 -d | python3 -`,
       ],
       { timeout: 20_000, maxBuffer: 1_000_000 }
     );
