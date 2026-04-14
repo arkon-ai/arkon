@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
+const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health", "/api/youtube-kb/status"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
-const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/docs/"];
+const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/api/youtube-kb/channels", "/api/youtube-kb/status", "/docs/"];
 
 function isDashboardApiRoute(pathname: string): boolean {
   return pathname.startsWith("/api/");

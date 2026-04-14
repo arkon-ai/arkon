@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Palette } from "lucide-react";
+import { Bell, Palette, Youtube } from "lucide-react";
 import type { ReactNode } from "react";
 
 const tabs = [
   { href: "/settings/notifications", label: "Notifications", icon: Bell },
   { href: "/settings/appearance", label: "Appearance", icon: Palette },
+  { href: "/settings/youtube-kb", label: "YouTube KB", icon: Youtube },
 ];
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
