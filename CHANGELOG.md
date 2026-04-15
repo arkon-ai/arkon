@@ -4,6 +4,19 @@ All notable changes to Arkon are documented in this file.
 
 ---
 
+## [Unreleased] — 2026-04-14
+
+### YouTube KB Manager (`c434ed4`)
+- New Settings page `/settings/youtube-kb`: add/remove/toggle YouTube channels for the Dell G5 transcript pipeline
+- API routes `/api/youtube-kb/channels` (public GET for pipeline, owner-only writes) and `/api/youtube-kb/status` (SSH to EU-OPEN for live ChromaDB counts; accepts Dell pipeline POST via `X-Pipeline-Token`)
+- Migration `016_youtube_channels.sql` — table seeded with 15 existing channels
+- Middleware: status endpoint added to `AGENT_ROUTES` to bypass CSRF for pipeline POSTs
+- Dell pipeline (`~/yt-kb-pipeline/pull_transcripts.py`) patched to fetch config from Arkon API with local `channels.json` fallback; reports pull stats back
+- Deps: `ws` + `@types/ws` (unblocks pre-existing untracked gateway WIP build; zero runtime impact)
+- Full session notes: `changelogs/ARKON-YOUTUBE-KB-SESSION-2026-04-14.md`
+
+---
+
 ## [0.1.1] — 2026-03-18
 
 ### Brand: Revert Foundation Colors (`1f9a7dd`)
