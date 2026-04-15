@@ -42,6 +42,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   GitBranch,
+  BookOpen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
@@ -90,6 +91,7 @@ const pageLabels: Record<string, string> = {
   "/client/events": "Client Events",
   "/client/costs": "Client Costs",
   "/incidents": "Incidents",
+  "/journal": "Journal",
   "/settings": "Settings",
   "/settings/appearance": "Appearance",
   "/settings/notifications": "Notifications",
@@ -141,6 +143,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     key: "respond",
     items: [
       { href: "/incidents", label: "Incidents", subtitle: "Track operational incidents", icon: AlertTriangle },
+      { href: "/journal", label: "Journal", subtitle: "Tasks, decisions & logs across all agents", icon: BookOpen },
       { href: "/tools/approvals", label: "Approvals", subtitle: "Review pending requests", icon: CheckCircle },
       { href: "/workflows", label: "Workflows", subtitle: "Automate operations", icon: Workflow },
     ],
