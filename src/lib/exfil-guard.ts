@@ -129,17 +129,23 @@ function scanText(
   let scrubbed = text;
   let hasHigh = false;
 
+  // Clone each regex per call. The DEFAULT_PATTERNS array holds module-level
+  // RegExp objects with the `g` flag, which carry stateful `lastIndex`. Even
+  // though Node is single-threaded, async interleaving (a later guard call
+  // landing between this function's exec pass and replace pass, when either
+  // is re-entered from a caller that awaited something) could corrupt state.
+  // Cloning costs ~a microsecond per pattern and eliminates the footgun.
+  // (Sentinel audit 2026-04-16, FIX-FIRST #1.)
   for (const def of DEFAULT_PATTERNS) {
     if (def.outboundOnly && direction !== "outbound") continue;
 
-    // Reset lastIndex on the shared regex (defensive — `g` flag is stateful)
-    def.regex.lastIndex = 0;
+    const re = new RegExp(def.regex.source, def.regex.flags);
     const matches: string[] = [];
     let m: RegExpExecArray | null;
-    while ((m = def.regex.exec(text)) !== null) {
+    while ((m = re.exec(text)) !== null) {
       matches.push(m[0]);
       // Guard against zero-width matches causing infinite loops
-      if (m.index === def.regex.lastIndex) def.regex.lastIndex++;
+      if (m.index === re.lastIndex) re.lastIndex++;
     }
 
     if (matches.length > 0) {
@@ -155,8 +161,11 @@ function scanText(
   // Scrub after finding so preview captures real match, not [REDACTED:...]
   for (const def of DEFAULT_PATTERNS) {
     if (def.outboundOnly && direction !== "outbound") continue;
-    def.regex.lastIndex = 0;
-    scrubbed = scrubbed.replace(def.regex, `[REDACTED:${def.name}]`);
+    // Fresh regex for replace too — `replace` with /g is safer than exec but
+    // still writes to lastIndex internally; cloning preserves the per-call
+    // isolation invariant.
+    const re = new RegExp(def.regex.source, def.regex.flags);
+    scrubbed = scrubbed.replace(re, `[REDACTED:${def.name}]`);
   }
 
   return { findings, scrubbed, hasHigh };
