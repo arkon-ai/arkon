@@ -7,14 +7,14 @@
  *   - record findings to the existing `audit_log` table (best-effort)
  *   - optionally scrub (mode="block") or just log (mode="log", default)
  *
- * NOTE: redact.ts is the source of truth for the inbound scrubbing pipeline
- * (already deployed at src/app/api/ingest/route.ts). We intentionally do NOT
- * import from it; dependency flows one-way (redact.ts -> nothing; guard
- * replicates its patterns plus outbound-specific ones). This keeps redact.ts
- * tiny and avoids a circular risk if route wiring later imports guard.
+ * Shared patterns (openai/slack/github/AWS/Bearer/DSN/PEM) live in
+ * `redact-patterns.ts` and are imported here. Outbound-specific patterns
+ * (`high-entropy-token`, `private-ip`) stay local. Dependency flow is
+ * one-way: redact-patterns → nothing; redact.ts + exfil-guard.ts → redact-patterns.
  */
 
 import { query } from "@/lib/db";
+import { SHARED_PATTERNS, type SharedPatternDef } from "@/lib/redact-patterns";
 
 export type GuardDirection = "inbound" | "outbound";
 
@@ -39,56 +39,38 @@ export interface GuardOptions {
   context?: string;
 }
 
-interface PatternDef {
-  name: string;
-  regex: RegExp;
-  severity: "high" | "medium" | "low";
+type PatternDef = SharedPatternDef & {
   // If true, this pattern is only meaningful on outbound paths
   outboundOnly?: boolean;
-}
+};
 
 /**
- * Union of redact.ts patterns plus outbound-specific heuristics.
- * Keep regex literals local (not imported) so guard is self-contained.
- * All regexes are declared with the `g` flag so `.matchAll` works.
+ * Union of shared patterns (from redact-patterns.ts) plus outbound-specific
+ * heuristics declared locally. All regexes use the `g` flag so `.matchAll`
+ * works; callers clone per-use to avoid shared `lastIndex` state.
  */
 export const DEFAULT_PATTERNS: PatternDef[] = [
-  // --- Mirror of redact.ts (SK/xox/gh/AWS/Bearer/DSN/PEM) ---
-  { name: "openai-key", regex: /sk-[a-zA-Z0-9_-]{20,}/g, severity: "high" },
-  { name: "slack-bot-token", regex: /xoxb-[a-zA-Z0-9_-]+/g, severity: "high" },
-  { name: "slack-user-token", regex: /xoxp-[a-zA-Z0-9_-]+/g, severity: "high" },
-  { name: "github-pat", regex: /ghp_[a-zA-Z0-9]{36,}/g, severity: "high" },
-  { name: "gitlab-pat", regex: /glpat-[a-zA-Z0-9_-]{20,}/g, severity: "high" },
-  { name: "bearer-token", regex: /Bearer\s+[a-zA-Z0-9._-]{20,}/g, severity: "high" },
-  {
-    name: "kv-secret",
-    regex:
-      /(?:api_key|apikey|api-key|token|secret|password|passwd|pwd)\s*[=:]\s*['"]?[a-zA-Z0-9_./+=-]{8,}['"]?/gi,
-    severity: "high",
-  },
-  { name: "aws-access-key", regex: /AKIA[0-9A-Z]{16}/g, severity: "high" },
-  {
-    name: "db-dsn",
-    regex: /(?:postgresql|mysql|mongodb|redis):\/\/[^:\s]+:[^@\s]+@/g,
-    severity: "high",
-  },
-  {
-    name: "private-key-pem",
-    regex:
-      /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g,
-    severity: "high",
-  },
+  // --- Shared with redact.ts (openai/slack/github/gitlab/bearer/kv/AWS/DSN/PEM) ---
+  ...SHARED_PATTERNS.map((p): PatternDef => ({ ...p })),
 
   // --- Outbound-specific additions ---
-  // High-entropy tokens: 32+ chars of hex or base64url. We require both digits AND
-  // letters to cut false positives on pure-text identifiers; and we anchor on
-  // word boundaries so diff hashes (SHA-1 40 hex) still match but english prose
-  // doesn't. 40-char hex is common (SHA-1, API IDs) — we accept 32+.
+  // High-entropy tokens: 32+ chars of hex or base64url. Requires both digits AND
+  // letters via lookaheads to cut false positives on pure-text identifiers.
+  // `excludeShapes` suppresses the two biggest real-world false-positive classes
+  // a purely entropy-based heuristic would otherwise flag: git SHA1/SHA256
+  // commit hashes (40/64 hex chars) and UUIDv4-shaped IDs (MCP session IDs,
+  // Supabase project IDs, Tailscale node IDs, `vos_tenants.id`, etc.).
+  // (Sentinel audit 2026-04-16, FIX-FIRST #2.)
   {
     name: "high-entropy-token",
     regex: /\b(?=[A-Za-z0-9_-]*[A-Za-z])(?=[A-Za-z0-9_-]*[0-9])[A-Za-z0-9_-]{32,}\b/g,
     severity: "medium",
     outboundOnly: true,
+    excludeShapes: [
+      /^[a-f0-9]{40}$/i, // SHA1
+      /^[a-f0-9]{64}$/i, // SHA256
+      /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i, // UUID
+    ],
   },
   // Private/internal IPs — meaningful only on outbound (leak of internal topology)
   {
@@ -143,7 +125,11 @@ function scanText(
     const matches: string[] = [];
     let m: RegExpExecArray | null;
     while ((m = re.exec(text)) !== null) {
-      matches.push(m[0]);
+      const candidate = m[0];
+      // excludeShapes: skip candidates that match a known false-positive shape
+      // (e.g. SHA/UUID on the high-entropy heuristic). See redact-patterns.ts.
+      const excluded = def.excludeShapes?.some((ex) => ex.test(candidate)) ?? false;
+      if (!excluded) matches.push(candidate);
       // Guard against zero-width matches causing infinite loops
       if (m.index === re.lastIndex) re.lastIndex++;
     }
@@ -165,7 +151,12 @@ function scanText(
     // still writes to lastIndex internally; cloning preserves the per-call
     // isolation invariant.
     const re = new RegExp(def.regex.source, def.regex.flags);
-    scrubbed = scrubbed.replace(re, `[REDACTED:${def.name}]`);
+    // Use a replacer function so excludeShapes candidates pass through
+    // unscrubbed, matching the finding-pass behavior above.
+    scrubbed = scrubbed.replace(re, (match) => {
+      const excluded = def.excludeShapes?.some((ex) => ex.test(match)) ?? false;
+      return excluded ? match : `[REDACTED:${def.name}]`;
+    });
   }
 
   return { findings, scrubbed, hasHigh };

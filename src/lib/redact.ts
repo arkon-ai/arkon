@@ -1,31 +1,11 @@
 /**
  * Redaction layer — strips sensitive content BEFORE database storage.
  * This runs on the ingest side. By the time data is in PostgreSQL, it's clean.
+ *
+ * Patterns live in `redact-patterns.ts` (shared with exfil-guard.ts).
  */
 
-const SENSITIVE_PATTERNS = [
-  // API keys
-  /sk-[a-zA-Z0-9_-]{20,}/g,
-  /xoxb-[a-zA-Z0-9_-]+/g,
-  /xoxp-[a-zA-Z0-9_-]+/g,
-  /ghp_[a-zA-Z0-9]{36,}/g,
-  /glpat-[a-zA-Z0-9_-]{20,}/g,
-
-  // Bearer tokens in content
-  /Bearer\s+[a-zA-Z0-9._-]{20,}/g,
-
-  // Generic key=value patterns
-  /(?:api_key|apikey|api-key|token|secret|password|passwd|pwd)\s*[=:]\s*['"]?[a-zA-Z0-9_./+=-]{8,}['"]?/gi,
-
-  // AWS keys
-  /AKIA[0-9A-Z]{16}/g,
-
-  // Connection strings with passwords
-  /(?:postgresql|mysql|mongodb|redis):\/\/[^:]+:[^@]+@/g,
-
-  // SSH private keys
-  /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g,
-];
+import { SHARED_PATTERN_REGEXES } from "./redact-patterns";
 
 const MAX_CONTENT_LENGTH = 5000; // Truncate very long content
 
@@ -35,9 +15,12 @@ export function redactContent(content: string): { text: string; redacted: boolea
   let redacted = false;
   let result = content;
 
-  for (const pattern of SENSITIVE_PATTERNS) {
+  // Clone each regex per call — `g` flag carries stateful `lastIndex` that can
+  // corrupt under async interleaving. (Sentinel audit 2026-04-16, FIX-FIRST #1.)
+  for (const source of SHARED_PATTERN_REGEXES) {
+    const re = new RegExp(source.source, source.flags);
     const before = result;
-    result = result.replace(pattern, "[REDACTED]");
+    result = result.replace(re, "[REDACTED]");
     if (result !== before) redacted = true;
   }
 
