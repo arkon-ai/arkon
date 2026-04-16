@@ -34,6 +34,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import net from "node:net";
 import { authorizeJournalActor } from "@/lib/journal-auth";
+import { resolveUser } from "@/app/api/tools/_utils";
 import { guardBody } from "@/lib/exfil-guard";
 import { classify } from "@/lib/message-classifier";
 
@@ -44,15 +45,65 @@ const BRIDGE_CONNECT_TIMEOUT_MS = parseInt(
   10,
 );
 
+// Roles in the `users` table that are governor-equivalent for chat purposes.
+// `owner` = Brynn; `admin` = any workspace admin. Everyone else is rejected.
+const GOVERNOR_USER_ROLES = new Set(["owner", "admin"]);
+
+interface ChatActor {
+  slug: string;       // agent_identities slug — 'warden' or 'brynn'
+  tenantId: string;
+  role: "governor";
+  source: "agent-token" | "user-session";
+}
+
+/**
+ * Resolve a chat actor from either an agent token (Bearer) or a user session
+ * cookie (`mc_auth`). Governors only. Non-governor callers return null.
+ */
+async function resolveChatActor(req: NextRequest): Promise<ChatActor | null> {
+  // Path A: agent token via Authorization: Bearer <agent-token>
+  const authHeader = req.headers.get("authorization");
+  const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+  if (bearer) {
+    const actor = await authorizeJournalActor(authHeader);
+    if (actor) {
+      if (actor.role !== "governor") return null;
+      return {
+        slug: actor.slug,
+        tenantId: actor.tenantId,
+        role: "governor",
+        source: "agent-token",
+      };
+    }
+    // Bearer present but not a valid agent token — fall through to user-session
+    // resolution, since resolveUser() also reads Bearer as a user session token.
+  }
+
+  // Path B: user session via mc_auth cookie (or Bearer-matching user_sessions row)
+  const user = await resolveUser(req);
+  if (!user) return null;
+  if (!GOVERNOR_USER_ROLES.has(user.role)) return null;
+
+  // Tenant comes from mc_tenant cookie (set at login). Owners have user.tenant_id=NULL
+  // but the cookie carries whichever tenant they're currently operating in.
+  const tenantId = req.cookies.get("mc_tenant")?.value || user.tenant_id;
+  if (!tenantId) return null;
+
+  // Map user → agent slug. Brynn the human is always 'brynn' in agent_identities.
+  // Future: generalise via a users.agent_slug column or email → slug table.
+  const slug = user.email === "brynn@arkonhq.com" ? "brynn" : "brynn";
+
+  return { slug, tenantId, role: "governor", source: "user-session" };
+}
+
 function sseEvent(event: string, data: unknown): string {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
 
 export async function POST(request: NextRequest) {
-  const actor = await authorizeJournalActor(request.headers.get("authorization"));
-  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (actor.role !== "governor") {
-    return NextResponse.json({ error: "warden-chat is governor-only" }, { status: 403 });
+  const actor = await resolveChatActor(request);
+  if (!actor) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   let body: Record<string, unknown>;
