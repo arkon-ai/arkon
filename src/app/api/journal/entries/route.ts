@@ -8,8 +8,65 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { authorizeJournalActor, canCreateAs } from "@/lib/journal-auth";
 import { broadcast } from "@/lib/event-bus";
+import { embed, embeddingMeta, toPgVector } from "@/lib/embeddings";
 // Note: event-bus.broadcast takes {type, payload} — journal events use
 // type='journal' with payload containing the detail.
+
+/**
+ * Fire-and-forget: embed a newly-created work_entry into memory_facts as
+ * kind='entry-seed'. Never blocks the response, never throws upstream.
+ * Skips silently if GOOGLE_API_KEY is absent or the text is empty.
+ */
+function ingestToMemory(params: {
+  id: number;
+  tenantId: string;
+  ownerAgent: string;
+  title: string;
+  bodyMd: string | null;
+  category: string;
+  tags: string[];
+  project: string | null;
+}): void {
+  if (!process.env.GOOGLE_API_KEY) return;
+  const text = [params.title, params.bodyMd].filter(Boolean).join("\n\n").trim();
+  if (!text) return;
+
+  // Fire-and-forget — explicit void, no await. Errors logged only.
+  void (async () => {
+    try {
+      const vec = await embed(text);
+      const meta = embeddingMeta();
+      const metadata = {
+        original_category: params.category,
+        tags: params.tags,
+        related_project: params.project,
+        source: "journal-entries-ingest",
+        embed_model: meta.model,
+      };
+      await query(
+        `INSERT INTO memory_facts
+           (tenant_id, owner_agent, kind, body, metadata, source_entry_id,
+            embedding_provider, embedding_dim, embedding)
+         VALUES ($1, $2, 'entry-seed', $3, $4::jsonb, $5,
+                 $6, $7, $8::vector)
+         ON CONFLICT DO NOTHING`,
+        [
+          params.tenantId,
+          params.ownerAgent,
+          text,
+          JSON.stringify(metadata),
+          params.id,
+          meta.embedding_provider,
+          meta.embedding_dim,
+          toPgVector(vec),
+        ],
+      );
+    } catch (err) {
+      // Never propagate — embeddings are best-effort.
+      console.warn(`[memory-v2] ingest failed for entry ${params.id}:`, err);
+    }
+  })();
+}
 
 const ALLOWED_CATEGORIES = ["task", "log", "decision", "insight", "question", "blocker", "ship", "note"];
 const ALLOWED_STATUS = ["todo", "in_progress", "done", "blocked", "cancelled", "log"];
@@ -107,6 +164,18 @@ export async function POST(request: NextRequest) {
   try {
     broadcast({ type: "journal.entry.created", payload: { tenant_id: actor.tenantId, entry } });
   } catch { /* broadcast best-effort */ }
+
+  // Fire-and-forget embed into memory_facts (Phase 1.5 ingestion hook)
+  ingestToMemory({
+    id: Number(entry.id),
+    tenantId: actor.tenantId,
+    ownerAgent: ownerAgent,
+    title,
+    bodyMd,
+    category,
+    tags,
+    project,
+  });
 
   return NextResponse.json({ entry }, { status: 201 });
 }
