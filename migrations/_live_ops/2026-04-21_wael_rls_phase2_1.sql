@@ -118,16 +118,27 @@ CREATE POLICY wael_writer_insert
 -- If running this file raw (without -v), swap the :'lumina_pw' token for a
 -- quoted literal first.
 
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'wael_writer_lumina') THEN
-    EXECUTE format('CREATE ROLE wael_writer_lumina LOGIN PASSWORD %L', :'lumina_pw');
-  END IF;
-END $$;
+-- AMENDMENT 2026-04-21 (warden-hub apply): the original DO block used
+-- :'lumina_pw' inside a $$..$$ dollar-quoted body. psql variable
+-- substitution does NOT descend into dollar-quoted strings, so the colon
+-- reached the server literally and raised "syntax error at or near ':'".
+-- Pre-apply probe confirmed wael_writer_lumina does not exist, so the
+-- idempotency guard is not needed for this apply. Direct CREATE ROLE used.
+-- If re-applying (e.g. on a fresh env), add a prior
+--   \if :{?existing_role} ... \endif
+-- guard outside a DO block, or drop-and-recreate explicitly.
+
+CREATE ROLE wael_writer_lumina LOGIN PASSWORD :'lumina_pw';
 
 GRANT CONNECT ON DATABASE mission_control TO wael_writer_lumina;
 GRANT USAGE ON SCHEMA public TO wael_writer_lumina;
 GRANT INSERT ON TABLE worker_activity_events TO wael_writer_lumina;
+-- AMENDMENT 2026-04-21 (post-apply smoke caught this): the table's primary
+-- key is `id bigint DEFAULT nextval('worker_activity_events_id_seq')`, so any
+-- INSERT that doesn't supply `id` explicitly needs USAGE on the sequence.
+-- wael_writer and warden_bridge both had this pre-apply (which is why their
+-- writes worked). wael_writer_lumina needs it too.
+GRANT USAGE ON SEQUENCE worker_activity_events_id_seq TO wael_writer_lumina;
 
 -- RLS: lumina can only write rows where worker_id = 'lumina'. Note: NO SELECT
 -- policy is added — Lumina is a write-only role. Cross-agent reads go through
