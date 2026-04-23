@@ -73,6 +73,7 @@ const pageLabels: Record<string, string> = {
   "/traces": "Traces",
   "/costs": "Costs",
   "/agents": "Agents",
+  "/fleet": "Fleet",
   "/systems": "Infrastructure",
   "/confessions": "Confessions",
   "/visuals": "Visuals",
@@ -117,6 +118,7 @@ const mobileTabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
 const moreSheetItems: NavItem[] = [
   { href: "/incidents", label: "Incidents", icon: AlertTriangle },
   { href: "/agents", label: "Agents", icon: Bot },
+  { href: "/fleet", label: "Fleet", icon: Radio },
   { href: "/infrastructure", label: "Infrastructure", icon: Network },
   { href: "/traces", label: "Traces", icon: GitBranch },
   { href: "/workflows", label: "Workflows", icon: Workflow },
@@ -132,6 +134,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
       { href: "/", label: "Dashboard", subtitle: "System health & key metrics", icon: LayoutDashboard },
       { href: "/arkonos", label: "ArkonOS", subtitle: "Chat with Lumina", icon: MessageSquare },
       { href: "/agents", label: "Agents", subtitle: "Monitor agent fleet", icon: Bot },
+      { href: "/fleet", label: "Fleet", subtitle: "Warden's orchestrated 4-agent fleet", icon: Radio },
       { href: "/security", label: "Threats", subtitle: "Detect & respond to threats", icon: ShieldCheck },
       { href: "/costs", label: "Costs", subtitle: "Spending by agent & model", icon: Wallet },
       { href: "/traces", label: "Traces", subtitle: "Agent execution traces & spans", icon: GitBranch },
