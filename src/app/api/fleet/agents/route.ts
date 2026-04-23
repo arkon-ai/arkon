@@ -23,13 +23,17 @@ interface IdentityRow {
   role: string;
 }
 
-interface WaelSummaryRow {
+interface WaelCountsRow {
   worker_id: FleetSlug;
-  last_heartbeat: string | null;
-  last_activity: string | null;
   started_24h: string;
   completed_24h: string;
   events_24h: string;
+}
+
+interface WaelFreshnessRow {
+  worker_id: FleetSlug;
+  last_heartbeat: string | null;
+  last_activity: string | null;
 }
 
 interface WaelRecentRow {
@@ -71,7 +75,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const [idRes, summaryRes, recentRes, delRes, msgRes, workRes] = await Promise.all([
+    const [idRes, countsRes, freshnessRes, recentRes, delRes, msgRes, workRes] = await Promise.all([
       query(
         `SELECT slug, display_name, emoji, model, home_server, description, harness, role
            FROM agent_identities
@@ -86,19 +90,31 @@ export async function GET(req: NextRequest) {
         [FLEET_SLUGS_PARAM]
       ),
 
-      // last_activity = MAX(ts) across all event types. Warden + Codesmith
-      // don't emit heartbeat events (their signal is task_started/completed),
-      // so the UI health ring derives from last_activity, not last_heartbeat.
+      // 24h counts (events started/completed in the last day).
       query(
         `SELECT worker_id,
-                MAX(ts) FILTER (WHERE event_type = 'heartbeat')       AS last_heartbeat,
-                MAX(ts)                                               AS last_activity,
                 COUNT(*) FILTER (WHERE event_type = 'task_started')   AS started_24h,
                 COUNT(*) FILTER (WHERE event_type = 'task_completed') AS completed_24h,
                 COUNT(*)                                              AS events_24h
            FROM worker_activity_events
           WHERE ts > NOW() - INTERVAL '24 hours'
             AND worker_id = ANY($1::text[])
+          GROUP BY worker_id`,
+        [FLEET_SLUGS_PARAM]
+      ),
+
+      // Freshness — UNSCOPED across all WAEL history. Without this, any
+      // agent idle >24h would null out and render Offline, even if the
+      // correct health signal is just "last seen N hours ago". Index
+      // wael_worker_ts_idx (worker_id, ts DESC) makes MAX(ts) O(log n).
+      // last_activity = MAX(ts) across all event types; Warden/Codesmith
+      // use this as their health signal since they don't emit heartbeats.
+      query(
+        `SELECT worker_id,
+                MAX(ts) FILTER (WHERE event_type = 'heartbeat') AS last_heartbeat,
+                MAX(ts)                                          AS last_activity
+           FROM worker_activity_events
+          WHERE worker_id = ANY($1::text[])
           GROUP BY worker_id`,
         [FLEET_SLUGS_PARAM]
       ),
@@ -165,7 +181,8 @@ export async function GET(req: NextRequest) {
     ]);
 
     const identities = idRes.rows as IdentityRow[];
-    const waelSummary = summaryRes.rows as WaelSummaryRow[];
+    const waelCounts = countsRes.rows as WaelCountsRow[];
+    const waelFreshness = freshnessRes.rows as WaelFreshnessRow[];
     const waelRecent = recentRes.rows as WaelRecentRow[];
     const delegations = delRes.rows as DelegationRow[];
     const messageRows = msgRes.rows as MessageRow[];
@@ -173,7 +190,8 @@ export async function GET(req: NextRequest) {
 
     const agents = identities.map((identity) => {
       const slug = identity.slug;
-      const summary = waelSummary.find((r) => r.worker_id === slug);
+      const counts = waelCounts.find((r) => r.worker_id === slug);
+      const freshness = waelFreshness.find((r) => r.worker_id === slug);
       const recentEvents = waelRecent.filter((r) => r.worker_id === slug);
       const delegationRows = delegations.filter((r) => r.target === slug);
       const agentMessages = messageRows.filter((r) => r.author_agent === slug);
@@ -182,11 +200,11 @@ export async function GET(req: NextRequest) {
       return {
         identity,
         activity: {
-          last_heartbeat: summary?.last_heartbeat ?? null,
-          last_activity: summary?.last_activity ?? null,
-          started_24h: Number(summary?.started_24h ?? 0),
-          completed_24h: Number(summary?.completed_24h ?? 0),
-          events_24h: Number(summary?.events_24h ?? 0),
+          last_heartbeat: freshness?.last_heartbeat ?? null,
+          last_activity: freshness?.last_activity ?? null,
+          started_24h: Number(counts?.started_24h ?? 0),
+          completed_24h: Number(counts?.completed_24h ?? 0),
+          events_24h: Number(counts?.events_24h ?? 0),
           recent_events: recentEvents.map((e) => ({
             event_type: e.event_type,
             ts: e.ts,
