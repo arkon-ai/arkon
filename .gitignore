@@ -10,6 +10,13 @@
 !.yarn/releases
 !.yarn/versions
 
+# python virtualenvs (tools/discord-journal-bot/, scratch/backfill scripts, etc.)
+.venv/
+.venv-*/
+venv/
+__pycache__/
+*.pyc
+
 # testing
 /coverage
 
