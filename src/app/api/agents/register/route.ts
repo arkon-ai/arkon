@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { resolveRole } from "@/app/api/tools/_utils";
 import { query } from "@/lib/db";
 import { broadcast } from "@/lib/event-bus";
-import { randomUUID } from "crypto";
+import { createHash, randomBytes, randomUUID } from "crypto";
 
 /**
  * Register agents from the wizard.
@@ -62,10 +62,15 @@ export async function POST(req: NextRequest) {
   }
 
   const registeredIds: string[] = [];
+  const generatedTokens: Array<{ agentId: string; token: string }> = [];
   const errors: Array<{ agentId: string; error: string }> = [];
 
   for (const agent of agents) {
     const id = randomUUID();
+    const effectiveToken = token || randomBytes(32).toString("hex");
+    const tokenHash = createHash("sha256").update(effectiveToken).digest("hex");
+    const tokenWasGenerated = !token;
+
     const connectivityConfig = {
       framework: frameworkId,
       protocol: frameworkId === "openclaw" ? "ws-rpc" : "rest",
@@ -78,7 +83,6 @@ export async function POST(req: NextRequest) {
       },
       auth: {
         type: frameworkId === "openclaw" ? "token" : "bearer",
-        token: token || null,
       },
       ssh: sshHost || sshUser ? {
         host: sshHost || address,
@@ -89,26 +93,32 @@ export async function POST(req: NextRequest) {
       isDefault: agent.isDefault ?? false,
     };
 
+    const metadata = {
+      connectivity: connectivityConfig,
+      tags: agent.tags ?? [],
+    };
+
     try {
       await query(
-        `INSERT INTO agents (id, name, type, status, tenant_id, tags, metadata, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        `INSERT INTO agents (id, name, token_hash, role, tenant_id, metadata, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
          ON CONFLICT (id) DO UPDATE SET
            name = EXCLUDED.name,
            metadata = EXCLUDED.metadata,
-           tags = EXCLUDED.tags,
            updated_at = NOW()`,
         [
           id,
           agent.name,
-          "main",
-          "active",
+          tokenHash,
+          "agent",
           tenantId,
-          JSON.stringify(agent.tags ?? []),
-          JSON.stringify({ connectivity: connectivityConfig }),
+          JSON.stringify(metadata),
         ],
       );
       registeredIds.push(id);
+      if (tokenWasGenerated) {
+        generatedTokens.push({ agentId: agent.agentId, token: effectiveToken });
+      }
     } catch (err) {
       errors.push({
         agentId: agent.agentId,
@@ -156,6 +166,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: errors.length === 0,
     registered: registeredIds,
+    generatedTokens: generatedTokens.length > 0 ? generatedTokens : undefined,
     errors: errors.length > 0 ? errors : undefined,
   });
 }
