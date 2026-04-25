@@ -18,6 +18,7 @@ import { ShellHeader } from "@/components/mission-control/dashboard";
 import { formatCompact, timeAgo, usePollingFetch } from "@/components/mission-control/api";
 import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
+import { formatDay } from "@/lib/time-format";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -113,10 +114,6 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
   note: "#8888A0",
 };
 
-function formatDay(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en", { month: "short", day: "numeric" });
-}
 
 function formatHour(hour: number) {
   if (hour === 0) return "12a";

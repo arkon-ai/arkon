@@ -30,6 +30,7 @@ import {
   PieChart,
   Pie,
 } from "recharts";
+import { formatMs, formatTokens } from "@/lib/time-format";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -109,16 +110,6 @@ interface VosOverview {
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
-function formatMs(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
-}
-
-function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
-}
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
