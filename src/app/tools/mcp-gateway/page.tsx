@@ -1,10 +1,5 @@
-import { NotionShell } from "@/components/mission-control/app-shell";
-import { McpGateway } from "@/components/mission-control/mcp-gateway";
+import { redirect } from "next/navigation";
 
 export default function McpGatewayPage() {
-  return (
-    <NotionShell>
-      <McpGateway />
-    </NotionShell>
-  );
+  redirect("/tools/mcp");
 }

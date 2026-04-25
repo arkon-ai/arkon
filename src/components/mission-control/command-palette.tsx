@@ -60,7 +60,6 @@ const staticPages: PaletteItem[] = [
   { id: "p-workflows", label: "Workflows", href: "/workflows", icon: WorkflowIcon, category: "page" },
   { id: "p-docs", label: "Docs", href: "/tools/docs", icon: FileText, category: "page", keywords: "documents files workspace" },
   { id: "p-mcp", label: "MCP Servers", href: "/tools/mcp", icon: Plug, category: "page" },
-  { id: "p-gateway", label: "MCP Gateway", href: "/tools/mcp-gateway", icon: Globe, category: "page" },
   { id: "p-intake", label: "Intake", href: "/tools/intake", icon: Inbox, category: "page" },
   { id: "p-calendar", label: "Calendar", href: "/tools/calendar", icon: Calendar, category: "page" },
   { id: "p-benchmarks", label: "Benchmarks", href: "/benchmarks", icon: Gauge, category: "page", keywords: "benchmark model compare" },
