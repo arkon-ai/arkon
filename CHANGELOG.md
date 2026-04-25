@@ -4,6 +4,13 @@ All notable changes to Arkon are documented in this file.
 
 ---
 
+## [Unreleased] — 2026-04-25
+
+### Removed
+- YouTube Knowledge Base — feature relocated to ArkonOS; not part of Arkon governance product scope.
+
+---
+
 ## [Unreleased] — 2026-04-14
 
 ### YouTube KB Manager (`c434ed4`)
