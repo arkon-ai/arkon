@@ -237,34 +237,6 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/mcp-gateway": {
-    title: "MCP Gateway",
-    description:
-      "The MCP (Model Context Protocol) Gateway proxies and secures your agents' access to external tools. Register MCP servers, control which agents can use which tools, and monitor tool usage.",
-    concepts: [
-      {
-        term: "MCP",
-        explanation:
-          "Model Context Protocol — a standard for connecting AI models to external tools and data sources.",
-      },
-      {
-        term: "MCP Server",
-        explanation:
-          "A service that provides tools to your agents via the MCP protocol (e.g., web search, file access, database queries).",
-      },
-      {
-        term: "Gateway Proxy",
-        explanation:
-          "Arkon sits between your agents and MCP servers, adding authentication, logging, and access control.",
-      },
-    ],
-    tasks: [
-      { label: "Register an MCP server", detail: "Add a new server with its URL and supported tools." },
-      { label: "Control access", detail: "Assign which agents can use which MCP servers." },
-      { label: "Monitor usage", detail: "View call counts and latency for each MCP server." },
-    ],
-  },
-
   "/tools/mcp": {
     title: "MCP Servers",
     description:
@@ -489,7 +461,7 @@ export const glossaryTerms: GlossaryTerm[] = [
   { term: "Health Score", definition: "A composite 0–100 score combining agent uptime (25pts), threat level (25pts), budget status (25pts), and infrastructure health (25pts).", link: "/" },
   { term: "Ingest", definition: "The process of receiving events from agents. Agents send events to Arkon's /api/ingest endpoint with their API token." },
   { term: "Kill Switch", definition: "Emergency controls to immediately stop a running agent. Available via the global banner, per-agent buttons, or Ctrl+Shift+K keyboard shortcut.", link: "/tools/agents-live" },
-  { term: "MCP", definition: "Model Context Protocol — an open standard for connecting AI models to external tools and data sources. Arkon can proxy and secure MCP connections.", link: "/tools/mcp-gateway" },
+  { term: "MCP", definition: "Model Context Protocol — an open standard for connecting AI models to external tools and data sources. Arkon can proxy and secure MCP connections.", link: "/tools/mcp" },
   { term: "NemoClaw", definition: "NVIDIA's enterprise AI agent framework, announced at GTC 2026. Arkon provides native monitoring support for NemoClaw agents." },
   { term: "Node", definition: "A server or machine in your infrastructure that runs agents or services. Nodes report metrics to Arkon for monitoring.", link: "/infrastructure" },
   { term: "OpenClaw", definition: "An open-source AI agent framework. Arkon was originally built for OpenClaw and provides deep integration with its gateway and event system." },

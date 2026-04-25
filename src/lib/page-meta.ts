@@ -30,7 +30,6 @@ export const pageMeta: Record<string, PageMeta> = {
   "/settings":            { title: "Settings",          description: "Notifications and preferences",                  group: "Configure" },
   "/tools/docs":          { title: "Docs",              description: "Agent documentation and knowledge base",         group: "Configure" },
   "/tools/mcp":           { title: "MCP Servers",       description: "Manage tool providers and connections",          group: "Configure" },
-  "/tools/mcp-gateway":   { title: "MCP Gateway",       description: "Secure external tool access",                    group: "Configure" },
   "/tools/intake":        { title: "Client Intake",     description: "Client onboarding forms and workflows",          group: "Configure" },
   "/tools/calendar":      { title: "Calendar",          description: "Schedule and events",                            group: "Configure" },
   "/client":              { title: "Client Portal",     description: "Client-facing dashboard",                        group: "Client" },
