@@ -4,16 +4,12 @@ All notable changes to Arkon are documented in this file.
 
 ---
 
-## [Unreleased] — 2026-04-25
+## [Unreleased]
 
-### Removed
-- YouTube Knowledge Base — feature relocated to ArkonOS; not part of Arkon governance product scope.
+### Removed (2026-04-25)
+- YouTube Knowledge Base — feature relocated to ArkonOS; not part of Arkon governance product scope. Reverts the 2026-04-14 addition below.
 
----
-
-## [Unreleased] — 2026-04-14
-
-### YouTube KB Manager (`c434ed4`)
+### YouTube KB Manager (`c434ed4`, 2026-04-14, since reverted)
 - New Settings page `/settings/youtube-kb`: add/remove/toggle YouTube channels for the Dell G5 transcript pipeline
 - API routes `/api/youtube-kb/channels` (public GET for pipeline, owner-only writes) and `/api/youtube-kb/status` (SSH to EU-OPEN for live ChromaDB counts; accepts Dell pipeline POST via `X-Pipeline-Token`)
 - Migration `016_youtube_channels.sql` — table seeded with 15 existing channels
