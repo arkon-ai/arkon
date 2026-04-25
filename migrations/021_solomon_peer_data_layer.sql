@@ -75,9 +75,14 @@ CREATE TABLE IF NOT EXISTS solomon_sessions (
   metadata           JSONB       NOT NULL DEFAULT '{}',
   CONSTRAINT solomon_sessions_pkey       PRIMARY KEY (id),
   CONSTRAINT solomon_sessions_tenant_fk  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  -- Surfaces are agent-scoped: every value here represents a place a
+  -- Solomon session can originate. Cross-agent surfaces (e.g. a warden
+  -- session running on the same Dell G5 host) belong in their own
+  -- agent's sessions table, not here — surface attribution must match
+  -- the table that owns the session row.
   CONSTRAINT solomon_sessions_surface_check CHECK (surface IN (
     'arkon-chat', 'arkon-pwa', 'discord',
-    'claude-code-solomon', 'claude-code-warden-dell-g5', 'cron'
+    'claude-code-solomon', 'cron'
   ))
 );
 
@@ -112,13 +117,27 @@ CREATE INDEX IF NOT EXISTS idx_solomon_messages_session ON solomon_messages (ses
 
 -- =====================================================================
 -- 4. Postgres role: solomon_bridge
---    NOTE: :'solomon_pw' cannot be used inside DO/$$ blocks (psql variable
---    expansion does not descend into dollar-quoted strings). Direct CREATE
---    ROLE is used here, matching the Phase 2.1 pattern (see amendment note
---    in 2026-04-21_wael_rls_phase2_1.sql). Pre-confirm role does not exist
---    before applying; or guard manually if re-applying to a dirty env.
+--    Idempotent CREATE ROLE pattern. PostgreSQL has no `CREATE ROLE IF
+--    NOT EXISTS`, and psql's :'var' interpolation does NOT descend into
+--    $$..$$ dollar-quoted strings (see feedback_psql_gotchas). Workaround:
+--    stash the password in a session-local custom GUC outside the DO
+--    block (where :'solomon_pw' substitutes normally), then read it back
+--    inside the guard via current_setting(). format(%L) handles SQL-side
+--    escaping. Re-apply against a dirty env now no-ops cleanly instead
+--    of aborting the transaction at ON_ERROR_STOP.
 -- =====================================================================
-CREATE ROLE solomon_bridge LOGIN PASSWORD :'solomon_pw';
+SET LOCAL app.solomon_pw = :'solomon_pw';
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'solomon_bridge') THEN
+    EXECUTE format(
+      'CREATE ROLE solomon_bridge LOGIN PASSWORD %L',
+      current_setting('app.solomon_pw')
+    );
+  END IF;
+END
+$$;
 
 GRANT CONNECT  ON DATABASE mission_control TO solomon_bridge;
 GRANT USAGE    ON SCHEMA   public          TO solomon_bridge;
@@ -196,7 +215,11 @@ GRANT USAGE ON SEQUENCE worker_activity_events_id_seq  TO solomon_bridge;
 --    Add policies for BOTH roles BEFORE enabling RLS to avoid a blackout.
 -- =====================================================================
 
--- warden_bridge: preserve full r/w (no restriction on owner_agent)
+-- warden_bridge: preserve full r/w (no restriction on owner_agent).
+-- DELETE policy is included proactively for parity: warden_bridge does
+-- not currently hold GRANT DELETE on memory_facts, but if a future
+-- migration adds it, the absence of an RLS policy would silently break
+-- deletes once RLS is enabled below.
 CREATE POLICY warden_bridge_memory_select ON memory_facts
   FOR SELECT TO warden_bridge USING (TRUE);
 
@@ -205,6 +228,9 @@ CREATE POLICY warden_bridge_memory_insert ON memory_facts
 
 CREATE POLICY warden_bridge_memory_update ON memory_facts
   FOR UPDATE TO warden_bridge USING (TRUE) WITH CHECK (TRUE);
+
+CREATE POLICY warden_bridge_memory_delete ON memory_facts
+  FOR DELETE TO warden_bridge USING (TRUE);
 
 -- solomon_bridge: scoped to owner_agent = 'solomon' only
 CREATE POLICY solomon_bridge_memory_select ON memory_facts
@@ -219,6 +245,11 @@ CREATE POLICY solomon_bridge_memory_update ON memory_facts
   WITH CHECK (owner_agent = 'solomon');
 
 ALTER TABLE memory_facts ENABLE ROW LEVEL SECURITY;
+-- FORCE applies RLS to the table owner too (mcadmin). Without this, any
+-- maintenance script or ad-hoc query running as mcadmin would silently
+-- bypass the solomon scoping policies above, defeating the asymmetric
+-- isolation invariant for those sessions.
+ALTER TABLE memory_facts FORCE  ROW LEVEL SECURITY;
 
 -- =====================================================================
 -- 6. WAEL RLS: add solomon_bridge policies
@@ -243,6 +274,10 @@ CREATE POLICY solomon_bridge_wael_insert ON worker_activity_events
 --    when Solomon's UKR tooling is wired (Day C of the Solomon build).
 --    No DDL action required here.
 -- =====================================================================
+
+INSERT INTO _migrations (name, applied_at)
+  VALUES ('021_solomon_peer_data_layer.sql', NOW())
+  ON CONFLICT (name) DO NOTHING;
 
 COMMIT;
 
