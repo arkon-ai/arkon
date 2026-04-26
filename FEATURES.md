@@ -132,7 +132,7 @@
 - Error handling with retry prevention
 - Webhook token generation
 
-### Pre-Built Workflows (active on deploy)
+### Workflow Templates (available in UI — not auto-deployed)
 - Health Sweep — every 5 minutes
 - Threat Escalation — every 15 minutes
 - DFY Heartbeat — every 30 minutes
@@ -217,7 +217,7 @@
 - GPU utilization (when available)
 - Custom service port checks
 - Tailscale network latency (ms)
-- TimescaleDB hypertable with 90-day retention
+- TimescaleDB hypertable (no default retention policy — configure via `add_retention_policy` if needed)
 
 ### UI
 - Infrastructure dashboard with node list
@@ -432,7 +432,7 @@
 - Optimized .dockerignore
 
 ### Migrations
-- 6 migrations (000–005) for full schema evolution
+- 19+ migrations (000–019) for full schema evolution
 - Automated migration runner in docker-entrypoint.sh
 - Fresh install support — migration 000 creates complete schema
 
@@ -502,11 +502,11 @@
 | Metric | Count |
 |--------|-------|
 | Total features | 160+ |
-| API endpoints | 50+ |
-| Database tables | 26 |
-| Database migrations | 6 |
-| React components | 38+ |
-| Library modules | 15+ |
+| API endpoints | 100+ |
+| Database tables | 50+ |
+| Database migrations | 22 |
+| React components | 70+ |
+| Library modules | 30+ |
 | Workflow templates | 6 |
 | Notification types | 8 |
 | Notification channels | 5 |
