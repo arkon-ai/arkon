@@ -16,9 +16,12 @@ vi.mock("@/lib/workflow-engine", () => ({
 vi.mocked(query).mockResolvedValue({ rows: [] } as never);
 
 beforeEach(() => {
+  // Force real timers first so any pending fake-timer callbacks from a prior
+  // test cannot leak into module state during reset.
+  vi.useRealTimers();
   vi.clearAllMocks();
   vi.mocked(query).mockResolvedValue({ rows: [] } as never);
-  stopScheduler(); // reset module state
+  stopScheduler(); // reset running flag + interval
 });
 
 afterEach(() => {
@@ -98,7 +101,9 @@ describe("getSchedulerStatus", () => {
     expect(s.activeRuns).toBe(0);
   });
 
-  it("lastTick is null before first tick fires", () => {
+  it("lastTick is null after stopScheduler when scheduler was never started in this test", () => {
+    // stopScheduler in beforeEach resets module state, so lastTick is null
+    // regardless of test ordering.
     const s = getSchedulerStatus();
     expect(s.lastTick).toBeNull();
   });
@@ -143,5 +148,29 @@ describe("startScheduler / stopScheduler", () => {
     stopScheduler();
     startScheduler();
     expect(getSchedulerStatus().running).toBe(true);
+  });
+
+  it("stopScheduler cancels the pending alignment setTimeout (no orphan tick)", async () => {
+    vi.useFakeTimers();
+    // Pin "now" to xx:00:30 so the alignment delay is exactly 30s
+    vi.setSystemTime(new Date("2026-04-26T10:00:30.000Z"));
+
+    const queryMock = vi.mocked(query);
+    queryMock.mockClear();
+
+    startScheduler();
+    // First tick fires synchronously inside startScheduler — query called once
+    expect(queryMock).toHaveBeenCalledTimes(1);
+
+    stopScheduler();
+    expect(getSchedulerStatus().running).toBe(false);
+
+    // Advance past the 30s alignment delay AND a full subsequent minute.
+    // If stopScheduler did not clear the alignment setTimeout, the orphan
+    // callback would fire and call query() again (and start the 60s interval).
+    await vi.advanceTimersByTimeAsync(90_000);
+
+    expect(queryMock).toHaveBeenCalledTimes(1);
+    expect(getSchedulerStatus().running).toBe(false);
   });
 });
