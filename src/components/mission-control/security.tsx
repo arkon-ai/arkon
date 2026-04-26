@@ -19,6 +19,7 @@ import { formatCompact, timeAgo, usePollingFetch } from "@/components/mission-co
 import { ThreatGuardEmpty } from "./empty-states";
 import { SectionDescription } from "./dashboard-clarity";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
+import { formatDay } from "@/lib/time-format";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -153,10 +154,6 @@ function parseJsonField<T>(value: string | T): T {
   return value;
 }
 
-function formatDay(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en", { month: "short", day: "numeric" });
-}
 
 function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;

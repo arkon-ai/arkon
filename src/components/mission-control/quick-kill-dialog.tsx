@@ -3,16 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { OctagonX, Zap } from "lucide-react";
 import { useActiveRuns, type ActiveRun } from "@/hooks/use-active-runs";
-
-function formatDuration(startedAt: string): string {
-  const ms = Date.now() - new Date(startedAt).getTime();
-  const seconds = Math.floor(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ${seconds % 60}s`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ${minutes % 60}m`;
-}
+import { formatDuration } from "@/lib/time-format";
 
 export function QuickKillDialog({
   open,

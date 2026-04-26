@@ -11,6 +11,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import type { KillVerification } from "@/hooks/use-active-runs";
+import { formatDuration } from "@/lib/time-format";
 
 interface ActiveRun {
   run_id: string;
@@ -31,16 +32,6 @@ interface KillResult {
 }
 
 type Phase = "confirm" | "killing" | "verifying" | "result";
-
-function formatDuration(startedAt: string): string {
-  const ms = Date.now() - new Date(startedAt).getTime();
-  const seconds = Math.floor(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ${seconds % 60}s`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ${minutes % 60}m`;
-}
 
 export function KillConfirmModal({
   run,

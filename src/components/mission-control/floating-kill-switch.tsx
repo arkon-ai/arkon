@@ -5,16 +5,7 @@ import { OctagonX, Pause, Play, Zap, X, ChevronUp, Power, RotateCcw, Loader2 } f
 import { useActiveRuns, type ActiveRun } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "./kill-confirm-modal";
 import { NuclearGatewayStopModal, RestartGatewayButton } from "./nuclear-gateway-stop";
-
-function formatDuration(startedAt: string): string {
-  const ms = Date.now() - new Date(startedAt).getTime();
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  if (hours > 0) return `${pad(hours)}:${pad(minutes % 60)}:${pad(seconds % 60)}`;
-  return `${pad(minutes)}:${pad(seconds % 60)}`;
-}
+import { formatDurationClock } from "@/lib/time-format";
 
 function formatLastSeen(startedAt: string): string {
   const ms = Date.now() - new Date(startedAt).getTime();
@@ -253,7 +244,7 @@ export function FloatingKillSwitch() {
                         )}
                       </div>
                       <span className="shrink-0 font-mono text-[12px] tabular-nums text-red-300/80">
-                        {formatDuration(run.started_at)}
+                        {formatDurationClock(run.started_at)}
                       </span>
                     </div>
 
