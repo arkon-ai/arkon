@@ -149,26 +149,29 @@ For the full installation guide with environment configuration, troubleshooting,
 
 ---
 
-## Best With OpenClaw & NemoClaw. Works With Anything.
+## Best With OpenClaw. Works With Anything.
 
-Arkon was built on OpenClaw and has first-class integration with the OpenClaw/NemoClaw ecosystem. If you're running NemoClaw (NVIDIA's enterprise wrapper around OpenClaw, announced at GTC 2026), Arkon is the governance layer that sits on top.
+Arkon was built on OpenClaw and has deepest integration with the OpenClaw ecosystem — WS-RPC kill capability via `sessions.abort` and SSH-based gateway stop. NemoClaw agents can report to Arkon via the same generic ingest endpoint.
 
 **But Arkon is not locked to any framework.** Register any agent through the 10-step wizard — Arkon auto-detects capabilities:
 
 | Framework | Status | Kill Capability |
 |-----------|--------|-----------------|
-| **OpenCLAW / NemoClaw** | Supported | Full control (WS-RPC) |
+| **OpenCLAW** | Supported | Full control (WS-RPC) |
 | **Custom / HTTP** | Supported | Callback or SSH |
-| Paperclip | Beta | Full control |
-| LangGraph | Beta | Full control |
-| n8n | Beta | Limited (workflow deactivation) |
-| AutoGen / AG2 | Beta | Full control |
-| Dify | Beta | Full control |
-| OpenHands | Beta | Full control |
+| NemoClaw | Early support | Ingest reporting; gateway kill via SSH |
+| Paperclip | Beta (wizard config) | REST kill — in development |
+| LangGraph | Beta (wizard config) | REST cancel — in development |
+| n8n | Beta (wizard config) | Workflow deactivation only |
+| AutoGen / AG2 | Beta (wizard config) | WebSocket stop — in development |
+| Dify | Beta (wizard config) | REST stop — in development |
+| OpenHands | Beta (wizard config) | REST delete — in development |
 | Haystack | Coming soon | Limited |
 | Semantic Kernel | Coming soon | Limited |
 | CrewAI | Coming soon | Monitor only |
 | Flowise | Coming soon | Monitor only |
+
+> **Note on Beta frameworks:** The registration wizard supports connecting these frameworks and they can send events today via `POST /api/ingest`. Live kill adapters beyond OpenClaw are actively being built.
 
 Anything that can send an HTTP POST can report to Arkon via `POST /api/ingest`.
 
@@ -196,7 +199,7 @@ Anything that can send an HTTP POST can report to Arkon via `POST /api/ingest`.
 
 ### Self-Hosted: Free Forever
 
-The full Arkon platform, self-hosted, MIT licensed. 3 agents, 1 server, all features. No feature gates — just usage limits that grow with you.
+The full Arkon platform, self-hosted, MIT licensed. No feature gates.
 
 ```bash
 docker compose up -d

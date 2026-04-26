@@ -132,7 +132,7 @@
 - Error handling with retry prevention
 - Webhook token generation
 
-### Pre-Built Workflows (active on deploy)
+### Workflow Templates (available in UI — not auto-deployed)
 - Health Sweep — every 5 minutes
 - Threat Escalation — every 15 minutes
 - DFY Heartbeat — every 30 minutes
@@ -432,7 +432,7 @@
 - Optimized .dockerignore
 
 ### Migrations
-- 6 migrations (000–005) for full schema evolution
+- 19+ migrations (000–019) for full schema evolution
 - Automated migration runner in docker-entrypoint.sh
 - Fresh install support — migration 000 creates complete schema
 
