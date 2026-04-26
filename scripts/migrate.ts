@@ -1,4 +1,5 @@
-import { readdir, readFile } from "fs/promises";
+import { readdir, readFile, stat } from "fs/promises";
+import { existsSync } from "fs";
 import { join } from "path";
 import { Pool } from "pg";
 
@@ -6,6 +7,29 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 3,
 });
+
+/**
+ * Discover SQL migration files in `dir`, sorted lexicographically.
+ * Only regular files (not symlinks, directories, etc.) with a `.sql` extension
+ * are returned.
+ *
+ * @throws {Error} if `dir` does not exist
+ */
+export async function discoverMigrations(dir: string): Promise<string[]> {
+  if (!existsSync(dir)) {
+    throw new Error("Migrations directory not found: " + dir);
+  }
+  const entries = await readdir(dir);
+  const sqlFiles: string[] = [];
+  for (const entry of entries) {
+    if (!entry.endsWith(".sql")) continue;
+    const info = await stat(join(dir, entry));
+    if (info.isFile()) {
+      sqlFiles.push(entry);
+    }
+  }
+  return sqlFiles.sort();
+}
 
 async function ensureMigrationsTable() {
   await pool.query(`
@@ -34,9 +58,7 @@ async function run() {
 
     const applied = await getApplied();
 
-    const files = (await readdir(migrationsDir))
-      .filter((f) => f.endsWith(".sql"))
-      .sort();
+    const files = await discoverMigrations(migrationsDir);
 
     let count = 0;
     for (const file of files) {
