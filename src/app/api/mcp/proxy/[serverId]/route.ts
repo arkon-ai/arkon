@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { createIdleAndHardAbort } from "@/lib/abort-helpers";
 
 /**
  * MCP Gateway Proxy — /api/mcp/proxy/[serverId]
@@ -228,13 +229,25 @@ export async function GET(
     }
   }
 
+  // Phase 4b idle/hard split (WI-086). The previous single
+  // `AbortSignal.timeout(120000)` cut healthy MCP SSE streams at 2 min flat.
+  // Now: 60s idle (reset per chunk) + 30 min hard ceiling.
+  const SSE_IDLE_MS = parseInt(process.env.MCP_SSE_IDLE_MS ?? "60000", 10);
+  const SSE_HARD_MS = parseInt(process.env.MCP_SSE_HARD_MS ?? String(30 * 60 * 1000), 10);
+  const abort = createIdleAndHardAbort({
+    idleMs: SSE_IDLE_MS,
+    hardMs: SSE_HARD_MS,
+    label: `mcp-sse:${server.name}`,
+  });
+
   try {
     const proxyRes = await fetch(targetUrl, {
       headers: forwardHeaders,
-      signal: AbortSignal.timeout(120000),
+      signal: abort.signal,
     });
 
     if (!proxyRes.body) {
+      abort.clear();
       return NextResponse.json({ error: "No response body from MCP server" }, { status: 502 });
     }
 
@@ -243,7 +256,21 @@ export async function GET(
       0, 0, proxyRes.status, Date.now() - start, null, server.tenant_id
     );
 
-    return new NextResponse(proxyRes.body, {
+    // Pipe upstream → response through a TransformStream that resets the
+    // idle timer on every chunk and clears all timers when the stream ends.
+    const idleResetStream = new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        abort.resetIdle();
+        controller.enqueue(chunk);
+      },
+      flush() {
+        abort.clear();
+      },
+    });
+
+    const observed = proxyRes.body.pipeThrough(idleResetStream);
+
+    return new NextResponse(observed, {
       status: proxyRes.status,
       headers: {
         "content-type": "text/event-stream",
@@ -254,6 +281,7 @@ export async function GET(
       },
     });
   } catch (err) {
+    abort.clear();
     const errorMsg = err instanceof Error ? err.message : "SSE proxy error";
     await logProxy(
       server.id, server.name, null, "GET", "sse-connect",
