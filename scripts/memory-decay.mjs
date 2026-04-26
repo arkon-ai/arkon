@@ -67,12 +67,24 @@ if (!Number.isFinite(HALF_LIFE_DAYS) || HALF_LIFE_DAYS <= 0) {
   process.exit(2);
 }
 
+if (!Number.isFinite(PRUNE_THRESHOLD) || PRUNE_THRESHOLD <= 0) {
+  console.error(`[memory-decay] MEMORY_DECAY_THRESHOLD invalid: ${PRUNE_THRESHOLD}`);
+  process.exit(2);
+}
+
 // File-log handle (best-effort: if the dir is missing, fall back to stdout-only).
 let logStream = null;
+let logStreamClosed = false;
 if (LOG_PATH) {
   try {
     fs.mkdirSync(path.dirname(LOG_PATH), { recursive: true });
     logStream = fs.createWriteStream(LOG_PATH, { flags: 'a' });
+    // Attach an error listener so write-after-end / disk errors don't become
+    // uncaught exceptions and clobber the real stack trace.
+    logStream.on('error', (err) => {
+      logStreamClosed = true;
+      console.error(`[memory-decay] log stream error: ${err.message}`);
+    });
   } catch (err) {
     console.error(`[memory-decay] could not open log file ${LOG_PATH}: ${err.message}`);
   }
@@ -82,22 +94,21 @@ const ts = () => new Date().toISOString();
 const log = (msg) => {
   const line = `${ts()} [memory-decay] ${msg}`;
   console.log(line);
-  if (logStream) logStream.write(line + '\n');
+  if (logStream && !logStreamClosed) logStream.write(line + '\n');
 };
 
-async function listPruneCandidates(client) {
-  // Snapshot of would-prune rows. Always SELECT regardless of mode so dry-run
-  // surfaces the candidate count.
+async function countPruneCandidates(client) {
+  // Total count of would-prune rows. Always run regardless of mode so dry-run
+  // surfaces the real candidate count (uncapped — matches the unbounded
+  // DELETE in prune()).
   const { rows } = await client.query(
-    `SELECT id, tenant_id, kind, decay_score
+    `SELECT count(*)::int AS n
        FROM memory_facts
       WHERE pinned = false
-        AND decay_score < $1
-      ORDER BY decay_score ASC
-      LIMIT 1000`,
+        AND decay_score < $1`,
     [PRUNE_THRESHOLD],
   );
-  return rows;
+  return rows[0].n;
 }
 
 async function prune(client) {
@@ -163,67 +174,101 @@ async function main() {
     beforeSample = await sampleRows(client, 5);
     log(`before_sample=${JSON.stringify(beforeSample)}`);
 
-    // Set-based sweep — see migrations/022_memory_facts_decay_index.sql.
-    const sweep = await client.query(
-      'SELECT memory_facts_apply_decay($1::double precision, NULL) AS updated',
-      [HALF_LIFE_DAYS],
-    );
-    rowsUpdated = sweep.rows[0].updated;
-    log(`rows_updated=${rowsUpdated}`);
+    // Wrap decay UPDATE, optional prune DELETE, and audit INSERT in a single
+    // transaction so the audit row can't be lost mid-flight (e.g. crash
+    // between the apply and the audit write would otherwise leave decayed
+    // state with no record of why).
+    let txOpen = false;
+    try {
+      await client.query('BEGIN');
+      txOpen = true;
 
-    const summary = await client.query(`
-      SELECT round(min(decay_score)::numeric, 6) AS min,
-             round(avg(decay_score)::numeric, 6) AS avg,
-             round(max(decay_score)::numeric, 6) AS max,
-             count(*) FILTER (WHERE pinned)::int AS pinned_count
-        FROM memory_facts
-    `);
-    scoreSummary = summary.rows[0];
-    log(`distribution min=${scoreSummary.min} avg=${scoreSummary.avg} max=${scoreSummary.max} pinned=${scoreSummary.pinned_count}`);
+      // Set-based sweep — see migrations/022_memory_facts_decay_index.sql.
+      const sweep = await client.query(
+        'SELECT memory_facts_apply_decay($1::double precision, NULL) AS updated',
+        [HALF_LIFE_DAYS],
+      );
+      rowsUpdated = sweep.rows[0].updated;
+      log(`rows_updated=${rowsUpdated}`);
 
-    afterSample = await sampleRows(client, 5);
-    log(`after_sample=${JSON.stringify(afterSample)}`);
+      const summary = await client.query(`
+        SELECT round(min(decay_score)::numeric, 6) AS min,
+               round(avg(decay_score)::numeric, 6) AS avg,
+               round(max(decay_score)::numeric, 6) AS max,
+               count(*) FILTER (WHERE pinned)::int AS pinned_count
+          FROM memory_facts
+      `);
+      scoreSummary = summary.rows[0];
+      log(`distribution min=${scoreSummary.min} avg=${scoreSummary.avg} max=${scoreSummary.max} pinned=${scoreSummary.pinned_count}`);
 
-    const candidates = await listPruneCandidates(client);
-    pruneCandidates = candidates.length;
-    log(`prune_candidates=${pruneCandidates} (threshold=${PRUNE_THRESHOLD})`);
+      afterSample = await sampleRows(client, 5);
+      log(`after_sample=${JSON.stringify(afterSample)}`);
 
-    if (DESTRUCTIVE) {
-      rowsDeleted = await prune(client);
-      log(`pruned=${rowsDeleted}`);
-    } else {
-      log(`prune_dry_run: would delete ${pruneCandidates} rows`);
+      pruneCandidates = await countPruneCandidates(client);
+      log(`prune_candidates=${pruneCandidates} (threshold=${PRUNE_THRESHOLD})`);
+
+      if (DESTRUCTIVE) {
+        rowsDeleted = await prune(client);
+        log(`pruned=${rowsDeleted}`);
+      } else {
+        log(`prune_dry_run: would delete ${pruneCandidates} rows`);
+      }
+
+      const after = await client.query('SELECT count(*)::int AS n FROM memory_facts');
+      rowCountAfter = after.rows[0].n;
+      log(`row_count_after=${rowCountAfter}`);
+
+      const elapsedMs = Date.now() - startedAt;
+      await writeAudit(client, {
+        mode: DESTRUCTIVE ? 'apply' : 'dry-run',
+        half_life_days: HALF_LIFE_DAYS,
+        prune_threshold: PRUNE_THRESHOLD,
+        rows_updated: rowsUpdated,
+        prune_candidates: pruneCandidates,
+        rows_deleted: rowsDeleted,
+        row_count_before: rowCountBefore,
+        row_count_after: rowCountAfter,
+        score_distribution: scoreSummary,
+        before_sample: beforeSample,
+        after_sample: afterSample,
+        elapsed_ms: elapsedMs,
+      });
+
+      await client.query('COMMIT');
+      txOpen = false;
+      log(`audit_log row written; elapsed_ms=${elapsedMs}`);
+    } catch (txErr) {
+      if (txOpen) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (rollbackErr) {
+          console.error(`[memory-decay] rollback failed: ${rollbackErr.message}`);
+        }
+      }
+      throw txErr;
     }
-
-    const after = await client.query('SELECT count(*)::int AS n FROM memory_facts');
-    rowCountAfter = after.rows[0].n;
-    log(`row_count_after=${rowCountAfter}`);
-
-    const elapsedMs = Date.now() - startedAt;
-    await writeAudit(client, {
-      mode: DESTRUCTIVE ? 'apply' : 'dry-run',
-      half_life_days: HALF_LIFE_DAYS,
-      prune_threshold: PRUNE_THRESHOLD,
-      rows_updated: rowsUpdated,
-      prune_candidates: pruneCandidates,
-      rows_deleted: rowsDeleted,
-      row_count_before: rowCountBefore,
-      row_count_after: rowCountAfter,
-      score_distribution: scoreSummary,
-      before_sample: beforeSample,
-      after_sample: afterSample,
-      elapsed_ms: elapsedMs,
-    });
-    log(`audit_log row written; elapsed_ms=${elapsedMs}`);
   } finally {
     await client.end();
-    if (logStream) logStream.end();
+    // NOTE: do not close logStream here — the .catch() handler below still
+    // needs to write the fatal-error line. Stream is closed by the success
+    // path below or the catch handler.
   }
 }
 
-main().catch((err) => {
-  const line = `${ts()} [memory-decay] fatal: ${err.message}`;
-  console.error(line);
-  if (logStream) logStream.write(line + '\n');
-  process.exit(1);
-});
+main()
+  .then(() => {
+    if (logStream && !logStreamClosed) {
+      logStreamClosed = true;
+      logStream.end();
+    }
+  })
+  .catch((err) => {
+    const line = `${ts()} [memory-decay] fatal: ${err.message}`;
+    console.error(line);
+    if (logStream && !logStreamClosed) {
+      logStream.write(line + '\n');
+      logStreamClosed = true;
+      logStream.end();
+    }
+    process.exit(1);
+  });
