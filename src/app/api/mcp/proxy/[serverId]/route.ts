@@ -50,6 +50,20 @@ function getTargetUrl(server: McpServer): string | null {
   return null;
 }
 
+/**
+ * Read an integer env var with a fallback. Guards against the bare
+ * `parseInt(process.env.X ?? "default", 10)` foot-gun: when X is set to an
+ * empty string, the `??` operator does NOT fall through (only undefined/null
+ * trigger it), so `parseInt("", 10) === NaN`, and `setTimeout(fn, NaN)` fires
+ * immediately — silently aborting every healthy SSE stream.
+ */
+function intEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (raw === undefined || raw === "") return fallback;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 async function logProxy(
   serverId: number,
   serverName: string,
@@ -232,8 +246,8 @@ export async function GET(
   // Phase 4b idle/hard split (WI-086). The previous single
   // `AbortSignal.timeout(120000)` cut healthy MCP SSE streams at 2 min flat.
   // Now: 60s idle (reset per chunk) + 30 min hard ceiling.
-  const SSE_IDLE_MS = parseInt(process.env.MCP_SSE_IDLE_MS ?? "60000", 10);
-  const SSE_HARD_MS = parseInt(process.env.MCP_SSE_HARD_MS ?? String(30 * 60 * 1000), 10);
+  const SSE_IDLE_MS = intEnv("MCP_SSE_IDLE_MS", 60_000);
+  const SSE_HARD_MS = intEnv("MCP_SSE_HARD_MS", 30 * 60 * 1000);
   const abort = createIdleAndHardAbort({
     idleMs: SSE_IDLE_MS,
     hardMs: SSE_HARD_MS,
@@ -258,14 +272,36 @@ export async function GET(
 
     // Pipe upstream → response through a TransformStream that resets the
     // idle timer on every chunk and clears all timers when the stream ends.
-    const idleResetStream = new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        abort.resetIdle();
-        controller.enqueue(chunk);
-      },
-      flush() {
-        abort.clear();
-      },
+    //
+    // Two leak-stopper paths are wired:
+    //   1. flush() / cancel()  — upstream EOF or downstream cancel propagates
+    //                            through the transform.
+    //   2. req.signal "abort"  — Next.js App Router canonical disconnect hook
+    //                            (also used in /api/dashboard/stream + /api/journal/stream).
+    //
+    // Without these, the idle + hard timers remain armed up to 30 min after a
+    // client disappears — pinning a closure + AbortController per dead client.
+    //
+    // `cancel` is in the WHATWG Streams spec (Node 18.17+, all modern browsers)
+    // but is missing from TypeScript's lib.dom.d.ts Transformer interface as of
+    // 5.x — hence the cast. Track: https://github.com/microsoft/TypeScript/issues/55524
+    const idleResetStream = new TransformStream<Uint8Array, Uint8Array>(
+      {
+        transform(chunk, controller) {
+          abort.resetIdle();
+          controller.enqueue(chunk);
+        },
+        flush() {
+          abort.clear();
+        },
+        cancel() {
+          abort.clear();
+        },
+      } as Transformer<Uint8Array, Uint8Array>,
+    );
+
+    req.signal.addEventListener("abort", () => {
+      abort.clear();
     });
 
     const observed = proxyRes.body.pipeThrough(idleResetStream);
