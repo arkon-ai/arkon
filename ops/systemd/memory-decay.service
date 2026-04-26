@@ -1,0 +1,30 @@
+[Unit]
+Description=memory_facts decay sweep (WI-076)
+Documentation=https://github.com/arkon-ai/arkon/pull/wi-076
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+# Note: /home/warden/bridge/.env.local cannot be parsed by systemd (it has a
+# bare postgres:// line for the bridge's custom loader). The cron picks up
+# DATABASE_URL from /home/warden/.config/memory-decay.env (KEY=VALUE, 600).
+EnvironmentFile=/home/warden/.config/memory-decay.env
+EnvironmentFile=-/etc/default/memory-decay
+# Defaults — override in /etc/default/memory-decay or via systemd drop-in.
+Environment=MEMORY_DECAY_MODE=dry-run
+Environment=MEMORY_HALF_LIFE_DAYS=30
+Environment=MEMORY_DECAY_THRESHOLD=0.05
+Environment=MEMORY_DECAY_LOG_PATH=/home/warden/logs/memory-decay.log
+WorkingDirectory=/home/warden/work/arkon
+ExecStart=/usr/bin/node scripts/memory-decay.mjs
+StandardOutput=journal
+StandardError=journal
+Nice=10
+IOSchedulingClass=idle
+# Don't restart-loop on failure — the timer will fire again tomorrow. A single
+# bad night shouldn't burn through restart budget and mask a real problem.
+Restart=no
+
+[Install]
+WantedBy=default.target
