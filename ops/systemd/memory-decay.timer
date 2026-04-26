@@ -1,0 +1,13 @@
+[Unit]
+Description=memory_facts decay sweep — daily 03:30 SAST (WI-076)
+Documentation=https://github.com/arkon-ai/arkon/pull/wi-076
+
+[Timer]
+# 03:30 South Africa Standard Time (UTC+2) every day.
+OnCalendar=*-*-* 03:30:00 Africa/Johannesburg
+Persistent=true
+Unit=memory-decay.service
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target
