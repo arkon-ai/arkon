@@ -14,7 +14,6 @@
   <a href="#quick-start">Quick Start</a> ·
   <a href="#features">Features</a> ·
   <a href="https://arkonhq.com">Website</a> ·
-  <a href="https://demo.arkonhq.com">Live Demo</a> ·
   <a href="INSTALL.md">Full Install Guide</a> ·
   <a href="API.md">API Docs</a>
 </p>
@@ -67,11 +66,11 @@ When your agent is going off the rails, you need a big red button — not an API
 
 - **Floating kill button** — pulsing red FAB on every page, always one click away
 - **Per-agent emergency stop** — pause, resume, or kill individual agents
-- **Nuclear gateway stop** — SIGTERM the entire gateway process as a last resort, with auto-restart verification
+- **Nuclear gateway stop** — stop the entire OpenClaw gateway service via SSH (`openclaw gateway stop` or `systemctl stop` fallback), with auto-restart verification
 - **Keyboard shortcut** — `Ctrl+Shift+K` to open the quick-kill dialog from anywhere
 - **Kill verification** — 4-phase modal confirms your agent is actually dead (Confirm → Killing → Verifying → Confirmed Dead)
 - **Full audit trail** — every kill logged with who, what, when, and why
-- **WS-RPC adapter** — native protocol support for OpenClaw/NemoClaw gateways with Ed25519 device identity
+- **WS-RPC adapter** — native protocol support for OpenClaw gateways (`sessions.abort` per session)
 
 ### Cost Tracking — Know What You're Spending Before It's Too Late
 
@@ -203,9 +202,9 @@ The full Arkon platform, self-hosted, MIT licensed. 3 agents, 1 server, all feat
 docker compose up -d
 ```
 
-### Arkon Cloud
+### Arkon Cloud — Coming Soon
 
-For teams that want managed hosting, more capacity, and zero ops overhead.
+A managed hosting option is in development for teams that want zero ops overhead. The planned tiers:
 
 | | Operator | Agency |
 |---|---|---|
@@ -215,12 +214,10 @@ For teams that want managed hosting, more capacity, and zero ops overhead.
 | **Servers** | 5 | Unlimited |
 | **Multi-tenant** | - | Y |
 | **Client portal** | - | Y |
-| **White-label** | - | Y |
+| **White-label** | - | Planned |
 | **Support** | Email | Priority |
 
-**Founding members:** The first 10 customers get the Operator tier at **$47/month, locked in forever.** [Claim your spot](https://arkonhq.com/founding)
-
-**Migration Intensive:** Want help configuring your instance and migrating from your current setup? **$497 one-time** — a 60-minute call where we set everything up together. [Book yours](https://arkonhq.com/migrate)
+**Early access:** [Join the waitlist](https://arkonhq.com) to be notified when cloud hosting opens and lock in founding pricing.
 
 ---
 

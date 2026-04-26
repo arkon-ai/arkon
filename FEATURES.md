@@ -217,7 +217,7 @@
 - GPU utilization (when available)
 - Custom service port checks
 - Tailscale network latency (ms)
-- TimescaleDB hypertable with 90-day retention
+- TimescaleDB hypertable (no default retention policy — configure via `add_retention_policy` if needed)
 
 ### UI
 - Infrastructure dashboard with node list
@@ -502,11 +502,11 @@
 | Metric | Count |
 |--------|-------|
 | Total features | 160+ |
-| API endpoints | 50+ |
-| Database tables | 26 |
-| Database migrations | 6 |
-| React components | 38+ |
-| Library modules | 15+ |
+| API endpoints | 100+ |
+| Database tables | 50+ |
+| Database migrations | 22 |
+| React components | 70+ |
+| Library modules | 30+ |
 | Workflow templates | 6 |
 | Notification types | 8 |
 | Notification channels | 5 |
