@@ -123,6 +123,7 @@ export function describeCron(expression: string): string {
 // ── Scheduler state ────────────────────────────────────────────────────────────
 
 let schedulerInterval: ReturnType<typeof setInterval> | null = null;
+let alignmentTimeout: ReturnType<typeof setTimeout> | null = null;
 let isRunning = false;
 let lastTick: Date | null = null;
 let activeRuns = 0;
@@ -218,14 +219,21 @@ export function startScheduler(): void {
   const now = new Date();
   const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
 
-  setTimeout(() => {
+  alignmentTimeout = setTimeout(() => {
+    alignmentTimeout = null;
     schedulerTick();
     schedulerInterval = setInterval(schedulerTick, 60_000);
   }, msUntilNextMinute);
 }
 
 export function stopScheduler(): void {
-  if (!isRunning) return;
+  if (!isRunning) {
+    // Even when not running, clear lastTick so getSchedulerStatus() reports a
+    // clean state on a stopped scheduler. Keeps the contract order-independent
+    // for test isolation (and matches the "fresh start" semantic operators expect).
+    lastTick = null;
+    return;
+  }
 
   console.log("[workflow-scheduler] Stopping cron scheduler");
   isRunning = false;
@@ -234,4 +242,11 @@ export function stopScheduler(): void {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
   }
+
+  if (alignmentTimeout) {
+    clearTimeout(alignmentTimeout);
+    alignmentTimeout = null;
+  }
+
+  lastTick = null;
 }
