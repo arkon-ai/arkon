@@ -1,0 +1,21 @@
+{
+  "skipReview": "AUTOMATIC",
+  "triggerOnUpdates": false,
+  "strictness": 1,
+  "commentTypes": ["logic"],
+  "fileChangeLimit": 75,
+  "excludeAuthors": [
+    "dependabot[bot]",
+    "renovate[bot]",
+    "github-actions[bot]",
+    "claude[bot]",
+    "greptile-apps[bot]",
+    "warden-bridge[bot]",
+    "warden-arkon[bot]"
+  ],
+  "excludeBranches": ["draft/**", "wip/**", "scratch/**"],
+  "ignorePatterns": "**/*.lock\n**/package-lock.json\n**/pnpm-lock.yaml\n**/yarn.lock\n**/bun.lockb\n**/poetry.lock\n**/Cargo.lock\n**/*.generated.*\n**/dist/**\n**/build/**\n**/.next/**\n**/node_modules/**\n**/coverage/**\n**/*.min.js\n**/*.min.css\n**/*.snap\n**/__snapshots__/**",
+  "shouldUpdateDescription": false,
+  "updateExistingSummaryComment": true,
+  "statusCheck": false
+}
