@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateToken } from "@/lib/auth-utils";
+import { validateAgentToken } from "@/lib/auth-utils";
 import { redactContent } from "@/lib/redact";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { scanEvent } from "@/lib/threat-scanner";
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Auth
     const authHeader = request.headers.get("authorization");
-    const agentId = validateToken(authHeader);
+    const agentId = await validateAgentToken(authHeader);
     if (!agentId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

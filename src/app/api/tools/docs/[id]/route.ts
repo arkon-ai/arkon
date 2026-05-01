@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { sanitizeDocumentContent } from "@/lib/html-sanitize";
 import {
   parseJsonRecord,
   parseTextArray,
@@ -35,9 +36,10 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const body = await req.json();
+    const contentFormat = typeof body.content_format === "string" ? body.content_format : "html";
     const content =
       typeof body.content === "string"
-        ? body.content
+        ? sanitizeDocumentContent(body.content, contentFormat)
         : typeof body.title === "string"
           ? undefined
           : null;

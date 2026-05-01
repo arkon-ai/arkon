@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { resolveTenantAccess } from "@/lib/tenant-access";
 
 /**
  * GET /api/client/costs
@@ -7,12 +8,12 @@ import { query } from "@/lib/db";
  * Query: ?range=24h|7d|30d (default 30d)
  */
 export async function GET(req: NextRequest) {
-  const tenantId = req.cookies.get("mc_tenant")?.value;
-  const hasAuth = req.cookies.has("mc_auth") || !!req.headers.get("authorization");
+  const access = await resolveTenantAccess(req);
 
-  if (!hasAuth || !tenantId || tenantId === "*") {
+  if (!access) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const tenantId = access.tenantId;
 
   const range = req.nextUrl.searchParams.get("range") || "30d";
   const interval = range === "24h" ? "24 hours" : range === "7d" ? "7 days" : "30 days";

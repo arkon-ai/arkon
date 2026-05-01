@@ -3,28 +3,27 @@ import { createHash, randomBytes } from "crypto";
 import { query } from "@/lib/db";
 import { resolveRole, resolveUser, unauthorized, forbidden } from "@/app/api/tools/_utils";
 import { logAudit, getClientIp } from "@/lib/audit";
+import { resolveTenantAccess } from "@/lib/tenant-access";
 
 export async function GET(req: NextRequest) {
   const role = await resolveRole(req);
   if (!role) return unauthorized();
 
-  const tenantId = req.cookies.get("mc_tenant")?.value;
-  const user = await resolveUser(req);
-
   let rows;
-  if (role === "owner" && (!tenantId || tenantId === "*")) {
+  const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
+  if (!access) return unauthorized("No tenant context");
+
+  if (role === "owner" && access.tenantId === "*") {
     const result = await query(
       `SELECT id, name, key_prefix, scopes, tenant_id, expires_at, last_used_at, is_active, created_at
        FROM api_keys ORDER BY created_at DESC`
     );
     rows = result.rows;
   } else {
-    const tid = user?.tenant_id ?? tenantId;
-    if (!tid || tid === "*") return unauthorized("No tenant context");
     const result = await query(
       `SELECT id, name, key_prefix, scopes, tenant_id, expires_at, last_used_at, is_active, created_at
        FROM api_keys WHERE tenant_id = $1 ORDER BY created_at DESC`,
-      [tid]
+      [access.tenantId]
     );
     rows = result.rows;
   }
@@ -37,10 +36,9 @@ export async function POST(req: NextRequest) {
   if (!role) return unauthorized();
 
   const user = await resolveUser(req);
-  const tenantId = req.cookies.get("mc_tenant")?.value;
-  const tid = user?.tenant_id ?? (tenantId !== "*" ? tenantId : null);
+  const access = await resolveTenantAccess(req, { allowOwnerWildcard: role === "owner" });
 
-  if (role !== "owner" && !tid) {
+  if (!access || (role !== "owner" && !access.tenantId)) {
     return forbidden("Tenant context required to create API keys");
   }
 
@@ -54,8 +52,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Key name is required" }, { status: 400 });
     }
 
-    const targetTenant = role === "owner" && body.tenant_id ? body.tenant_id : tid;
-    if (!targetTenant) {
+    const targetTenant = role === "owner" && body.tenant_id ? body.tenant_id : access.tenantId;
+    if (!targetTenant || targetTenant === "*") {
       return NextResponse.json({ error: "tenant_id required" }, { status: 400 });
     }
 
@@ -113,7 +111,8 @@ export async function DELETE(req: NextRequest) {
   if (!role) return unauthorized();
 
   const user = await resolveUser(req);
-  const tenantId = req.cookies.get("mc_tenant")?.value;
+  const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
+  if (!access) return unauthorized("No tenant context");
 
   try {
     const body = (await req.json()) as { id?: number };
@@ -128,7 +127,7 @@ export async function DELETE(req: NextRequest) {
 
     const key = existing.rows[0] as { id: number; tenant_id: string; name: string };
 
-    if (role !== "owner" && key.tenant_id !== (user?.tenant_id ?? tenantId)) {
+    if (role !== "owner" && key.tenant_id !== access.tenantId) {
       return forbidden("Cannot revoke keys from other tenants");
     }
 

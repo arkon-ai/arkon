@@ -179,6 +179,60 @@ describe("executeWorkflow — node types", () => {
     expect(step?.output).toMatchObject({ status: 200 });
   });
 
+  it("http-request: does not inject MC_ADMIN_TOKEN when internal host only appears in path", async () => {
+    process.env.MC_ADMIN_TOKEN = "admin-token";
+    process.env.ARKON_BASE_URL = "https://internal.example";
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200,
+      headers: { get: () => "application/json" },
+      json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await executeWorkflow(makeDef("manual-trigger", {
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://evil.example/path?next=https://internal.example/api", internal: true } }],
+      edges: [{ id: "e1", source: "t1", target: "h1" }],
+    }));
+
+    expect(fetchMock.mock.calls[0][1]?.headers).not.toHaveProperty("authorization");
+  });
+
+  it("http-request: does not inject MC_ADMIN_TOKEN when internal host only appears in query", async () => {
+    process.env.MC_ADMIN_TOKEN = "admin-token";
+    process.env.ARKON_BASE_URL = "https://internal.example";
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200,
+      headers: { get: () => "application/json" },
+      json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await executeWorkflow(makeDef("manual-trigger", {
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://evil.example?host=internal.example", internal: true } }],
+      edges: [{ id: "e1", source: "t1", target: "h1" }],
+    }));
+
+    expect(fetchMock.mock.calls[0][1]?.headers).not.toHaveProperty("authorization");
+  });
+
+  it("http-request: injects MC_ADMIN_TOKEN only for explicit exact internal origin", async () => {
+    process.env.MC_ADMIN_TOKEN = "admin-token";
+    process.env.ARKON_BASE_URL = "https://internal.example";
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200,
+      headers: { get: () => "application/json" },
+      json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await executeWorkflow(makeDef("manual-trigger", {
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://internal.example/api/workflows", internal: true } }],
+      edges: [{ id: "e1", source: "t1", target: "h1" }],
+    }));
+
+    expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({ authorization: "Bearer admin-token" });
+  });
+
   it("http-request: fetch throws → step failed, execution halts with error", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network timeout")));
 
