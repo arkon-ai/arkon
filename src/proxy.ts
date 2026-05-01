@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { isNonBrowserCredential, resolveRequestCredential } from "@/lib/request-auth";
 
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
@@ -16,9 +17,10 @@ function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
+  let credential: Awaited<ReturnType<typeof resolveRequestCredential>> | undefined;
 
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -47,8 +49,8 @@ export function proxy(request: NextRequest) {
     !pathname.startsWith("/manifest") &&
     !pathname.startsWith("/sw.js")
   ) {
-    const hasAuth = request.cookies.has("mc_auth") || !!request.headers.get("authorization");
-    if (!hasAuth) {
+    credential = await resolveRequestCredential(request);
+    if (!credential) {
       if (pathname.startsWith("/api/")) {
         return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
@@ -75,11 +77,12 @@ export function proxy(request: NextRequest) {
 
     const csrfHeader = request.headers.get("x-csrf-token");
     const csrfCookie = request.cookies.get("mc_csrf")?.value;
-    const hasBearerAuth = !!request.headers.get("authorization");
+    credential ??= await resolveRequestCredential(request);
+    const hasValidatedApiCredential = !!credential && isNonBrowserCredential(credential);
 
     const csrfMatch = !!(csrfHeader && csrfCookie && decodeURIComponent(csrfHeader) === decodeURIComponent(csrfCookie));
 
-    if (!hasBearerAuth && !csrfMatch) {
+    if (!hasValidatedApiCredential && !csrfMatch) {
       return new NextResponse(JSON.stringify({ error: "CSRF validation failed" }), {
         status: 403,
         headers: { "Content-Type": "application/json" },
