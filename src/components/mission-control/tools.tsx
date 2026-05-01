@@ -128,7 +128,7 @@ function renderMarkdown(content: string): string {
   return sanitizeHtmlForRender(raw);
 }
 
-function sanitizeHtmlForRender(raw: string): string {
+export function sanitizeHtmlForRender(raw: string): string {
   // SEC-4: Sanitise HTML before injection to prevent XSS
   if (typeof window !== "undefined" && DOMPurify.isSupported) {
     return DOMPurify.sanitize(raw, {
@@ -137,7 +137,7 @@ function sanitizeHtmlForRender(raw: string): string {
       FORCE_BODY: true,
     });
   }
-  return raw;
+  return "";
 }
 
 function getAuthHeaders(): Record<string, string> {

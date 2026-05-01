@@ -1,14 +1,18 @@
-const EVENT_HANDLER_ATTR = /\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
-const SCRIPT_TAG = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-const JS_PROTOCOL = /\s+(href|src)\s*=\s*(["'])\s*javascript:[\s\S]*?\2/gi;
-const DATA_HTML_PROTOCOL = /\s+(href|src)\s*=\s*(["'])\s*data:text\/html[\s\S]*?\2/gi;
+import DOMPurify from "isomorphic-dompurify";
+
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    "p", "ul", "ol", "li", "a", "strong", "em",
+    "code", "pre", "blockquote", "table", "thead", "tbody",
+    "tr", "th", "td", "hr", "br", "img", "span", "div",
+  ],
+  ALLOWED_ATTR: ["href", "src", "alt", "class", "id", "target", "rel"],
+  FORBID_ATTR: ["style"],
+};
 
 export function sanitizeStoredHtml(input: string): string {
-  return input
-    .replace(SCRIPT_TAG, "")
-    .replace(EVENT_HANDLER_ATTR, "")
-    .replace(JS_PROTOCOL, "")
-    .replace(DATA_HTML_PROTOCOL, "");
+  return DOMPurify.sanitize(input, SANITIZE_CONFIG);
 }
 
 export function sanitizeDocumentContent(content: string, contentFormat: string): string {

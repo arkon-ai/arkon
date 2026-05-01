@@ -36,7 +36,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const body = await req.json();
-    const contentFormat = typeof body.content_format === "string" ? body.content_format : "html";
+    const contentFormat = typeof body.content_format === "string" ? body.content_format : "markdown";
     const content =
       typeof body.content === "string"
         ? sanitizeDocumentContent(body.content, contentFormat)

@@ -29,6 +29,14 @@ describe("validateAgentToken", () => {
     await expect(validateAgentToken("Bearer bootstrap-token")).resolves.toBe("bootstrap");
   });
 
+  it("does not accept a long bootstrap token that only matches the first 64 characters", async () => {
+    const prefix = "a".repeat(64);
+    process.env.MC_AGENT_TOKENS = `bootstrap:${prefix}X`;
+    mockQuery.mockResolvedValue({ rows: [] } as never);
+
+    await expect(validateAgentToken(`Bearer ${prefix}Y`)).resolves.toBeNull();
+  });
+
   it("rejects unknown bearer tokens", async () => {
     mockQuery.mockResolvedValue({ rows: [] } as never);
 
