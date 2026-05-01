@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { execFile } from "child_process";
+import { lookup } from "dns/promises";
+import net from "net";
 import { FRAMEWORK_CONFIGS } from "@/lib/gateway/framework-configs";
+import { forbidden, resolveRole } from "@/app/api/tools/_utils";
 
 /**
  * Multi-framework gateway probe.
@@ -43,7 +46,85 @@ interface ProbeBody {
   sshKey?: string;
 }
 
+function getGatewayAllowlist(): Set<string> {
+  return new Set(
+    (process.env.MC_GATEWAY_PROBE_ALLOWLIST ?? "")
+      .split(",")
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function isAllowlistedTarget(host: string, port: number): boolean {
+  const normalizedHost = host.toLowerCase();
+  const allowlist = getGatewayAllowlist();
+  return allowlist.has(normalizedHost) || allowlist.has(`${normalizedHost}:${port}`);
+}
+
+function isBlockedIp(ip: string): boolean {
+  if (net.isIPv4(ip)) {
+    const parts = ip.split(".").map((part) => Number.parseInt(part, 10));
+    const [a, b] = parts;
+    return (
+      a === 0 ||
+      a === 10 ||
+      a === 127 ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      a >= 224
+    );
+  }
+
+  if (net.isIPv6(ip)) {
+    const normalized = ip.toLowerCase();
+    return (
+      normalized === "::1" ||
+      normalized === "::" ||
+      normalized.startsWith("fc") ||
+      normalized.startsWith("fd") ||
+      normalized.startsWith("fe80:") ||
+      normalized.startsWith("ff")
+    );
+  }
+
+  return true;
+}
+
+function isValidHostInput(host: string): boolean {
+  if (!host || host.length > 253) return false;
+  if (host.includes("/") || host.includes("\\") || host.includes("@")) return false;
+  if (net.isIP(host)) return true;
+  return /^[a-z0-9.-]+$|^\[[a-f0-9:]+\]$/i.test(host);
+}
+
+async function validateProbeTarget(host: string, port: number): Promise<string | null> {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) return "Invalid port";
+  const normalizedHost = host.replace(/^\[|\]$/g, "").trim().toLowerCase();
+  if (!isValidHostInput(normalizedHost)) return "Invalid host";
+  if (isAllowlistedTarget(normalizedHost, port)) return null;
+
+  if (net.isIP(normalizedHost)) {
+    return isBlockedIp(normalizedHost) ? "Gateway target is not allowed" : null;
+  }
+
+  try {
+    const addresses = await lookup(normalizedHost, { all: true, verbatim: false });
+    if (addresses.some((address) => isBlockedIp(address.address))) {
+      return "Gateway target resolves to a blocked network";
+    }
+  } catch {
+    return "Gateway target could not be resolved";
+  }
+
+  return null;
+}
+
 export async function POST(req: NextRequest) {
+  const role = await resolveRole(req);
+  if (role !== "owner" && role !== "admin") return forbidden("Admin access required");
+
   let body: ProbeBody;
   try {
     body = await req.json();
@@ -60,6 +141,11 @@ export async function POST(req: NextRequest) {
   if (testSsh) {
     if (!sshHost || !sshUser) {
       return NextResponse.json({ sshOk: false, sshError: "SSH host and user are required" });
+    }
+    const targetError = await validateProbeTarget(sshHost, 22);
+    if (targetError) {
+      console.warn("[gateway/probe] blocked ssh probe", { host: sshHost, reason: targetError });
+      return NextResponse.json({ sshOk: false, sshError: targetError }, { status: 400 });
     }
     try {
       const output = await sshExec(sshHost, sshUser, "echo ok && whoami", sshKey || undefined);
@@ -79,6 +165,13 @@ export async function POST(req: NextRequest) {
   if (!host || !port) {
     return NextResponse.json({ reachable: false, error: "Host and port are required" });
   }
+
+  const targetError = await validateProbeTarget(host, port);
+  if (targetError) {
+    console.warn("[gateway/probe] blocked gateway probe", { host, port, framework, reason: targetError });
+    return NextResponse.json({ reachable: false, error: targetError }, { status: 400 });
+  }
+  console.info("[gateway/probe] gateway probe attempt", { host, port, framework, role });
 
   const config = FRAMEWORK_CONFIGS[framework];
 
@@ -113,6 +206,7 @@ async function probeOpenClaw(
     const res = await fetch(healthUrl, {
       signal: controller.signal,
       headers,
+      redirect: "manual",
     });
     clearTimeout(timeout);
 
@@ -128,7 +222,7 @@ async function probeOpenClaw(
       if (discover) {
         try {
           const agentsUrl = `${protocol}://${host}:${port}/api/agents`;
-          const agentsRes = await fetch(agentsUrl, { headers });
+          const agentsRes = await fetch(agentsUrl, { headers, redirect: "manual" });
           if (agentsRes.ok) {
             const agentsData = await agentsRes.json();
             result.agents = agentsData.agents ?? agentsData ?? [];
@@ -231,7 +325,7 @@ async function probeRest(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
-    const res = await fetch(url, { signal: controller.signal, headers });
+    const res = await fetch(url, { signal: controller.signal, headers, redirect: "manual" });
     clearTimeout(timeout);
 
     if (res.ok || res.status === 401) {
@@ -303,7 +397,7 @@ async function discoverAgents(
     const reqHeaders = { ...headers };
     if (body) reqHeaders["Content-Type"] = "application/json";
 
-    const res = await fetch(url, { signal: controller.signal, headers: reqHeaders, method, body });
+    const res = await fetch(url, { signal: controller.signal, headers: reqHeaders, method, body, redirect: "manual" });
     clearTimeout(timeout);
 
     if (!res.ok) return [];
