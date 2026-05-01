@@ -25,13 +25,9 @@ export function parseAgentTokens(): Map<string, string> {
 }
 
 function constantTimeEqual(a: string, b: string): boolean {
-  try {
-    const aBuf = Buffer.from(a.padEnd(64));
-    const bBuf = Buffer.from(b.padEnd(64));
-    return timingSafeEqual(aBuf.slice(0, 64), bBuf.slice(0, 64)) && a.length === b.length;
-  } catch {
-    return false;
-  }
+  const aDigest = createHash("sha256").update(a).digest();
+  const bDigest = createHash("sha256").update(b).digest();
+  return timingSafeEqual(aDigest, bDigest);
 }
 
 /**

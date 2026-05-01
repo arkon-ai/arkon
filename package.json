@@ -39,6 +39,7 @@
     "cmdk": "^1.1.1",
     "dompurify": "^3.3.2",
     "framer-motion": "^12.35.1",
+    "isomorphic-dompurify": "^3.11.0",
     "lucide-react": "^0.577.0",
     "marked": "^13.0.3",
     "next": "^16.1.7",
