@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { getClientIp, logAudit } from "@/lib/audit";
+import { resolveTenantAccess } from "@/lib/tenant-access";
 
 /**
  * POST /api/notifications/test — send a test notification to a specific channel
@@ -7,8 +9,11 @@ import { query } from "@/lib/db";
  * Tests the channel configuration by sending a test message.
  */
 export async function POST(req: NextRequest) {
+  const access = await resolveTenantAccess(req, { minimumRole: "admin" });
+  if (!access) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
   const body = (await req.json()) as { channel: string };
-  const tenantId = "default";
+  const tenantId = access.tenantId;
 
   if (!body.channel) {
     return NextResponse.json({ error: "channel is required" }, { status: 400 });
@@ -122,6 +127,18 @@ export async function POST(req: NextRequest) {
       default:
         return NextResponse.json({ error: "Unknown channel" }, { status: 400 });
     }
+
+    logAudit({
+      actorType: access.credential.type === "agent_token" ? "agent" : "user",
+      actorId: access.credential.user_id?.toString() ?? access.credential.agent_id ?? access.credential.type,
+      action: "notification_preferences.test_sent",
+      targetType: "notification_preferences",
+      targetId: `${tenantId}:${body.channel}`,
+      description: `Sent test ${body.channel} notification`,
+      metadata: { channel: body.channel },
+      ipAddress: getClientIp(req.headers),
+      tenantId,
+    });
 
     return NextResponse.json({ ok: true, message: `Test ${body.channel} notification sent successfully` });
   } catch (err) {

@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { resolveTenantAccess } from "@/lib/tenant-access";
 
 /**
  * GET /api/client/agents
  * Tenant-scoped agent list with stats for DFY clients.
  */
 export async function GET(req: NextRequest) {
-  const tenantId = req.cookies.get("mc_tenant")?.value;
-  const hasAuth = req.cookies.has("mc_auth") || !!req.headers.get("authorization");
+  const access = await resolveTenantAccess(req);
 
-  if (!hasAuth || !tenantId || tenantId === "*") {
+  if (!access) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const tenantId = access.tenantId;
 
   try {
     const result = await query(

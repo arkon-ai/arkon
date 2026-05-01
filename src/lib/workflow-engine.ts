@@ -66,6 +66,7 @@ async function executeHttpRequest(data: Record<string, unknown>, context: Record
   const url = interpolateTemplate(String(data.url ?? ""), context);
   const method = String(data.method ?? "GET").toUpperCase();
   const timeout = Number(data.timeout ?? 10000);
+  const explicitInternal = data.internal === true || data.isInternal === true;
   const headers: Record<string, string> = {};
 
   if (data.headers && typeof data.headers === "object") {
@@ -78,7 +79,10 @@ async function executeHttpRequest(data: Record<string, unknown>, context: Record
   if (!headers["authorization"] && !headers["Authorization"]) {
     const mcToken = process.env.MC_ADMIN_TOKEN;
     const arkonBase = process.env.ARKON_BASE_URL ?? "";
-    const isInternalUrl = (arkonBase && url.includes(new URL(arkonBase).host)) || url.startsWith("http://127.0.0.1:") || url.startsWith("http://localhost:");
+    const targetOrigin = parseUrlOrigin(url);
+    const arkonOrigin = arkonBase ? parseUrlOrigin(arkonBase) : null;
+    const isLoopbackOrigin = targetOrigin?.startsWith("http://127.0.0.1:") || targetOrigin?.startsWith("http://localhost:");
+    const isInternalUrl = explicitInternal && !!targetOrigin && (targetOrigin === arkonOrigin || isLoopbackOrigin);
     if (mcToken && isInternalUrl) {
       headers["authorization"] = `Bearer ${mcToken}`;
     }
@@ -108,6 +112,14 @@ async function executeHttpRequest(data: Record<string, unknown>, context: Record
     return { status: res.status, body };
   } finally {
     clearTimeout(timer);
+  }
+}
+
+export function parseUrlOrigin(url: string): string | null {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
   }
 }
 

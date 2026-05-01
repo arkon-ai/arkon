@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { sanitizeDocumentContent } from "@/lib/html-sanitize";
 import { parseJsonRecord, parseTextArray, unauthorized, forbidden, validateRole } from "../../_utils";
 
 export async function POST(req: NextRequest) {
@@ -20,7 +21,8 @@ export async function POST(req: NextRequest) {
 
     for (const doc of documents) {
       if (!doc?.title || !doc?.category || !doc?.content || !doc?.agent_id) continue;
-      const content = String(doc.content);
+      const contentFormat = String(doc.content_format ?? "markdown");
+      const content = sanitizeDocumentContent(String(doc.content), contentFormat);
       const result = await query(
         `INSERT INTO documents (
           agent_id, title, category, content, content_format, file_path, tags, pinned,
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
           doc.title,
           doc.category,
           content,
-          doc.content_format ?? "markdown",
+          contentFormat,
           doc.file_path ?? null,
           parseTextArray(doc.tags),
           doc.pinned ?? false,

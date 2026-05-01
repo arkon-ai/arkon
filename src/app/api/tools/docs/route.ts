@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { sanitizeDocumentContent } from "@/lib/html-sanitize";
 import {
   parseInteger,
   parseJsonRecord,
@@ -73,7 +74,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const content = String(body.content);
+    const contentFormat = String(body.content_format ?? "markdown");
+    const content = sanitizeDocumentContent(String(body.content), contentFormat);
     const result = await query(
       `INSERT INTO documents (
         agent_id, title, category, content, content_format, file_path, tags, pinned,
@@ -87,7 +89,7 @@ export async function POST(req: NextRequest) {
         body.title,
         body.category,
         content,
-        body.content_format ?? "markdown",
+        contentFormat,
         body.file_path ?? null,
         parseTextArray(body.tags),
         body.pinned ?? false,

@@ -125,6 +125,10 @@ marked.setOptions({ breaks: true, gfm: true });
 
 function renderMarkdown(content: string): string {
   const raw = marked(content) as string;
+  return sanitizeHtmlForRender(raw);
+}
+
+function sanitizeHtmlForRender(raw: string): string {
   // SEC-4: Sanitise HTML before injection to prevent XSS
   if (typeof window !== "undefined" && DOMPurify.isSupported) {
     return DOMPurify.sanitize(raw, {
@@ -784,7 +788,7 @@ export function DocsToolScreen() {
               selected.content_format === "html" ? (
                 <div
                   className="markdown-body"
-                  dangerouslySetInnerHTML={{ __html: selected.content }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtmlForRender(selected.content) }}
                 />
               ) : (
                 <div
