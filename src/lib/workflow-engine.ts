@@ -62,11 +62,42 @@ function interpolateTemplate(template: string, context: Record<string, unknown>)
 
 // ── Node executors ─────────────────────────────────────────────────────────────
 
+// Sentinel prefix on Error.message for the public-host fail-closed guard.
+// runWorkflow uses this to recognize the failure mode and auto-pause the
+// offending workflow (vs paging on a recoverable runtime failure).
+export const PUBLIC_HOST_GUARD_PREFIX = "BLOCKED_PUBLIC_HOST_UNAUTH:";
+
+const PRIVATE_HOST_PATTERNS: readonly RegExp[] = [
+  /^localhost$/i,
+  /^::1$/,
+  /^127\./,
+  /^10\./,
+  /^192\.168\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./, // Tailscale CGNAT 100.64.0.0/10
+];
+
+function isPrivateHost(hostname: string): boolean {
+  if (!hostname) return false;
+  return PRIVATE_HOST_PATTERNS.some((p) => p.test(hostname));
+}
+
+function hasAuthHeader(headers: Record<string, string>): boolean {
+  for (const k of Object.keys(headers)) {
+    const lower = k.toLowerCase();
+    if (lower === "authorization" || lower === "x-api-key" || lower === "x-bridge-token") {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function executeHttpRequest(data: Record<string, unknown>, context: Record<string, unknown>): Promise<{ status: number; body: unknown }> {
   const url = interpolateTemplate(String(data.url ?? ""), context);
   const method = String(data.method ?? "GET").toUpperCase();
   const timeout = Number(data.timeout ?? 10000);
   const explicitInternal = data.internal === true || data.isInternal === true;
+  const allowPublicUnauth = data.allowPublicUnauth === true;
   const headers: Record<string, string> = {};
 
   if (data.headers && typeof data.headers === "object") {
@@ -85,6 +116,31 @@ async function executeHttpRequest(data: Record<string, unknown>, context: Record
     const isInternalUrl = explicitInternal && !!targetOrigin && (targetOrigin === arkonOrigin || isLoopbackOrigin);
     if (mcToken && isInternalUrl) {
       headers["authorization"] = `Bearer ${mcToken}`;
+    }
+  }
+
+  // Fail-closed guard (transformate WI-198): refuse to fire http-request to a
+  // public hostname without an Authorization (or X-API-Key) header. Caused
+  // 2026-05-02 Telegram spam — workflows polled MC's own public endpoints
+  // unauth'd → 401 → fall-through to the "non-200" notify branch every tick.
+  // Opt-out per node: set data.allowPublicUnauth=true for legitimately public
+  // unauth'd targets (RSS, weather, etc).
+  {
+    const targetUrlObj = (() => { try { return new URL(url); } catch { return null; } })();
+    if (
+      targetUrlObj &&
+      !isPrivateHost(targetUrlObj.hostname) &&
+      !hasAuthHeader(headers) &&
+      !allowPublicUnauth
+    ) {
+      const msg =
+        `${PUBLIC_HOST_GUARD_PREFIX} http-request to public host "${targetUrlObj.host}" requires ` +
+        `an Authorization (or X-API-Key) header. Either: (a) add headers.Authorization on the node, ` +
+        `(b) repoint at an internal/Tailscale URL, (c) for MC API calls set node.data.internal=true ` +
+        `with MC_ADMIN_TOKEN+ARKON_BASE_URL configured, or (d) set node.data.allowPublicUnauth=true ` +
+        `if this URL is intentionally public and unauth'd.`;
+      console.warn(`[workflow-engine] ${msg} (url=${url})`);
+      throw new Error(msg);
     }
   }
 
@@ -448,6 +504,7 @@ export async function runWorkflow(
   }
 
   const finalStatus = execResult.error ? "failed" : "completed";
+  const isPublicHostBlock = !!execResult.error?.startsWith(PUBLIC_HOST_GUARD_PREFIX);
 
   // Update run record
   await query(
@@ -461,8 +518,28 @@ export async function runWorkflow(
     [workflow.id]
   );
 
-  // Notify on failure
-  if (finalStatus === "failed") {
+  // Auto-pause workflow on public-host guard block — single notification then
+  // halt until a human un-pauses (after fixing auth header / URL). Prevents the
+  // spam pattern where a misconfigured */N cron fires the failure notify forever.
+  if (isPublicHostBlock) {
+    await query(
+      `UPDATE workflows SET status='paused', updated_at=NOW() WHERE id=$1`,
+      [workflow.id]
+    );
+    console.warn(
+      `[workflow-engine] Auto-paused workflow ${workflow.id} "${workflow.name}" — public-host unauth'd guard tripped`
+    );
+    void sendNotification({
+      tenantId: workflow.tenant_id ?? "default",
+      type: "workflow_auto_paused",
+      severity: "warning",
+      title: `Workflow auto-paused: ${workflow.name ?? `#${workflow.id}`}`,
+      body: execResult.error ?? "Public-host unauth'd guard tripped",
+      link: `/workflows/${workflow.id}`,
+      metadata: { workflowId: workflow.id, runId, reason: "public_host_unauth" },
+    });
+  } else if (finalStatus === "failed") {
+    // Standard failure notify — only when the failure isn't our own guard.
     void sendNotification({
       tenantId: workflow.tenant_id ?? "default",
       type: "workflow_failure",

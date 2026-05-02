@@ -169,7 +169,7 @@ describe("executeWorkflow — node types", () => {
 
     const def = makeDef("manual-trigger", {
       nodes: [
-        { id: "h1", type: "http-request", data: { url: "https://example.com/api", method: "GET" } },
+        { id: "h1", type: "http-request", data: { url: "https://example.com/api", method: "GET", allowPublicUnauth: true } },
       ],
       edges: [{ id: "e1", source: "t1", target: "h1" }],
     });
@@ -190,7 +190,7 @@ describe("executeWorkflow — node types", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await executeWorkflow(makeDef("manual-trigger", {
-      nodes: [{ id: "h1", type: "http-request", data: { url: "https://evil.example/path?next=https://internal.example/api", internal: true } }],
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://evil.example/path?next=https://internal.example/api", internal: true, allowPublicUnauth: true } }],
       edges: [{ id: "e1", source: "t1", target: "h1" }],
     }));
 
@@ -208,7 +208,7 @@ describe("executeWorkflow — node types", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await executeWorkflow(makeDef("manual-trigger", {
-      nodes: [{ id: "h1", type: "http-request", data: { url: "https://evil.example?host=internal.example", internal: true } }],
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://evil.example?host=internal.example", internal: true, allowPublicUnauth: true } }],
       edges: [{ id: "e1", source: "t1", target: "h1" }],
     }));
 
@@ -238,7 +238,7 @@ describe("executeWorkflow — node types", () => {
 
     const def = makeDef("manual-trigger", {
       nodes: [
-        { id: "h1", type: "http-request", data: { url: "https://example.com/api", method: "GET" } },
+        { id: "h1", type: "http-request", data: { url: "https://example.com/api", method: "GET", allowPublicUnauth: true } },
       ],
       edges: [{ id: "e1", source: "t1", target: "h1" }],
     });
@@ -340,6 +340,7 @@ describe("executeWorkflow — malformed inputs", () => {
           data: {
             url: "https://api.example.com/{{unknownKey}}/path",
             method: "GET",
+            allowPublicUnauth: true,
           },
         },
       ],
@@ -349,6 +350,107 @@ describe("executeWorkflow — malformed inputs", () => {
     const calledUrl = (vi.mocked(fetch).mock.calls[0][0] as string);
     // Unknown key kept intact
     expect(calledUrl).toContain("{{unknownKey}}");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Public-host fail-closed guard (transformate WI-198)
+// ---------------------------------------------------------------------------
+
+describe("executeWorkflow — http-request public-host guard (WI-198)", () => {
+  it("blocks public host without auth header → step failed, fetch never called", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const def = makeDef("manual-trigger", {
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://mc.transformateai.com/api/security/overview", method: "GET" } }],
+      edges: [{ id: "e1", source: "t1", target: "h1" }],
+    });
+    const r = await executeWorkflow(def);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(r.error).toMatch(/^BLOCKED_PUBLIC_HOST_UNAUTH:/);
+    expect(r.steps.find((s) => s.nodeType === "http-request")?.status).toBe("failed");
+  });
+
+  it("allows public host WITH Authorization header", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200, headers: { get: () => "application/json" }, json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const def = makeDef("manual-trigger", {
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://api.example.com/x", headers: { Authorization: "Bearer abc" } } }],
+      edges: [{ id: "e1", source: "t1", target: "h1" }],
+    });
+    const r = await executeWorkflow(def);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(r.steps.find((s) => s.nodeType === "http-request")?.status).toBe("success");
+  });
+
+  it("allows public host WITH X-API-Key header", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200, headers: { get: () => "application/json" }, json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const def = makeDef("manual-trigger", {
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://api.example.com/x", headers: { "X-API-Key": "k1" } } }],
+      edges: [{ id: "e1", source: "t1", target: "h1" }],
+    });
+    await executeWorkflow(def);
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("allows public host with allowPublicUnauth opt-out", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200, headers: { get: () => "application/json" }, json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const def = makeDef("manual-trigger", {
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://feeds.example.com/rss", allowPublicUnauth: true } }],
+      edges: [{ id: "e1", source: "t1", target: "h1" }],
+    });
+    await executeWorkflow(def);
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["loopback IPv4", "http://127.0.0.1:3000/api/health"],
+    ["loopback hostname", "http://localhost:8080/health"],
+    ["RFC1918 10.x", "http://10.0.0.5:8080/x"],
+    ["RFC1918 192.168.x", "http://192.168.1.42/x"],
+    ["RFC1918 172.16-31.x", "http://172.20.5.5/x"],
+    ["Tailscale CGNAT 100.108.x", "http://100.108.57.71:5432/x"],
+  ])("allows private host (%s) without auth", async (_label, url) => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200, headers: { get: () => "application/json" }, json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const def = makeDef("manual-trigger", {
+      nodes: [{ id: "h1", type: "http-request", data: { url } }],
+      edges: [{ id: "e1", source: "t1", target: "h1" }],
+    });
+    await executeWorkflow(def);
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("public host with internal=true + matching ARKON_BASE_URL → auto-injected token satisfies guard", async () => {
+    process.env.MC_ADMIN_TOKEN = "admin-token";
+    process.env.ARKON_BASE_URL = "https://mc.transformateai.com";
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200, headers: { get: () => "application/json" }, json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const def = makeDef("manual-trigger", {
+      nodes: [{ id: "h1", type: "http-request", data: { url: "https://mc.transformateai.com/api/health", internal: true } }],
+      edges: [{ id: "e1", source: "t1", target: "h1" }],
+    });
+    await executeWorkflow(def);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({ authorization: "Bearer admin-token" });
   });
 });
 
@@ -400,5 +502,45 @@ describe("runWorkflow", () => {
     await runWorkflow(baseWorkflow, "webhook");
     const insertArgs = mockQuery.mock.calls[0][1] as unknown[];
     expect(insertArgs).toContain("webhook");
+  });
+
+  it("public-host guard block → auto-pauses workflow + emits workflow_auto_paused notification", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const wfBlocked: WorkflowRecord = {
+      ...baseWorkflow,
+      id: 4242,
+      name: "Threat Escalation Alert",
+      definition: {
+        nodes: [
+          { id: "t1", type: "manual-trigger", data: {} },
+          { id: "h1", type: "http-request", data: { url: "https://mc.transformateai.com/api/security/overview" } },
+        ],
+        edges: [{ id: "e1", source: "t1", target: "h1" }],
+      },
+    };
+
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ id: 999 }] } as never) // INSERT workflow_runs
+      .mockResolvedValue({ rows: [] } as never);              // every subsequent UPDATE
+
+    const result = await runWorkflow(wfBlocked, "cron");
+    expect(result.status).toBe("failed");
+    expect(result.error).toMatch(/^BLOCKED_PUBLIC_HOST_UNAUTH:/);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    // Pause UPDATE was issued
+    const pauseUpdate = mockQuery.mock.calls.find((c) => /SET status='paused'/.test(String(c[0])));
+    expect(pauseUpdate).toBeDefined();
+    expect(pauseUpdate?.[1]).toEqual([4242]);
+
+    // Notification was workflow_auto_paused, not workflow_failure
+    expect(mockSend).toHaveBeenCalledOnce();
+    expect(mockSend.mock.calls[0][0]).toMatchObject({
+      type: "workflow_auto_paused",
+      severity: "warning",
+      metadata: { workflowId: 4242, reason: "public_host_unauth" },
+    });
   });
 });
