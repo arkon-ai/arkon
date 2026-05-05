@@ -81,7 +81,7 @@ function cronMatchesNow(parsed: ParsedCron, now: Date): boolean {
   );
 }
 
-/** Calculate the next time a cron expression will fire (up to 48h ahead) */
+/** Calculate the next time a cron expression will fire (up to 8 days ahead) */
 export function getNextCronRun(expression: string): Date | null {
   const parsed = parseCronExpression(expression);
   if (!parsed) return null;
@@ -91,7 +91,7 @@ export function getNextCronRun(expression: string): Date | null {
   check.setSeconds(0, 0);
   check.setMinutes(check.getMinutes() + 1); // Start from next minute
 
-  const limit = 48 * 60; // Check up to 48 hours ahead
+  const limit = 8 * 24 * 60; // Check far enough ahead for weekend -> weekday schedules
   for (let i = 0; i < limit; i++) {
     if (cronMatchesNow(parsed, check)) return check;
     check.setMinutes(check.getMinutes() + 1);
