@@ -83,10 +83,27 @@ describe("getNextCronRun", () => {
     expect(result!.getTime() - now.getTime()).toBeLessThanOrEqual(15 * 60 * 1000);
   });
 
-  it("range syntax 1-5 in day-of-week resolves correctly on weekdays", () => {
-    // "0 9 * * 1-5" = 9am Mon-Fri — should return a Date (Mon-Fri always occur in 48h)
+  it("range syntax 1-5 in day-of-week resolves correctly", () => {
     const result = getNextCronRun("0 9 * * 1-5");
     expect(result).toBeInstanceOf(Date);
+  });
+
+  it("finds the next weekday run after Friday morning has passed", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 4, 8, 10, 0, 0, 0)); // Friday
+
+    const result = getNextCronRun("0 9 * * 1-5");
+
+    expect(result).toEqual(new Date(2026, 4, 11, 9, 0, 0, 0)); // Monday
+  });
+
+  it("finds the next weekday run from a Sunday boundary", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 4, 10, 12, 0, 0, 0)); // Sunday
+
+    const result = getNextCronRun("0 9 * * 1-5");
+
+    expect(result).toEqual(new Date(2026, 4, 11, 9, 0, 0, 0)); // Monday
   });
 });
 
