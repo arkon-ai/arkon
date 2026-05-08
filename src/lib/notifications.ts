@@ -18,7 +18,8 @@ export type NotificationType =
   | "agent_offline"
   | "infra_offline"
   | "intake"
-  | "workflow_failure";
+  | "workflow_failure"
+  | "workflow_auto_paused";
 
 export type NotificationSeverity = "info" | "warning" | "critical";
 
