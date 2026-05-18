@@ -403,22 +403,25 @@ export function NotionShell({ children }: { children: ReactNode }) {
     <div className="flex h-full flex-col bg-[var(--bg-primary)] text-[var(--text-secondary)]">
       <div className={`flex h-14 items-center border-b border-[var(--border)]/50 ${sidebarCollapsed ? "justify-center px-2" : "px-4"}`}>
         {!sidebarCollapsed && (
-          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          // Brand row matches brand-package/kit/kit.css .ak-side__brand:
+          // flex + items-center + gap-3 (12px), glyph 20px tall, wordmark 15px
+          // tight (-0.02em tracking), AWP pushed right via ml-auto.
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/arkon-glyph.svg"
               alt=""
-              width={32}
-              height={32}
-              className="h-8 w-8 shrink-0"
+              width={20}
+              height={20}
+              className="h-5 w-5 shrink-0"
               aria-hidden="true"
             />
-            <div className="min-w-0">
-              <p className="font-[family-name:var(--font-wordmark)] text-[13px] font-extrabold uppercase tracking-[0.22em] text-[var(--text-primary)]">
-                Arkon
-              </p>
-              <p className="mt-0.5 truncate font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--text-tertiary)]">AWP</p>
-            </div>
+            <span className="truncate font-[family-name:var(--font-wordmark)] text-[15px] font-extrabold uppercase tracking-[-0.02em] text-[var(--text-primary)]">
+              Arkon
+            </span>
+            <span className="ml-auto shrink-0 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+              AWP
+            </span>
           </div>
         )}
         <button
