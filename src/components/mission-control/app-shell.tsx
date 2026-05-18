@@ -72,7 +72,6 @@ const pageLabels: Record<string, string> = {
   "/activity": "Activity",
   "/integrations/crons": "Cron jobs",
   "/integrations/intake": "Client Intake",
-  "/integrations/mcp": "MCP",
   "/admin": "Admin",
   "/infrastructure": "Infrastructure",
   "/benchmarks": "Benchmarks",

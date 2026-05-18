@@ -434,7 +434,6 @@ function getRawReviewModePayload(pathname: string, searchParams: URLSearchParams
         prev_total_requests: 1280,
         success_count: 1429,
         error_count: 3,
-        prev_error_count: 0,
         avg_duration_ms: 142,
         p95_duration_ms: 410,
         total_bytes: 4_812_000,

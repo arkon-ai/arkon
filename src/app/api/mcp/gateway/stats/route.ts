@@ -14,68 +14,62 @@ export async function GET(req: NextRequest) {
   const interval = range === "1h" ? "1 hour" : range === "7d" ? "7 days" : range === "30d" ? "30 days" : "24 hours";
 
   try {
-    // Summary
-    const summary = await query(
-      `SELECT COUNT(*) as total_requests,
-              COUNT(CASE WHEN status >= 200 AND status < 300 THEN 1 END) as success_count,
-              COUNT(CASE WHEN status >= 400 THEN 1 END) as error_count,
-              COALESCE(AVG(duration_ms), 0) as avg_duration_ms,
-              COALESCE(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms), 0) as p95_duration_ms,
-              COALESCE(SUM(request_size + response_size), 0) as total_bytes,
-              COUNT(DISTINCT server_id) as active_servers,
-              COUNT(DISTINCT mcp_method) as unique_methods
-       FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval`,
-      [interval]
-    );
-
-    // Prior-period totals for delta (same window, shifted one window back)
-    const priorSummary = await query(
-      `SELECT COUNT(*) as prev_total_requests,
-              COUNT(CASE WHEN status >= 400 THEN 1 END) as prev_error_count
-       FROM mcp_proxy_logs
-       WHERE created_at > NOW() - ($1::interval * 2)
-         AND created_at <= NOW() - $1::interval`,
-      [interval]
-    );
-
-    // By server
-    const byServer = await query(
-      `SELECT server_name, server_id,
-              COUNT(*) as requests,
-              COUNT(CASE WHEN status >= 200 AND status < 300 THEN 1 END) as successes,
-              COUNT(CASE WHEN status >= 400 THEN 1 END) as errors,
-              ROUND(AVG(duration_ms))::int as avg_ms
-       FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval
-       GROUP BY server_name, server_id ORDER BY requests DESC LIMIT 20`,
-      [interval]
-    );
-
-    // By method
-    const byMethod = await query(
-      `SELECT mcp_method, COUNT(*) as count,
-              ROUND(AVG(duration_ms))::int as avg_ms
-       FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval AND mcp_method IS NOT NULL
-       GROUP BY mcp_method ORDER BY count DESC LIMIT 20`,
-      [interval]
-    );
-
-    // Recent errors
-    const recentErrors = await query(
-      `SELECT server_name, mcp_method, status, error, duration_ms, created_at
-       FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval AND (status >= 400 OR error IS NOT NULL)
-       ORDER BY created_at DESC LIMIT 10`,
-      [interval]
-    );
-
-    // Hourly trend (last 24h or capped)
-    const trend = await query(
-      `SELECT date_trunc('hour', created_at) as hour,
-              COUNT(*) as requests,
-              COUNT(CASE WHEN status >= 400 THEN 1 END) as errors
-       FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval
-       GROUP BY hour ORDER BY hour`,
-      [interval]
-    );
+    // All six queries are independent reads against mcp_proxy_logs — parallelize
+    // with Promise.all so wall-clock is bounded by the slowest single query
+    // instead of the sum. Critical path for the Integrations KPI strip.
+    const [summary, priorSummary, byServer, byMethod, recentErrors, trend] = await Promise.all([
+      query(
+        `SELECT COUNT(*) as total_requests,
+                COUNT(CASE WHEN status >= 200 AND status < 300 THEN 1 END) as success_count,
+                COUNT(CASE WHEN status >= 400 THEN 1 END) as error_count,
+                COALESCE(AVG(duration_ms), 0) as avg_duration_ms,
+                COALESCE(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms), 0) as p95_duration_ms,
+                COALESCE(SUM(request_size + response_size), 0) as total_bytes,
+                COUNT(DISTINCT server_id) as active_servers,
+                COUNT(DISTINCT mcp_method) as unique_methods
+         FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval`,
+        [interval]
+      ),
+      // Prior-period total for the Calls delta (same window, shifted back one window).
+      query(
+        `SELECT COUNT(*) as prev_total_requests
+         FROM mcp_proxy_logs
+         WHERE created_at > NOW() - ($1::interval * 2)
+           AND created_at <= NOW() - $1::interval`,
+        [interval]
+      ),
+      query(
+        `SELECT server_name, server_id,
+                COUNT(*) as requests,
+                COUNT(CASE WHEN status >= 200 AND status < 300 THEN 1 END) as successes,
+                COUNT(CASE WHEN status >= 400 THEN 1 END) as errors,
+                ROUND(AVG(duration_ms))::int as avg_ms
+         FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval
+         GROUP BY server_name, server_id ORDER BY requests DESC LIMIT 20`,
+        [interval]
+      ),
+      query(
+        `SELECT mcp_method, COUNT(*) as count,
+                ROUND(AVG(duration_ms))::int as avg_ms
+         FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval AND mcp_method IS NOT NULL
+         GROUP BY mcp_method ORDER BY count DESC LIMIT 20`,
+        [interval]
+      ),
+      query(
+        `SELECT server_name, mcp_method, status, error, duration_ms, created_at
+         FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval AND (status >= 400 OR error IS NOT NULL)
+         ORDER BY created_at DESC LIMIT 10`,
+        [interval]
+      ),
+      query(
+        `SELECT date_trunc('hour', created_at) as hour,
+                COUNT(*) as requests,
+                COUNT(CASE WHEN status >= 400 THEN 1 END) as errors
+         FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval
+         GROUP BY hour ORDER BY hour`,
+        [interval]
+      ),
+    ]);
 
     const row = summary.rows[0] as Record<string, string>;
     const prevRow = priorSummary.rows[0] as Record<string, string>;
@@ -87,7 +81,6 @@ export async function GET(req: NextRequest) {
         prev_total_requests: parseInt(prevRow.prev_total_requests || "0"),
         success_count: parseInt(row.success_count || "0"),
         error_count: parseInt(row.error_count || "0"),
-        prev_error_count: parseInt(prevRow.prev_error_count || "0"),
         // parseFloat (NOT asNumber/parseInt) for AVG/PERCENTILE — numeric results carry decimals.
         avg_duration_ms: Math.round(parseFloat(row.avg_duration_ms || "0")),
         p95_duration_ms: Math.round(parseFloat(row.p95_duration_ms || "0")),
