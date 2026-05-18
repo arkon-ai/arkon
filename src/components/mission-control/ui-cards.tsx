@@ -158,12 +158,20 @@ export function PageHeader({
           aria-label="Breadcrumb"
           className="flex flex-wrap items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]"
         >
-          {crumbs!.map((crumb, i) => (
-            <span key={`${i}-${crumb}`} className="inline-flex items-center gap-1.5">
-              {i > 0 ? <ChevronRight className="h-3 w-3 text-[var(--text-tertiary)]" aria-hidden="true" /> : null}
-              <span className={cn(i === crumbs!.length - 1 && "text-[var(--text-secondary)]")}>{crumb}</span>
-            </span>
-          ))}
+          {crumbs!.map((crumb, i) => {
+            const isLast = i === crumbs!.length - 1;
+            return (
+              <span key={`${i}-${crumb}`} className="inline-flex items-center gap-1.5">
+                {i > 0 ? <ChevronRight className="h-3 w-3 text-[var(--text-tertiary)]" aria-hidden="true" /> : null}
+                <span
+                  className={cn(isLast && "text-[var(--text-secondary)]")}
+                  aria-current={isLast ? "page" : undefined}
+                >
+                  {crumb}
+                </span>
+              </span>
+            );
+          })}
         </nav>
       ) : eyebrow ? (
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
@@ -408,9 +416,13 @@ export function EmptyState({
         ) : null}
       </div>
       {stats && stats.length > 0 ? (
+        // TODO(F3+): `grid-cols-3` is inherited from EmptyStateBrief. Resolve to
+        // auto-fit or per-count layout once real call sites surface with !=3 stats.
+        // Surfaced by @claude on F2 review — non-blocking, kept for now to avoid
+        // mid-PR refactor without callsite evidence.
         <div className="mt-4 grid grid-cols-3 gap-3 border-y border-[var(--border)] py-3">
-          {stats.map((stat) => (
-            <div key={stat.label}>
+          {stats.map((stat, i) => (
+            <div key={`${i}-${stat.label}`}>
               <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">{stat.label}</p>
               <p className="mt-1 font-mono text-lg text-[var(--text-primary)]">{stat.value}</p>
             </div>
