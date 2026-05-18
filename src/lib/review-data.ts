@@ -1,4 +1,31 @@
-const NOW = "2026-05-18T12:00:00.000Z";
+const BASE_NOW_MS = Date.parse("2026-05-18T12:00:00.000Z");
+const reviewSessionNowMs = Date.now();
+const NOW = freshReviewIso("2026-05-18T12:00:00.000Z");
+const ISO_FIXTURE_RE = /^2026-05-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+
+function freshReviewIso(value: string) {
+  const fixtureMs = Date.parse(value);
+  if (!Number.isFinite(fixtureMs)) return value;
+  return new Date(reviewSessionNowMs + fixtureMs - BASE_NOW_MS).toISOString();
+}
+
+function freshenReviewDates<T>(value: T): T {
+  if (typeof value === "string") {
+    return (ISO_FIXTURE_RE.test(value) ? freshReviewIso(value) : value) as T;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => freshenReviewDates(item)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, freshenReviewDates(item)])
+    ) as T;
+  }
+
+  return value;
+}
 
 const tenants = [
   { id: "arkon", name: "Arkon Internal", domain: "arkon.ai", plan: "enterprise", created_at: "2026-01-04T08:00:00.000Z", agent_count: 6 },
@@ -145,7 +172,7 @@ function reviewOverview() {
   };
 }
 
-export function getReviewModePayload(pathname: string, searchParams: URLSearchParams) {
+function getRawReviewModePayload(pathname: string, searchParams: URLSearchParams) {
   if (pathname === "/api/setup/status") {
     return { needs_setup: false, setup_complete: true, reviewMode: true };
   }
@@ -213,6 +240,7 @@ export function getReviewModePayload(pathname: string, searchParams: URLSearchPa
       anomalies: [
         { id: "anom-1", agent_id: "codesmith", agent_name: "Codesmith", anomaly_type: "rate_spike", level: "medium", current_rate: 118, baseline_rate: 42, multiplier: 2.8, created_at: "2026-05-18T07:55:00.000Z", acknowledged: false },
       ],
+      count: 1,
     };
   }
 
@@ -391,4 +419,9 @@ export function getReviewModePayload(pathname: string, searchParams: URLSearchPa
   }
 
   return undefined;
+}
+
+export function getReviewModePayload(pathname: string, searchParams: URLSearchParams) {
+  const payload = getRawReviewModePayload(pathname, searchParams);
+  return payload === undefined ? undefined : freshenReviewDates(payload);
 }

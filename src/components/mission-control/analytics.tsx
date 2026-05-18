@@ -470,7 +470,7 @@ export function AnalyticsScreen() {
   if (loading && !data) {
     return (
       <div className="space-y-5">
-        <ShellHeader title="Analytics" subtitle="Event intelligence and usage patterns" gradient />
+        <ShellHeader title="Analytics" subtitle="Event intelligence and usage patterns" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} lines={1} height="h-10" />)}
         </div>
@@ -483,7 +483,7 @@ export function AnalyticsScreen() {
   if (error && !data) {
     return (
       <div className="space-y-5">
-        <ShellHeader title="Analytics" subtitle="Event intelligence and usage patterns" gradient />
+        <ShellHeader title="Analytics" subtitle="Event intelligence and usage patterns" />
         <div className="rounded-2xl border border-red/40 bg-red/5 p-6 text-center">
           <p className="text-sm text-red">Failed to load analytics: {error}</p>
         </div>
@@ -508,7 +508,6 @@ export function AnalyticsScreen() {
       <ShellHeader
         title="Analytics"
         subtitle="Event intelligence and usage patterns"
-        gradient
         action={
           <div className="flex gap-2">
             {(["24h", "7d", "30d"] as const).map((r) => (
