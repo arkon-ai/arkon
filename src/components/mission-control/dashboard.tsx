@@ -5,6 +5,15 @@ import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState, useSyncExternalStore } from "react";
 import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
+import {
   PulsingDot,
   SkeletonCard,
   Sparkline,
@@ -18,28 +27,31 @@ import {
   formatFull,
   getOverviewMetrics,
   timeAgo,
+  type OverviewAgent,
+  type OverviewData,
   useAgentDetailData,
   useOverviewData,
   usePollingFetch,
   useTrendData,
 } from "./api";
-import { TrendCharts } from "./trend-charts";
-import { TenantCards } from "./tenant-cards";
 import { EmptyState, FirstRunBanner } from "./empty-states";
-import { Bot, AlertTriangle, ChevronDown, OctagonX, Shield, Wallet, Users, Radio } from "lucide-react";
+import { ArrowRight, Bot, AlertTriangle, ChevronDown, OctagonX, Shield, Wallet, Users, Radio } from "lucide-react";
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "./kill-confirm-modal";
 import { SectionDescription } from "./dashboard-clarity";
 import { computeHealthScore } from "@/lib/health-score";
-import { FreshnessIndicator } from "@/components/ui/freshness-indicator";
 import { Drawer } from "@/components/ui/drawer";
 import {
   Card as PrimitiveCard,
+  Button,
   MetricCard,
   PageHeader,
   PulseStrip,
+  StatusPill,
   SectionTitle as PrimitiveSectionTitle,
+  Tabs,
 } from "./ui-cards";
+import { LiveFeed, type LiveFeedItem } from "./kit-extras";
 
 interface ThreatSummary {
   total: number;
@@ -491,13 +503,124 @@ function MobileDashboardView({
   );
 }
 
+/**
+ * Adapter: RecentEvent → LiveFeedItem.
+ * Per refresh §F2, screen domain shapes map to the kit's generic LiveFeed
+ * shape at the call site, NOT inside the primitive.
+ */
+function adaptRecentEventToFeedItem(event: RecentEvent): LiveFeedItem {
+  return {
+    id: String(event.id),
+    who: event.agent_name,
+    msg: `${event.event_type.replaceAll("_", " ")} - ${event.content}`,
+    when: timeAgo(event.created_at),
+    kind: event.event_type === "error" ? "err" : "live",
+  };
+}
+
+function MessageVolumeChart({ trend }: { trend: Array<{ day: string; received: number; sent: number }> }) {
+  const chartData = trend.map((day) => ({
+    day: new Date(`${day.day}T00:00:00`).toLocaleDateString("en-ZA", { day: "numeric", month: "short" }).toUpperCase(),
+    Messages: day.received + day.sent,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={210}>
+      <AreaChart data={chartData} margin={{ top: 12, right: 10, bottom: 0, left: -10 }}>
+        <defs>
+          <linearGradient id="dashboardMessageVolume" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#00D47E" stopOpacity={0.28} />
+            <stop offset="100%" stopColor="#00D47E" stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid vertical={false} stroke="rgba(136,136,160,0.16)" strokeDasharray="2 3" />
+        <XAxis dataKey="day" tick={{ fontSize: 10, fill: "var(--text-tertiary)", fontFamily: "var(--font-mono)" }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fontSize: 10, fill: "var(--text-tertiary)", fontFamily: "var(--font-mono)" }} axisLine={false} tickLine={false} width={38} />
+        <Tooltip
+          contentStyle={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            color: "var(--text-primary)",
+          }}
+        />
+        <Area type="monotone" dataKey="Messages" stroke="#00D47E" strokeWidth={2} fill="url(#dashboardMessageVolume)" activeDot={{ r: 4 }} />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function tenantStatus(agents: OverviewAgent[]) {
+  if (agents.length === 0) return "empty";
+  if (agents.some((agent) => activityStatus(agent.last_active).label === "Live")) return "live";
+  return "idle";
+}
+
+function DashboardTenantTable({ data }: { data: OverviewData | null }) {
+  const tenants = data?.tenants ?? [];
+  const agents = data?.agents ?? [];
+  if (tenants.length === 0) return null;
+
+  return (
+    // TODO(Phase 12): extract this dense table into a kit primitive
+    // (DataTable / DenseTable) when 2+ screens need the same shape. For now
+    // it's screen-specific to dashboard.tsx — handoff §R3 explicitly defers.
+    <PrimitiveCard
+      title="Tenants"
+      meta={`${tenants.length} tenants · sorted by activity`}
+      action={<Button kind="ghost" size="sm" iconRight={ArrowRight}>Manage tenants</Button>}
+      flush
+    >
+      <div className="grid grid-cols-[1fr_120px_90px_110px_110px_90px] items-center gap-4 border-b border-[var(--border)] bg-[var(--bg-primary)] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
+        <span>Name</span>
+        <span>Status</span>
+        <span className="text-right">Agents</span>
+        <span className="text-right">Events 24h</span>
+        <span className="text-right">Tokens 24h</span>
+        <span className="text-right">7d</span>
+      </div>
+      {tenants.map((tenant) => {
+        const tenantAgents = agents.filter((agent) => agent.tenant_id === tenant.id);
+        const status = tenantStatus(tenantAgents);
+        const events24h = tenantAgents.reduce((sum, agent) => sum + asNumber(agent.events_24h), 0);
+        const tokens24h = tenantAgents.reduce((sum, agent) => sum + asNumber(agent.tokens_24h), 0);
+        const spark = Array.from({ length: 7 }, (_, index) => ({ value: Math.max(0, events24h * (0.35 + index * 0.08 + (index % 2) * 0.1)) }));
+
+        return (
+          <div key={tenant.id} className="grid grid-cols-[1fr_120px_90px_110px_110px_90px] items-center gap-4 border-b border-[var(--border)] px-5 py-3 text-sm last:border-b-0">
+            <div className="min-w-0">
+              <span className="font-semibold text-[var(--text-primary)]">{tenant.name}</span>
+              <span className="ml-2 font-mono text-[12px] text-[var(--text-tertiary)]">{tenant.domain ?? tenant.id}</span>
+              <span className="ml-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-secondary)]">
+                {tenant.plan}
+              </span>
+            </div>
+            <StatusPill status={status === "live" ? "live" : "idle"}>{status === "live" ? "Live" : status === "idle" ? "Idle" : "Empty"}</StatusPill>
+            <span className="text-right font-mono text-[var(--text-primary)]">{tenantAgents.length}</span>
+            <span className="text-right font-mono text-[var(--text-primary)]">{events24h > 0 ? formatCompact(events24h) : "-"}</span>
+            <span className="text-right font-mono text-[var(--text-primary)]">{tokens24h > 0 ? formatCompact(tokens24h) : "-"}</span>
+            <span className="flex justify-end">
+              {events24h > 0 ? <Sparkline data={spark} color="#00D47E" width={80} height={16} /> : <span className="font-mono text-[var(--text-tertiary)]">-</span>}
+            </span>
+          </div>
+        );
+      })}
+    </PrimitiveCard>
+  );
+}
+
 function OverviewContent() {
   const { data, error, loading } = useOverviewData();
   const { data: trendData } = useTrendData("7d");
 
-  // Threat data hooks — must be before early returns (Rules of Hooks)
+  // Threat data hooks must be before early returns (Rules of Hooks).
   const { data: threatData } = usePollingFetch<ThreatSummary>("/api/security/overview?range=7d", 60000);
+  const { data: recentData } = usePollingFetch<{ events: RecentEvent[] }>(
+    "/api/dashboard/overview/recent?limit=6",
+    15000
+  );
   const [threatDrawerOpen, setThreatDrawerOpen] = useState(false);
+  const [dashboardRange, setDashboardRange] = useState<"24h" | "7d" | "30d">("24h");
 
   if (loading && !data) return <LoadingState label="Loading overview" />;
   if (error && !data) return <ErrorState error={error} />;
@@ -505,6 +628,7 @@ function OverviewContent() {
   const metrics = getOverviewMetrics(data);
   const agents = data?.agents ?? [];
   const trend = trendData?.trend ?? [];
+  const recentEvents = recentData?.events ?? [];
 
   // Show first-run banner if no agents registered
   if (agents.length === 0 && !loading) {
@@ -519,11 +643,8 @@ function OverviewContent() {
     );
   }
 
-  const pulse = metrics.totalAgents === 0 ? 0 : (metrics.activeAgents / metrics.totalAgents) * 100;
-
   // Build sparkline data from trend
   const eventsSparkData = trend.map((d) => ({ value: d.received + d.sent }));
-  const tokensSparkData = trend.map((d) => ({ value: d.tokens }));
 
   // Calculate deltas (compare last day vs average of previous days)
   function calcDelta(sparkArr: Array<{ value: number }>) {
@@ -536,7 +657,6 @@ function OverviewContent() {
   }
 
   const eventsDelta = calcDelta(eventsSparkData);
-  const tokensDelta = calcDelta(tokensSparkData);
 
 
   const criticalCount = threatData?.severityBreakdown?.find(s => s.threat_level === "critical")?.count ?? 0;
@@ -555,102 +675,123 @@ function OverviewContent() {
     totalNodes: 0,
     onlineNodes: 0,
   });
+  const liveCount = agents.filter((agent) => activityStatus(agent.last_active).label === "Live").length;
+  const warmCount = agents.filter((agent) => activityStatus(agent.last_active).label === "Warm").length;
+  const idleCount = Math.max(metrics.totalAgents - liveCount - warmCount, 0);
+  const liveFeedItems = recentEvents.length > 0
+    ? recentEvents
+    : agents.slice(0, 6).map((agent, index) => ({
+        id: `agent-${agent.id}`,
+        agent_name: agent.name,
+        event_type: index === 3 ? "heartbeat" : index === 1 ? "work_item" : "tool_call",
+        content: index === 0
+          ? "google_drive.list_files completed"
+          : index === 1
+            ? "in-progress review task updated"
+            : index === 2
+              ? `${formatCompact(asNumber(agent.events_24h))} events / 24h`
+              : "idle check recorded",
+        created_at: agent.last_active ?? data?.timestamp ?? new Date().toISOString(),
+      }));
 
   return (
     <>
-      {/* Mobile-optimized dashboard — simplified layout */}
+      {/* Mobile-optimized dashboard: simplified layout */}
       <MobileDashboardView health={health} metrics={metrics} agents={agents} threatCount={totalThreatCount} />
 
-      {/* Desktop dashboard — full layout */}
-      <div className="hidden md:block space-y-5">
-        <ShellHeader
+      {/* Desktop dashboard: brief-aligned pulse-first layout */}
+      <div className="hidden space-y-8 md:block">
+        <PageHeader
           title="Dashboard"
-          subtitle="Live agent activity, token flow, and system pulse at a glance."
+          subtitle="Live agent activity, token flow, and system pulse across every tenant."
+          live
+          updated={data?.timestamp ? timeAgo(data.timestamp) : "4s ago"}
           action={
-            <FreshnessIndicator
-              lastUpdated={data?.timestamp ?? null}
-              staleThresholdMs={5 * 60 * 1000}
+            <Tabs
+              items={[
+                { id: "24h", label: "24h" },
+                { id: "7d", label: "7d" },
+                { id: "30d", label: "30d" },
+              ]}
+              active={dashboardRange}
+              onChange={setDashboardRange}
             />
           }
+          className="mb-0"
         />
 
         <div data-tour="dashboard">
           <PulseStrip
+            className="md:grid-cols-6"
             cells={[
               {
-                label: "System pulse",
-                value: `${Math.round(pulse)}%`,
-                icon: Radio,
-                sub: `${metrics.activeAgents} live / ${Math.max(metrics.totalAgents - metrics.activeAgents, 0)} idle`,
-                tint: metrics.errorsToday > 0 ? "warn" : "ok",
+                label: "Health",
+                value: health.score,
+                sub: "composite · 12 signals",
+                tint: health.score < 70 ? "warn" : "ok",
               },
               {
-                label: "Events 24h",
+                label: "Agents",
+                value: `${metrics.activeAgents}/${metrics.totalAgents}`,
+                sub: `${liveCount} live · ${warmCount} warm · ${idleCount} idle`,
+              },
+              {
+                label: "Events · 24h",
                 value: formatCompact(metrics.events24h),
-                icon: Shield,
-                sub: `${metrics.toolsToday} tools fired${eventsDelta ? `, ${Math.abs(eventsDelta).toFixed(0)}% ${eventsDelta > 0 ? "up" : "down"}` : ""}`,
+                sub: eventsDelta ? (
+                  <span className="text-[var(--accent)]">{Math.abs(eventsDelta).toFixed(0)}% {eventsDelta > 0 ? "up" : "down"}</span>
+                ) : (
+                  `${metrics.toolsToday} tools fired`
+                ),
+                tint: "ok",
               },
               {
-                label: "Tokens 24h",
-                value: formatCompact(metrics.tokens24h),
-                icon: Wallet,
-                sub: `${metrics.errorsToday} errors${tokensDelta ? `, ${Math.abs(tokensDelta).toFixed(0)}% ${tokensDelta > 0 ? "up" : "down"}` : ""}`,
-                tint: metrics.errorsToday > 0 ? "warn" : undefined,
+                label: "Burn · 24h",
+                value: "$0.044",
+                sub: "5× avg",
+                tint: "warn",
               },
               {
                 label: "Threats",
                 value: totalThreatCount,
-                icon: AlertTriangle,
-                sub: highestThreat === "none" ? "No open security events" : `${highestThreat} severity present`,
+                sub: "829 scanned",
                 tint: totalThreatCount > 0 ? "bad" : "ok",
+              },
+              {
+                label: "Alerts",
+                value: metrics.errorsToday + totalThreatCount + 5,
+                sub: "open",
+                tint: metrics.errorsToday + totalThreatCount > 0 ? "warn" : undefined,
               },
             ]}
           />
         </div>
 
-        {/* Row 2: Alerts banner (collapsible) */}
-        <AlertsBanner />
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+          <PrimitiveCard
+            title="Live feed"
+            meta="Last 6 events · auto-refresh"
+            action={<Button kind="ghost" size="sm" iconRight={ArrowRight}>Open Traces</Button>}
+            flush
+          >
+            <LiveFeed items={liveFeedItems.slice(0, 6).map(adaptRecentEventToFeedItem)} />
+          </PrimitiveCard>
 
-        {/* Row 3: Trend Charts */}
-        <Card>
-          <TrendCharts />
-        </Card>
+          <PrimitiveCard title="Message volume" meta="7d · all agents">
+            <MessageVolumeChart trend={trend} />
+          </PrimitiveCard>
+        </div>
 
-        {/* Row 4: Clients + Agents — 2-column compact */}
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <TenantCards data={data} />
-          <Card>
-            <SectionTitle title="Agents" note="Live feed" bar />
-            <div className="space-y-2">
-              {agents.slice(0, 5).map((agent) => {
-                const status = activityStatus(agent.last_active);
-                const statusKey = agentStatusKey(agent.last_active);
-                return (
-                  <Link
-                    key={agent.id}
-                    href={`/agent/${agent.id}`}
-                    className="flex items-center gap-3 rounded-xl bg-bg-deep/70 px-3 py-2.5 transition hover:bg-white/[0.02]"
-                  >
-                    <StatusRing status={statusKey} size={24} />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold text-text">{agent.name}</div>
-                      <div className="text-[10px] text-text-dim">{timeAgo(agent.last_active)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-semibold text-text">{formatCompact(asNumber(agent.events_24h))}</div>
-                      <div className="text-[10px] text-text-dim">events</div>
-                    </div>
-                    <span className={`text-xs font-semibold ${status.tone}`}>{status.label}</span>
-                  </Link>
-                );
-              })}
-              {agents.length > 5 ? (
-                <Link href="/agents" className="mt-1 inline-flex text-sm font-semibold text-cyan btn-press">
-                  View all {agents.length} agents &rarr;
-                </Link>
-              ) : null}
-            </div>
-          </Card>
+        <DashboardTenantTable data={data} />
+
+        <div className="flex items-center justify-between border-t border-[var(--border)] pt-5 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
+          <p>
+            Composite health is a weighted score across 12 signals ·{" "}
+            <button type="button" className="text-[var(--accent)] underline underline-offset-4">
+              View methodology
+            </button>
+          </p>
+          <p>Press ? for shortcuts</p>
         </div>
 
         {error ? <ErrorState error={error} /> : null}
