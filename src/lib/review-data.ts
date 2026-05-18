@@ -1,6 +1,6 @@
 const BASE_NOW_MS = Date.parse("2026-05-18T12:00:00.000Z");
 const reviewSessionNowMs = Date.now();
-const NOW = freshReviewIso("2026-05-18T12:00:00.000Z");
+const NOW = "2026-05-18T12:00:00.000Z";
 const ISO_FIXTURE_RE = /^2026-05-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
 function freshReviewIso(value: string) {
