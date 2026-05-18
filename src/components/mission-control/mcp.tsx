@@ -163,7 +163,7 @@ function RegistryBrowser({ onImported }: { onImported: () => void }) {
                       )}
                       {isImported && (
                         <span className="rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-[10px] font-bold text-[var(--accent)]">
-                          ✓ Added
+                          Added
                         </span>
                       )}
                     </div>
@@ -173,7 +173,7 @@ function RegistryBrowser({ onImported }: { onImported: () => void }) {
                   </div>
                   {!isImported && (
                     <div className={`mt-1 h-5 w-5 shrink-0 rounded-full border-2 transition ${isSelected ? "border-[var(--accent)] bg-[var(--accent)]" : "border-[var(--border)]"}`}>
-                      {isSelected && <div className="flex h-full items-center justify-center text-[var(--accent-foreground)] text-[10px] font-bold">✓</div>}
+                      {isSelected && <div className="flex h-full items-center justify-center text-[var(--accent-foreground)] text-[10px] font-bold">OK</div>}
                     </div>
                   )}
                 </div>
@@ -588,7 +588,7 @@ function ServerCard({ server, onUpdated, onDelete }: {
                 </span>
                 {!server.approved && (
                   <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">
-                    ⚠ UNAPPROVED
+                    UNAPPROVED
                   </span>
                 )}
               </div>
@@ -612,7 +612,7 @@ function ServerCard({ server, onUpdated, onDelete }: {
               disabled={checking}
               className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition disabled:opacity-50"
             >
-              {checking ? "Checking…" : "🔍 Check Now"}
+              {checking ? "Checking..." : "Check Now"}
             </button>
             <button
               onClick={() => void toggleApproved()}
@@ -622,25 +622,25 @@ function ServerCard({ server, onUpdated, onDelete }: {
                   : "border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[rgba(0,212,126,0.08)]"
               }`}
             >
-              {server.approved ? "⚠ Revoke Approval" : "✓ Approve"}
+              {server.approved ? "Revoke Approval" : "Approve"}
             </button>
             <button
               onClick={() => setShowAgents(!showAgents)}
               className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition"
             >
-              👥 Agents
+              Agents
             </button>
             <button
               onClick={() => setShowExport(true)}
               className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition"
             >
-              📋 Export
+              Export
             </button>
             <button
               onClick={() => void deleteServer()}
               className="rounded-xl border border-red-500/20 px-3 py-1.5 text-xs text-red-400 hover:bg-[rgba(239,68,68,0.08)] transition"
             >
-              🗑 Remove
+              Remove
             </button>
           </div>
 
@@ -712,7 +712,7 @@ export function MCPInventory() {
                 onClick={() => void runAllChecks()}
                 className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition"
               >
-                🔍 Check All
+                Check All
               </button>
               <button
                 onClick={() => setShowAdd(true)}
@@ -731,13 +731,13 @@ export function MCPInventory() {
           onClick={() => setView("my")}
           className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${view === "my" ? "bg-[var(--accent)] text-[var(--accent-foreground)]" : "border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
-          🔌 My Servers ({servers.length})
+          My Servers ({servers.length})
         </button>
         <button
           onClick={() => setView("registry")}
           className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${view === "registry" ? "bg-[var(--accent)] text-white" : "border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
         >
-          🌐 Browse Registry
+          Browse Registry
         </button>
       </div>
 
@@ -758,10 +758,10 @@ export function MCPInventory() {
       {view === "my" && unapprovedCount > 0 && (
         <div className="rounded-2xl border border-amber-500/30 bg-[rgba(245,158,11,0.06)] px-4 py-3">
           <p className="text-sm font-semibold text-amber-400">
-            ⚠ {unapprovedCount} unapproved MCP server{unapprovedCount > 1 ? "s" : ""} detected
+            {unapprovedCount} unapproved MCP server{unapprovedCount > 1 ? "s" : ""} detected
           </p>
           <p className="mt-0.5 text-xs text-amber-400/70">
-            Review and approve or remove servers you don't recognise.
+            Review and approve or remove servers you do not recognise.
           </p>
         </div>
       )}
@@ -769,7 +769,7 @@ export function MCPInventory() {
       {view === "my" && servers.length === 0 && (
         <Card>
           <div className="py-16 text-center">
-            <p className="text-4xl mb-3">🔌</p>
+            <p className="mb-3 font-mono text-xs uppercase tracking-[0.08em] text-[var(--text-tertiary)]">MCP</p>
             <p className="text-sm font-semibold text-[var(--text-primary)]">No MCP servers registered</p>
             <p className="mt-2 text-xs text-[var(--text-secondary)]">
               Add servers manually or browse the official registry.
@@ -785,7 +785,7 @@ export function MCPInventory() {
                 onClick={() => setView("registry")}
                 className="rounded-xl border border-[var(--accent)]/40 px-4 py-2 text-xs font-semibold text-[var(--accent)]"
               >
-                🌐 Browse Registry
+                Browse Registry
               </button>
             </div>
           </div>

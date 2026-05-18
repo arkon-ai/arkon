@@ -1,15 +1,14 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { CostsEmpty } from "./empty-states";
 import { SectionDescription } from "./dashboard-clarity";
 import {
   AreaChart, Area, BarChart, Bar, CartesianGrid,
   ResponsiveContainer, Tooltip, XAxis, YAxis, Cell,
 } from "recharts";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { Plus, Trash2, X } from "lucide-react";
+import { Button, MetricCard, PageHeader, Tabs } from "./ui-cards";
 
 /* ── colour tokens (matches existing charts.tsx palette) ── */
 const C = {
@@ -89,16 +88,9 @@ async function apiFetch<T>(url: string): Promise<T> {
 
 /* ── stat card ── */
 function StatCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
+  const variant = color === C.red ? "bad" : color === C.amber ? "warn" : "default";
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-      className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
-    >
-        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">{label}</p>
-      <p className="mt-1.5 text-2xl font-bold" style={{ color }}>{value}</p>
-      {sub && <p className="mt-1 text-xs text-[var(--text-secondary)]">{sub}</p>}
-    </motion.div>
+    <MetricCard label={label} value={value} subtitle={sub} variant={variant} />
   );
 }
 
@@ -107,14 +99,11 @@ function StatCard({ label, value, sub, color }: { label: string; value: string; 
 /* ── range selector ── */
 function RangeSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div className="flex gap-1 rounded-xl bg-[var(--bg-surface)] p-1">
-      {["24h", "7d", "30d"].map((r) => (
-        <button key={r} onClick={() => onChange(r)}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-            value === r ? "bg-[var(--bg-surface-2)] text-white" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
-          }`}>{r}</button>
-      ))}
-    </div>
+    <Tabs
+      active={value}
+      onChange={onChange}
+      items={["24h", "7d", "30d"].map((r) => ({ id: r, label: r }))}
+    />
   );
 }
 
@@ -227,22 +216,22 @@ export default function CostsScreen() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">Cost Tracker</h1>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">AI spend across all agents and models</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
+      <PageHeader
+        title="Cost Tracker"
+        subtitle="AI spend across all agents and models"
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+          <Button
             onClick={exportCostCSV}
             disabled={!overview || !agentData}
-            className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition disabled:opacity-30 disabled:cursor-not-allowed"
+            kind="secondary"
           >
             Export CSV
-          </button>
+          </Button>
           <RangeSelector value={range} onChange={setRange} />
         </div>
-      </div>
+        }
+      />
 
       <SectionDescription id="costs">
         Track how much your AI agents are spending across all model providers. See daily burn rate,
@@ -254,14 +243,16 @@ export default function CostsScreen() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {(["overview", "agents", "models", "pricing"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-              tab === t ? "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}>{t === "overview" ? "Overview" : t === "agents" ? "By Agent" : t === "models" ? "By Model" : "Pricing"}</button>
-        ))}
-      </div>
+      <Tabs
+        active={tab}
+        onChange={setTab}
+        items={[
+          { id: "overview", label: "Overview" },
+          { id: "agents", label: "By Agent" },
+          { id: "models", label: "By Model" },
+          { id: "pricing", label: "Pricing" },
+        ]}
+      />
 
       {loading && !overview ? (
         <div className="flex items-center justify-center py-20">
@@ -436,8 +427,7 @@ function OptimizationTips({ overview, agentData }: { overview: OverviewData; age
   if (tips.length === 0) return null;
 
   return (
-    <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
+    <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
       <button type="button" onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full text-left">
         <h3 className="text-sm font-medium text-[var(--text-secondary)]">
           Optimization Tips
@@ -501,8 +491,7 @@ function OverviewTab({ overview, dailyBurn, projected, agentData, onBudgetChange
 
       {/* Budget progress (enhanced) */}
       {budgets.length > 0 && (
-        <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
+        <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-[var(--text-secondary)]">Budget Status</h3>
             <button
@@ -553,8 +542,7 @@ function OverviewTab({ overview, dailyBurn, projected, agentData, onBudgetChange
       )}
 
       {/* Cost trend chart */}
-      <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
+      <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
         <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Daily Cost Trend</h3>
         <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={daily_trend}>
@@ -576,8 +564,7 @@ function OverviewTab({ overview, dailyBurn, projected, agentData, onBudgetChange
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Top agents by cost */}
-        <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
+        <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
           <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Top Agents by Cost</h3>
           {by_agent.length === 0 ? (
             <CostsEmpty />
@@ -599,8 +586,7 @@ function OverviewTab({ overview, dailyBurn, projected, agentData, onBudgetChange
         </div>
 
         {/* Tenant breakdown */}
-        <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
+        <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
           <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Tenant Spend</h3>
           {by_tenant.map((t) => (
             <div key={t.tenant_id} className="flex items-center justify-between py-2 border-b border-[var(--border)]/50 last:border-0">
@@ -651,12 +637,9 @@ function AgentsTab({ agents, loading, anomalies }: { agents: AgentDetailRow[] | 
   return (
     <div className="space-y-3">
       {agents.map((a, i) => (
-        <motion.div key={a.agent_id}
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05 }}
-          className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-4"
+        <div key={a.agent_id}
+          className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-4"
         >
-            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -693,7 +676,7 @@ function AgentsTab({ agents, loading, anomalies }: { agents: AgentDetailRow[] | 
               </ResponsiveContainer>
             </div>
           )}
-        </motion.div>
+        </div>
       ))}
     </div>
   );
@@ -722,8 +705,7 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
       {paid.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">Paid Models</h3>
-          <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden">
-            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
+          <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] text-[var(--text-tertiary)] text-xs">
@@ -754,8 +736,7 @@ function ModelsTab({ models, loading }: { models: ModelRow[] | null; loading: bo
       {free.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">Free / Local Models</h3>
-          <div className="relative card-hover rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden">
-            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
+          <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] text-[var(--text-tertiary)] text-xs">
@@ -1186,7 +1167,7 @@ function PricingTab() {
       <section className="rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">Agents → Default Model</h2>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">
-          Each agent is assigned a default model. The model's pricing row determines its runtime cost (per-token or monthly subscription).
+          Each agent is assigned a default model. The model pricing row determines its runtime cost (per-token or monthly subscription).
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-full text-sm">

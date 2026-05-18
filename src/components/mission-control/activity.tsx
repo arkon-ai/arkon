@@ -35,13 +35,13 @@ function getToken() {
 
 /* ─── Helpers ────────────────────────────────────────────── */
 const EVENT_ICON: Record<string, string> = {
-  message_received: "📥",
-  message_sent: "📤",
-  tool_call: "🔧",
-  error: "❌",
-  cron: "⏰",
-  system: "⚙️",
-  note: "📝",
+  message_received: "IN",
+  message_sent: "OUT",
+  tool_call: "TOOL",
+  error: "ERR",
+  cron: "CRON",
+  system: "SYS",
+  note: "NOTE",
 };
 
 const EVENT_BORDER: Record<string, string> = {
@@ -82,7 +82,9 @@ function EventRow({ event, expanded, onToggle }: {
         <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 text-base">{EVENT_ICON[event.event_type] ?? "📌"}</span>
+          <span className="shrink-0 rounded-[var(--radius-sm)] border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-secondary)]">
+            {EVENT_ICON[event.event_type] ?? "EVT"}
+          </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <Link
@@ -105,7 +107,7 @@ function EventRow({ event, expanded, onToggle }: {
                   event.threat_level === "medium" ? "bg-amber-900/30 text-amber-400" :
                   "bg-[var(--bg-surface)] text-[var(--text-secondary)]"
                 }`}>
-                  🛡️ {event.threat_level.toUpperCase()}
+                  THREAT {event.threat_level.toUpperCase()}
                 </span>
               )}
             </div>

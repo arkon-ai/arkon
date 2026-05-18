@@ -1,5 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { isNonBrowserCredential, resolveRequestCredential } from "@/lib/request-auth";
+import { getReviewModePayload } from "@/lib/review-data";
+import {
+  canUseReviewMode,
+  hasReviewModeQuery,
+  isReviewModeActive,
+  REVIEW_MODE_COOKIE,
+} from "@/lib/review-mode";
 
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
@@ -17,11 +24,7 @@ function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
 }
 
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const response = NextResponse.next();
-  let credential: Awaited<ReturnType<typeof resolveRequestCredential>> | undefined;
-
+function applySecurityHeaders(response: NextResponse) {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -40,8 +43,46 @@ export async function proxy(request: NextRequest) {
       "frame-ancestors 'none'",
     ].join("; ")
   );
+  return response;
+}
+
+function setReviewCookies(response: NextResponse, request: NextRequest) {
+  if (!canUseReviewMode() || !hasReviewModeQuery(request.nextUrl)) return;
+
+  const cookieOptions = {
+    httpOnly: false,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 8,
+  };
+
+  response.cookies.set(REVIEW_MODE_COOKIE, "1", cookieOptions);
+  response.cookies.set("mc_role", "owner", cookieOptions);
+  response.cookies.set("mc_csrf", "review-mode-csrf", cookieOptions);
+}
+
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const response = NextResponse.next();
+  let credential: Awaited<ReturnType<typeof resolveRequestCredential>> | undefined;
+  const reviewMode = isReviewModeActive(request.headers.get("cookie"), request.nextUrl);
+
+  applySecurityHeaders(response);
+  setReviewCookies(response, request);
+
+  if (reviewMode && request.method === "GET" && pathname.startsWith("/api/")) {
+    const payload = getReviewModePayload(pathname, request.nextUrl.searchParams);
+    if (payload !== undefined) {
+      const reviewResponse = NextResponse.json(payload);
+      applySecurityHeaders(reviewResponse);
+      setReviewCookies(reviewResponse, request);
+      reviewResponse.headers.set("X-Arkon-Review-Mode", "1");
+      return reviewResponse;
+    }
+  }
 
   if (
+    !reviewMode &&
     !isPublicPath(pathname) &&
     !pathname.startsWith("/_next/") &&
     !pathname.startsWith("/favicon") &&
@@ -68,6 +109,8 @@ export async function proxy(request: NextRequest) {
   }
 
   if (CSRF_PROTECTED_METHODS.includes(request.method)) {
+    if (reviewMode) return response;
+
     if (
       pathname === "/api/auth/init" ||
       pathname === "/api/auth/login" ||

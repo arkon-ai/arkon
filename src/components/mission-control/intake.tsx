@@ -45,8 +45,8 @@ function fmtDate(iso: string): string {
   });
 }
 
-const channelEmoji: Record<string, string> = {
-  telegram: "📱", whatsapp: "💬", discord: "🎮", signal: "🔒",
+const channelLabel: Record<string, string> = {
+  telegram: "Telegram", whatsapp: "WhatsApp", discord: "Discord", signal: "Signal",
 };
 
 /* ─── Full payload modal ─────────────────────────────────── */
@@ -209,7 +209,7 @@ function SubmissionCard({ sub, onProcessed, onExpand }: {
               disabled={marking}
               className="rounded-xl bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-foreground)] hover:opacity-90 disabled:opacity-50 transition"
             >
-              {marking ? "…" : "✓ Done"}
+              {marking ? "..." : "Done"}
             </button>
           )}
         </div>
@@ -221,7 +221,7 @@ function SubmissionCard({ sub, onProcessed, onExpand }: {
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Channels</p>
             <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
-              {(sub.channels as string[]).map(c => `${channelEmoji[c.toLowerCase()] ?? "💬"} ${c}`).join(" · ")}
+              {(sub.channels as string[]).map(c => channelLabel[c.toLowerCase()] ?? c).join(" · ")}
             </p>
           </div>
         )}
@@ -300,7 +300,7 @@ export function IntakeViewer() {
       {submissions.length === 0 ? (
         <Card>
           <div className="py-16 text-center">
-            <p className="text-4xl mb-3">📋</p>
+            <p className="mb-3 font-mono text-xs uppercase tracking-[0.08em] text-[var(--text-tertiary)]">Intake</p>
             <p className="text-sm font-semibold text-[var(--text-primary)]">No submissions yet</p>
             <p className="mt-2 text-xs text-[var(--text-secondary)]">
               Share the intake form with your client:

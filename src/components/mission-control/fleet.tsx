@@ -10,6 +10,7 @@ import {
 } from "./dashboard";
 import { SectionDescription } from "./dashboard-clarity";
 import { EmptyState } from "./empty-states";
+import { StatusPill } from "./ui-cards";
 import {
   activityStatus,
   timeAgo,
@@ -180,19 +181,16 @@ function AgentCard({ agent }: { agent: FleetAgent }) {
           <StatusRing status={statusKey} size={36} />
           <div>
             <div className="flex items-center gap-2">
-              {identity.emoji ? (
-                <span className="text-lg leading-none">{identity.emoji}</span>
-              ) : null}
               <h2 className="text-lg font-semibold text-text">
                 {identity.display_name}
               </h2>
               {identity.harness ? (
-                <span className="rounded-full bg-cyan/10 px-2 py-0.5 text-[10px] font-semibold text-cyan">
+                <span className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--text-secondary)]">
                   {identity.harness}
                 </span>
               ) : null}
               {isWarden ? (
-                <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">
+                <span className="rounded-[var(--radius-sm)] border border-[rgba(0,212,126,0.35)] bg-[rgba(0,212,126,0.08)] px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--accent)]">
                   governor
                 </span>
               ) : null}
@@ -202,11 +200,9 @@ function AgentCard({ agent }: { agent: FleetAgent }) {
             </p>
           </div>
         </div>
-        <span
-          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status.tone} bg-white/5`}
-        >
+        <StatusPill status={statusKey === "error" ? "err" : statusKey === "live" ? "live" : statusKey === "warm" ? "warm" : "idle"}>
           {status.label}
-        </span>
+        </StatusPill>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
@@ -388,7 +384,7 @@ function DelegationBreakdown({
 
 function MiniMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-bg-deep/40 p-2">
+    <div className="rounded-[var(--radius-md)] border border-border bg-[var(--bg-surface-2)] p-2">
       <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-dim">
         {label}
       </p>

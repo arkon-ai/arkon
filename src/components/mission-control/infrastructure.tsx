@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -18,6 +18,21 @@ import "@xyflow/react/dist/style.css";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { SectionDescription } from "./dashboard-clarity";
+import {
+  AlertTriangle,
+  Cloud,
+  Container,
+  FileText,
+  Globe2,
+  Handshake,
+  HeartPulse,
+  Monitor,
+  RefreshCw,
+  RotateCw,
+  Server,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface InfraNode {
@@ -101,12 +116,12 @@ const ROLE_LABELS: Record<string, string> = {
   workstation: "WORKSTATION",
 };
 
-const ROLE_ICONS: Record<string, string> = {
-  primary: "\uD83D\uDDA5",
-  failover: "\u2601\uFE0F",
-  static: "\uD83C\uDF10",
-  dfy_client: "\uD83E\uDD1D",
-  workstation: "\uD83D\uDCBB",
+const ROLE_ICONS: Record<string, LucideIcon> = {
+  primary: Server,
+  failover: Cloud,
+  static: Globe2,
+  dfy_client: Handshake,
+  workstation: Monitor,
 };
 
 function pctBar(value: number | null, total: number | null, thresholds = { warn: 65, danger: 85 }) {
@@ -133,6 +148,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
     : null;
 
   const isCompact = d.role === "static" || d.role === "workstation";
+  const RoleIcon = ROLE_ICONS[d.role] || Server;
 
   return (
     <div
@@ -143,7 +159,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
 
       <div
-        className="rounded-2xl border p-4 transition-all duration-200"
+        className="rounded-[var(--radius-card)] border p-4 transition-all duration-200"
         style={{
           background: selected ? "#111111" : "#0a0a0a",
           borderColor: selected ? roleStyle.border : "#1a1a1a",
@@ -161,10 +177,10 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
         {/* Header */}
         <div className="mb-3 flex items-start justify-between">
           <div
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-base"
+            className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)]"
             style={{ background: roleStyle.bg, color: roleStyle.color }}
           >
-            {ROLE_ICONS[d.role] || "\uD83D\uDDA5"}
+            <RoleIcon className="h-4 w-4" />
           </div>
           <div className="flex items-center gap-1.5">
             <div
@@ -245,7 +261,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
               color: d.status === "offline" ? "#ef4444" : "#f59e0b",
             }}
           >
-            {"\u26A0"} {d.status === "offline" ? "Node unreachable" : "Performance degraded"}
+            <AlertTriangle className="h-3.5 w-3.5" /> {d.status === "offline" ? "Node unreachable" : "Performance degraded"}
           </div>
         )}
       </div>
@@ -284,19 +300,19 @@ function DetailPanel({
   const statusColor = STATUS_COLORS[node.status] || STATUS_COLORS.unknown;
   const meta = node.metadata as Record<string, unknown>;
 
-  const actions = [
-    { id: "health_check", label: "Health Check", icon: "\uD83D\uDC93", style: "primary" },
-    { id: "view_logs", label: "View Logs", icon: "\uD83D\uDCC4", style: "" },
+  const actions: Array<{ id: string; label: string; icon: LucideIcon; style: string }> = [
+    { id: "health_check", label: "Health Check", icon: HeartPulse, style: "primary" },
+    { id: "view_logs", label: "View Logs", icon: FileText, style: "" },
     ...(node.role !== "static" && node.role !== "workstation"
-      ? [{ id: "restart_gateway", label: "Restart Gateway", icon: "\uD83D\uDD04", style: "danger" }]
+      ? [{ id: "restart_gateway", label: "Restart Gateway", icon: RotateCw, style: "danger" }]
       : []),
     ...(node.role === "failover"
-      ? [{ id: "docker_status", label: "Docker Status", icon: "\uD83D\uDC33", style: "" }]
+      ? [{ id: "docker_status", label: "Docker Status", icon: Container, style: "" }]
       : []),
     ...(node.role === "static"
-      ? [{ id: "nginx_status", label: "Nginx Status", icon: "\uD83C\uDF10", style: "" }]
+      ? [{ id: "nginx_status", label: "Nginx Status", icon: Globe2, style: "" }]
       : []),
-    { id: "force_sync", label: "Force Sync", icon: "\uD83D\uDD04", style: "" },
+    { id: "force_sync", label: "Force Sync", icon: RefreshCw, style: "" },
   ];
 
   const handleAction = async (actionId: string) => {
@@ -338,7 +354,7 @@ function DetailPanel({
           onClick={onClose}
           className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--border)] text-xs text-[var(--text-tertiary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
         >
-          {"\u2715"}
+          <X className="h-3.5 w-3.5" />
         </button>
         <p className="text-lg font-semibold text-white">{node.name}</p>
         <div className="mt-1 flex items-center gap-2 text-xs">
@@ -430,28 +446,29 @@ function DetailPanel({
       {/* Actions */}
       <Section title="Quick Actions">
         <div className="grid grid-cols-2 gap-2">
-          {actions.map((action) => (
-            <button
-              key={action.id}
-              onClick={() => handleAction(action.id)}
-              disabled={loading !== null}
-              className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition
-                ${action.style === "primary"
-                  ? "border-[rgba(34,197,94,0.15)] bg-[rgba(34,197,94,0.05)] text-[var(--success)] hover:bg-[rgba(34,197,94,0.1)]"
-                  : action.style === "danger"
-                    ? "border-[rgba(239,68,68,0.12)] text-[var(--danger)] hover:bg-[rgba(239,68,68,0.05)]"
-                    : "border-[var(--border)] text-[var(--text-tertiary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
-                }
-                disabled:opacity-40`}
-            >
-              {loading === action.id ? (
-                <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <span>{action.icon}</span>
-              )}
-              {action.label}
-            </button>
-          ))}
+          {actions.map((action) => {
+            const ActionIcon = action.icon;
+            return (
+              <button
+                key={action.id}
+                onClick={() => handleAction(action.id)}
+                disabled={loading !== null}
+                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition
+                  ${action.style === "primary"
+                    ? "border-[rgba(34,197,94,0.15)] bg-[rgba(34,197,94,0.05)] text-[var(--success)] hover:bg-[rgba(34,197,94,0.1)]"
+                    : action.style === "danger"
+                      ? "border-[rgba(239,68,68,0.12)] text-[var(--danger)] hover:bg-[rgba(239,68,68,0.05)]"
+                      : "border-[var(--border)] text-[var(--text-tertiary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
+                  }
+                  disabled:opacity-40`}
+              >
+                {loading === action.id ? (
+                  <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : <ActionIcon className="h-3.5 w-3.5" />}
+                {action.label}
+              </button>
+            );
+          })}
         </div>
       </Section>
 
@@ -643,7 +660,9 @@ export function InfrastructureTopology() {
     return (
       <div className="flex h-[70vh] items-center justify-center">
         <div className="text-center">
-          <p className="mb-2 text-lg text-red-400">{"\u26A0"} Failed to load topology</p>
+          <p className="mb-2 inline-flex items-center gap-2 text-lg text-red-400">
+            <AlertTriangle className="h-5 w-5" /> Failed to load topology
+          </p>
           <p className="mb-4 text-sm text-[var(--text-tertiary)]">{error}</p>
           <button onClick={fetchTopology} className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2 text-sm text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]">
             Retry
@@ -699,10 +718,7 @@ export function InfrastructureTopology() {
             disabled={refreshing}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-tertiary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] disabled:opacity-40"
           >
-            <svg className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-              <path d="M3 22v-6h6" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-            </svg>
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           </button>
         </div>
       </div>
