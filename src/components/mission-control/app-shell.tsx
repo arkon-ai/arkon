@@ -148,9 +148,10 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     label: "Observe",
     key: "observe",
     items: [
-      { href: "/", label: "Dashboard", subtitle: "Pulse, incidents, and active work", icon: LayoutDashboard },
-      { href: "/arkonos", label: "ArkonOS", subtitle: "Message volume and coordination signals", icon: MessageSquare },
-      { href: "/fleet", label: "ArkonHelm", subtitle: "Fleet orchestration and delegation", icon: Radio },
+      // Dashboard / ArkonOS / ArkonHelm live in `productItems` (sidebar header).
+      // Listing them here too would duplicate the active-highlight on those
+      // routes — surfaced by @claude on R2 review. Observe = the rest of the
+      // observability surface area.
       { href: "/traces", label: "Traces", subtitle: "Agent execution spans", icon: GitBranch },
       { href: "/infrastructure", label: "Infrastructure", subtitle: "Servers, services, and resources", icon: Network },
       { href: "/incidents", label: "Incidents", subtitle: "Operational incident history", icon: AlertTriangle },
@@ -559,7 +560,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
               <>
                 <span className="min-w-0 flex-1 text-left">Kill switch</span>
                 <span className="rounded border border-[rgba(239,68,68,0.28)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
-                  Ctrl Shift K
+                  {mounted && typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "⌘⇧K" : "Ctrl Shift K"}
                 </span>
               </>
             ) : null}
