@@ -416,7 +416,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
               className="h-5 w-5 shrink-0"
               aria-hidden="true"
             />
-            <span className="truncate font-[family-name:var(--font-wordmark)] text-[15px] font-extrabold uppercase tracking-[-0.02em] text-[var(--text-primary)]">
+            <span className="truncate font-[family-name:var(--font-wordmark)] text-[20px] font-extrabold uppercase leading-none tracking-[-0.02em] text-[var(--text-primary)]">
               Arkon
             </span>
             <span className="ml-auto shrink-0 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
