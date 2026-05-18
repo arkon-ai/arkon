@@ -1,5 +1,5 @@
-import { ToolsHubScreen } from "@/components/mission-control/tools";
+import { IntegrationsScreen } from "@/components/mission-control/integrations";
 
-export default function ToolsPage() {
-  return <ToolsHubScreen />;
+export default function IntegrationsPage() {
+  return <IntegrationsScreen />;
 }

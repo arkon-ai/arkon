@@ -401,6 +401,68 @@ function getRawReviewModePayload(pathname: string, searchParams: URLSearchParams
     };
   }
 
+  // WI-391: Integrations page (rebuilt /integrations). 12 servers matching the
+  // canonical brand brief (brand-package/screens/integrations.jsx) so review-mode
+  // shows a fully populated KPI strip + list. real-data shape mirrors prod /api/tools/mcp.
+  if (pathname === "/api/tools/mcp") {
+    return {
+      count: 12,
+      wired_agents: 5,
+      servers: [
+        { id: 1,  name: "Brave Search",        url: "stdio:brave-search",       host: null, port: null, server_type: "stdio", approved: true,  status: "online",  last_checked: "2026-05-18T10:00:00.000Z", notes: "Official Brave Search MCP — web + local search via Brave API",      created_at: "2026-04-01T08:00:00.000Z", agent_count: 2 },
+        { id: 2,  name: "Fetch",               url: "stdio:fetch",              host: null, port: null, server_type: "stdio", approved: true,  status: "online",  last_checked: "2026-05-18T11:49:00.000Z", notes: "Anthropic reference — web content fetching for LLM usage",          created_at: "2026-04-01T08:00:00.000Z", agent_count: 4 },
+        { id: 3,  name: "Filesystem",          url: "stdio:filesystem",         host: null, port: null, server_type: "stdio", approved: true,  status: "online",  last_checked: "2026-05-18T11:56:00.000Z", notes: "Anthropic reference — secure file r/w with allowlist",              created_at: "2026-04-01T08:00:00.000Z", agent_count: 3 },
+        { id: 4,  name: "Git",                 url: "stdio:git",                host: null, port: null, server_type: "stdio", approved: true,  status: "online",  last_checked: "2026-05-18T11:52:00.000Z", notes: "Anthropic reference — read, search, and manipulate Git repos",      created_at: "2026-04-01T08:00:00.000Z", agent_count: 2 },
+        { id: 5,  name: "GitHub",              url: "stdio:github",             host: null, port: null, server_type: "stdio", approved: true,  status: "online",  last_checked: "2026-05-18T11:54:00.000Z", notes: "Official GitHub MCP — repo management, PR ops, API integration",    created_at: "2026-04-01T08:00:00.000Z", agent_count: 4 },
+        { id: 6,  name: "Memory",              url: "stdio:memory",             host: null, port: null, server_type: "stdio", approved: true,  status: "unknown", last_checked: "2026-05-17T12:00:00.000Z", notes: "Anthropic reference — knowledge graph persistence",                 created_at: "2026-04-01T08:00:00.000Z", agent_count: 1 },
+        { id: 7,  name: "PostgreSQL",          url: "stdio:postgres",           host: null, port: null, server_type: "stdio", approved: true,  status: "unknown", last_checked: "2026-05-15T12:00:00.000Z", notes: "Official Postgres MCP — read-only with schema inspection",           created_at: "2026-04-01T08:00:00.000Z", agent_count: 1 },
+        { id: 8,  name: "Puppeteer",           url: "stdio:puppeteer",          host: null, port: null, server_type: "stdio", approved: true,  status: "unknown", last_checked: null,                       notes: "Browser automation + web scraping",                                  created_at: "2026-04-01T08:00:00.000Z", agent_count: 0 },
+        { id: 9,  name: "SQLite",              url: "stdio:sqlite",             host: null, port: null, server_type: "stdio", approved: true,  status: "unknown", last_checked: null,                       notes: "Database interaction + business intelligence queries",               created_at: "2026-04-01T08:00:00.000Z", agent_count: 0 },
+        { id: 10, name: "Sequential Thinking", url: "stdio:sequential",         host: null, port: null, server_type: "stdio", approved: true,  status: "online",  last_checked: "2026-05-18T11:46:00.000Z", notes: "Anthropic reference — multi-step problem decomposition",            created_at: "2026-04-01T08:00:00.000Z", agent_count: 3 },
+        { id: 11, name: "Slack",               url: "stdio:slack",              host: null, port: null, server_type: "stdio", approved: false, status: "offline", last_checked: "2026-05-18T11:30:00.000Z", notes: "Channel management, search, message ops — last check failed (401)", created_at: "2026-04-01T08:00:00.000Z", agent_count: 0 },
+        { id: 12, name: "Time",                url: "stdio:time",               host: null, port: null, server_type: "stdio", approved: true,  status: "online",  last_checked: "2026-05-18T11:59:00.000Z", notes: "Time + timezone conversion utilities",                              created_at: "2026-04-01T08:00:00.000Z", agent_count: 5 },
+      ],
+    };
+  }
+
+  if (pathname === "/api/mcp/gateway/stats") {
+    // 1.4k calls / 142ms avg / p95 410ms / 3 failures (all on Slack) / ↑12% vs prior 7d.
+    return {
+      range: searchParams.get("range") ?? "7d",
+      summary: {
+        total_requests: 1432,
+        prev_total_requests: 1280,
+        success_count: 1429,
+        error_count: 3,
+        prev_error_count: 0,
+        avg_duration_ms: 142,
+        p95_duration_ms: 410,
+        total_bytes: 4_812_000,
+        active_servers: 7,
+        unique_methods: 18,
+      },
+      by_server: [
+        { server_name: "Brave Search",        server_id: 1,  requests: 312, successes: 312, errors: 0, avg_ms: 142 },
+        { server_name: "Fetch",               server_id: 2,  requests: 287, successes: 287, errors: 0, avg_ms: 96  },
+        { server_name: "GitHub",              server_id: 5,  requests: 234, successes: 234, errors: 0, avg_ms: 168 },
+        { server_name: "Filesystem",          server_id: 3,  requests: 198, successes: 198, errors: 0, avg_ms: 48  },
+        { server_name: "Sequential Thinking", server_id: 10, requests: 156, successes: 156, errors: 0, avg_ms: 213 },
+        { server_name: "Git",                 server_id: 4,  requests: 142, successes: 142, errors: 0, avg_ms: 102 },
+        { server_name: "Time",                server_id: 12, requests: 80,  successes: 80,  errors: 0, avg_ms: 12  },
+        { server_name: "Memory",              server_id: 6,  requests: 12,  successes: 12,  errors: 0, avg_ms: 67  },
+        { server_name: "PostgreSQL",          server_id: 7,  requests: 6,   successes: 6,   errors: 0, avg_ms: 84  },
+        { server_name: "Slack",               server_id: 11, requests: 5,   successes: 2,   errors: 3, avg_ms: 4500 },
+      ],
+      by_method: [],
+      recent_errors: [
+        { server_name: "Slack", mcp_method: "channels.list",  status: 401, error: "auth failed: invalid_auth", duration_ms: 4380, created_at: "2026-05-18T11:30:00.000Z" },
+        { server_name: "Slack", mcp_method: "chat.postMessage", status: 401, error: "auth failed: invalid_auth", duration_ms: 4520, created_at: "2026-05-18T11:24:00.000Z" },
+        { server_name: "Slack", mcp_method: "channels.list",  status: 401, error: "auth failed: invalid_auth", duration_ms: 4600, created_at: "2026-05-18T11:18:00.000Z" },
+      ],
+      hourly_trend: [],
+    };
+  }
+
   if (pathname === "/api/systems") {
     const services = [
       { name: "Gateway", host: "hofmi-team-1", port: 8787, group: "Core", online: true, latencyMs: 12, checkedAt: NOW },

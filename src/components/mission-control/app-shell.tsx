@@ -45,11 +45,9 @@ import { FloatingKillSwitch } from "./floating-kill-switch";
 import { GuidedTour } from "./guided-tour";
 import { GlobalShortcuts } from "./global-shortcuts";
 import { HelpPanel } from "./help-panel";
-import { Breadcrumbs } from "../ui/breadcrumbs";
 import { TenantSwitcher } from "./tenant-switcher";
 import { ThemeToggle } from "./theme-toggle";
 import { isReviewModeActiveInBrowser } from "@/lib/review-mode";
-import { getBreadcrumbs } from "@/lib/page-meta";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -115,7 +113,7 @@ const mobileTabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
 
 const moreSheetItems: NavItem[] = [
   { href: "/agents", label: "Agents", icon: Bot },
-  { href: "/integrations/mcp", label: "Integrations", icon: Plug },
+  { href: "/integrations", label: "Integrations", icon: Plug },
   { href: "/integrations/approvals", label: "Approvals", icon: CheckCircle },
   { href: "/compliance", label: "Compliance", icon: FileText },
   { href: "/traces", label: "Traces", icon: GitBranch },
@@ -131,11 +129,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     key: "provision",
     items: [
       { href: "/agents", label: "Agents", subtitle: "Roster, health, and assignment", icon: Bot },
-      // Integrations lands directly on the MCP servers control point per
-      // Brynn's Q1 ("The MCP servers ARE the Integrations"). The /integrations
-      // hub page (tool grid) is still reachable as a fallback URL. Follow-up
-      // PR may rename the route so MCP servers lives at /integrations directly.
-      { href: "/integrations/mcp", label: "Integrations", subtitle: "MCP servers and provider connections", icon: Plug },
+      { href: "/integrations", label: "Integrations", subtitle: "MCP servers and provider connections", icon: Plug },
       { href: "/client/api-keys", label: "Keys & tokens", subtitle: "API keys and access tokens", icon: KeyRound },
     ],
   },
@@ -309,16 +303,23 @@ export function NotionShell({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  // Auto-expand group containing active route
+  // Auto-expand the group containing the active route on route change.
+  // Deps must be `[pathname]` only — including `collapsedGroups` made the
+  // effect re-fire on every user collapse, instantly un-collapsing the group
+  // the user just collapsed (because the active route still lives in it).
+  // Read latest `collapsedGroups` via the functional setState; short-circuit
+  // `return prev` keeps it idempotent. The setState runs inside rAF so the
+  // react-hooks/set-state-in-effect rule doesn't fire — that rule warns about
+  // synchronous-in-effect cascades; rAF defers to the next frame.
   useEffect(() => {
     if (!pathname) return;
     const activeGroup = navGroups.find((group) =>
       group.items.some((item) => isRouteActive(pathname, item.href))
     );
-    if (!activeGroup || !collapsedGroups.has(activeGroup.key)) return;
-
+    if (!activeGroup) return;
     const frame = window.requestAnimationFrame(() => {
       setCollapsedGroups((prev) => {
+        if (!prev.has(activeGroup.key)) return prev;
         const next = new Set(prev);
         next.delete(activeGroup.key);
         saveCollapsedGroups(next);
@@ -326,7 +327,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
       });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [collapsedGroups, pathname]);
+  }, [pathname]);
 
   // Fetch pending approvals
   useEffect(() => {
@@ -400,7 +401,6 @@ export function NotionShell({ children }: { children: ReactNode }) {
   }
 
   const reviewMode = mounted && isReviewModeActiveInBrowser();
-  const hasBreadcrumbTrail = getBreadcrumbs(pathname ?? "/").length > 1;
   const currentPageLabel = pageLabels[pathname ?? ""] ?? "Arkon";
   // Topbar crumbs: Arkon › <Pillar> › <Screen>. Mirrors brand-package/kit/chrome.jsx
   // TopBar() default crumbs=['Arkon', 'Observe', 'Dashboard']. The pillar segment
@@ -643,34 +643,31 @@ export function NotionShell({ children }: { children: ReactNode }) {
                   <Menu className="h-5 w-5" />
                 </button>
                 <div className="flex flex-wrap items-center gap-2">
-                  {hasBreadcrumbTrail ? (
-                    <Breadcrumbs />
-                  ) : (
-                    // Canonical topbar crumbs: Arkon › <Pillar> › <Screen>
-                    // (brand-package/kit/chrome.jsx TopBar default). Last item
-                    // is the active page.
-                    <nav
-                      aria-label="Breadcrumb"
-                      className="flex items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]"
-                    >
-                      {topbarCrumbs.map((crumb, i) => {
-                        const isLast = i === topbarCrumbs.length - 1;
-                        return (
-                          <span key={`${i}-${crumb}`} className="inline-flex items-center gap-1.5">
-                            {i > 0 ? (
-                              <ChevronRight className="h-3 w-3 text-[var(--text-tertiary)]" aria-hidden="true" />
-                            ) : null}
-                            <span
-                              className={isLast ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"}
-                              aria-current={isLast ? "page" : undefined}
-                            >
-                              {crumb}
-                            </span>
+                  {/* Canonical topbar crumbs: Arkon › <Pillar> › <Screen>
+                      (brand-package/kit/chrome.jsx TopBar default). Last item is
+                      the active page. WI-391: this is the canonical breadcrumb
+                      surface — page bodies do NOT render their own crumbs. */}
+                  <nav
+                    aria-label="Breadcrumb"
+                    className="flex items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]"
+                  >
+                    {topbarCrumbs.map((crumb, i) => {
+                      const isLast = i === topbarCrumbs.length - 1;
+                      return (
+                        <span key={`${i}-${crumb}`} className="inline-flex items-center gap-1.5">
+                          {i > 0 ? (
+                            <ChevronRight className="h-3 w-3 text-[var(--text-tertiary)]" aria-hidden="true" />
+                          ) : null}
+                          <span
+                            className={isLast ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"}
+                            aria-current={isLast ? "page" : undefined}
+                          >
+                            {crumb}
                           </span>
-                        );
-                      })}
-                    </nav>
-                  )}
+                        </span>
+                      );
+                    })}
+                  </nav>
                     {reviewMode ? (
                       <span className="rounded-full border border-[rgba(0,212,126,0.25)] bg-[rgba(0,212,126,0.08)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
                         Review mode
