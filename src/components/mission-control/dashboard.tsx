@@ -49,7 +49,6 @@ import {
   PulseStrip,
   StatusPill,
   SectionTitle as PrimitiveSectionTitle,
-  Tabs,
 } from "./ui-cards";
 import { LiveFeed, type LiveFeedItem } from "./kit-extras";
 
@@ -571,23 +570,24 @@ function DashboardTenantTable({ data }: { data: OverviewData | null }) {
       action={<Button kind="ghost" size="sm" iconRight={ArrowRight}>Manage tenants</Button>}
       flush
     >
-      <div className="grid grid-cols-[1fr_120px_90px_110px_110px_90px] items-center gap-4 border-b border-[var(--border)] bg-[var(--bg-primary)] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
+      {/* R3: 7d sparkline column removed. The previous values were
+          formula-generated from today's events24h, NOT real 7d history.
+          Re-add when a tenant-level history endpoint exists (Rule 12). */}
+      <div className="grid grid-cols-[1fr_120px_90px_110px_110px] items-center gap-4 border-b border-[var(--border)] bg-[var(--bg-primary)] px-5 py-3 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
         <span>Name</span>
         <span>Status</span>
         <span className="text-right">Agents</span>
         <span className="text-right">Events 24h</span>
         <span className="text-right">Tokens 24h</span>
-        <span className="text-right">7d</span>
       </div>
       {tenants.map((tenant) => {
         const tenantAgents = agents.filter((agent) => agent.tenant_id === tenant.id);
         const status = tenantStatus(tenantAgents);
         const events24h = tenantAgents.reduce((sum, agent) => sum + asNumber(agent.events_24h), 0);
         const tokens24h = tenantAgents.reduce((sum, agent) => sum + asNumber(agent.tokens_24h), 0);
-        const spark = Array.from({ length: 7 }, (_, index) => ({ value: Math.max(0, events24h * (0.35 + index * 0.08 + (index % 2) * 0.1)) }));
 
         return (
-          <div key={tenant.id} className="grid grid-cols-[1fr_120px_90px_110px_110px_90px] items-center gap-4 border-b border-[var(--border)] px-5 py-3 text-sm last:border-b-0">
+          <div key={tenant.id} className="grid grid-cols-[1fr_120px_90px_110px_110px] items-center gap-4 border-b border-[var(--border)] px-5 py-3 text-sm last:border-b-0">
             <div className="min-w-0">
               <span className="font-semibold text-[var(--text-primary)]">{tenant.name}</span>
               <span className="ml-2 font-mono text-[12px] text-[var(--text-tertiary)]">{tenant.domain ?? tenant.id}</span>
@@ -599,9 +599,6 @@ function DashboardTenantTable({ data }: { data: OverviewData | null }) {
             <span className="text-right font-mono text-[var(--text-primary)]">{tenantAgents.length}</span>
             <span className="text-right font-mono text-[var(--text-primary)]">{events24h > 0 ? formatCompact(events24h) : "-"}</span>
             <span className="text-right font-mono text-[var(--text-primary)]">{tokens24h > 0 ? formatCompact(tokens24h) : "-"}</span>
-            <span className="flex justify-end">
-              {events24h > 0 ? <Sparkline data={spark} color="#00D47E" width={80} height={16} /> : <span className="font-mono text-[var(--text-tertiary)]">-</span>}
-            </span>
           </div>
         );
       })}
@@ -620,7 +617,9 @@ function OverviewContent() {
     15000
   );
   const [threatDrawerOpen, setThreatDrawerOpen] = useState(false);
-  const [dashboardRange, setDashboardRange] = useState<"24h" | "7d" | "30d">("24h");
+  // dashboardRange tabs removed in R3: they were UI-only with no data fetch
+  // observing the value. Surfaced by @claude — fail-loud over fake-feature
+  // (Rule 12). Re-add with real wiring when range filtering ships properly.
 
   if (loading && !data) return <LoadingState label="Loading overview" />;
   if (error && !data) return <ErrorState error={error} />;
@@ -678,21 +677,11 @@ function OverviewContent() {
   const liveCount = agents.filter((agent) => activityStatus(agent.last_active).label === "Live").length;
   const warmCount = agents.filter((agent) => activityStatus(agent.last_active).label === "Warm").length;
   const idleCount = Math.max(metrics.totalAgents - liveCount - warmCount, 0);
-  const liveFeedItems = recentEvents.length > 0
-    ? recentEvents
-    : agents.slice(0, 6).map((agent, index) => ({
-        id: `agent-${agent.id}`,
-        agent_name: agent.name,
-        event_type: index === 3 ? "heartbeat" : index === 1 ? "work_item" : "tool_call",
-        content: index === 0
-          ? "google_drive.list_files completed"
-          : index === 1
-            ? "in-progress review task updated"
-            : index === 2
-              ? `${formatCompact(asNumber(agent.events_24h))} events / 24h`
-              : "idle check recorded",
-        created_at: agent.last_active ?? data?.timestamp ?? new Date().toISOString(),
-      }));
+  // R3: synthetic fallback removed. When recentEvents is empty, the call
+  // site renders <EmptyState> instead of fabricated "live" activity (Rule 12
+  // fail-loud). The previous fallback synthesized agent_name/event_type/
+  // content strings that operators would treat as real signals.
+  const liveFeedItems: RecentEvent[] = recentEvents;
 
   return (
     <>
@@ -706,23 +695,15 @@ function OverviewContent() {
           subtitle="Live agent activity, token flow, and system pulse across every tenant."
           live
           updated={data?.timestamp ? timeAgo(data.timestamp) : "4s ago"}
-          action={
-            <Tabs
-              items={[
-                { id: "24h", label: "24h" },
-                { id: "7d", label: "7d" },
-                { id: "30d", label: "30d" },
-              ]}
-              active={dashboardRange}
-              onChange={setDashboardRange}
-            />
-          }
           className="mb-0"
         />
 
         <div data-tour="dashboard">
           <PulseStrip
-            className="md:grid-cols-6"
+            // R3: 5 cells (was 6). Burn · 24h removed — value was hardcoded
+            // "$0.044" / "5× avg" with no metric source (Rule 12 fail-loud).
+            // Re-add when real burn data lands.
+            className="md:grid-cols-5"
             cells={[
               {
                 label: "Health",
@@ -746,20 +727,16 @@ function OverviewContent() {
                 tint: "ok",
               },
               {
-                label: "Burn · 24h",
-                value: "$0.044",
-                sub: "5× avg",
-                tint: "warn",
-              },
-              {
                 label: "Threats",
                 value: totalThreatCount,
-                sub: "829 scanned",
+                sub: totalThreatCount > 0 ? "active" : "clean",
                 tint: totalThreatCount > 0 ? "bad" : "ok",
               },
               {
+                // R3: removed `+ 5` phantom offset from value computation —
+                // it inflated the count regardless of state (Rule 12).
                 label: "Alerts",
-                value: metrics.errorsToday + totalThreatCount + 5,
+                value: metrics.errorsToday + totalThreatCount,
                 sub: "open",
                 tint: metrics.errorsToday + totalThreatCount > 0 ? "warn" : undefined,
               },
@@ -774,7 +751,18 @@ function OverviewContent() {
             action={<Button kind="ghost" size="sm" iconRight={ArrowRight}>Open Traces</Button>}
             flush
           >
-            <LiveFeed items={liveFeedItems.slice(0, 6).map(adaptRecentEventToFeedItem)} />
+            {liveFeedItems.length > 0 ? (
+              <LiveFeed items={liveFeedItems.slice(0, 6).map(adaptRecentEventToFeedItem)} />
+            ) : (
+              <div className="p-5">
+                <EmptyState
+                  icon={Radio}
+                  title="No recent events"
+                  description="Events appear here as agents work. The poll refreshes every 15 seconds."
+                  compact
+                />
+              </div>
+            )}
           </PrimitiveCard>
 
           <PrimitiveCard title="Message volume" meta="7d · all agents">
