@@ -19,6 +19,7 @@ import { formatCompact, timeAgo, usePollingFetch } from "@/components/mission-co
 import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { formatDay } from "@/lib/time-format";
+import { Wrench } from "lucide-react";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -421,7 +422,7 @@ function ToolCallsCard({ data }: { data: ToolCall[] }) {
       <p className="mb-3 text-[11px] text-text-dim">Agent tool invocations and performance</p>
       {data.length === 0 ? (
         <div className="rounded-xl bg-white/[0.02] px-4 py-6 text-center">
-          <p className="text-2xl">&#x1F527;</p>
+          <Wrench className="mx-auto h-6 w-6 text-text-dim" />
           <p className="mt-2 text-sm text-text-dim">No tool call data yet</p>
           <p className="mt-1 text-[11px] text-text-dim">Tool calls will appear here once agents start reporting them</p>
         </div>
