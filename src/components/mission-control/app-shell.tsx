@@ -23,6 +23,7 @@ import {
   Home,
   MoreHorizontal,
   ChevronDown,
+  ChevronRight,
   Star,
   Search,
   Settings,
@@ -148,10 +149,16 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     label: "Observe",
     key: "observe",
     items: [
-      // Dashboard / ArkonOS / ArkonHelm live in `productItems` (sidebar header).
-      // Listing them here too would duplicate the active-highlight on those
-      // routes — surfaced by @claude on R2 review. Observe = the rest of the
-      // observability surface area.
+      // Dashboard / ArkonOS / ArkonHelm appear in BOTH `productItems` (sidebar
+      // header context switcher) AND here per brand-package/kit/chrome.jsx
+      // AK_NAV.Observe (lines 19-28). Intentional dual-placement: Product =
+      // product-context (which Arkon-family product you're in); Observe =
+      // pages within current product, of which Dashboard is the first.
+      // Visual styling differs between the two sections so dual-active state
+      // is readable, not confusing.
+      { href: "/", label: "Dashboard", subtitle: "Pulse, incidents, and active work", icon: LayoutDashboard },
+      { href: "/arkonos", label: "ArkonOS", subtitle: "Message volume and coordination signals", icon: MessageSquare },
+      { href: "/fleet", label: "ArkonHelm", subtitle: "Fleet orchestration and delegation", icon: Radio },
       { href: "/traces", label: "Traces", subtitle: "Agent execution spans", icon: GitBranch },
       { href: "/infrastructure", label: "Infrastructure", subtitle: "Servers, services, and resources", icon: Network },
       { href: "/incidents", label: "Incidents", subtitle: "Operational incident history", icon: AlertTriangle },
@@ -391,6 +398,14 @@ export function NotionShell({ children }: { children: ReactNode }) {
   const reviewMode = mounted && isReviewModeActiveInBrowser();
   const hasBreadcrumbTrail = getBreadcrumbs(pathname ?? "/").length > 1;
   const currentPageLabel = pageLabels[pathname ?? ""] ?? "Arkon";
+  // Topbar crumbs: Arkon › <Pillar> › <Screen>. Mirrors brand-package/kit/chrome.jsx
+  // TopBar() default crumbs=['Arkon', 'Observe', 'Dashboard']. The pillar segment
+  // is derived from whichever navGroup contains the active route. Falls back to
+  // 'Observe' for paths not in any nav group (e.g. /agents detail pages).
+  const activeNavGroup = navGroups.find((group) =>
+    group.items.some((item) => isRouteActive(pathname, item.href)),
+  );
+  const topbarCrumbs = ["Arkon", activeNavGroup?.label ?? "Observe", currentPageLabel];
 
   const handleLogout = () => {
     document.cookie = "mc_auth=; path=/; max-age=0";
@@ -627,7 +642,30 @@ export function NotionShell({ children }: { children: ReactNode }) {
                   {hasBreadcrumbTrail ? (
                     <Breadcrumbs />
                   ) : (
-                    <p className="text-sm font-semibold text-[var(--text-primary)]">{currentPageLabel}</p>
+                    // Canonical topbar crumbs: Arkon › <Pillar> › <Screen>
+                    // (brand-package/kit/chrome.jsx TopBar default). Last item
+                    // is the active page.
+                    <nav
+                      aria-label="Breadcrumb"
+                      className="flex items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]"
+                    >
+                      {topbarCrumbs.map((crumb, i) => {
+                        const isLast = i === topbarCrumbs.length - 1;
+                        return (
+                          <span key={`${i}-${crumb}`} className="inline-flex items-center gap-1.5">
+                            {i > 0 ? (
+                              <ChevronRight className="h-3 w-3 text-[var(--text-tertiary)]" aria-hidden="true" />
+                            ) : null}
+                            <span
+                              className={isLast ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"}
+                              aria-current={isLast ? "page" : undefined}
+                            >
+                              {crumb}
+                            </span>
+                          </span>
+                        );
+                      })}
+                    </nav>
                   )}
                     {reviewMode ? (
                       <span className="rounded-full border border-[rgba(0,212,126,0.25)] bg-[rgba(0,212,126,0.08)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">

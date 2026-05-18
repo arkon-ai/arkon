@@ -700,10 +700,11 @@ function OverviewContent() {
 
         <div data-tour="dashboard">
           <PulseStrip
-            // R3: 5 cells (was 6). Burn · 24h removed — value was hardcoded
-            // "$0.044" / "5× avg" with no metric source (Rule 12 fail-loud).
-            // Re-add when real burn data lands.
-            className="md:grid-cols-5"
+            // 6 cells per brand-package — all values now wired to real metrics
+            // (Burn · 24h reads metrics.burn24h from todayStats.cost; Threats
+            // 'X scanned' sub uses metrics.events24h which IS the scanned-count
+            // because every event passes through threat detection).
+            className="md:grid-cols-6"
             cells={[
               {
                 label: "Health",
@@ -727,14 +728,18 @@ function OverviewContent() {
                 tint: "ok",
               },
               {
+                label: "Burn · 24h",
+                value: `$${metrics.burn24h.toFixed(3)}`,
+                sub: metrics.burn24h > 0 ? "today so far" : "no spend",
+                tint: metrics.burn24h > 0 ? "warn" : undefined,
+              },
+              {
                 label: "Threats",
                 value: totalThreatCount,
-                sub: totalThreatCount > 0 ? "active" : "clean",
+                sub: `${formatCompact(metrics.events24h)} scanned`,
                 tint: totalThreatCount > 0 ? "bad" : "ok",
               },
               {
-                // R3: removed `+ 5` phantom offset from value computation —
-                // it inflated the count regardless of state (Rule 12).
                 label: "Alerts",
                 value: metrics.errorsToday + totalThreatCount,
                 sub: "open",
