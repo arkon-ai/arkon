@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Info } from "lucide-react";
+import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 
 type Tone = "live" | "warm" | "idle" | "err" | "info" | "ok" | "neutral";
 type ButtonKind = "secondary" | "primary" | "ghost" | "danger";
@@ -153,9 +153,6 @@ export function PageHeader({
         <div className="min-w-0">
           <h1 className="inline-flex items-baseline gap-2 text-[28px] font-semibold leading-tight tracking-normal text-[var(--text-primary)] sm:text-4xl">
             {title}
-            <span className="inline-grid h-3.5 w-3.5 translate-y-[-5px] place-items-center text-[var(--text-tertiary)]" title="Help">
-              <Info className="h-3.5 w-3.5" />
-            </span>
           </h1>
           {subtitle ? (
             <p className="mt-2 max-w-[60ch] text-sm leading-6 text-[var(--text-secondary)]">{subtitle}</p>
@@ -187,6 +184,8 @@ export function Card({
   bodyClassName?: string;
 }) {
   const hasHeader = title || meta || action;
+  const hasBodyPaddingOverride = /\b(?:p|px|py|pt|pr|pb|pl)-/.test(bodyClassName);
+  const defaultBodyPadding = hasBodyPaddingOverride ? "" : hasHeader ? "p-5" : "p-4";
   return (
     <section className={cn("rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)]", className)}>
       {hasHeader ? (
@@ -196,7 +195,7 @@ export function Card({
           {action ? <div className={cn(!meta && "ml-auto")}>{action}</div> : null}
         </div>
       ) : null}
-      <div className={cn(hasHeader ? "p-5" : "p-4", bodyClassName)}>{children}</div>
+      <div className={cn(defaultBodyPadding, bodyClassName)}>{children}</div>
     </section>
   );
 }
