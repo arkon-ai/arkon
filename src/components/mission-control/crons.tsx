@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { ShellHeader, Card, SectionTitle } from "./dashboard";
+import { ShellHeader, Card } from "./dashboard";
 import { SkeletonCard } from "./charts";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 
@@ -220,7 +220,7 @@ function CronCard({ job, onMessage, onAction }: {
       {/* Error */}
       {job.last_error && (
         <div className="mt-2 rounded-xl border border-red-500/20 bg-[rgba(239,68,68,0.05)] px-3 py-2 text-xs text-red-400">
-          ⚠️ {job.last_error}
+          Warning: {job.last_error}
         </div>
       )}
 
@@ -246,28 +246,28 @@ function CronCard({ job, onMessage, onAction }: {
                 onClick={() => onAction("run")}
                 className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition"
               >
-                ▶ Run Now
+                Run Now
               </button>
               {job.enabled ? (
                 <button
                   onClick={() => onAction("disable")}
                   className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-amber-400 hover:border-amber-500/30 transition"
                 >
-                  ⏸ Disable
+                  Disable
                 </button>
               ) : (
                 <button
                   onClick={() => onAction("enable")}
                   className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)]/30 transition"
                 >
-                  ▶ Enable
+                  Enable
                 </button>
               )}
               <button
                 onClick={() => onAction("delete")}
                 className="rounded-xl border border-red-500/20 px-3 py-1.5 text-xs text-red-400 hover:bg-[rgba(239,68,68,0.08)] transition"
               >
-                🗑 Delete
+                Delete
               </button>
             </div>
           </motion.div>

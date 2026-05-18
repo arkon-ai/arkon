@@ -3,16 +3,13 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import {
-  CardEntranceWrapper,
-  EventsAreaChart,
   PulsingDot,
   SkeletonCard,
   Sparkline,
   StatCountUp,
   StatusRing,
-  TokensAreaChart,
 } from "./charts";
 import {
   activityStatus,
@@ -32,12 +29,17 @@ import { EmptyState, FirstRunBanner } from "./empty-states";
 import { Bot, AlertTriangle, ChevronDown, OctagonX, Shield, Wallet, Users, Radio } from "lucide-react";
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "./kill-confirm-modal";
-import { StatCard as UiStatCard } from "./ui-cards";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
-import { StatusSummary, HealthGauge, MetricTooltip, SectionDescription } from "./dashboard-clarity";
+import { SectionDescription } from "./dashboard-clarity";
 import { computeHealthScore } from "@/lib/health-score";
 import { FreshnessIndicator } from "@/components/ui/freshness-indicator";
 import { Drawer } from "@/components/ui/drawer";
+import {
+  Card as PrimitiveCard,
+  MetricCard,
+  PageHeader,
+  PulseStrip,
+  SectionTitle as PrimitiveSectionTitle,
+} from "./ui-cards";
 
 interface ThreatSummary {
   total: number;
@@ -50,7 +52,6 @@ export function ShellHeader({
   subtitle,
   eyebrow = "",
   action,
-  gradient = false,
 }: {
   title: string;
   subtitle: string;
@@ -58,27 +59,25 @@ export function ShellHeader({
   action?: ReactNode;
   gradient?: boolean;
 }) {
-  return (
-    <header className="mb-5 flex items-start justify-between gap-4">
-      <div>
-        {eyebrow ? (
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-text-dim">
-            {eyebrow}
-          </p>
-        ) : null}
-        <h1 className={`text-2xl font-bold tracking-tight ${gradient ? "gradient-text" : "text-text"}`} style={{ fontFamily: "var(--font-display)" }}>
-          {title}
-        </h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-secondary)]">{subtitle}</p>
-      </div>
-      {action}
-    </header>
+  return <PageHeader title={title} subtitle={subtitle} eyebrow={eyebrow} action={action} className="mb-5" />;
+}
+
+const subscribeToHydration = () => () => {};
+const getClientHydrationSnapshot = () => true;
+const getServerHydrationSnapshot = () => false;
+
+function useHydrated() {
+  return useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
   );
 }
 
-export function LoadingState({ label: _label = "Syncing dashboard" }: { label?: string }) {
+export function LoadingState({ label = "Syncing dashboard" }: { label?: string }) {
   return (
     <div className="space-y-5">
+      <p className="sr-only">{label}</p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <SkeletonCard lines={1} height="h-10" />
         <SkeletonCard lines={1} height="h-10" />
@@ -109,21 +108,12 @@ export function Card({
   children: ReactNode;
   className?: string;
 }) {
-  return (
-    <section
-      className={`relative card-hover rounded-[22px] border border-border bg-bg-card p-4 shadow-[0_10px_40px_rgba(0,0,0,0.22)] ${className}`}
-    >
-      <GlowingEffect
-        spread={40}
-        glow
-        disabled={false}
-        proximity={64}
-        inactiveZone={0.01}
-        borderWidth={2}
-      />
-      <div className="relative z-10">{children}</div>
-    </section>
-  );
+  const bodyClassName = className.includes("p-0")
+    ? "p-0"
+    : className.includes("!p-3")
+      ? "p-3"
+      : "";
+  return <PrimitiveCard className={className} bodyClassName={bodyClassName}>{children}</PrimitiveCard>;
 }
 
 export function SectionTitle({
@@ -135,14 +125,7 @@ export function SectionTitle({
   note?: string;
   bar?: boolean;
 }) {
-  return (
-    <div className={`mb-3 flex items-end justify-between gap-3 ${bar ? "border-l-2 border-cyan pl-3" : ""}`}>
-      <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-dim">
-        {title}
-      </h2>
-      {note ? <p className="text-xs text-text-dim">{note}</p> : null}
-    </div>
-  );
+  return <PrimitiveSectionTitle title={title} note={note} className={bar ? "pl-0" : ""} />;
 }
 
 export function StatCard({
@@ -166,51 +149,31 @@ export function StatCard({
   hero?: boolean;
   tooltip?: string;
 }) {
-  return (
-    <Card className={`bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))] ${hero ? "p-5" : ""}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim">
-            {label}
-            {tooltip && <MetricTooltip text={tooltip} />}
-          </div>
-          <div className={`${hero ? "mt-2 text-4xl font-extrabold tracking-[-0.04em]" : "mt-1 text-3xl font-bold"} ${accent}`} style={{ fontFamily: "var(--font-mono)" }}>
-            {Number.isFinite(parseFloat(value)) && !/[a-zA-Z]/.test(value)
-              ? <StatCountUp value={parseFloat(value)} />
-              : value}
-          </div>
-          <div className="mt-2 flex items-center gap-2">
-            {delta != null && delta !== 0 && (
-              <span className={delta > 0 ? "stat-delta-up" : "stat-delta-down"}>
-                {delta > 0 ? "\u2191" : "\u2193"} {Math.abs(delta).toFixed(0)}%
-              </span>
-            )}
-            <span className="text-xs text-text-dim">{sublabel}</span>
-          </div>
-        </div>
-        {sparkData && sparkData.length > 0 && (
-          <div className="flex-shrink-0 opacity-80">
-            <Sparkline
-              data={sparkData}
-              color={sparkColor ?? "#00D47E"}
-              width={hero ? 120 : 80}
-              height={hero ? 40 : 28}
-            />
-          </div>
-        )}
-      </div>
-    </Card>
-  );
-}
+  const variant = accent.includes("red") ? "bad" : accent.includes("amber") ? "warn" : "default";
+  const numericValue = Number.isFinite(parseFloat(value)) && !/[a-zA-Z]/.test(value)
+    ? <StatCountUp value={parseFloat(value)} />
+    : value;
 
-function PulseBar({ percentage }: { percentage: number }) {
   return (
-    <div className="h-2 overflow-hidden rounded-full bg-border">
-      <div
-        className="h-full rounded-full bg-[linear-gradient(90deg,#00D47E,#00D47E)] transition-all duration-700"
-        style={{ width: `${Math.max(6, Math.min(percentage, 100))}%` }}
-      />
-    </div>
+    <MetricCard
+      label={tooltip ? `${label}` : label}
+      value={numericValue}
+      subtitle={sublabel}
+      variant={variant}
+      delta={delta != null && delta !== 0 ? `${Math.abs(delta).toFixed(0)}%` : undefined}
+      deltaDir={delta != null && delta < 0 ? "down" : delta != null && delta > 0 ? "up" : "neutral"}
+      sparkline={
+        sparkData && sparkData.length > 0 ? (
+          <Sparkline
+            data={sparkData}
+            color={sparkColor ?? "#00D47E"}
+            width={hero ? 120 : 80}
+            height={hero ? 40 : 28}
+          />
+        ) : undefined
+      }
+      className={hero ? "py-5" : ""}
+    />
   );
 }
 
@@ -418,13 +381,11 @@ function MobileDashboardView({
   metrics,
   agents,
   threatCount,
-  onThreatClick,
 }: {
   health: { score: number; color: string; breakdown: { agents: number; threats: number; budget: number; infra: number } };
   metrics: ReturnType<typeof getOverviewMetrics>;
   agents: Array<{ id: string; name: string; last_active: string | null; events_24h: string }>;
   threatCount: number;
-  onThreatClick?: () => void;
 }) {
   const { data: recentData } = usePollingFetch<{ events: RecentEvent[] }>(
     "/api/dashboard/overview/recent?limit=5",
@@ -434,49 +395,38 @@ function MobileDashboardView({
 
   return (
     <div className="space-y-4 md:hidden">
-      {/* Health Score — large centered */}
-      <div className="flex flex-col items-center gap-2 py-2">
-        <HealthGauge score={health.score} color={health.color} breakdown={health.breakdown} size="lg" />
-        <StatusSummary
-          totalAgents={metrics.totalAgents}
-          activeAgents={metrics.activeAgents}
-          eventsToday={metrics.events24h}
-          threatCount={threatCount}
-          onThreatClick={onThreatClick}
-        />
-      </div>
-
-      {/* Quick stats grid — 2x2 */}
-      <div className="grid grid-cols-2 gap-2.5">
-        <MobileStatTile
-          icon={<Shield className="h-4 w-4 text-red" />}
-          label="Threats"
-          value="0"
-          href="/security"
-          accent="text-green"
-        />
-        <MobileStatTile
-          icon={<Wallet className="h-4 w-4 text-amber" />}
-          label="Cost Today"
-          value={`${formatCompact(metrics.tokens24h)} tok`}
-          href="/costs"
-          accent="text-amber"
-        />
-        <MobileStatTile
-          icon={<Users className="h-4 w-4 text-cyan" />}
-          label="Agents"
-          value={`${metrics.activeAgents}/${metrics.totalAgents}`}
-          href="/agents"
-          accent="text-cyan"
-        />
-        <MobileStatTile
-          icon={<Radio className="h-4 w-4 text-purple" />}
-          label="Events 24h"
-          value={formatCompact(metrics.events24h)}
-          href="/activity"
-          accent="text-purple"
-        />
-      </div>
+      <PulseStrip
+        cells={[
+          {
+            label: "Pulse",
+            value: health.score,
+            icon: Radio,
+            sub: `${metrics.activeAgents}/${metrics.totalAgents} agents live`,
+            tint: health.score < 70 ? "warn" : "ok",
+          },
+          {
+            label: "Threats",
+            value: threatCount,
+            icon: Shield,
+            sub: threatCount > 0 ? "Review now" : "No open threats",
+            tint: threatCount > 0 ? "bad" : "ok",
+          },
+          {
+            label: "Cost today",
+            value: formatCompact(metrics.tokens24h),
+            unit: "tok",
+            icon: Wallet,
+            sub: `${metrics.errorsToday} errors`,
+            tint: metrics.errorsToday > 0 ? "warn" : undefined,
+          },
+          {
+            label: "Events 24h",
+            value: formatCompact(metrics.events24h),
+            icon: Users,
+            sub: `${metrics.toolsToday} tools fired`,
+          },
+        ]}
+      />
 
       {/* Alerts banner (compact) */}
       <AlertsBanner />
@@ -542,33 +492,6 @@ function MobileDashboardView({
   );
 }
 
-function MobileStatTile({
-  icon,
-  label,
-  value,
-  href,
-  accent,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  href: string;
-  accent: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="card-hover rounded-2xl border border-border bg-bg-card p-3 transition active:scale-[0.97]"
-    >
-      <div className="flex items-center gap-2 mb-1.5">
-        {icon}
-        <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-text-dim">{label}</span>
-      </div>
-      <div className={`text-xl font-bold ${accent}`}>{value}</div>
-    </Link>
-  );
-}
-
 function OverviewContent() {
   const { data, error, loading } = useOverviewData();
   const { data: trendData } = useTrendData("7d");
@@ -603,7 +526,6 @@ function OverviewContent() {
   // Build sparkline data from trend
   const eventsSparkData = trend.map((d) => ({ value: d.received + d.sent }));
   const tokensSparkData = trend.map((d) => ({ value: d.tokens }));
-  const toolsSparkData = trend.map((d) => ({ value: d.tools }));
 
   // Calculate deltas (compare last day vs average of previous days)
   function calcDelta(sparkArr: Array<{ value: number }>) {
@@ -617,7 +539,6 @@ function OverviewContent() {
 
   const eventsDelta = calcDelta(eventsSparkData);
   const tokensDelta = calcDelta(tokensSparkData);
-  const toolsDelta = calcDelta(toolsSparkData);
 
 
   const criticalCount = threatData?.severityBreakdown?.find(s => s.threat_level === "critical")?.count ?? 0;
@@ -640,7 +561,7 @@ function OverviewContent() {
   return (
     <>
       {/* Mobile-optimized dashboard — simplified layout */}
-      <MobileDashboardView health={health} metrics={metrics} agents={agents} threatCount={totalThreatCount} onThreatClick={() => setThreatDrawerOpen(true)} />
+      <MobileDashboardView health={health} metrics={metrics} agents={agents} threatCount={totalThreatCount} />
 
       {/* Desktop dashboard — full layout */}
       <div className="hidden md:block space-y-5">
@@ -656,66 +577,38 @@ function OverviewContent() {
           }
         />
 
-        {/* Health gauge + Status summary */}
-        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center" data-tour="dashboard">
-          <div data-tour="health-gauge">
-            <HealthGauge score={health.score} color={health.color} breakdown={health.breakdown} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <StatusSummary
-              totalAgents={metrics.totalAgents}
-              activeAgents={metrics.activeAgents}
-              eventsToday={metrics.events24h}
-              threatCount={totalThreatCount}
-              onThreatClick={() => setThreatDrawerOpen(true)}
-            />
-          </div>
-        </div>
-
-        {/* Row 1: 4 Stat Cards */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard
-            label="Events 24H"
-            value={formatCompact(metrics.events24h)}
-            accent="text-cyan"
-            sublabel={`${metrics.toolsToday} tools fired`}
-            sparkData={eventsSparkData}
-            sparkColor="#00D47E"
-            delta={eventsDelta}
-            tooltip="Messages your agents sent and received in the last 24 hours."
+        <div data-tour="dashboard">
+          <PulseStrip
+            cells={[
+              {
+                label: "System pulse",
+                value: `${Math.round(pulse)}%`,
+                icon: Radio,
+                sub: `${metrics.activeAgents} live / ${Math.max(metrics.totalAgents - metrics.activeAgents, 0)} idle`,
+                tint: metrics.errorsToday > 0 ? "warn" : "ok",
+              },
+              {
+                label: "Events 24h",
+                value: formatCompact(metrics.events24h),
+                icon: Shield,
+                sub: `${metrics.toolsToday} tools fired${eventsDelta ? `, ${Math.abs(eventsDelta).toFixed(0)}% ${eventsDelta > 0 ? "up" : "down"}` : ""}`,
+              },
+              {
+                label: "Tokens 24h",
+                value: formatCompact(metrics.tokens24h),
+                icon: Wallet,
+                sub: `${metrics.errorsToday} errors${tokensDelta ? `, ${Math.abs(tokensDelta).toFixed(0)}% ${tokensDelta > 0 ? "up" : "down"}` : ""}`,
+                tint: metrics.errorsToday > 0 ? "warn" : undefined,
+              },
+              {
+                label: "Threats",
+                value: totalThreatCount,
+                icon: AlertTriangle,
+                sub: highestThreat === "none" ? "No open security events" : `${highestThreat} severity present`,
+                tint: totalThreatCount > 0 ? "bad" : "ok",
+              },
+            ]}
           />
-          <StatCard
-            label="Tokens 24H"
-            value={formatCompact(metrics.tokens24h)}
-            accent="text-amber"
-            sublabel={`${metrics.errorsToday} errors`}
-            sparkData={tokensSparkData}
-            sparkColor="#f59e0b"
-            delta={tokensDelta}
-            tooltip="Total input + output tokens consumed. This drives your cost."
-          />
-          <StatCard
-            label="Agents"
-            value={String(metrics.totalAgents)}
-            accent="text-cyan"
-            sublabel={`${metrics.activeAgents} live now`}
-            sparkData={toolsSparkData}
-            sparkColor="#00D47E"
-            delta={toolsDelta}
-            tooltip="Registered agents across all tenants. 'Live' means active in the last hour."
-          />
-          <Card className="!p-3 flex flex-col justify-center">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim mb-1.5">
-              System Pulse
-              <MetricTooltip text="Ratio of active vs idle agents. Green = most agents reporting, red = errors detected." />
-            </div>
-            <PulseBar percentage={pulse} />
-            <div className="mt-2 flex gap-3 text-[10px]">
-              <span className="text-green">{metrics.activeAgents} live</span>
-              <span className="text-amber">{Math.max(metrics.totalAgents - metrics.activeAgents, 0)} idle</span>
-              <span className="text-red">{metrics.errorsToday} err</span>
-            </div>
-          </Card>
         </div>
 
         {/* Row 2: Alerts banner (collapsible) */}
@@ -732,7 +625,7 @@ function OverviewContent() {
           <Card>
             <SectionTitle title="Agents" note="Live feed" bar />
             <div className="space-y-2">
-              {agents.slice(0, 5).map((agent, agentIdx) => {
+              {agents.slice(0, 5).map((agent) => {
                 const status = activityStatus(agent.last_active);
                 const statusKey = agentStatusKey(agent.last_active);
                 return (
@@ -1552,57 +1445,49 @@ export function AnomalyWidget() {
 }
 
 export function OverviewScreen() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useHydrated();
   if (!mounted) return <LoadingState />;
   return <OverviewContent />;
 }
 
 export function ActionsScreen() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useHydrated();
   if (!mounted) return <LoadingState />;
   return <ActionsContent />;
 }
 
 export function HealthScreen() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useHydrated();
   if (!mounted) return <LoadingState />;
   return <HealthContent />;
 }
 
 export function AgentsScreen() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useHydrated();
   if (!mounted) return <LoadingState />;
   return <AgentsContent />;
 }
 
 export function SystemsScreen() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useHydrated();
   if (!mounted) return <LoadingState />;
   return <SystemsContent />;
 }
 
 export function ConfessionsScreen() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useHydrated();
   if (!mounted) return <LoadingState />;
   return <ConfessionsContent />;
 }
 
 export function VisualsScreen() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useHydrated();
   if (!mounted) return <LoadingState />;
   return <VisualsContent />;
 }
 
 export function AgentDetailScreen() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useHydrated();
   if (!mounted) return <LoadingState />;
   return <AgentDetailContent />;
 }

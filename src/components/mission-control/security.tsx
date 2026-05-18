@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -20,6 +20,7 @@ import { ThreatGuardEmpty } from "./empty-states";
 import { SectionDescription } from "./dashboard-clarity";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { formatDay } from "@/lib/time-format";
+import { KeyRound, Target, Terminal, type LucideIcon } from "lucide-react";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -100,22 +101,22 @@ const CLASS_COLORS: Record<string, string> = {
 
 /* ── Threat Class Explainers (Step 6.1) ── */
 
-const CLASS_EXPLAINERS: Record<string, { title: string; description: string; icon: string }> = {
+const CLASS_EXPLAINERS: Record<string, { title: string; description: string; icon: LucideIcon }> = {
   prompt_injection: {
     title: "Prompt Injection",
-    icon: "\uD83C\uDFAF",
+    icon: Target,
     description:
       "Someone (or something) tried to trick your agent into ignoring its instructions. This could be a deliberate attack or accidental input that resembles one. Common patterns include: \"ignore previous instructions\", \"you are now DAN\", or text that tries to override the agent's persona.",
   },
   shell_command: {
     title: "Dangerous Shell Command",
-    icon: "\u26A0\uFE0F",
+    icon: Terminal,
     description:
       "Your agent attempted to run a potentially dangerous system command that could delete files, open network connections, or compromise your server. Examples: \"rm -rf /\", reverse shell commands, or downloading and executing unknown scripts.",
   },
   credential_leak: {
     title: "Credential Leak",
-    icon: "\uD83D\uDD10",
+    icon: KeyRound,
     description:
       "Your agent exposed a password, API key, or other secret in a message or output. This could allow unauthorized access to your systems if the message was seen by others. Immediate action: purge the message and rotate the credential.",
   },
@@ -612,9 +613,12 @@ function ThreatClassExplainers() {
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem(EXPLAINERS_KEY)) setOpen(false);
-    } catch {}
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        if (localStorage.getItem(EXPLAINERS_KEY)) setOpen(false);
+      } catch {}
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   function handleToggle() {
@@ -637,19 +641,22 @@ function ThreatClassExplainers() {
       </button>
       {open && (
         <div className="grid gap-3 border-t border-[var(--border)] px-4 py-4 sm:grid-cols-3">
-          {Object.entries(CLASS_EXPLAINERS).map(([key, info]) => (
-            <div
-              key={key}
-              className="rounded-xl border border-[var(--border)] bg-white/[0.02] p-3"
-              style={{ borderTopColor: CLASS_COLORS[key], borderTopWidth: 2 }}
-            >
-              <p className="text-sm font-semibold text-text">
-                <span className="mr-1.5">{info.icon}</span>
-                {info.title}
-              </p>
-              <p className="mt-2 text-xs leading-5 text-text-dim">{info.description}</p>
-            </div>
-          ))}
+          {Object.entries(CLASS_EXPLAINERS).map(([key, info]) => {
+            const Icon = info.icon;
+            return (
+              <div
+                key={key}
+                className="rounded-xl border border-[var(--border)] bg-white/[0.02] p-3"
+                style={{ borderTopColor: CLASS_COLORS[key], borderTopWidth: 2 }}
+              >
+                <p className="flex items-center gap-2 text-sm font-semibold text-text">
+                  <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: CLASS_COLORS[key] }} />
+                  {info.title}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-text-dim">{info.description}</p>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -937,7 +944,7 @@ export function SecurityScreen() {
     30000
   );
 
-  const events = data?.events ?? [];
+  const events = useMemo(() => data?.events ?? [], [data?.events]);
 
   const refresh = useCallback(() => {
     setRefreshKey((k) => k + 1);

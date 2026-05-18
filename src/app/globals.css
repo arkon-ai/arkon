@@ -6,38 +6,46 @@
      Void (#0A0A0C) — primary background.
 
    Typography:
-     Headings:  Urbanist ExtraBold (800)
-     UI body:   Geist Sans Regular (400)
-     Code/mono: Geist Mono
+     Display/UI: Geist
+     Code/mono:  Geist Mono
+     Wordmark:   Urbanist 800 only
 
    Status Colors:
      Success: #10B981   Warning: #F59E0B
      Danger:  #EF4444   Info:    #06B6D4
 
    Borders & Radii:
-     Card:   1px solid var(--border), border-radius 12px
-     Button: border-radius 12px
-     Badge:  border-radius 8px
+     Card:   1px solid var(--border), border-radius 10px
+     Button: border-radius 6px
+     Badge:  border-radius 999px
    ═══════════════════════════════════════════════════════════════ */
 
 @import "tailwindcss";
 
 :root {
+  /* ── Locked brand names from package ── */
+  --void: #0A0A0C;
+  --quarn: #00D47E;
+  --quarn-light: #3DEEA0;
+  --quarn-deep: #006B41;
+
   /* ── Surfaces ── */
-  --bg-primary: #0A0A0C;
-  --bg-surface: #111118;
-  --bg-surface-2: #1A1A24;
+  --bg-primary: var(--void);
+  --bg-surface: #1A1A22;
+  --bg-surface-2: #22222E;
   --bg-hover: rgba(255, 255, 255, 0.03);
+  --surface-1: var(--bg-surface);
+  --surface-2: var(--bg-surface-2);
 
   /* ── Borders ── */
-  --border: #1E1E2A;
-  --border-hover: rgba(0, 212, 126, 0.25);
-  --border-strong: #3E3E4A;
+  --border: #2E2E3A;
+  --border-hover: #3A3A4A;
+  --border-strong: #4A4A5A;
 
   /* ── Brand — Quarn Emerald (SOLE accent, no purple) ── */
-  --accent: #00D47E;
-  --accent-hover: #00E88A;
-  --accent-dim: #00B86E;
+  --accent: var(--quarn);
+  --accent-hover: var(--quarn-light);
+  --accent-dim: var(--quarn-deep);
   --accent-muted: rgba(0, 212, 126, 0.15);
   --accent-subtle: rgba(0, 212, 126, 0.08);
   --accent-foreground: #0A0A0C;
@@ -53,21 +61,32 @@
   --text-primary: #E4E4ED;
   --text-secondary: #8888A0;
   --text-tertiary: #555566;
+  --fg-1: var(--text-primary);
+  --fg-2: var(--text-secondary);
+  --fg-3: var(--text-tertiary);
 
   /* ── Effects ── */
-  --glow-accent: 0 0 60px rgba(0, 212, 126, 0.15);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --glow-accent: 0 0 0 4px rgba(0, 212, 126, 0.15);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
 
   /* ── Radii ── */
-  --radius-card: 12px;
-  --radius-lg: 16px;
-  --radius-button: 12px;
-  --radius-badge: 8px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-card: 10px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-button: 6px;
+  --radius-badge: 999px;
+  --radius-pill: 999px;
 
   /* ── Typography ── */
-  --font-display: 'Urbanist', sans-serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-display: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ui: var(--font-sans);
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-wordmark: 'Urbanist', 'Geist', system-ui, sans-serif;
+  --tracking-label: 0.08em;
 
   /* ══════════════════════════════════════
      Backward-compat aliases (old → new)
@@ -284,7 +303,6 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  backdrop-filter: blur(12px);
   transition: border-color 0.2s ease;
 }
 .glass-card:hover {
@@ -300,10 +318,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #00D47E, #00B86E);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--accent);
 }
 
 /* Skeleton shimmer */

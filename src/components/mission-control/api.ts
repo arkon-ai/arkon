@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
+import { isReviewModeActiveInBrowser } from "@/lib/review-mode";
 
 export interface Tenant {
   id: string;
@@ -182,6 +183,9 @@ export function useEventStream(onEvent?: (event: { type: string; payload: Record
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (isReviewModeActiveInBrowser()) {
+      return;
+    }
     const es = new EventSource("/api/dashboard/stream");
     eventSourceRef.current = es;
 
@@ -237,6 +241,9 @@ export function useLivePollingFetch<T>(url: string, intervalMs = 15000): State<T
   // SSE connection
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (isReviewModeActiveInBrowser()) {
+      return;
+    }
     const es = new EventSource("/api/dashboard/stream");
     es.onopen = () => setConnected(true);
     es.onmessage = (e) => {

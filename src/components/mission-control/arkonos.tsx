@@ -14,8 +14,7 @@ import {
   Bot,
   User,
 } from "lucide-react";
-import { StatCard, ListCard, DetailCard } from "./ui-cards";
-import { SectionDescription } from "./dashboard-clarity";
+import { Button, StatCard, ListCard, DetailCard, PageHeader, Tabs } from "./ui-cards";
 import {
   AreaChart,
   Area,
@@ -178,7 +177,8 @@ export default function ArkonOSScreen() {
   };
 
   useEffect(() => {
-    fetchData(range);
+    const frame = window.requestAnimationFrame(() => fetchData(range));
+    return () => window.cancelAnimationFrame(frame);
   }, [range]);
 
   // Fill hourly chart with all 24 hours
@@ -200,41 +200,28 @@ export default function ArkonOSScreen() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">ArkonOS</h1>
-          <SectionDescription id="vos-overview">
-            Chat engine metrics, token usage, and agent activity.
-          </SectionDescription>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-0.5">
-            {RANGE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setRange(opt.value)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                  range === opt.value
-                    ? "bg-[rgba(0,212,126,0.1)] text-[var(--accent)]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+      <PageHeader
+        title="ArkonOS"
+        subtitle="Chat engine metrics, token usage, and agent activity."
+        action={
+          <div className="flex items-center gap-2">
+            <Tabs
+              active={range}
+              onChange={setRange}
+              items={RANGE_OPTIONS.map((opt) => ({ id: opt.value, label: opt.label }))}
+            />
+            <Button
+              type="button"
+              onClick={() => fetchData(range)}
+              disabled={loading}
+              kind="secondary"
+              aria-label="Refresh ArkonOS data"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            </Button>
           </div>
-          <button
-            type="button"
-            onClick={() => fetchData(range)}
-            disabled={loading}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] transition hover:text-[var(--text-primary)] disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {error && (
         <div className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/5 p-4 text-sm text-[var(--danger)]">

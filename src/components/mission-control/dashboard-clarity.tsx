@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, type ReactNode } from "react";
-import { Info, ChevronDown } from "lucide-react";
+import { Info } from "lucide-react";
 
 /* ── MetricTooltip ─────────────────────────────────────────────────────────── */
 
@@ -221,9 +221,9 @@ export function StatusSummary({
       <span key="threats">
         {" "}<strong className="text-[var(--danger)]">{threatCount} threat{threatCount !== 1 ? "s" : ""} detected</strong> &mdash;{" "}
         {onThreatClick ? (
-          <button type="button" onClick={onThreatClick} className="font-semibold text-[var(--accent)] hover:underline">
+          <span className="font-semibold text-[var(--accent)] group-hover:underline">
             review now &rarr;
-          </button>
+          </span>
         ) : (
           <a href="/security" className="font-semibold text-[var(--accent)] hover:underline">
             review now &rarr;
@@ -256,7 +256,7 @@ export function StatusSummary({
     <Wrapper
       {...wrapperProps}
       className={`w-full rounded-[16px] border ${borderColor} ${bgColor} px-4 py-3 text-left text-sm leading-relaxed text-[var(--text-secondary)] transition-colors ${
-        hasThreat && onThreatClick ? "cursor-pointer hover:border-red-500/60" : ""
+        hasThreat && onThreatClick ? "group cursor-pointer hover:border-red-500/60" : ""
       }`}
     >
       {parts}
@@ -280,12 +280,15 @@ export function SectionDescription({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const seen = localStorage.getItem(storageKey);
-    if (!seen) {
-      setExpanded(true);
-      localStorage.setItem(storageKey, "1");
-    }
+    const frame = window.requestAnimationFrame(() => {
+      setMounted(true);
+      const seen = localStorage.getItem(storageKey);
+      if (!seen) {
+        setExpanded(true);
+        localStorage.setItem(storageKey, "1");
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [storageKey]);
 
   if (!mounted) return null;

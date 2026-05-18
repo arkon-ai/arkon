@@ -2,37 +2,25 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, type ReactNode, useCallback, useEffect, useState } from "react";
 import { PageTransitionWrapper } from "./charts";
 import {
   AlertTriangle,
   LayoutDashboard,
   Radio,
   Bot,
-  Server,
   Network,
   ShieldCheck,
-  BarChart3,
   Wallet,
-  Terminal,
   CheckCircle,
-  ListTodo,
-  Clock,
-  Activity,
   Workflow,
   FileText,
   Plug,
-  Globe,
-  Inbox,
-  Calendar,
-  Gauge,
   Shield,
   Lock,
-  Bell,
   LogOut,
   Menu,
   Home,
-  Wrench,
   MoreHorizontal,
   ChevronDown,
   Star,
@@ -57,6 +45,8 @@ import { HelpPanel } from "./help-panel";
 import { Breadcrumbs } from "../ui/breadcrumbs";
 import { TenantSwitcher } from "./tenant-switcher";
 import { ThemeToggle } from "./theme-toggle";
+import { isReviewModeActiveInBrowser } from "@/lib/review-mode";
+import { getBreadcrumbs } from "@/lib/page-meta";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -247,11 +237,14 @@ export function NotionShell({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    setCollapsedGroups(loadCollapsedGroups());
-    try {
-      setSidebarCollapsed(localStorage.getItem("arkon-sidebar-collapsed") === "true");
-    } catch {}
+    const frame = window.requestAnimationFrame(() => {
+      setMounted(true);
+      setCollapsedGroups(loadCollapsedGroups());
+      try {
+        setSidebarCollapsed(localStorage.getItem("arkon-sidebar-collapsed") === "true");
+      } catch {}
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [quickKillOpen, setQuickKillOpen] = useState(false);
@@ -297,18 +290,21 @@ export function NotionShell({ children }: { children: ReactNode }) {
   // Auto-expand group containing active route
   useEffect(() => {
     if (!pathname) return;
-    for (const group of navGroups) {
-      const hasActive = group.items.some((item) => isRouteActive(pathname, item.href));
-      if (hasActive && collapsedGroups.has(group.key)) {
-        setCollapsedGroups((prev) => {
-          const next = new Set(prev);
-          next.delete(group.key);
-          saveCollapsedGroups(next);
-          return next;
-        });
-      }
-    }
-  }, [pathname]);
+    const activeGroup = navGroups.find((group) =>
+      group.items.some((item) => isRouteActive(pathname, item.href))
+    );
+    if (!activeGroup || !collapsedGroups.has(activeGroup.key)) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      setCollapsedGroups((prev) => {
+        const next = new Set(prev);
+        next.delete(activeGroup.key);
+        saveCollapsedGroups(next);
+        return next;
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [collapsedGroups, pathname]);
 
   // Fetch pending approvals
   useEffect(() => {
@@ -365,8 +361,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setIsOpen(false);
-    setMoreOpen(false);
+    const frame = window.requestAnimationFrame(() => {
+      setIsOpen(false);
+      setMoreOpen(false);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [pathname]);
 
   const handleNavSelect = () => {
@@ -377,6 +376,10 @@ export function NotionShell({ children }: { children: ReactNode }) {
   if (isPublicPage) {
     return <>{children}</>;
   }
+
+  const reviewMode = mounted && isReviewModeActiveInBrowser();
+  const hasBreadcrumbTrail = getBreadcrumbs(pathname ?? "/").length > 1;
+  const currentPageLabel = pageLabels[pathname ?? ""] ?? "Arkon";
 
   const handleLogout = () => {
     document.cookie = "mc_auth=; path=/; max-age=0";
@@ -542,12 +545,20 @@ export function NotionShell({ children }: { children: ReactNode }) {
                 >
                   <Menu className="h-5 w-5" />
                 </button>
-                <div>
-                  <Breadcrumbs />
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">{pageLabels[pathname ?? ""] ?? "Arkon"}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {hasBreadcrumbTrail ? (
+                    <Breadcrumbs />
+                  ) : (
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">{currentPageLabel}</p>
+                  )}
+                    {reviewMode ? (
+                      <span className="rounded-full border border-[rgba(0,212,126,0.25)] bg-[rgba(0,212,126,0.08)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
+                        Review mode
+                      </span>
+                    ) : null}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="hidden items-center gap-2 sm:flex">
                 <button
                   type="button"
                   onClick={() => setPaletteOpen(true)}

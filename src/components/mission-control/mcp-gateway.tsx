@@ -195,7 +195,7 @@ export function McpGateway() {
       {!loading && stats && stats.summary.total_requests === 0 ? (
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-8 text-center">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-          <p className="text-4xl mb-3">{"🔌"}</p>
+          <p className="mb-3 font-mono text-xs uppercase tracking-[0.08em] text-[var(--text-tertiary)]">MCP</p>
           <p className="text-white font-semibold">No proxy traffic yet</p>
           <p className="mt-2 text-sm text-[var(--text-tertiary)]">Enable gateway mode on MCP servers, then configure AI clients to route through the proxy.</p>
           <button

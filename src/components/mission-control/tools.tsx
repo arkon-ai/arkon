@@ -872,6 +872,7 @@ export function TasksToolScreen() {
   const [tab, setTab] = useState("todo");
   const [quickTitle, setQuickTitle] = useState("");
   const [quickPriority, setQuickPriority] = useState("P2");
+  const [renderedAt] = useState(() => Date.now());
   const { data, error, loading } = usePollingData<{ items: TaskItem[] }>("/api/tools/tasks", 12000);
 
   const groups = useMemo(() => {
@@ -923,7 +924,7 @@ export function TasksToolScreen() {
   if (loading && !data) return <LoadingState label="Loading tasks" />;
 
   const renderTaskCard = (task: TaskItem) => {
-    const overdue = task.due_date && new Date(task.due_date).getTime() < Date.now() && task.status !== "done";
+    const overdue = task.due_date && new Date(task.due_date).getTime() < renderedAt && task.status !== "done";
     return (
       <Card key={task.id} className="space-y-3">
         <div className="flex items-start justify-between gap-3">
@@ -1362,10 +1363,10 @@ export function CommandToolScreen() {
         if (proxyRes.ok) {
           toast.success("Command sent to agent");
         } else {
-          toast("Command saved — gateway unreachable", { icon: "⚠️" });
+          toast.warning("Command saved, gateway unreachable");
         }
       } catch {
-        toast("Command saved — gateway unreachable", { icon: "⚠️" });
+        toast.warning("Command saved, gateway unreachable");
       }
 
       window.location.reload();

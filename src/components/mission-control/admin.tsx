@@ -4,6 +4,16 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { ShellHeader, Card, SectionTitle } from "./dashboard";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
+import {
+  AlertTriangle,
+  Download,
+  KeyRound,
+  Plus,
+  RefreshCw,
+  Settings,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type Agent = {
@@ -52,12 +62,15 @@ function RoleBadge({ role }: { role: string }) {
 function AdminSection({
   icon, title, description, colour = "border-[var(--border)]", children,
 }: {
-  icon: string; title: string; description: string; colour?: string; children: React.ReactNode;
+  icon: LucideIcon; title: string; description: string; colour?: string; children: React.ReactNode;
 }) {
+  const Icon = icon;
   return (
     <Card className={`border ${colour}`}>
       <div className="mb-4 flex items-start gap-3">
-        <div className="mt-0.5 text-2xl">{icon}</div>
+        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] text-[var(--accent)]">
+          <Icon className="h-4 w-4" />
+        </div>
         <div>
           <h3 className="text-base font-semibold text-[var(--text-primary)]">{title}</h3>
           <p className="mt-1 text-sm leading-relaxed text-[var(--text-secondary)]">{description}</p>
@@ -130,18 +143,21 @@ function TokenReveal({ token, onDismiss }: { token: string; onDismiss: () => voi
   return (
     <div className="relative card-hover mt-4 rounded-2xl border border-amber-500/30 bg-[rgba(245,158,11,0.08)] p-4">
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
-      <p className="mb-2 text-xs font-semibold text-amber-400">⚠️ Copy this token now — it will never be shown again</p>
+      <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-amber-400">
+        <AlertTriangle className="h-3.5 w-3.5" />
+        Copy this token now. It will never be shown again.
+      </p>
       <div className="flex items-center gap-2">
         <code className="flex-1 break-all rounded-lg bg-[var(--bg-primary)] px-3 py-2 text-xs font-mono text-[var(--accent)]">{token}</code>
         <button
           onClick={() => { navigator.clipboard.writeText(token); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
           className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition"
         >
-          {copied ? "✓" : "Copy"}
+          {copied ? "Copied" : "Copy"}
         </button>
       </div>
       <button onClick={onDismiss} className="mt-3 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition">
-        I've saved the token — dismiss
+        I&apos;ve saved the token — dismiss
       </button>
     </div>
   );
@@ -417,7 +433,7 @@ export function AdminPanel() {
       <SectionTitle title="Data Management" />
 
       <AdminSection
-        icon="📥"
+        icon={Download}
         title="Manual Event Ingest"
         description="Manually push an event into Arkon's database. Use this to log something that happened outside the normal flow — for example a manual note, a completed task, or a system event you want tracked. This adds to the agent's history, it does not delete anything."
       >
@@ -435,13 +451,13 @@ export function AdminPanel() {
           </Select>
           <Textarea label="Content" value={ingestContent} onChange={(e) => setIngestContent(e.target.value)} placeholder="Describe the event..." />
           <Btn onClick={handleIngest} disabled={ingestBusy}>
-            {ingestBusy ? "Logging..." : "📥 Log Event"}
+            {ingestBusy ? "Logging..." : "Log Event"}
           </Btn>
         </div>
       </AdminSection>
 
       <AdminSection
-        icon="🗑️"
+        icon={Trash2}
         title="Purge Agent Data"
         description="Permanently deletes ALL events, tool calls, sessions, and stats for a specific agent. This CANNOT be undone. Use this to wipe an agent's history clean — for example if you're resetting a test agent, cleaning up old data, or starting fresh. The agent itself remains registered — only its history is deleted."
         colour="border-red-500/20"
@@ -460,7 +476,7 @@ export function AdminPanel() {
             />
           )}
           <Btn variant="danger" onClick={handlePurge} disabled={purgeBusy || !purgeAgent || purgeConfirm !== (agents.find(a => a.id === purgeAgent)?.name ?? "____")}>
-            {purgeBusy ? "Purging..." : "🗑️ Permanently Delete This Agent's Data"}
+            {purgeBusy ? "Purging..." : "Permanently Delete This Agent's Data"}
           </Btn>
         </div>
       </AdminSection>
@@ -469,7 +485,7 @@ export function AdminPanel() {
       {sessionRole === "owner" && <SectionTitle title="Agent Management" />}
 
       {sessionRole === "owner" && <AdminSection
-        icon="➕"
+        icon={Plus}
         title="Create New Agent"
         description="Register a new agent in Arkon. Each agent gets a unique token they use to send data. Use this when setting up a new AI assistant or a client deployment. The token is shown ONCE — copy it immediately and store it safely."
       >
@@ -478,19 +494,19 @@ export function AdminPanel() {
           <Input label="Display Name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. My Assistant" />
           <Select label="Role" value={newRole} onChange={(e) => setNewRole(e.target.value)}>
             <option value="owner">owner — full control (use with caution)</option>
-            <option value="admin">admin — can intervene, can't destroy</option>
+            <option value="admin">admin — can intervene, can&apos;t destroy</option>
             <option value="agent">agent — AI write-only (for AI assistants)</option>
             <option value="viewer">viewer — read-only access</option>
           </Select>
           <Btn onClick={handleCreate} disabled={createBusy || !newId || !newName}>
-            {createBusy ? "Creating..." : "➕ Create Agent"}
+            {createBusy ? "Creating..." : "Create Agent"}
           </Btn>
           {newToken && <TokenReveal token={newToken} onDismiss={() => setNewToken(null)} />}
         </div>
       </AdminSection>}
 
       {sessionRole === "owner" && <AdminSection
-        icon="🔑"
+        icon={KeyRound}
         title="Rotate Agent Token"
         description="Generate a new token for an agent. Their old token stops working immediately — anything using the old token will be locked out. Use this if a token was compromised, shared accidentally, or needs to be refreshed. The new token is shown ONCE."
         colour="border-amber-500/20"
@@ -509,14 +525,14 @@ export function AdminPanel() {
             />
           )}
           <Btn variant="ghost" onClick={handleRotate} disabled={rotateBusy || !rotateAgent || rotateConfirm !== (agents.find(a => a.id === rotateAgent)?.name ?? "____")}>
-            {rotateBusy ? "Rotating..." : "🔑 Generate New Token"}
+            {rotateBusy ? "Rotating..." : "Generate New Token"}
           </Btn>
           {rotatedToken && <TokenReveal token={rotatedToken} onDismiss={() => setRotatedToken(null)} />}
         </div>
       </AdminSection>}
 
       {sessionRole === "owner" && <AdminSection
-        icon="⚙️"
+        icon={Settings}
         title="Change Agent Role"
         description="Change what an agent is allowed to do. Owner = full access. Admin = human operator who can intervene but not destroy. Agent = AI write-only. Viewer = read-only. Changing a role takes effect immediately on the next request — no restart needed."
       >
@@ -527,12 +543,12 @@ export function AdminPanel() {
           </Select>
           <Select label="New Role" value={editRole} onChange={(e) => setEditRole(e.target.value)}>
             <option value="owner">owner — full control</option>
-            <option value="admin">admin — can intervene, can't destroy</option>
+            <option value="admin">admin — can intervene, can&apos;t destroy</option>
             <option value="agent">agent — AI write-only</option>
             <option value="viewer">viewer — read-only</option>
           </Select>
           <Btn onClick={handleEditRole} disabled={editBusy || !editAgent}>
-            {editBusy ? "Saving..." : "⚙️ Update Role"}
+            {editBusy ? "Saving..." : "Update Role"}
           </Btn>
         </div>
       </AdminSection>}
@@ -541,13 +557,13 @@ export function AdminPanel() {
       {sessionRole === "owner" && <SectionTitle title="Workspace Docs" />}
 
       {sessionRole === "owner" && <AdminSection
-        icon="🔄"
+        icon={RefreshCw}
         title="Sync Workspace Docs"
         description="Scans your workspace files and pushes them into Arkon's document database. Run this after making changes to your workspace so the Docs Viewer stays up to date. Files larger than 30KB are skipped to keep the database lean."
       >
         <div className="flex items-center gap-4">
           <Btn onClick={handleSync} disabled={syncBusy}>
-            {syncBusy ? "Syncing..." : "🔄 Sync Workspace Docs"}
+            {syncBusy ? "Syncing..." : "Sync Workspace Docs"}
           </Btn>
           {lastSync && <span className="text-xs text-[var(--text-secondary)]">Last synced: {lastSync}</span>}
         </div>
@@ -555,9 +571,9 @@ export function AdminPanel() {
 
       {/* ── Danger Zone — owner only ── */}
       {sessionRole === "owner" && <>
-        <SectionTitle title="⚠️ Danger Zone" />
+        <SectionTitle title="Danger Zone" />
         <AdminSection
-          icon="💣"
+          icon={AlertTriangle}
           title="Wipe All Data"
           description="Permanently deletes ALL data for ALL agents — every event, session, token call, stat, approval, task, document, and calendar item. This cannot be undone. Use ONLY if you are resetting Arkon completely from scratch. The agents themselves remain registered."
           colour="border-red-500/40"
@@ -574,7 +590,7 @@ export function AdminPanel() {
               onClick={handleNuke}
               disabled={nukeBusy || nukeConfirm !== "DELETE EVERYTHING"}
             >
-              {nukeBusy ? "Wiping..." : "💣 Wipe All Agent Data"}
+              {nukeBusy ? "Wiping..." : "Wipe All Agent Data"}
             </Btn>
           </div>
         </AdminSection>
