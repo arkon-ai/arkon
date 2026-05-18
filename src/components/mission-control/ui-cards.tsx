@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowDownRight, ArrowRight, ArrowUpRight, ChevronRight } from "lucide-react";
 
 type Tone = "live" | "warm" | "idle" | "err" | "info" | "ok" | "neutral";
 type ButtonKind = "secondary" | "primary" | "ghost" | "danger";
@@ -129,6 +129,7 @@ export function PageHeader({
   title,
   subtitle,
   eyebrow,
+  crumbs,
   action,
   live,
   updated,
@@ -137,14 +138,34 @@ export function PageHeader({
   title: string;
   subtitle?: string;
   eyebrow?: string;
+  /**
+   * Breadcrumb chain (canonical: `['Arkon', '<Pillar>', '<Screen>']`).
+   * When provided, renders above the title row with chevron separators and
+   * supersedes `eyebrow`. Last item is styled as "here". Reinforces the
+   * 4-pillar IA from PR-05.
+   */
+  crumbs?: string[];
   action?: ReactNode;
   live?: boolean;
   updated?: string;
   className?: string;
 }) {
+  const hasCrumbs = crumbs && crumbs.length > 0;
   return (
     <header className={cn("flex flex-col gap-3", className)}>
-      {eyebrow ? (
+      {hasCrumbs ? (
+        <nav
+          aria-label="Breadcrumb"
+          className="flex flex-wrap items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]"
+        >
+          {crumbs!.map((crumb, i) => (
+            <span key={`${i}-${crumb}`} className="inline-flex items-center gap-1.5">
+              {i > 0 ? <ChevronRight className="h-3 w-3 text-[var(--text-tertiary)]" aria-hidden="true" /> : null}
+              <span className={cn(i === crumbs!.length - 1 && "text-[var(--text-secondary)]")}>{crumb}</span>
+            </span>
+          ))}
+        </nav>
+      ) : eyebrow ? (
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
           {eyebrow}
         </p>
@@ -172,6 +193,7 @@ export function Card({
   title,
   meta,
   action,
+  flush,
   children,
   className = "",
   bodyClassName = "",
@@ -179,13 +201,26 @@ export function Card({
   title?: string;
   meta?: ReactNode;
   action?: ReactNode;
+  /**
+   * When true, body padding is removed. Equivalent to `bodyClassName="p-0"`
+   * but cleaner at call sites for the common pulse-strip / table / feed case.
+   * `bodyClassName` padding utilities still win if both are supplied (caller's
+   * explicit override takes precedence).
+   */
+  flush?: boolean;
   children: ReactNode;
   className?: string;
   bodyClassName?: string;
 }) {
   const hasHeader = title || meta || action;
   const hasBodyPaddingOverride = /\b(?:p|px|py|pt|pr|pb|pl)-/.test(bodyClassName);
-  const defaultBodyPadding = hasBodyPaddingOverride ? "" : hasHeader ? "p-5" : "p-4";
+  const defaultBodyPadding = hasBodyPaddingOverride
+    ? ""
+    : flush
+    ? "p-0"
+    : hasHeader
+    ? "p-5"
+    : "p-4";
   return (
     <section className={cn("rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)]", className)}>
       {hasHeader ? (
@@ -327,6 +362,71 @@ export function PulseStrip({
   );
 }
 
+/**
+ * EmptyState — canonical empty-state primitive per design brief.
+ * Operator briefing format: icon + title + meta header, optional stats grid,
+ * optional body paragraph, optional action. Supersedes `EmptyCard` and
+ * `EmptyStateBrief` (both `@deprecated` — hard-delete planned for a Phase N
+ * cleanup PR once consumers migrate).
+ *
+ * Stats shape (`{label, value}`) matches repo convention; canonical brief uses
+ * `{k, v}` — converted at this boundary so call sites stay readable.
+ */
+export function EmptyState({
+  icon: Icon,
+  title,
+  meta,
+  stats,
+  body,
+  action,
+  className = "",
+}: {
+  icon: LucideIcon;
+  title: string;
+  meta?: ReactNode;
+  stats?: Array<{ label: string; value: ReactNode }>;
+  body?: ReactNode;
+  action?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[var(--radius-card)] border border-dashed border-[var(--border)] bg-[var(--bg-surface)] p-6",
+        className,
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <span className="grid h-9 w-9 place-items-center rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--accent)]">
+          <Icon className="h-[18px] w-[18px]" />
+        </span>
+        <h3 className="min-w-0 text-sm font-medium text-[var(--text-primary)]">{title}</h3>
+        {meta ? (
+          <div className="ml-auto font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+            {meta}
+          </div>
+        ) : null}
+      </div>
+      {stats && stats.length > 0 ? (
+        <div className="mt-4 grid grid-cols-3 gap-3 border-y border-[var(--border)] py-3">
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">{stat.label}</p>
+              <p className="mt-1 font-mono text-lg text-[var(--text-primary)]">{stat.value}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {body ? <div className="mt-4 max-w-[60ch] text-sm leading-6 text-[var(--text-secondary)]">{body}</div> : null}
+      {action ? <div className="mt-4">{action}</div> : null}
+    </div>
+  );
+}
+
+/**
+ * @deprecated Use `EmptyState` instead. Hard-delete planned in a Phase N
+ * cleanup PR — kept for callers during the migration window.
+ */
 export function EmptyStateBrief({
   title,
   description,
@@ -368,6 +468,11 @@ export function EmptyStateBrief({
   );
 }
 
+/**
+ * @deprecated Pass the same props directly to `MetricCard`. This is a
+ * one-line proxy that exists for historical reasons; hard-delete planned
+ * in a Phase N cleanup PR.
+ */
 export function StatCard(props: {
   label: string;
   value: ReactNode;
@@ -380,6 +485,12 @@ export function StatCard(props: {
   return <MetricCard {...props} />;
 }
 
+/**
+ * @deprecated Use `<Card title icon-as-meta action>` directly. This wrapper
+ * adds nothing beyond passing the icon through `meta` and fixing body padding
+ * to `p-4` — both available on `Card`. Hard-delete planned in a Phase N
+ * cleanup PR.
+ */
 export function ListCard({
   title,
   icon: Icon,
@@ -406,6 +517,11 @@ export function ListCard({
   );
 }
 
+/**
+ * @deprecated Use `<Card title meta action>` directly with the icon as the
+ * `meta` value. This wrapper adds nothing beyond that. Hard-delete planned
+ * in a Phase N cleanup PR.
+ */
 export function DetailCard({
   title,
   icon: Icon,
@@ -431,6 +547,12 @@ export function DetailCard({
   );
 }
 
+/**
+ * @deprecated Use `EmptyState` instead. This wrapper around `EmptyStateBrief`
+ * also accepts `actionHref` for a styled link — port to `EmptyState` with a
+ * `<Link>` inside the `action` slot. Hard-delete planned in a Phase N
+ * cleanup PR.
+ */
 export function EmptyCard({
   title,
   description,
