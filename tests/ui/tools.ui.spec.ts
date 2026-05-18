@@ -21,7 +21,7 @@ test.describe("Tools Hub Page UI", () => {
   test("tools hub shows heading @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/integrations`);
     await page.waitForLoadState("domcontentloaded");
-    const heading = page.locator("text=Tools")
+    const heading = page.locator("text=Integrations")
       .or(page.locator("h1, h2"));
     await expect(heading.first()).toBeVisible({ timeout: 5000 });
   });

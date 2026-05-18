@@ -358,7 +358,7 @@ export function ToolsHubScreen() {
   return (
     <div className="space-y-5">
       <ShellHeader
-        title="Tools"
+        title="Integrations"
         subtitle="Operational cockpit for approvals, documents, tasks, schedules, sub-agents, and quick command dispatch."
       />
 
@@ -370,7 +370,7 @@ export function ToolsHubScreen() {
       </div>
 
       <Card>
-        <SectionTitle title="Tool Grid" note="Arkon phase 5" />
+        <SectionTitle title="Integrations Grid" note="Arkon phase 5" />
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {toolLinks.map((tool) => (
             <Link
