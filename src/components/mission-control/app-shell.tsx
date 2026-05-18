@@ -401,24 +401,30 @@ export function NotionShell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col bg-[var(--bg-primary)] text-[var(--text-secondary)]">
-      <div className="flex h-14 items-center border-b border-[var(--border)]/50 px-4">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-md)] border border-[rgba(0,212,126,0.28)] bg-[rgba(0,212,126,0.08)] font-[family-name:var(--font-wordmark)] text-sm font-extrabold text-[var(--accent)]">
-            A
-          </span>
-          {!sidebarCollapsed && (
+      <div className={`flex h-14 items-center border-b border-[var(--border)]/50 ${sidebarCollapsed ? "justify-center px-2" : "px-4"}`}>
+        {!sidebarCollapsed && (
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/arkon-glyph.svg"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0"
+              aria-hidden="true"
+            />
             <div className="min-w-0">
               <p className="font-[family-name:var(--font-wordmark)] text-[13px] font-extrabold uppercase tracking-[0.22em] text-[var(--text-primary)]">
                 Arkon
               </p>
-              <p className="mt-0.5 truncate text-[11px] font-medium text-[var(--text-tertiary)]">AI Workforce Platform</p>
+              <p className="mt-0.5 truncate font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--text-tertiary)]">AWP</p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
         <button
           type="button"
           onClick={toggleSidebar}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition hover:bg-white/[0.03] hover:text-[var(--text-secondary)]"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition hover:bg-white/[0.03] hover:text-[var(--text-secondary)]"
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {sidebarCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
@@ -461,20 +467,9 @@ export function NotionShell({ children }: { children: ReactNode }) {
         ) : null}
       </div>
 
-      {/* Search trigger */}
-      {!sidebarCollapsed && <div className="px-2 pt-3 pb-1">
-        <button
-          type="button"
-          onClick={() => setPaletteOpen(true)}
-          className="flex min-h-9 w-full items-center gap-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 text-[12px] text-[var(--text-tertiary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-secondary)]"
-        >
-          <Search className="h-3.5 w-3.5" />
-          <span className="min-w-0 flex-1 truncate text-left">Search</span>
-          <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-tertiary)]">
-            {mounted && typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
-          </kbd>
-        </button>
-      </div>}
+      {/* Sidebar search trigger removed \u2014 search lives in the topbar per brand-package
+          chrome.jsx (ak-top__search). Cmd+K palette is still bound globally and the
+          topbar search button at L642 surfaces the same affordance. */}
 
       <div className="flex-1 overflow-y-auto px-2 py-2">
         {navGroups.map((group) => {
