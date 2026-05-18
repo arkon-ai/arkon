@@ -71,13 +71,13 @@ test.describe("Browser Edge Cases — Deep links", () => {
     expect(res?.status()).toBe(200);
   });
 
-  test("direct navigation to /tools/docs loads @regression @edge", async ({ page }) => {
-    const res = await page.goto(`${MC_URL}/tools/docs`);
+  test("direct navigation to /integrations/docs loads @regression @edge", async ({ page }) => {
+    const res = await page.goto(`${MC_URL}/integrations/docs`);
     expect(res?.status()).toBe(200);
   });
 
-  test("direct navigation to /tools/mcp loads @regression @edge", async ({ page }) => {
-    const res = await page.goto(`${MC_URL}/tools/mcp`);
+  test("direct navigation to /integrations/mcp loads @regression @edge", async ({ page }) => {
+    const res = await page.goto(`${MC_URL}/integrations/mcp`);
     expect(res?.status()).toBe(200);
   });
 

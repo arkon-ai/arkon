@@ -105,7 +105,7 @@ export async function fireApprovalAlert(ctx: ApprovalAlertContext): Promise<void
         ctx.channel ? `Channel: ${ctx.channel}` : null,
         `Preview: ${ctx.contentPreview}${ctx.contentPreview.length >= 120 ? "\u2026" : ""}`,
       ].filter(Boolean).join("\n"),
-      link: "/tools/approvals",
+      link: "/integrations/approvals",
       metadata: {
         approvalId: ctx.id,
         agentId: ctx.agentId,

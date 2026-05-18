@@ -50,14 +50,14 @@ import { getBreadcrumbs } from "@/lib/page-meta";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
-  "/tools": "Tools",
-  "/tools/approvals": "Approvals",
-  "/tools/docs": "Docs",
-  "/tools/tasks": "Tasks",
-  "/tools/calendar": "Calendar",
-  "/tools/agents-live": "Live Agents",
+  "/integrations": "Integrations",
+  "/integrations/approvals": "Approvals",
+  "/integrations/docs": "Docs",
+  "/integrations/tasks": "Tasks",
+  "/integrations/calendar": "Calendar",
+  "/integrations/agents-live": "Live Agents",
   "/workflows": "Workflows",
-  "/tools/command": "Command",
+  "/integrations/command": "Command",
   "/security": "Threats",
   "/analytics": "Anomaly Detection",
   "/traces": "Traces",
@@ -69,9 +69,9 @@ const pageLabels: Record<string, string> = {
   "/visuals": "Visuals",
   "/actions": "Actions",
   "/activity": "Activity",
-  "/tools/crons": "Cron Jobs",
-  "/tools/intake": "Client Intake",
-  "/tools/mcp": "MCP",
+  "/integrations/crons": "Cron Jobs",
+  "/integrations/intake": "Client Intake",
+  "/integrations/mcp": "MCP",
   "/admin": "Admin Panel",
   "/infrastructure": "Infrastructure",
   "/benchmarks": "Benchmarks",
@@ -111,7 +111,7 @@ const moreSheetItems: NavItem[] = [
   { href: "/infrastructure", label: "Infrastructure", icon: Network },
   { href: "/traces", label: "Traces", icon: GitBranch },
   { href: "/workflows", label: "Workflows", icon: Workflow },
-  { href: "/tools/mcp", label: "MCP", icon: Plug },
+  { href: "/integrations/mcp", label: "MCP", icon: Plug },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -136,7 +136,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     items: [
       { href: "/incidents", label: "Incidents", subtitle: "Track operational incidents", icon: AlertTriangle },
       { href: "/journal", label: "Journal", subtitle: "Tasks, decisions & logs across all agents", icon: BookOpen },
-      { href: "/tools/approvals", label: "Approvals", subtitle: "Review pending requests", icon: CheckCircle },
+      { href: "/integrations/approvals", label: "Approvals", subtitle: "Review pending requests", icon: CheckCircle },
       { href: "/workflows", label: "Workflows", subtitle: "Automate operations", icon: Workflow },
     ],
   },
@@ -144,8 +144,8 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     label: "Manage",
     key: "manage",
     items: [
-      { href: "/tools/mcp", label: "MCP", subtitle: "Manage tool providers", icon: Plug },
-      { href: "/tools/docs", label: "Docs", subtitle: "Agent documentation", icon: FileText },
+      { href: "/integrations/mcp", label: "MCP", subtitle: "Manage tool providers", icon: Plug },
+      { href: "/integrations/docs", label: "Docs", subtitle: "Agent documentation", icon: FileText },
       { href: "/compliance", label: "Compliance", subtitle: "Audit logs & data export", icon: Shield },
       { href: "/settings", label: "Settings", subtitle: "Notifications & preferences", icon: Settings },
     ],
@@ -473,7 +473,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                             <span className="block truncate text-[10px] font-normal text-[var(--text-tertiary)]">{item.subtitle}</span>
                           )}
                         </div>}
-                        {item.href === "/tools/approvals" && pendingCount && pendingCount > 0 ? (
+                        {item.href === "/integrations/approvals" && pendingCount && pendingCount > 0 ? (
                           <span className="rounded-full bg-[var(--warning)] px-1.5 py-0.5 text-[9px] font-bold text-[var(--accent-foreground)]">
                             {pendingCount > 9 ? "9+" : pendingCount}
                           </span>
@@ -499,7 +499,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                 {pinnedDocs.map((doc) => (
                   <Link
                     key={`pinned-${doc.id}`}
-                    href={`/tools/docs?id=${doc.id}`}
+                    href={`/integrations/docs?id=${doc.id}`}
                     onClick={handleNavSelect}
                     className="flex min-h-9 w-full items-center gap-2 rounded-xl px-3 py-1.5 text-left text-[13px] text-[var(--text-secondary)] transition hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                   >
@@ -688,7 +688,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
               >
                 <span className="relative mb-0.5">
                   <Icon className="h-5 w-5" />
-                  {tab.href === "/tools" && pendingCount && pendingCount > 0 ? (
+                  {tab.href === "/integrations" && pendingCount && pendingCount > 0 ? (
                     <span className="absolute -right-2.5 -top-1.5 inline-flex min-h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[var(--warning)] px-0.5 text-[8px] font-bold text-[var(--accent-foreground)]">
                       {pendingCount > 9 ? "9+" : pendingCount}
                     </span>
