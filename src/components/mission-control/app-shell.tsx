@@ -115,7 +115,7 @@ const mobileTabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
 
 const moreSheetItems: NavItem[] = [
   { href: "/agents", label: "Agents", icon: Bot },
-  { href: "/integrations", label: "Integrations", icon: Plug },
+  { href: "/integrations/mcp", label: "Integrations", icon: Plug },
   { href: "/integrations/approvals", label: "Approvals", icon: CheckCircle },
   { href: "/compliance", label: "Compliance", icon: FileText },
   { href: "/traces", label: "Traces", icon: GitBranch },
@@ -131,7 +131,11 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     key: "provision",
     items: [
       { href: "/agents", label: "Agents", subtitle: "Roster, health, and assignment", icon: Bot },
-      { href: "/integrations", label: "Integrations", subtitle: "Tools, docs, calendars, and MCP", icon: Plug },
+      // Integrations lands directly on the MCP servers control point per
+      // Brynn's Q1 ("The MCP servers ARE the Integrations"). The /integrations
+      // hub page (tool grid) is still reachable as a fallback URL. Follow-up
+      // PR may rename the route so MCP servers lives at /integrations directly.
+      { href: "/integrations/mcp", label: "Integrations", subtitle: "MCP servers and provider connections", icon: Plug },
       { href: "/client/api-keys", label: "Keys & tokens", subtitle: "API keys and access tokens", icon: KeyRound },
     ],
   },
