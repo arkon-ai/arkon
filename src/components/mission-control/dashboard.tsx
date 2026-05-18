@@ -57,7 +57,6 @@ export function ShellHeader({
   subtitle: string;
   eyebrow?: string;
   action?: ReactNode;
-  gradient?: boolean;
 }) {
   return <PageHeader title={title} subtitle={subtitle} eyebrow={eyebrow} action={action} className="mb-5" />;
 }
@@ -514,7 +513,6 @@ function OverviewContent() {
         <ShellHeader
           title="Overview"
           subtitle="Mobile command surface for live agent activity, token flow, and system pulse."
-          gradient
         />
         <FirstRunBanner />
       </div>
@@ -568,7 +566,6 @@ function OverviewContent() {
         <ShellHeader
           title="Dashboard"
           subtitle="Live agent activity, token flow, and system pulse at a glance."
-          gradient
           action={
             <FreshnessIndicator
               lastUpdated={data?.timestamp ?? null}

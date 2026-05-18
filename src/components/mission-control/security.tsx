@@ -1061,7 +1061,6 @@ export function SecurityScreen() {
         <ShellHeader
           title="ThreatGuard"
           subtitle="Security posture and threat intelligence"
-          gradient
         />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} lines={1} height="h-10" />)}
@@ -1074,7 +1073,7 @@ export function SecurityScreen() {
   if (error && !data) {
     return (
       <div className="space-y-5">
-        <ShellHeader title="ThreatGuard" subtitle="Security posture and threat intelligence" gradient />
+        <ShellHeader title="ThreatGuard" subtitle="Security posture and threat intelligence" />
         <div className="rounded-2xl border border-red/40 bg-red/5 p-6 text-center">
           <p className="text-sm text-red">Failed to load security data: {error}</p>
         </div>
@@ -1097,7 +1096,6 @@ export function SecurityScreen() {
       <ShellHeader
         title="ThreatGuard"
         subtitle="Security posture and threat intelligence"
-        gradient
         action={
           <div className="flex gap-2">
             {(["24h", "7d", "30d"] as const).map((r) => (
