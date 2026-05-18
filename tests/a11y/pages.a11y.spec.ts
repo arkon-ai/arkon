@@ -28,7 +28,7 @@ const AUTHED_PAGES = [
   { path: "/integrations", name: "Integrations" },
   { path: "/integrations/tasks", name: "Integrations - Tasks" },
   { path: "/integrations/docs", name: "Integrations - Docs" },
-  { path: "/integrations/commands", name: "Integrations - Commands" },
+  { path: "/integrations/command", name: "Integrations - Command" },
   { path: "/integrations/approvals", name: "Integrations - Approvals" },
   { path: "/integrations/mcp", name: "Integrations - MCP" },
   { path: "/integrations/calendar", name: "Integrations - Calendar" },
