@@ -27,7 +27,8 @@ export async function GET(req: NextRequest) {
         COALESCE(SUM(messages_sent), 0) as sent,
         COALESCE(SUM(tool_calls), 0) as tools,
         COALESCE(SUM(errors), 0) as errors,
-        COALESCE(SUM(estimated_tokens), 0) as tokens
+        COALESCE(SUM(estimated_tokens), 0) as tokens,
+        COALESCE(SUM(estimated_cost_usd), 0) as cost
       FROM daily_stats
       WHERE day = CURRENT_DATE
       GROUP BY agent_id, tenant_id

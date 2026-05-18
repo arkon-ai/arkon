@@ -33,6 +33,8 @@ export interface TodayStat {
   tools: string;
   errors: string;
   tokens: string;
+  /** Burn for today so far in USD. SUM(estimated_cost_usd) from daily_stats. */
+  cost: string;
 }
 
 export interface OverviewData {
@@ -346,6 +348,9 @@ export function getOverviewMetrics(data: OverviewData | null) {
   ).length;
   const errorsToday = todayStats.reduce((sum, item) => sum + asNumber(item.errors), 0);
   const toolsToday = todayStats.reduce((sum, item) => sum + asNumber(item.tools), 0);
+  // Burn for today so far in USD — sum across all agents' daily_stats rows
+  // for CURRENT_DATE. Surfaces real cost on the dashboard PulseStrip Burn cell.
+  const burn24h = todayStats.reduce((sum, item) => sum + asNumber(item.cost), 0);
 
-  return { totalAgents: agents.length, activeAgents, errorsToday, toolsToday, ...totals };
+  return { totalAgents: agents.length, activeAgents, errorsToday, toolsToday, burn24h, ...totals };
 }
