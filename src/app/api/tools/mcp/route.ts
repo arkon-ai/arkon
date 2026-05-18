@@ -31,23 +31,26 @@ export async function GET(req: NextRequest) {
   // Optional: run live health check
   const check = req.nextUrl.searchParams.get("check") === "1";
 
-  const result = await query(
-    `SELECT s.id, s.name, s.url, s.host, s.port, s.server_type, s.approved, s.status, s.last_checked, s.notes, s.created_at,
-            COALESCE(a.agent_count, 0)::int as agent_count
-     FROM mcp_servers s
-     LEFT JOIN (
-       SELECT mcp_server_id, COUNT(DISTINCT agent_id)::int as agent_count
-       FROM mcp_server_agents
-       GROUP BY mcp_server_id
-     ) a ON a.mcp_server_id = s.id
-     ORDER BY s.approved DESC, s.name ASC`
-  );
-
-  // Distinct agents with at least one MCP mapping — drives the "Wired to agents" KPI
-  // on the Integrations page. Cheap (single COUNT DISTINCT, indexed FK).
-  const wiredResult = await query(
-    `SELECT COUNT(DISTINCT agent_id)::int as wired_agents FROM mcp_server_agents`
-  );
+  // Two independent reads — parallelize so the list endpoint round-trips once.
+  // `wired_agents` drives the "Wired to agents" KPI on the Integrations page;
+  // cheap (single COUNT DISTINCT, indexed FK) and worth running alongside the
+  // main list query rather than after it.
+  const [result, wiredResult] = await Promise.all([
+    query(
+      `SELECT s.id, s.name, s.url, s.host, s.port, s.server_type, s.approved, s.status, s.last_checked, s.notes, s.created_at,
+              COALESCE(a.agent_count, 0)::int as agent_count
+       FROM mcp_servers s
+       LEFT JOIN (
+         SELECT mcp_server_id, COUNT(DISTINCT agent_id)::int as agent_count
+         FROM mcp_server_agents
+         GROUP BY mcp_server_id
+       ) a ON a.mcp_server_id = s.id
+       ORDER BY s.approved DESC, s.name ASC`
+    ),
+    query(
+      `SELECT COUNT(DISTINCT agent_id)::int as wired_agents FROM mcp_server_agents`
+    ),
+  ]);
   const wired_agents = (wiredResult.rows[0] as { wired_agents?: number })?.wired_agents ?? 0;
 
   if (!check) {

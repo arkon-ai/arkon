@@ -27,7 +27,6 @@ type GatewayStats = {
     prev_total_requests: number;
     success_count: number;
     error_count: number;
-    prev_error_count: number;
     avg_duration_ms: number;
     p95_duration_ms: number;
     active_servers: number;
