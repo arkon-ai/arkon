@@ -6,11 +6,11 @@ import { Suspense, type ReactNode, useCallback, useEffect, useState } from "reac
 import { PageTransitionWrapper } from "./charts";
 import {
   AlertTriangle,
+  Anchor,
   LayoutDashboard,
   Radio,
   Bot,
   Network,
-  ShieldCheck,
   Wallet,
   CheckCircle,
   Workflow,
@@ -31,6 +31,8 @@ import {
   PanelLeft,
   GitBranch,
   BookOpen,
+  OctagonX,
+  KeyRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
@@ -59,20 +61,20 @@ const pageLabels: Record<string, string> = {
   "/workflows": "Workflows",
   "/integrations/command": "Command",
   "/security": "Threats",
-  "/analytics": "Anomaly Detection",
+  "/analytics": "Anomaly detection",
   "/traces": "Traces",
-  "/costs": "Costs",
+  "/costs": "Cost ceilings",
   "/agents": "Agents",
-  "/fleet": "Fleet",
+  "/fleet": "ArkonHelm",
   "/systems": "Infrastructure",
   "/confessions": "Confessions",
   "/visuals": "Visuals",
   "/actions": "Actions",
   "/activity": "Activity",
-  "/integrations/crons": "Cron Jobs",
+  "/integrations/crons": "Cron jobs",
   "/integrations/intake": "Client Intake",
   "/integrations/mcp": "MCP",
-  "/admin": "Admin Panel",
+  "/admin": "Admin",
   "/infrastructure": "Infrastructure",
   "/benchmarks": "Benchmarks",
   "/compliance": "Compliance",
@@ -96,65 +98,73 @@ type NavItem = {
   icon: LucideIcon;
 };
 
+const productItems: NavItem[] = [
+  { href: "/", label: "Arkon", subtitle: "Cmd", icon: LayoutDashboard },
+  { href: "/arkonos", label: "ArkonOS", subtitle: "Signals", icon: MessageSquare },
+  { href: "/fleet", label: "ArkonHelm", subtitle: "Fleet", icon: Anchor },
+];
+
 const mobileTabs: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Home", icon: Home },
   { href: "/arkonos", label: "ArkonOS", icon: MessageSquare },
-  { href: "/security", label: "Threats", icon: ShieldCheck },
+  { href: "/security", label: "Threats", icon: Shield },
   { href: "/costs", label: "Costs", icon: Wallet },
   { href: "##more##", label: "More", icon: MoreHorizontal },
 ];
 
 const moreSheetItems: NavItem[] = [
-  { href: "/incidents", label: "Incidents", icon: AlertTriangle },
   { href: "/agents", label: "Agents", icon: Bot },
-  { href: "/fleet", label: "Fleet", icon: Radio },
-  { href: "/infrastructure", label: "Infrastructure", icon: Network },
+  { href: "/integrations", label: "Integrations", icon: Plug },
+  { href: "/integrations/approvals", label: "Approvals", icon: CheckCircle },
+  { href: "/compliance", label: "Compliance", icon: FileText },
   { href: "/traces", label: "Traces", icon: GitBranch },
+  { href: "/infrastructure", label: "Infrastructure", icon: Network },
+  { href: "/incidents", label: "Incidents", icon: AlertTriangle },
   { href: "/workflows", label: "Workflows", icon: Workflow },
-  { href: "/integrations/mcp", label: "MCP", icon: Plug },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
   {
+    label: "Provision",
+    key: "provision",
+    items: [
+      { href: "/agents", label: "Agents", subtitle: "Roster, health, and assignment", icon: Bot },
+      { href: "/integrations", label: "Integrations", subtitle: "Tools, docs, calendars, and MCP", icon: Plug },
+      { href: "/client/api-keys", label: "Keys & tokens", subtitle: "API keys and access tokens", icon: KeyRound },
+    ],
+  },
+  {
+    label: "Govern",
+    key: "govern",
+    items: [
+      { href: "/security", label: "Threats", subtitle: "Detections and response posture", icon: Shield },
+      { href: "/integrations/approvals", label: "Approvals", subtitle: "Requests awaiting a decision", icon: CheckCircle },
+      { href: "/costs", label: "Cost ceilings", subtitle: "Spend limits and usage pressure", icon: Wallet },
+      { href: "/compliance", label: "Compliance", subtitle: "Audit, retention, and export", icon: FileText },
+    ],
+  },
+  {
     label: "Observe",
     key: "observe",
     items: [
-      { href: "/", label: "Dashboard", subtitle: "System health & key metrics", icon: LayoutDashboard },
-      { href: "/arkonos", label: "ArkonOS", subtitle: "Chat with Lumina", icon: MessageSquare },
-      { href: "/agents", label: "Agents", subtitle: "Monitor agent fleet", icon: Bot },
-      { href: "/fleet", label: "Fleet", subtitle: "Warden's orchestrated 4-agent fleet", icon: Radio },
-      { href: "/security", label: "Threats", subtitle: "Detect & respond to threats", icon: ShieldCheck },
-      { href: "/costs", label: "Costs", subtitle: "Spending by agent & model", icon: Wallet },
-      { href: "/traces", label: "Traces", subtitle: "Agent execution traces & spans", icon: GitBranch },
-      { href: "/infrastructure", label: "Infrastructure", subtitle: "Server topology & resources", icon: Network },
+      { href: "/", label: "Dashboard", subtitle: "Pulse, incidents, and active work", icon: LayoutDashboard },
+      { href: "/arkonos", label: "ArkonOS", subtitle: "Message volume and coordination signals", icon: MessageSquare },
+      { href: "/fleet", label: "ArkonHelm", subtitle: "Fleet orchestration and delegation", icon: Radio },
+      { href: "/traces", label: "Traces", subtitle: "Agent execution spans", icon: GitBranch },
+      { href: "/infrastructure", label: "Infrastructure", subtitle: "Servers, services, and resources", icon: Network },
+      { href: "/incidents", label: "Incidents", subtitle: "Operational incident history", icon: AlertTriangle },
+      { href: "/workflows", label: "Workflows", subtitle: "Runbooks and automations", icon: Workflow },
+      { href: "/journal", label: "Journal", subtitle: "Tasks, decisions, and logs", icon: BookOpen },
     ],
   },
   {
-    label: "Respond",
-    key: "respond",
+    label: "Configure",
+    key: "configure",
     items: [
-      { href: "/incidents", label: "Incidents", subtitle: "Track operational incidents", icon: AlertTriangle },
-      { href: "/journal", label: "Journal", subtitle: "Tasks, decisions & logs across all agents", icon: BookOpen },
-      { href: "/integrations/approvals", label: "Approvals", subtitle: "Review pending requests", icon: CheckCircle },
-      { href: "/workflows", label: "Workflows", subtitle: "Automate operations", icon: Workflow },
-    ],
-  },
-  {
-    label: "Manage",
-    key: "manage",
-    items: [
-      { href: "/integrations/mcp", label: "MCP", subtitle: "Manage tool providers", icon: Plug },
-      { href: "/integrations/docs", label: "Docs", subtitle: "Agent documentation", icon: FileText },
-      { href: "/compliance", label: "Compliance", subtitle: "Audit logs & data export", icon: Shield },
-      { href: "/settings", label: "Settings", subtitle: "Notifications & preferences", icon: Settings },
-    ],
-  },
-  {
-    label: "Admin",
-    key: "admin",
-    items: [
-      { href: "/admin", label: "Admin Panel", subtitle: "System configuration", icon: Lock },
+      { href: "/integrations/docs", label: "Docs", subtitle: "Operational reference", icon: FileText },
+      { href: "/settings", label: "Settings", subtitle: "Preferences and sessions", icon: Settings },
+      { href: "/admin", label: "Admin", subtitle: "System configuration", icon: Lock },
     ],
   },
 ];
@@ -162,14 +172,14 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
 /* ── localStorage-persisted collapsed state ── */
 
 const NAV_COLLAPSED_KEY = "mc-nav-collapsed";
-const DEFAULT_EXPANDED = new Set(["observe", "respond"]);
+const DEFAULT_EXPANDED = new Set(["provision", "govern", "observe"]);
 
 function loadCollapsedGroups(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
     const raw = localStorage.getItem(NAV_COLLAPSED_KEY);
     if (!raw) {
-      // Default: collapse everything except Monitor and Operate
+      // Default: collapse everything except the primary brand pillars.
       const collapsed = new Set<string>();
       for (const g of navGroups) {
         if (!DEFAULT_EXPANDED.has(g.key)) collapsed.add(g.key);
@@ -391,14 +401,17 @@ export function NotionShell({ children }: { children: ReactNode }) {
   const sidebar = (
     <div className="flex h-full flex-col bg-[var(--bg-primary)] text-[var(--text-secondary)]">
       <div className="flex h-14 items-center border-b border-[var(--border)]/50 px-4">
-        <div className="flex-1 min-w-0">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-md)] border border-[rgba(0,212,126,0.28)] bg-[rgba(0,212,126,0.08)] font-[family-name:var(--font-wordmark)] text-sm font-extrabold text-[var(--accent)]">
+            A
+          </span>
           {!sidebarCollapsed && (
-            <>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[var(--text-tertiary)]">
+            <div className="min-w-0">
+              <p className="font-[family-name:var(--font-wordmark)] text-[13px] font-extrabold uppercase tracking-[0.22em] text-[var(--text-primary)]">
                 Arkon
               </p>
-              <p className="mt-0.5 text-sm font-semibold text-[var(--text-primary)]">Workspace</p>
-            </>
+              <p className="mt-0.5 truncate text-[11px] font-medium text-[var(--text-tertiary)]">AI Workforce Platform</p>
+            </div>
           )}
         </div>
         <button
@@ -411,6 +424,42 @@ export function NotionShell({ children }: { children: ReactNode }) {
         </button>
       </div>
 
+      <div className={sidebarCollapsed ? "px-2 pt-3" : "px-2 pt-3 pb-1"}>
+        {!sidebarCollapsed ? (
+          <>
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--text-tertiary)]">
+              Product
+            </p>
+            <div className="space-y-0.5">
+              {productItems.map((item) => {
+                const active = isRouteActive(pathname, item.href);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={`product-${item.href}`}
+                    href={item.href}
+                    onClick={handleNavSelect}
+                    className={`flex min-h-9 items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium transition ${
+                      active
+                        ? "bg-[rgba(0,212,126,0.08)] text-[var(--accent)]"
+                        : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
+                    }`}
+                  >
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"}`} />
+                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    {item.subtitle ? (
+                      <span className="rounded border border-[var(--border)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                        {item.subtitle}
+                      </span>
+                    ) : null}
+                  </Link>
+                );
+              })}
+            </div>
+          </>
+        ) : null}
+      </div>
+
       {/* Search trigger */}
       {!sidebarCollapsed && <div className="px-2 pt-3 pb-1">
         <button
@@ -419,7 +468,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
           className="flex min-h-9 w-full items-center gap-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 text-[12px] text-[var(--text-tertiary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-secondary)]"
         >
           <Search className="h-3.5 w-3.5" />
-          <span className="flex-1 text-left">Search</span>
+          <span className="min-w-0 flex-1 truncate text-left">Search</span>
           <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-tertiary)]">
             {mounted && typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
           </kbd>
@@ -429,12 +478,16 @@ export function NotionShell({ children }: { children: ReactNode }) {
       <div className="flex-1 overflow-y-auto px-2 py-2">
         {navGroups.map((group) => {
           const isCollapsed = collapsedGroups.has(group.key);
+          const sectionCollapsed = !sidebarCollapsed && isCollapsed;
           return (
             <section key={group.key} className="mb-1">
               <button
                 type="button"
                 onClick={() => toggleGroup(group.key)}
-                className="flex min-h-8 w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-left transition hover:bg-white/[0.02]"
+                className={`flex min-h-8 w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-left transition ${
+                  sidebarCollapsed ? "pointer-events-none justify-center" : "hover:bg-white/[0.02]"
+                }`}
+                aria-label={`${isCollapsed ? "Expand" : "Collapse"} ${group.label}`}
               >
                 {!sidebarCollapsed && <ChevronDown
                   className={`h-3 w-3 text-[var(--text-tertiary)] transition-transform duration-200 ${
@@ -447,7 +500,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
               </button>
               <div
                 className={`overflow-hidden transition-all duration-200 ease-in-out ${
-                  isCollapsed ? "max-h-0 opacity-0" : "max-h-[500px] opacity-100"
+                  sectionCollapsed ? "max-h-0 opacity-0" : "max-h-[720px] opacity-100"
                 }`}
               >
                 <div className="space-y-0.5 pb-1">
@@ -460,6 +513,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                         href={item.href}
                         onClick={handleNavSelect}
                         data-tour={TOUR_IDS[item.href]}
+                        title={sidebarCollapsed ? item.label : undefined}
                         className={`flex min-h-9 items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium transition ${
                           active
                             ? "bg-[rgba(0,212,126,0.08)] text-[var(--accent)]"
@@ -486,6 +540,31 @@ export function NotionShell({ children }: { children: ReactNode }) {
             </section>
           );
         })}
+
+        <div className="my-2 border-t border-[var(--border)]/50" />
+        <section>
+          {!sidebarCollapsed ? (
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--text-tertiary)]">
+              Kill
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setQuickKillOpen(true)}
+            title="Kill switch"
+            className="flex min-h-9 w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] transition hover:bg-red-500/[0.06] hover:text-[var(--text-primary)]"
+          >
+            <OctagonX className="h-4 w-4 shrink-0 text-[var(--danger)]" />
+            {!sidebarCollapsed ? (
+              <>
+                <span className="min-w-0 flex-1 text-left">Kill switch</span>
+                <span className="rounded border border-[rgba(239,68,68,0.28)] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                  Ctrl Shift K
+                </span>
+              </>
+            ) : null}
+          </button>
+        </section>
 
         {/* Quick Access — pinned docs (max 3) */}
         {pinnedDocs.length > 0 && !sidebarCollapsed ? (
@@ -565,7 +644,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                   className="hidden md:flex h-10 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-[12px] text-[var(--text-tertiary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-secondary)]"
                 >
                   <Search className="h-3.5 w-3.5" />
-                  <span>Search</span>
+                  <span>Search agents, traces, events</span>
                   <kbd className="ml-2 rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-0.5 text-[10px] font-medium">
                     {mounted && typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent) ? "\u2318K" : "Ctrl+K"}
                   </kbd>

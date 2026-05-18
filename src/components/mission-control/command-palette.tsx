@@ -9,7 +9,6 @@ import {
   Bot,
   Server,
   Network,
-  ShieldCheck,
   BarChart3,
   Wallet,
   Terminal,
@@ -20,7 +19,6 @@ import {
   Workflow as WorkflowIcon,
   FileText,
   Plug,
-  Globe,
   Inbox,
   Calendar,
   Gauge,
@@ -30,6 +28,7 @@ import {
   OctagonX,
   Settings,
   MessageSquare,
+  KeyRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -44,30 +43,33 @@ type PaletteItem = {
 };
 
 const staticPages: PaletteItem[] = [
-  { id: "p-overview", label: "Overview", href: "/", icon: LayoutDashboard, category: "page" },
-  { id: "p-activity", label: "Activity Feed", href: "/activity", icon: Radio, category: "page" },
+  { id: "p-dashboard", label: "Dashboard", href: "/", icon: LayoutDashboard, category: "page", keywords: "overview pulse" },
+  { id: "p-activity", label: "Activity feed", href: "/activity", icon: Radio, category: "page" },
   { id: "p-agents", label: "Agents", href: "/agents", icon: Bot, category: "page" },
   { id: "p-systems", label: "Systems", href: "/systems", icon: Server, category: "page" },
   { id: "p-infra", label: "Infrastructure", href: "/infrastructure", icon: Network, category: "page" },
-  { id: "p-security", label: "ThreatGuard", href: "/security", icon: ShieldCheck, category: "page", keywords: "threat guard security" },
-  { id: "p-analytics", label: "Anomaly Detection", href: "/analytics", icon: BarChart3, category: "page" },
-  { id: "p-costs", label: "Cost Tracker", href: "/costs", icon: Wallet, category: "page", keywords: "cost money spending" },
+  { id: "p-security", label: "Threats", href: "/security", icon: Shield, category: "page", keywords: "threat guard security detections" },
+  { id: "p-analytics", label: "Anomaly detection", href: "/analytics", icon: BarChart3, category: "page" },
+  { id: "p-costs", label: "Cost ceilings", href: "/costs", icon: Wallet, category: "page", keywords: "cost money spending limits" },
   { id: "p-command", label: "Command", href: "/integrations/command", icon: Terminal, category: "page" },
   { id: "p-approvals", label: "Approvals", href: "/integrations/approvals", icon: CheckCircle, category: "page" },
   { id: "p-tasks", label: "Tasks", href: "/integrations/tasks", icon: ListTodo, category: "page" },
-  { id: "p-crons", label: "Cron Jobs", href: "/integrations/crons", icon: Clock, category: "page", keywords: "cron schedule timer" },
-  { id: "p-live", label: "Live Agents", href: "/integrations/agents-live", icon: Activity, category: "page" },
+  { id: "p-crons", label: "Cron jobs", href: "/integrations/crons", icon: Clock, category: "page", keywords: "cron schedule timer" },
+  { id: "p-live", label: "Live agents", href: "/integrations/agents-live", icon: Activity, category: "page" },
   { id: "p-workflows", label: "Workflows", href: "/workflows", icon: WorkflowIcon, category: "page" },
-  { id: "p-docs", label: "Docs", href: "/integrations/docs", icon: FileText, category: "page", keywords: "documents files workspace" },
-  { id: "p-mcp", label: "MCP Servers", href: "/integrations/mcp", icon: Plug, category: "page" },
+  { id: "p-docs", label: "Docs", href: "/integrations/docs", icon: FileText, category: "page", keywords: "documents files reference" },
+  { id: "p-integrations", label: "Integrations", href: "/integrations", icon: Plug, category: "page", keywords: "tools providers mcp docs calendar hub" },
+  { id: "p-keys", label: "Keys & tokens", href: "/client/api-keys", icon: KeyRound, category: "page", keywords: "api keys tokens credentials secrets" },
+  { id: "p-mcp", label: "MCP servers", href: "/integrations/mcp", icon: Plug, category: "page" },
   { id: "p-intake", label: "Intake", href: "/integrations/intake", icon: Inbox, category: "page" },
   { id: "p-calendar", label: "Calendar", href: "/integrations/calendar", icon: Calendar, category: "page" },
   { id: "p-benchmarks", label: "Benchmarks", href: "/benchmarks", icon: Gauge, category: "page", keywords: "benchmark model compare" },
-  { id: "p-compliance", label: "Compliance", href: "/compliance", icon: Shield, category: "page", keywords: "audit export purge gdpr" },
-  { id: "p-admin", label: "Admin Panel", href: "/admin", icon: Lock, category: "page" },
+  { id: "p-compliance", label: "Compliance", href: "/compliance", icon: FileText, category: "page", keywords: "audit export purge gdpr" },
+  { id: "p-admin", label: "Admin", href: "/admin", icon: Lock, category: "page" },
   { id: "p-settings", label: "Settings", href: "/settings", icon: Settings, category: "page" },
   { id: "p-arkonos", label: "ArkonOS", href: "/arkonos", icon: MessageSquare, category: "page" },
-  { id: "a-kill", label: "Kill Active Agent", href: "", icon: OctagonX, category: "action", keywords: "kill stop emergency agent", action: "quick-kill" },
+  { id: "p-arkonhelm", label: "ArkonHelm", href: "/fleet", icon: Radio, category: "page", keywords: "fleet orchestration delegation" },
+  { id: "a-kill", label: "Kill switch", href: "", icon: OctagonX, category: "action", keywords: "kill stop emergency agent", action: "quick-kill" },
 ];
 
 function getAuthHeaders(): Record<string, string> {
@@ -184,7 +186,7 @@ export function CommandPalette({
         <div className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
           <Search className="h-4 w-4 shrink-0 text-[var(--text-tertiary)]" />
           <Command.Input
-            placeholder="Search pages, agents, workflows..."
+            placeholder="Search agents, traces, events..."
             className="flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
             autoFocus
           />

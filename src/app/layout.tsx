@@ -15,8 +15,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Arkon — AI Control Plane",
-  description: "Monitor, govern, and manage your AI agent infrastructure. Best with OpenClaw/NemoClaw. Works with anything.",
+  title: "Arkon — AI Workforce Platform",
+  description: "Build, govern, and run your AI workforce.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
