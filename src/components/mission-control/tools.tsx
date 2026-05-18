@@ -1,7 +1,6 @@
 "use client";
 
 import DOMPurify from "dompurify";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { marked } from "marked";
 import { toast } from "sonner";
@@ -12,7 +11,6 @@ import {
   LoadingState,
   SectionTitle,
   ShellHeader,
-  StatCard,
 } from "./dashboard";
 import { SectionDescription } from "./dashboard-clarity";
 
@@ -340,55 +338,6 @@ function BottomSheet({
 
 function EmptyState({ label }: { label: string }) {
   return <div className="rounded-2xl border border-dashed border-border p-5 text-sm text-text-dim">{label}</div>;
-}
-
-const toolLinks = [
-  { href: "/integrations/approvals", title: "Approvals Queue", note: "Review drafted content and approve or reject from the phone.", tone: "green" as const },
-  { href: "/integrations/docs", title: "Docs Viewer", note: "Searchable archive of specs, reports, logs, and plans.", tone: "cyan" as const },
-  { href: "/integrations/tasks", title: "Task Board", note: "Kanban board for task and agent priorities.", tone: "amber" as const },
-  { href: "/integrations/calendar", title: "Content Calendar", note: "Week-first content schedule with day drill-down.", tone: "purple" as const },
-  { href: "/integrations/agents-live", title: "Sub-Agent Live", note: "Real-time status, logs, tokens, and kill controls.", tone: "green" as const },
-  { href: "/integrations/command", title: "Quick Command", note: "Chat-like command surface for direct agent requests.", tone: "cyan" as const },
-  { href: "/actions", title: "Actions", note: "Existing action list remains available from the hub.", tone: "slate" as const },
-  { href: "/confessions", title: "Confessions", note: "Mission-aligned declarations and scriptures.", tone: "purple" as const },
-  { href: "/visuals", title: "Visuals", note: "Visual briefing and live diagrams.", tone: "amber" as const },
-];
-
-export function ToolsHubScreen() {
-  return (
-    <div className="space-y-5">
-      <ShellHeader
-        title="Integrations"
-        subtitle="Operational cockpit for approvals, documents, tasks, schedules, sub-agents, and quick command dispatch."
-      />
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Custom Tools" value="6" accent="text-cyan" sublabel="Interactive operational surfaces" />
-        <StatCard label="Mobile First" value="44px+" accent="text-purple" sublabel="Touch targets and sticky controls" />
-        <StatCard label="Live Ops" value="5s" accent="text-amber" sublabel="Polling cadence for active runs" />
-        <StatCard label="Theme" value="PWA" accent="text-green" sublabel="Arkon dark shell reused" />
-      </div>
-
-      <Card>
-        <SectionTitle title="Integrations Grid" note="Arkon phase 5" />
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {toolLinks.map((tool) => (
-            <Link
-              key={tool.href}
-              href={tool.href}
-              className="min-h-28 rounded-[22px] border border-border bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))] p-4 transition hover:border-cyan/40"
-            >
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <Badge tone={tool.tone}>{tool.title}</Badge>
-                <span className="text-xs text-text-dim">Open</span>
-              </div>
-              <p className="text-sm leading-6 text-text-dim">{tool.note}</p>
-            </Link>
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
 }
 
 export function ApprovalsToolScreen() {

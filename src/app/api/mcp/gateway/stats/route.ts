@@ -20,10 +20,21 @@ export async function GET(req: NextRequest) {
               COUNT(CASE WHEN status >= 200 AND status < 300 THEN 1 END) as success_count,
               COUNT(CASE WHEN status >= 400 THEN 1 END) as error_count,
               COALESCE(AVG(duration_ms), 0) as avg_duration_ms,
+              COALESCE(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms), 0) as p95_duration_ms,
               COALESCE(SUM(request_size + response_size), 0) as total_bytes,
               COUNT(DISTINCT server_id) as active_servers,
               COUNT(DISTINCT mcp_method) as unique_methods
        FROM mcp_proxy_logs WHERE created_at > NOW() - $1::interval`,
+      [interval]
+    );
+
+    // Prior-period totals for delta (same window, shifted one window back)
+    const priorSummary = await query(
+      `SELECT COUNT(*) as prev_total_requests,
+              COUNT(CASE WHEN status >= 400 THEN 1 END) as prev_error_count
+       FROM mcp_proxy_logs
+       WHERE created_at > NOW() - ($1::interval * 2)
+         AND created_at <= NOW() - $1::interval`,
       [interval]
     );
 
@@ -67,14 +78,19 @@ export async function GET(req: NextRequest) {
     );
 
     const row = summary.rows[0] as Record<string, string>;
+    const prevRow = priorSummary.rows[0] as Record<string, string>;
 
     return NextResponse.json({
       range,
       summary: {
         total_requests: parseInt(row.total_requests || "0"),
+        prev_total_requests: parseInt(prevRow.prev_total_requests || "0"),
         success_count: parseInt(row.success_count || "0"),
         error_count: parseInt(row.error_count || "0"),
+        prev_error_count: parseInt(prevRow.prev_error_count || "0"),
+        // parseFloat (NOT asNumber/parseInt) for AVG/PERCENTILE — numeric results carry decimals.
         avg_duration_ms: Math.round(parseFloat(row.avg_duration_ms || "0")),
+        p95_duration_ms: Math.round(parseFloat(row.p95_duration_ms || "0")),
         total_bytes: parseInt(row.total_bytes || "0"),
         active_servers: parseInt(row.active_servers || "0"),
         unique_methods: parseInt(row.unique_methods || "0"),
