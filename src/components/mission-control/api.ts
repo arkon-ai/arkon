@@ -350,7 +350,8 @@ export function getOverviewMetrics(data: OverviewData | null) {
   const toolsToday = todayStats.reduce((sum, item) => sum + asNumber(item.tools), 0);
   // Burn for today so far in USD — sum across all agents' daily_stats rows
   // for CURRENT_DATE. Surfaces real cost on the dashboard PulseStrip Burn cell.
-  const burn24h = todayStats.reduce((sum, item) => sum + asNumber(item.cost), 0);
+  // Uses parseFloat (NOT asNumber which parseInt-strips decimals — $0.044 -> 0).
+  const burn24h = todayStats.reduce((sum, item) => sum + (parseFloat(item.cost ?? "0") || 0), 0);
 
   return { totalAgents: agents.length, activeAgents, errorsToday, toolsToday, burn24h, ...totals };
 }
