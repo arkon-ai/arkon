@@ -133,7 +133,7 @@ export function McpGatewayEmpty() {
       title="No proxy traffic yet"
       description="Register MCP servers and route agent tool calls through the gateway to add logging, rate limits, and access controls."
       action="Register MCP server"
-      actionHref="/tools/mcp"
+      actionHref="/integrations/mcp"
     />
   );
 }

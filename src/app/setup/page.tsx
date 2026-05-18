@@ -571,7 +571,7 @@ export default function SetupPage() {
                   icon={BookOpen}
                   title="Documentation"
                   description="Learn more about Arkon"
-                  href="/tools/docs"
+                  href="/integrations/docs"
                 />
               </div>
 

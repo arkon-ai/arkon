@@ -15,7 +15,7 @@ export class ToolsHubPage {
   }
 
   async goto() {
-    await this.page.goto("/tools");
+    await this.page.goto("/integrations");
     await this.page.waitForLoadState("domcontentloaded");
   }
 }

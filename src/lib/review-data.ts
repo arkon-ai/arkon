@@ -205,7 +205,7 @@ function getRawReviewModePayload(pathname: string, searchParams: URLSearchParams
     return {
       unread_count: 2,
       notifications: [
-        { id: 41, type: "approval", severity: "info", title: "Review deploy approval queued", body: "Warden is waiting on a release-window decision.", link: "/tools/approvals", read: false, created_at: "2026-05-18T08:05:00.000Z" },
+        { id: 41, type: "approval", severity: "info", title: "Review deploy approval queued", body: "Warden is waiting on a release-window decision.", link: "/integrations/approvals", read: false, created_at: "2026-05-18T08:05:00.000Z" },
         { id: 42, type: "threat", severity: "warning", title: "Prompt injection pattern blocked", body: "Sentinel quarantined an inbound client-intake message.", link: "/security", read: false, created_at: "2026-05-18T08:12:00.000Z" },
         { id: 43, type: "budget", severity: "info", title: "Monthly spend pacing at 62%", body: "Current projection remains below the May guardrail.", link: "/costs", read: true, created_at: "2026-05-18T06:40:00.000Z" },
       ],

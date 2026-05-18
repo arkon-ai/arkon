@@ -297,7 +297,7 @@ function OverviewTab({ data }: { data: OverviewData }) {
           title="No Benchmark Data Yet"
           description="Benchmark data populates automatically as your agents process requests. Once active, you'll see model comparison charts here."
           action="Learn more"
-          actionHref="/tools/docs"
+          actionHref="/integrations/docs"
         />
       )}
     </div>

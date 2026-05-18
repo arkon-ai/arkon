@@ -187,7 +187,7 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/approvals": {
+  "/integrations/approvals": {
     title: "Approvals",
     description:
       "Review and act on pending approval requests from your agents. When agents request permission for sensitive actions (spending over a threshold, executing dangerous commands, etc.), the requests appear here.",
@@ -237,7 +237,7 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/mcp": {
+  "/integrations/mcp": {
     title: "MCP Servers",
     description:
       "Manage your MCP server inventory. View registered servers, their tools, connection status, and configuration. Export server configs for sharing across environments.",
@@ -293,7 +293,7 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/intake": {
+  "/integrations/intake": {
     title: "Client Intake",
     description:
       "Manage client onboarding forms. When new clients submit intake forms, their information appears here for review and processing. Create agents and tenants from intake submissions.",
@@ -333,7 +333,7 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/command": {
+  "/integrations/command": {
     title: "Command",
     description:
       "Send direct commands to your agents. Use the command interface to instruct agents to perform specific tasks, run tools, or execute actions.",
@@ -342,7 +342,7 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/tasks": {
+  "/integrations/tasks": {
     title: "Tasks",
     description:
       "Track action items and to-dos across your AI operations. Create, assign, and prioritize tasks for yourself or your agents.",
@@ -352,7 +352,7 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/agents-live": {
+  "/integrations/agents-live": {
     title: "Live Agents",
     description:
       "Monitor active agent sessions in real time. See what each agent is currently doing, how long it's been running, and take immediate action if needed.",
@@ -362,7 +362,7 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/crons": {
+  "/integrations/crons": {
     title: "Cron Jobs",
     description:
       "View and manage scheduled automations. Cron jobs run on a schedule (e.g., every 5 minutes, daily at midnight) to perform automated tasks.",
@@ -371,7 +371,7 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/docs": {
+  "/integrations/docs": {
     title: "Docs",
     description:
       "Agent documentation and knowledge base. Store and organize reference documents, SOPs, and configuration guides that your agents can access.",
@@ -381,7 +381,7 @@ export const helpContent: Record<string, HelpSection> = {
     ],
   },
 
-  "/tools/calendar": {
+  "/integrations/calendar": {
     title: "Calendar",
     description:
       "Schedule and events view. Track important dates, deadlines, and scheduled operations across your AI infrastructure.",
@@ -452,7 +452,7 @@ export interface GlossaryTerm {
 export const glossaryTerms: GlossaryTerm[] = [
   { term: "Agent", definition: "An AI model or system that sends events to Arkon for monitoring and governance. Could be powered by OpenClaw, NemoClaw, CrewAI, AutoGen, or any custom framework.", link: "/agents" },
   { term: "Anomaly", definition: "A deviation from an agent's normal behavior pattern — a spike in activity, unexpected silence, or abnormal spending. Detected by comparing against a rolling 7-day baseline.", link: "/analytics" },
-  { term: "Approval", definition: "A request from an agent asking for human permission before performing a sensitive action. Approvals are configured per agent and action type.", link: "/tools/approvals" },
+  { term: "Approval", definition: "A request from an agent asking for human permission before performing a sensitive action. Approvals are configured per agent and action type.", link: "/integrations/approvals" },
   { term: "Baseline", definition: "The expected range of normal behavior for an agent, computed from its rolling 7-day history. Used to detect anomalies.", link: "/analytics" },
   { term: "Budget Limit", definition: "A spending cap set per tenant. Arkon sends alerts at 80% and 100% of the limit. Configurable as daily or monthly.", link: "/costs" },
   { term: "Governance Platform", definition: "The management layer that monitors, governs, and orchestrates AI agents. Arkon is an AI Governance Platform." },
@@ -460,8 +460,8 @@ export const glossaryTerms: GlossaryTerm[] = [
   { term: "Event", definition: "Any logged action from an agent — messages sent/received, tool calls, errors, or system actions. Events are the core data unit in Arkon.", link: "/activity" },
   { term: "Health Score", definition: "A composite 0–100 score combining agent uptime (25pts), threat level (25pts), budget status (25pts), and infrastructure health (25pts).", link: "/" },
   { term: "Ingest", definition: "The process of receiving events from agents. Agents send events to Arkon's /api/ingest endpoint with their API token." },
-  { term: "Kill Switch", definition: "Emergency controls to immediately stop a running agent. Available via the global banner, per-agent buttons, or Ctrl+Shift+K keyboard shortcut.", link: "/tools/agents-live" },
-  { term: "MCP", definition: "Model Context Protocol — an open standard for connecting AI models to external tools and data sources. Arkon can proxy and secure MCP connections.", link: "/tools/mcp" },
+  { term: "Kill Switch", definition: "Emergency controls to immediately stop a running agent. Available via the global banner, per-agent buttons, or Ctrl+Shift+K keyboard shortcut.", link: "/integrations/agents-live" },
+  { term: "MCP", definition: "Model Context Protocol — an open standard for connecting AI models to external tools and data sources. Arkon can proxy and secure MCP connections.", link: "/integrations/mcp" },
   { term: "NemoClaw", definition: "NVIDIA's enterprise AI agent framework, announced at GTC 2026. Arkon provides native monitoring support for NemoClaw agents." },
   { term: "Node", definition: "A server or machine in your infrastructure that runs agents or services. Nodes report metrics to Arkon for monitoring.", link: "/infrastructure" },
   { term: "OpenClaw", definition: "An open-source AI agent framework. Arkon was originally built for OpenClaw and provides deep integration with its gateway and event system." },

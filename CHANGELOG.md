@@ -6,6 +6,15 @@ All notable changes to Arkon are documented in this file.
 
 ## [Unreleased]
 
+### Identity cleanup — Phase F3 (2026-05-18)
+- Package name renamed: `mission-control` → `arkon` (`package.json`, `package-lock.json`).
+- Route rename: `/tools/*` → `/integrations/*`. The `src/app/tools/` page tree was moved to `src/app/integrations/` via `git mv` (rename preserves Git history). User-facing URLs unified under "Integrations" per brand-package — MCP servers, approvals, docs, tasks, calendar, agents-live, command, crons, intake all surface there now.
+- Backward compatibility: `next.config.ts` `redirects()` returns 308 permanent for `/tools` and `/tools/:path*` → `/integrations/:path*`. Existing bookmarks, external links, and crawler indices route transparently.
+- Internal references updated: `app-shell.tsx` `pageLabels` map, `command-palette.tsx` page entries, `benchmarks.tsx` + `empty-states.tsx` action hrefs, `setup/page.tsx` docs link, `api/intake/route.ts` server-generated link, `mcp-gateway/page.tsx` internal redirect target.
+- API routes untouched: `src/app/api/tools/*` (backend) keeps its path — these are not user-facing URLs. Internal helper module `@/app/api/tools/_utils` continues to be imported by many handlers.
+- Wire-level identifier untouched: `x-mcp-proxy: mission-control` headers in `src/app/api/mcp/proxy/[serverId]/route.ts` deliberately kept as-is. Renaming a wire-level identifier consumed by upstream MCP servers is observable behavior; deferred to a separate consideration after F3 lands.
+- Parent: transformate WI-382. See `handoffs/SESSION-HANDOFF-20260518-rectification-plan-opus-4-7.md` §F3.
+
 ### Removed (2026-04-25)
 - YouTube Knowledge Base — feature relocated to ArkonOS; not part of Arkon governance product scope. Reverts the 2026-04-14 addition below.
 

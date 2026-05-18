@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
         clientLabel ? `Client: ${clientLabel}` : null,
         body.priorities ? `Priorities: ${((body.priorities as string) ?? "").slice(0, 200)}` : null,
       ].filter(Boolean).join("\n"),
-      link: "/tools/intake",
+      link: "/integrations/intake",
       metadata: { intakeId: id, fullName, email, client: clientLabel },
     });
 
