@@ -1613,11 +1613,24 @@ function PricingTab() {
                         className="rounded-lg border border-[var(--border)] bg-[var(--bg-base)] px-3 py-1.5 text-xs text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none disabled:opacity-40"
                       >
                         <option value="">— none —</option>
-                        {pricingOptions.map((p) => (
-                          <option key={`${p.provider}|${p.model_id}|${p.id}`} value={`${p.provider}|${p.model_id}`}>
-                            {p.provider} / {p.display_name || p.model_id} {p.pricing_type === "subscription" ? `(sub $${Number(p.monthly_cost_usd).toFixed(0)}/mo)` : p.pricing_type === "free" ? "(free)" : ""}
-                          </option>
-                        ))}
+                        {pricingOptions.map((p) => {
+                          // PR-39 follow-up (WI-398): Number(null)=0 was rendering
+                          // "(sub $0/mo)" for legitimate null subscription rates —
+                          // implies free when actually unpriced. Rule 12 fail-loud:
+                          // surface em-dash + "telemetry pending" intent over a fake zero.
+                          const subLabel = p.pricing_type === "subscription"
+                            ? (p.monthly_cost_usd != null
+                                ? `(sub $${Number(p.monthly_cost_usd).toFixed(0)}/mo)`
+                                : "(sub — /mo)")
+                            : p.pricing_type === "free"
+                              ? "(free)"
+                              : "";
+                          return (
+                            <option key={`${p.provider}|${p.model_id}|${p.id}`} value={`${p.provider}|${p.model_id}`}>
+                              {p.provider} / {p.display_name || p.model_id} {subLabel}
+                            </option>
+                          );
+                        })}
                       </select>
                     </td>
                     <td className="py-3 text-right text-xs text-[var(--text-secondary)]">{a.default_model_pricing_type || "—"}</td>
