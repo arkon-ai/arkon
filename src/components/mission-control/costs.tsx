@@ -2,22 +2,43 @@
 
 import React, { useState, useMemo } from "react";
 import { CostsEmpty } from "./empty-states";
-import { SectionDescription } from "./dashboard-clarity";
 import {
-  AreaChart, Area, BarChart, Bar, CartesianGrid,
-  ResponsiveContainer, Tooltip, XAxis, YAxis, Cell,
+  AreaChart, Area, CartesianGrid, ReferenceLine,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Plus, Trash2, X } from "lucide-react";
-import { Button, MetricCard, PageHeader, Tabs } from "./ui-cards";
+import { Plus, Trash2, X, TrendingUp, ArrowRight, Info } from "lucide-react";
+import { Button, Card, PageHeader, SectionTitle, StatusPill, Tabs } from "./ui-cards";
+import { Sparkline } from "./charts";
+import { Avatar } from "./agents-kit";
+import { cn } from "@/lib/utils";
 
-/* ── colour tokens (matches existing charts.tsx palette) ── */
+// Brand bible §5.1: Void/S1/S2 surfaces + Quarn Emerald single brand color
+// (one job per section) + semantic locked (warning amber / danger red).
+// No cyan/pink/blue/purple — they are reserved for non-Arkon palettes.
 const C = {
-  green: "#00D47E", purple: "#00D47E", amber: "#f59e0b",
-  red: "#ef4444", slate: "#8888A0", teal: "#14b8a6",
-  pink: "#ec4899", blue: "#3b82f6",
-  grid: "#1E1E2A", tooltipBg: "#111118",
+  emerald: "#00D47E",      // Quarn Emerald — brand
+  emeraldLight: "#3DEEA0", // Quarn Light — secondary brand series, healthy
+  emeraldDeep: "#006B41",  // Quarn Deep — gradient anchor
+  amber: "#f59e0b",        // semantic warning
+  red: "#ef4444",          // semantic danger (kill only)
+  slate: "#8888A0",        // text-secondary tone
+  teal: "#14b8a6",         // info adjunct (sparingly)
+  grid: "#1E1E2A",
+  tooltipBg: "#111118",
 };
-const AGENT_COLORS = [C.green, C.purple, C.amber, C.teal, C.pink, C.blue, C.red, C.slate];
+
+// Persona palette LOCKED (brand bible §3.6 + Brynn's brief):
+// warden=emerald · codesmith=slate · lumina=amber · sentinel=teal.
+// Fallback for unknown agents → slate. Used for per-row sparkline color.
+function personaColor(slug: string | undefined): string {
+  switch ((slug || "").toLowerCase()) {
+    case "warden":    return C.emerald;
+    case "codesmith": return C.slate;
+    case "lumina":    return C.amber;
+    case "sentinel":  return C.teal;
+    default:          return C.slate;
+  }
+}
 
 /* ── tiny helpers ── */
 function fmt$(v: number): string {
@@ -30,10 +51,6 @@ function fmtK(v: number): string {
   if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
   return String(v);
 }
-function pctOf(spent: number, limit: number): number {
-  return limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
-}
-
 /* ── data interfaces ── */
 interface CostSummary {
   total_cost_usd: number;
@@ -86,15 +103,126 @@ async function apiFetch<T>(url: string): Promise<T> {
   return res.json();
 }
 
-/* ── stat card ── */
-function StatCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
-  const variant = color === C.red ? "bad" : color === C.amber ? "warn" : "default";
+/* ── soft fetch — used for admin-scoped supplementary data (model assignments,
+   pricing catalog, infra costs). On 401/403 returns null so non-admin viewers
+   see Rule-12 telemetry-pending instead of being redirected to /login. ── */
+async function softFetch<T>(url: string): Promise<T | null> {
+  const csrf = document.cookie.match(/mc_csrf=([^;]+)/)?.[1] || "";
+  const res = await fetch(url, {
+    credentials: "include",
+    headers: { "x-csrf-token": csrf },
+  });
+  if (res.status === 401 || res.status === 403) return null;
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+/* ── ProgressBar — slim horizontal fill bar. Canonical "Progress" component. ── */
+function ProgressBar({
+  value, max, color = C.emerald, thresholdPct,
+}: {
+  value: number;
+  max: number;
+  color?: string;
+  thresholdPct?: number; // optional dashed marker (0-100)
+}) {
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
-    <MetricCard label={label} value={value} subtitle={sub} variant={variant} />
+    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-[var(--bg-surface-2)]">
+      <div
+        className="h-full rounded-full transition-all duration-500"
+        style={{ width: `${pct}%`, backgroundColor: color }}
+      />
+      {thresholdPct != null && thresholdPct > 0 && thresholdPct < 100 && (
+        <div
+          aria-hidden="true"
+          className="absolute top-0 h-full w-px bg-[var(--text-tertiary)]/60"
+          style={{ left: `${thresholdPct}%` }}
+        />
+      )}
+    </div>
   );
 }
 
-/* (BudgetBar replaced by BudgetProgress in OverviewTab) */
+/* ── Tag — tiny inline chip (canonical <Tag>{scope}</Tag>) ── */
+function Tag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--text-secondary)]">
+      {children}
+    </span>
+  );
+}
+
+/* ── CeilingCard — canonical 2-up hero card.
+   Avatar + agent label + Tag(scope) + StatusPill (right) — KPI cluster — progress bar
+   — uppercase tracking-wider footer: PROJECTED · $X / BREACH · NEVER AT THIS RATE.
+   28px KPI (hero surface, canonical line 43). ── */
+function CeilingCard({
+  agentSlug, agentName, scope, used, limit, projected, threshold,
+}: {
+  agentSlug: string;
+  agentName: string;
+  scope: "daily" | "monthly";
+  used: number;
+  limit: number;        // 0 → telemetry-pending
+  projected?: number;
+  threshold?: number;   // alert pct (0-100)
+}) {
+  const hasLimit = limit > 0;
+  const pct = hasLimit ? (used / limit) * 100 : 0;
+  const alertPct = threshold ?? 80;
+  const isOver = hasLimit && pct >= 100;
+  const isWarn = hasLimit && !isOver && pct >= alertPct;
+
+  // StatusPill tone names — see ui-cards Tone union: live/warm/idle/err/info/ok/neutral.
+  // Map: over → err, near-limit → warm, healthy → ok, no-limit → idle.
+  const pillTone: "ok" | "warm" | "err" | "idle" = !hasLimit ? "idle" : isOver ? "err" : isWarn ? "warm" : "ok";
+  const pillLabel = !hasLimit ? "No ceiling" : isOver ? "Over" : isWarn ? "Near limit" : "On track";
+  const accent = isOver ? C.red : isWarn ? C.amber : C.emerald;
+
+  // Breach forecast text. If projected exceeds limit, surface the date; otherwise
+  // "never at this rate" (canonical line 52).
+  let breachText = "Never at this rate";
+  if (hasLimit && projected != null && projected > limit) {
+    breachText = "Breach forecast";
+  }
+
+  return (
+    <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
+      <div className="mb-4 flex items-center gap-2">
+        <Avatar name={agentName} persona={agentSlug} size="sm" />
+        <span className="font-mono text-[13px] font-medium text-[var(--text-primary)]">agent:{agentSlug}</span>
+        <Tag>{scope}</Tag>
+        <span className="ml-auto"><StatusPill status={pillTone}>{pillLabel}</StatusPill></span>
+      </div>
+
+      <div className="mb-3 flex items-baseline gap-3">
+        <span
+          className="font-mono text-[28px] font-medium leading-none tracking-normal"
+          style={{ color: hasLimit ? "var(--text-primary)" : "var(--text-tertiary)" }}
+        >
+          {hasLimit ? fmt$(used) : "—"}
+        </span>
+        {hasLimit && (
+          <span className="font-mono text-sm text-[var(--text-tertiary)]">/ {fmt$(limit)}</span>
+        )}
+        <span
+          className="ml-auto font-mono text-[13px]"
+          style={{ color: hasLimit ? accent : "var(--text-tertiary)" }}
+        >
+          {hasLimit ? `${pct.toFixed(1)}%` : "telemetry pending"}
+        </span>
+      </div>
+
+      <ProgressBar value={used} max={Math.max(limit, 1)} color={accent} thresholdPct={hasLimit ? alertPct : undefined} />
+
+      <div className="mt-3 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+        <span>Projected · {hasLimit && projected != null ? fmt$(projected) : "—"}</span>
+        <span>Breach · {hasLimit ? breachText : "no ceiling"}</span>
+      </div>
+    </div>
+  );
+}
 
 /* ── range selector ── */
 function RangeSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -130,7 +258,33 @@ export default function CostsScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  // Dialog state lifted from OverviewTab so the canonical "+ New ceiling" CTA
+  // in the page header can open it regardless of which tab is active.
+  const [showNewCeiling, setShowNewCeiling] = useState(false);
+  // Admin-scoped supplementary data for the canonical Overview tab. Fetched via
+  // softFetch so non-admin viewers fall through to Rule-12 telemetry-pending
+  // instead of being bounced to /login.
+  const [adminAgents, setAdminAgents] = useState<AgentModelRow[] | null>(null);
+  const [pricing, setPricing] = useState<PricingRow[] | null>(null);
+  const [infraCosts, setInfraCosts] = useState<InfraCostRow[] | null>(null);
   const refresh = () => setRefreshKey(k => k + 1);
+
+  // Fetch the admin/pricing/infra supplements alongside the overview. These
+  // change rarely; refresh on the same key as the rest.
+  React.useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([
+      softFetch<{ agents: AgentModelRow[] }>("/api/admin/agents"),
+      softFetch<{ pricing: PricingRow[] }>("/api/admin/pricing"),
+      softFetch<{ infra_costs: InfraCostRow[] }>("/api/admin/infra-costs"),
+    ]).then(([a, p, i]) => {
+      if (cancelled) return;
+      if (a.status === "fulfilled" && a.value) setAdminAgents(a.value.agents);
+      if (p.status === "fulfilled" && p.value) setPricing(p.value.pricing);
+      if (i.status === "fulfilled" && i.value) setInfraCosts(i.value.infra_costs);
+    });
+    return () => { cancelled = true; };
+  }, [refreshKey]);
 
   // Fetch on mount + range/tab change
   React.useEffect(() => {
@@ -215,28 +369,30 @@ export default function CostsScreen() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Canonical header — title + one-sentence subtitle; "+ New ceiling" is
+          the single primary action. Crumbs (Arkon › Govern › Cost ceilings)
+          are owned by the top bar per WI-391 — do NOT pass crumbs here. */}
       <PageHeader
-        title="Cost Tracker"
-        subtitle="AI spend across all agents and models"
+        title="Cost ceilings"
+        subtitle="Cap, monitor, and recommend. Every agent has a daily and a monthly limit you set."
+        live
+        updated="now"
         action={
           <div className="flex flex-wrap items-center gap-2">
-          <Button
-            onClick={exportCostCSV}
-            disabled={!overview || !agentData}
-            kind="secondary"
-          >
-            Export CSV
-          </Button>
-          <RangeSelector value={range} onChange={setRange} />
-        </div>
+            <RangeSelector value={range} onChange={setRange} />
+            <Button
+              onClick={exportCostCSV}
+              disabled={!overview || !agentData}
+              kind="secondary"
+            >
+              Export CSV
+            </Button>
+            <Button onClick={() => setShowNewCeiling(true)} kind="primary">
+              <Plus className="h-3.5 w-3.5" /> New ceiling
+            </Button>
+          </div>
         }
       />
-
-      <SectionDescription id="costs">
-        Track how much your AI agents are spending across all model providers. See daily burn rate,
-        per-agent breakdown, and per-model costs. Set budget limits to prevent overspending.
-      </SectionDescription>
 
       {error && (
         <div className="rounded-[16px] border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-400">{error}</div>
@@ -259,7 +415,16 @@ export default function CostsScreen() {
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
         </div>
       ) : tab === "overview" ? (
-        <OverviewTab overview={overview} dailyBurn={dailyBurn} projected={projected} agentData={agentData} onBudgetChange={refresh} />
+        <OverviewTab
+          overview={overview}
+          dailyBurn={dailyBurn}
+          projected={projected}
+          agentData={agentData}
+          adminAgents={adminAgents}
+          pricing={pricing}
+          infraCosts={infraCosts}
+          onOpenNewCeiling={() => setShowNewCeiling(true)}
+        />
       ) : tab === "agents" ? (
         <AgentsTab agents={agentData} loading={loading} anomalies={overview?.agent_anomalies || []} />
       ) : tab === "models" ? (
@@ -267,351 +432,530 @@ export default function CostsScreen() {
       ) : (
         <PricingTab />
       )}
-    </div>
-  );
-}
 
-/* ═══ Budget Progress Bar (enhanced with projection) ═══ */
-function BudgetProgress({ label, spent, limit, threshold, dailyBurn, isMonthly }: {
-  label: string; spent: number; limit: number; threshold: number; dailyBurn: number; isMonthly: boolean;
-}) {
-  const pct = pctOf(spent, limit);
-  const barColor = pct >= 100 ? C.red : pct >= threshold ? C.amber : C.green;
-
-  // Project when limit will be hit (only for monthly)
-  let projectionText = "";
-  if (isMonthly && dailyBurn > 0 && pct < 100) {
-    const remaining = limit - spent;
-    const daysUntilLimit = remaining / dailyBurn;
-    const now = new Date();
-    const daysLeftInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
-    const projectedTotal = spent + (dailyBurn * daysLeftInMonth);
-
-    if (daysUntilLimit <= daysLeftInMonth) {
-      const hitDate = new Date(now.getTime() + daysUntilLimit * 86400000);
-      projectionText = `At current rate, hits limit ${hitDate.toLocaleDateString("en", { month: "short", day: "numeric" })}`;
-    } else if (projectedTotal < limit) {
-      projectionText = `On track — projected ${fmt$(projectedTotal)} is under limit`;
-    }
-  }
-
-  return (
-    <div className="mb-4">
-      <div className="flex justify-between text-xs mb-1.5">
-        <span className="text-[var(--text-secondary)] font-medium">{label}</span>
-        <span className="text-[var(--text-secondary)]">
-          {fmt$(spent)} / {fmt$(limit)}
-          <span className="ml-1.5 font-medium" style={{ color: barColor }}>({Math.round(pct)}%)</span>
-        </span>
-      </div>
-      <div className="relative h-2.5 rounded-full bg-[var(--bg-surface-2)] overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${pct}%`, backgroundColor: barColor }} />
-        {/* Threshold marker */}
-        <div className="absolute top-0 h-full w-px bg-[var(--text-tertiary)]" style={{ left: `${threshold}%` }} />
-      </div>
-      {projectionText && (
-        <p className="text-[10px] mt-1" style={{ color: pct >= threshold ? C.amber : "#555566" }}>{projectionText}</p>
-      )}
-    </div>
-  );
-}
-
-/* ═══ Cost Anomaly Alert ═══ */
-function AnomalyAlert({ anomalies }: { anomalies: AgentAnomaly[] }) {
-  if (anomalies.length === 0) return null;
-  return (
-    <div className="rounded-[16px] border border-[var(--warning)]/30 bg-[var(--warning)]/5 p-4">
-      <h3 className="text-sm font-medium text-[var(--warning)] mb-2">Spending Anomalies Detected</h3>
-      <div className="space-y-2">
-        {anomalies.map((a) => (
-          <div key={a.agent_id} className="flex items-center justify-between text-xs">
-            <span className="text-[var(--text-primary)]">
-              <span className="font-medium">{a.agent_name}</span>
-              <span className="text-[var(--warning)] ml-2">{a.ratio.toFixed(1)}x higher than 7-day average</span>
-            </span>
-            <span className="text-[var(--text-secondary)]">
-              Today: <span className="text-white">{fmt$(a.today_cost)}</span>
-              <span className="mx-1">vs</span>
-              avg: <span className="text-white">{fmt$(a.avg_7d)}</span>/day
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ═══ Optimization Tips ═══ */
-function OptimizationTips({ overview, agentData }: { overview: OverviewData; agentData: AgentDetailRow[] | null }) {
-  const [expanded, setExpanded] = useState(true);
-  const tips: Array<{ text: string; savings?: string; color: string; priority: number }> = [];
-
-  // Tip: budget nearly exceeded (highest priority)
-  for (const b of overview.budgets) {
-    if (b.monthly_limit_usd && b.month_spend / b.monthly_limit_usd > 0.8) {
-      tips.push({
-        text: `Budget for ${b.scope_type}:${b.scope_id} is at ${Math.round((b.month_spend / b.monthly_limit_usd) * 100)}%. Consider reviewing high-cost agents.`,
-        color: C.red,
-        priority: 0,
-      });
-    }
-  }
-
-  // Tip: model downgrade suggestions
-  if (agentData) {
-    for (const a of agentData) {
-      const costPerMsg = a.total_cost / Math.max(a.total_messages, 1);
-      if (costPerMsg > 0.05 && a.total_cost > 2) {
-        const potentialSavings = a.total_cost * 0.6;
-        tips.push({
-          text: `${a.agent_name || a.agent_id} averages ${fmt$(costPerMsg)}/msg. Switching sub-tasks to a smaller model could reduce costs.`,
-          savings: potentialSavings > 1 ? `~${fmt$(potentialSavings)}/period` : undefined,
-          color: C.teal,
-          priority: 1,
-        });
-      }
-    }
-  }
-
-  // Tip: anomaly cost alerts — agents spending >2x their 7-day average
-  if (overview.agent_anomalies && overview.agent_anomalies.length > 0) {
-    for (const anom of overview.agent_anomalies) {
-      tips.push({
-        text: `${anom.agent_name || anom.agent_id} is spending ${anom.ratio?.toFixed(1) ?? ">2"}x its 7-day average. Investigate for runaway loops.`,
-        color: C.red,
-        priority: 1,
-      });
-    }
-  }
-
-  // Tip: high cost per message
-  if (agentData) {
-    for (const a of agentData) {
-      if (a.total_messages > 0) {
-        const costPerMsg = a.total_cost / Math.max(a.total_messages, 1);
-        if (costPerMsg > 0.1 && a.total_cost > 1) {
-          tips.push({
-            text: `${a.agent_name || a.agent_id} has high cost per message (${fmt$(costPerMsg)}). Check for retries or excessive tool calls.`,
-            color: C.amber,
-            priority: 2,
-          });
-        }
-      }
-    }
-  }
-
-  // Tip: inactive agents
-  if (agentData) {
-    const inactive = agentData.filter((a) => a.active_days <= 2 && a.total_cost > 0);
-    if (inactive.length > 0) {
-      tips.push({
-        text: `${inactive.length} agent${inactive.length > 1 ? "s" : ""} active for 2 or fewer days in this period. Consider deactivating unused agents.`,
-        color: C.slate,
-        priority: 3,
-      });
-    }
-  }
-
-  // Tip: no budget set
-  if (overview.budgets.length === 0 && overview.summary.total_cost_usd > 0) {
-    tips.push({
-      text: "No budget limits configured. Set a monthly budget to prevent overspending.",
-      color: C.purple,
-      priority: 2,
-    });
-  }
-
-  // Sort by priority
-  tips.sort((a, b) => a.priority - b.priority);
-
-  if (tips.length === 0) return null;
-
-  return (
-    <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-      <button type="button" onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full text-left">
-        <h3 className="text-sm font-medium text-[var(--text-secondary)]">
-          Optimization Tips
-          <span className="ml-2 rounded-full bg-[var(--accent)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--accent)]">{tips.length}</span>
-        </h3>
-        <span className="text-xs text-[var(--text-tertiary)]">{expanded ? "\u25B2" : "\u25BC"}</span>
-      </button>
-      {expanded && (
-        <div className="mt-3 space-y-2.5">
-          {tips.map((tip, i) => (
-            <div key={i} className="flex items-start gap-2.5 rounded-xl border border-[var(--border)]/50 bg-[var(--bg-primary)]/60 px-3 py-2.5">
-              <span className="shrink-0 mt-1 w-2 h-2 rounded-full" style={{ backgroundColor: tip.color }} />
-              <div className="min-w-0 flex-1">
-                <span className="text-xs leading-relaxed text-[var(--text-secondary)]">{tip.text}</span>
-                {tip.savings && (
-                  <span className="ml-2 inline-flex rounded-full bg-[var(--accent)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--accent)]">
-                    Save {tip.savings}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ═══ Overview Tab ═══ */
-function OverviewTab({ overview, dailyBurn, projected, agentData, onBudgetChange }: {
-  overview: OverviewData | null; dailyBurn: number; projected: number; agentData: AgentDetailRow[] | null; onBudgetChange?: () => void;
-}) {
-  const [showBudgetDialog, setShowBudgetDialog] = useState(false);
-  if (!overview) return null;
-  const { summary, daily_trend, by_agent, by_tenant, budgets, last_month_cost, agent_anomalies } = overview;
-
-  // Month-over-month comparison
-  const monthDelta = last_month_cost > 0 ? ((projected - last_month_cost) / last_month_cost) * 100 : 0;
-  const monthDeltaStr = last_month_cost > 0
-    ? `${monthDelta > 0 ? "+" : ""}${monthDelta.toFixed(0)}% vs last month`
-    : "";
-
-  return (
-    <div className="space-y-6">
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <StatCard label={`Total Spend (${summary.range})`} value={fmt$(summary.total_cost_usd)} color={C.green} />
-        <StatCard label="Daily Burn (7d avg)" value={fmt$(dailyBurn)} color={C.amber} />
-        <StatCard
-          label="Projected Monthly"
-          value={`~${fmt$(projected)}`}
-          sub={monthDeltaStr}
-          color={monthDelta > 20 ? C.red : monthDelta > 0 ? C.amber : C.green}
-        />
-        <StatCard label="Total Tokens" value={fmtK(summary.total_tokens)} color={C.purple} />
-        <StatCard label="Active Agents" value={String(summary.active_agents)} color={C.teal} />
-      </div>
-
-      {/* Anomaly alerts */}
-      <AnomalyAlert anomalies={agent_anomalies} />
-
-      {/* Budget progress (enhanced) */}
-      {budgets.length > 0 && (
-        <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-[var(--text-secondary)]">Budget Status</h3>
-            <button
-              onClick={() => setShowBudgetDialog(true)}
-              className="inline-flex items-center gap-1 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-hover)]"
-            >
-              <Plus className="h-3 w-3" /> Add Budget
-            </button>
-          </div>
-          {budgets.map((b) => (
-            <React.Fragment key={b.id}>
-              {b.daily_limit_usd != null && (
-                <BudgetProgress
-                  label={`${b.scope_type}:${b.scope_id} (daily)`}
-                  spent={b.today_spend}
-                  limit={b.daily_limit_usd}
-                  threshold={b.alert_threshold_pct}
-                  dailyBurn={dailyBurn}
-                  isMonthly={false}
-                />
-              )}
-              {b.monthly_limit_usd != null && (
-                <BudgetProgress
-                  label={`${b.scope_type}:${b.scope_id} (monthly)`}
-                  spent={b.month_spend}
-                  limit={b.monthly_limit_usd}
-                  threshold={b.alert_threshold_pct}
-                  dailyBurn={dailyBurn}
-                  isMonthly={true}
-                />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-      )}
-
-      {budgets.length === 0 && summary.total_cost_usd > 0 && (
-        <div className="rounded-[16px] border border-dashed border-[var(--border)] bg-[var(--bg-surface)]/50 p-4 text-center">
-          <p className="text-sm text-[var(--text-secondary)]">No budget limits configured.</p>
-          <p className="text-xs text-[var(--text-tertiary)] mt-1">Set a budget to track spending against a target and get alerts.</p>
-          <button
-            onClick={() => setShowBudgetDialog(true)}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-hover)] active:scale-[0.98]"
-          >
-            <Plus className="h-4 w-4" /> Set Budget
-          </button>
-        </div>
-      )}
-
-      {/* Cost trend chart */}
-      <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Daily Cost Trend</h3>
-        <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={daily_trend}>
-            <defs>
-              <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={C.green} stopOpacity={0.3} />
-                <stop offset="100%" stopColor={C.green} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
-            <XAxis dataKey="day" tick={{ fill: "#555566", fontSize: 11 }}
-              tickFormatter={(v: string) => new Date(v).toLocaleDateString("en", { month: "short", day: "numeric" })} />
-            <YAxis tick={{ fill: "#555566", fontSize: 11 }} tickFormatter={(v: number) => fmt$(v)} />
-            <Tooltip content={<CostTooltip />} />
-            <Area type="monotone" dataKey="cost" stroke={C.green} fill="url(#costGrad)" strokeWidth={2} />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Top agents by cost */}
-        <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-          <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Top Agents by Cost</h3>
-          {by_agent.length === 0 ? (
-            <CostsEmpty />
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={by_agent.slice(0, 6)} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
-                <XAxis type="number" tick={{ fill: "#555566", fontSize: 11 }} tickFormatter={(v: number) => fmt$(v)} />
-                <YAxis type="category" dataKey="agent_name" tick={{ fill: "#8888A0", fontSize: 11 }} width={100} />
-                <Tooltip content={<CostTooltip />} />
-                <Bar dataKey="cost" radius={[0, 4, 4, 0]}>
-                  {by_agent.slice(0, 6).map((_: AgentCost, i: number) => (
-                    <Cell key={i} fill={AGENT_COLORS[i % AGENT_COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        {/* Tenant breakdown */}
-        <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-          <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-4">Tenant Spend</h3>
-          {by_tenant.map((t) => (
-            <div key={t.tenant_id} className="flex items-center justify-between py-2 border-b border-[var(--border)]/50 last:border-0">
-              <span className="text-sm text-[var(--text-primary)]">{t.tenant_id}</span>
-              <div className="text-right">
-                <span className="text-sm font-medium text-white">{fmt$(t.cost)}</span>
-                <span className="text-xs text-[var(--text-tertiary)] ml-2">{fmtK(t.tokens)} tokens</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Optimization Tips */}
-      {/* Budget dialog */}
-      {showBudgetDialog && (
+      {/* Page-level "+ New ceiling" dialog — lifted from OverviewTab so the
+          header CTA can open it from any tab. */}
+      {showNewCeiling && overview && (
         <BudgetDialog
           agents={overview.by_agent}
           existingBudgets={overview.budgets}
-          onClose={() => setShowBudgetDialog(false)}
-          onSaved={() => { setShowBudgetDialog(false); onBudgetChange?.(); }}
+          onClose={() => setShowNewCeiling(false)}
+          onSaved={() => { setShowNewCeiling(false); refresh(); }}
         />
       )}
-      <OptimizationTips overview={overview} agentData={agentData} />
     </div>
+  );
+}
+
+/* ═══ Overview Tab ═══
+   Canonical layout (brand-package/screens/costs.jsx):
+     - Ceilings hero — 2-up card grid (one card per (budget × scope-with-limit)).
+     - Main column (left) + Sidebar (right, 320px sticky):
+       * Main: Daily spend Card (4-stat strip + chart-mode Tabs + area chart
+         with dashed CEILING reference line) → Anomalies Card with Inspect →
+         By-agent table Card with Avatar + Model + Tokens + Cost + Share bar + %.
+       * Sidebar: Recommendations Card + Pricing Card (subscriptions + infra
+         totals + Open pricing detail action). */
+function OverviewTab({
+  overview, dailyBurn, projected, agentData, adminAgents, pricing, infraCosts, onOpenNewCeiling,
+}: {
+  overview: OverviewData | null;
+  dailyBurn: number;
+  projected: number;
+  agentData: AgentDetailRow[] | null;
+  adminAgents: AgentModelRow[] | null;
+  pricing: PricingRow[] | null;
+  infraCosts: InfraCostRow[] | null;
+  onOpenNewCeiling: () => void;
+}) {
+  // useMemo must be called unconditionally (hooks ordering rule). Compute
+  // before any early return.
+  const modelByAgent = useMemo(() => {
+    const m: Record<string, string> = {};
+    if (adminAgents) {
+      for (const a of adminAgents) {
+        if (a.default_model_display_name) m[a.id] = a.default_model_display_name;
+        else if (a.default_model_id) m[a.id] = a.default_model_id;
+      }
+    }
+    return m;
+  }, [adminAgents]);
+
+  // Chart-mode state: canonical Daily-spend Tabs (By total / By agent / By model).
+  // Only "total" is wired; the others render a telemetry-pending placeholder
+  // until a per-agent / per-model time-series is exposed via the overview
+  // endpoint. Rule 12 fail-loud: do NOT fake a stacked chart with zeros.
+  const [chartMode, setChartMode] = useState<"total" | "agent" | "model">("total");
+
+  if (!overview) return null;
+  const { summary, daily_trend, by_agent, budgets, last_month_cost, agent_anomalies } = overview;
+
+  const monthDeltaPct = last_month_cost > 0 ? ((projected - last_month_cost) / last_month_cost) * 100 : null;
+
+  // Pick the first set daily_limit as the chart's CEILING overlay. Multi-agent
+  // stacking is deferred. Rule 12: show ONE overlay or none.
+  const dailyCeiling = budgets
+    .map((b) => b.daily_limit_usd)
+    .filter((v): v is number => v != null)[0] ?? null;
+
+  // Flatten budgets → one card per (budget, scope) where the limit is set.
+  type CeilingRow = {
+    id: string; agentSlug: string; agentName: string;
+    scope: "daily" | "monthly"; used: number; limit: number;
+    projected?: number; threshold?: number;
+  };
+  const ceilingRows: CeilingRow[] = budgets.flatMap((b) => {
+    const agentMatch = by_agent.find((x) => x.agent_id === b.scope_id);
+    const agentName = agentMatch?.agent_name || b.scope_id;
+    const rows: CeilingRow[] = [];
+    if (b.daily_limit_usd != null) {
+      rows.push({
+        id: `${b.id}-d`, agentSlug: b.scope_id, agentName, scope: "daily",
+        used: b.today_spend, limit: b.daily_limit_usd,
+        projected: dailyBurn, threshold: b.alert_threshold_pct,
+      });
+    }
+    if (b.monthly_limit_usd != null) {
+      const now = new Date();
+      const daysLeftInMonth = Math.max(
+        0,
+        new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate()
+      );
+      rows.push({
+        id: `${b.id}-m`, agentSlug: b.scope_id, agentName, scope: "monthly",
+        used: b.month_spend, limit: b.monthly_limit_usd,
+        projected: b.month_spend + dailyBurn * daysLeftInMonth,
+        threshold: b.alert_threshold_pct,
+      });
+    }
+    return rows;
+  });
+  const onTrackCount = ceilingRows.filter(
+    (r) => (r.used / r.limit) * 100 < (r.threshold ?? 80)
+  ).length;
+
+  // By-agent sorted, top 10. Used for the table replacing the prior bar chart.
+  const byAgentRows = [...by_agent].sort((a, b) => b.cost - a.cost).slice(0, 10);
+  const totalByAgent = by_agent.reduce((s, a) => s + a.cost, 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Section 1 — Ceilings hero. Canonical 2-up grid (gridTemplateColumns: 1fr 1fr). */}
+      <section aria-label="Active ceilings">
+        <SectionTitle
+          title="Ceilings"
+          note={
+            ceilingRows.length === 0
+              ? "no ceilings set"
+              : `${ceilingRows.length} active · ${onTrackCount === ceilingRows.length ? "all" : onTrackCount} on track`
+          }
+        />
+        {ceilingRows.length === 0 ? (
+          <div className="rounded-[var(--radius-card)] border border-dashed border-[var(--border)] bg-[var(--bg-surface)]/40 px-4 py-6 text-center">
+            <p className="text-sm text-[var(--text-secondary)]">No ceilings configured.</p>
+            <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+              Click <span className="text-[var(--text-primary)]">New ceiling</span> to cap an
+              agent&apos;s daily or monthly spend.
+            </p>
+            <button
+              type="button"
+              onClick={onOpenNewCeiling}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-hover)] active:scale-[0.98]"
+            >
+              <Plus className="h-4 w-4" /> New ceiling
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {ceilingRows.map((r) => (
+              <CeilingCard
+                key={r.id}
+                agentSlug={r.agentSlug}
+                agentName={r.agentName}
+                scope={r.scope}
+                used={r.used}
+                limit={r.limit}
+                projected={r.projected}
+                threshold={r.threshold}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Main + sidebar grid (canonical line 61: '1fr 320px'). */}
+      <div className="grid gap-4 lg:grid-cols-[1fr_320px] items-start">
+        {/* ─── MAIN COLUMN ─── */}
+        <div className="flex flex-col gap-4 min-w-0">
+          {/* Daily spend Card — canonical 4-stat strip + chart-mode Tabs + chart. */}
+          <Card title="Daily spend" meta={`${summary.range} · all agents`}>
+            <div className="mb-4 flex flex-wrap items-baseline gap-6">
+              <div>
+                <div className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                  Total · {summary.range}
+                </div>
+                <div className="mt-1 font-mono text-[28px] font-medium leading-none tracking-normal text-[var(--text-primary)]">
+                  {fmt$(summary.total_cost_usd)}
+                </div>
+              </div>
+              <div>
+                <div className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                  Daily avg
+                </div>
+                <div className="mt-1 font-mono text-[18px] font-medium leading-none tracking-normal text-[var(--text-secondary)]">
+                  {fmt$(dailyBurn)}
+                </div>
+              </div>
+              <div>
+                <div className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                  Projected · month
+                </div>
+                <div className="mt-1 font-mono text-[18px] font-medium leading-none tracking-normal text-[var(--text-secondary)]">
+                  {fmt$(projected)}
+                </div>
+              </div>
+              <div>
+                <div className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                  vs last month
+                </div>
+                <div
+                  className="mt-1 font-mono text-[18px] font-medium leading-none tracking-normal"
+                  style={{
+                    color: monthDeltaPct == null
+                      ? "var(--text-tertiary)"
+                      : monthDeltaPct < 0 ? C.emerald : monthDeltaPct > 20 ? C.amber : "var(--text-secondary)",
+                  }}
+                >
+                  {monthDeltaPct == null
+                    ? "—"
+                    : `${monthDeltaPct < 0 ? "↓" : "↑"} ${Math.abs(monthDeltaPct).toFixed(0)}%`}
+                </div>
+              </div>
+              <div className="ml-auto">
+                <Tabs
+                  active={chartMode}
+                  onChange={setChartMode}
+                  items={[
+                    { id: "total", label: "By total" },
+                    { id: "agent", label: "By agent" },
+                    { id: "model", label: "By model" },
+                  ]}
+                />
+              </div>
+            </div>
+
+            {chartMode === "total" ? (
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={daily_trend}>
+                  <defs>
+                    <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={C.emerald} stopOpacity={0.3} />
+                      <stop offset="100%" stopColor={C.emerald} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fill: "#555566", fontSize: 11 }}
+                    tickFormatter={(v: string) => new Date(v).toLocaleDateString("en", { month: "short", day: "numeric" })}
+                  />
+                  <YAxis tick={{ fill: "#555566", fontSize: 11 }} tickFormatter={(v: number) => fmt$(v)} />
+                  <Tooltip content={<CostTooltip />} />
+                  <Area type="monotone" dataKey="cost" stroke={C.emerald} fill="url(#costGrad)" strokeWidth={2} />
+                  {dailyCeiling != null && (
+                    <ReferenceLine
+                      y={dailyCeiling}
+                      stroke={C.amber}
+                      strokeDasharray="4 4"
+                      strokeWidth={1.5}
+                      label={{
+                        value: "CEILING",
+                        fill: C.amber,
+                        fontSize: 10,
+                        position: "insideTopRight",
+                      }}
+                    />
+                  )}
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-[240px] items-center justify-center rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-surface-2)]/40">
+                <p className="text-xs text-[var(--text-tertiary)]">
+                  By-{chartMode} breakdown preview — telemetry pending (per-{chartMode} time-series
+                  not yet on /api/costs/overview)
+                </p>
+              </div>
+            )}
+          </Card>
+
+          {/* Anomalies — canonical Card wrapper, inline rec rows, Inspect button per row. */}
+          {agent_anomalies && agent_anomalies.length > 0 && (
+            <Card title="Anomalies" meta="Last 7 days" flush>
+              <ul className="divide-y divide-[var(--border)]/50">
+                {agent_anomalies.map((a) => (
+                  <li key={a.agent_id} className="flex items-start gap-3 px-5 py-3">
+                    <span
+                      className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                      style={{ backgroundColor: `${C.amber}1A`, color: C.amber }}
+                    >
+                      <TrendingUp className="h-4 w-4" />
+                    </span>
+                    <p className="min-w-0 flex-1 text-sm text-[var(--text-secondary)]">
+                      <span className="font-medium text-[var(--text-primary)]">{a.agent_name || a.agent_id}</span>{" "}
+                      burned <span className="font-mono text-[var(--text-primary)]">{fmt$(a.today_cost)}</span> today
+                      {" · "}
+                      <em className="not-italic text-[var(--text-tertiary)]">
+                        {a.ratio.toFixed(1)}× higher than 7-day average ({fmt$(a.avg_7d)}/day)
+                      </em>
+                    </p>
+                    <button
+                      type="button"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)] transition hover:bg-white/[0.04] hover:text-[var(--text-primary)]"
+                    >
+                      Inspect <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {/* By agent — canonical table (Agent · Model · Tokens · Cost · Share · %). */}
+          <Card
+            title="By agent"
+            meta={`${summary.range} · ${by_agent.length} agent${by_agent.length === 1 ? "" : "s"} · sorted by cost`}
+            flush
+          >
+            {byAgentRows.length === 0 ? (
+              <div className="px-5 py-5"><CostsEmpty /></div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--border)] text-[10px] uppercase tracking-wider text-[var(--text-tertiary)]">
+                    <th className="px-5 py-2.5 text-left font-medium">Agent</th>
+                    <th className="px-3 py-2.5 text-left font-medium">Model</th>
+                    <th className="px-3 py-2.5 text-right font-medium">Tokens {summary.range}</th>
+                    <th className="px-3 py-2.5 text-right font-medium">Cost {summary.range}</th>
+                    <th className="px-3 py-2.5 text-left font-medium" style={{ width: 200 }}>Share</th>
+                    <th className="px-5 py-2.5 text-right font-medium">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {byAgentRows.map((a) => {
+                    const pct = totalByAgent > 0 ? (a.cost / totalByAgent) * 100 : 0;
+                    const isInactive = a.cost === 0;
+                    const fadeClass = isInactive ? "text-[var(--text-tertiary)]" : "text-[var(--text-primary)]";
+                    const model = modelByAgent[a.agent_id];
+                    return (
+                      <tr key={a.agent_id} className="border-b border-[var(--border)]/40 last:border-0 hover:bg-white/[0.02]">
+                        <td className="px-5 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <Avatar name={a.agent_name || a.agent_id} persona={a.agent_id} size="sm" />
+                            <span className={cn("truncate", fadeClass)}>{a.agent_name || a.agent_id}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5 font-mono text-xs text-[var(--text-secondary)]">
+                          {model || "—"}
+                        </td>
+                        <td className={cn("px-3 py-2.5 text-right font-mono text-xs", fadeClass)}>
+                          {fmtK(a.tokens)}
+                        </td>
+                        <td className={cn("px-3 py-2.5 text-right font-mono", fadeClass)}>
+                          {fmt$(a.cost)}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <ProgressBar value={pct} max={100} color={personaColor(a.agent_id)} />
+                        </td>
+                        <td className="px-5 py-2.5 text-right font-mono text-[var(--text-tertiary)]">
+                          {pct.toFixed(1)}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </Card>
+        </div>
+
+        {/* ─── RIGHT RAIL — Recommendations + Pricing (canonical line 144-188) ─── */}
+        <aside className="flex flex-col gap-3 lg:sticky lg:top-6">
+          <RecommendationsCard overview={overview} agentData={agentData} />
+          <PricingCard pricing={pricing} infraCosts={infraCosts} />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+/* ═══ RecommendationsCard — right-rail panel (canonical line 146-165) ═══
+   Each row: rounded-icon + body (bold name + em action text). High-priority
+   rows use the "warn" accent (trending-up icon in amber); default rows use
+   Info icon in slate. */
+function RecommendationsCard({
+  overview, agentData,
+}: { overview: OverviewData; agentData: AgentDetailRow[] | null }) {
+  type Rec = { id: string; tone: "warn" | "info"; body: React.ReactNode };
+  const recs: Rec[] = [];
+
+  // Budget approaching limit → warn
+  for (const b of overview.budgets) {
+    if (b.monthly_limit_usd && b.month_spend / b.monthly_limit_usd > 0.8) {
+      recs.push({
+        id: `budget-${b.id}`, tone: "warn",
+        body: (
+          <>
+            <b>{b.scope_type}:{b.scope_id}</b> budget at{" "}
+            <b>{Math.round((b.month_spend / b.monthly_limit_usd) * 100)}%</b>.{" "}
+            <em className="not-italic text-[var(--text-tertiary)]">Review high-cost agents.</em>
+          </>
+        ),
+      });
+    }
+  }
+
+  // Cost anomalies → warn
+  for (const anom of overview.agent_anomalies || []) {
+    recs.push({
+      id: `anom-${anom.agent_id}`, tone: "warn",
+      body: (
+        <>
+          <b>{anom.agent_name || anom.agent_id}</b> spending{" "}
+          <b>{anom.ratio?.toFixed(1) ?? ">2"}×</b> its 7-day average.{" "}
+          <em className="not-italic text-[var(--text-tertiary)]">Likely runaway loop — inspect.</em>
+        </>
+      ),
+    });
+  }
+
+  // Inactive agents → info
+  if (agentData) {
+    const inactive = agentData.filter((a) => a.active_days <= 2 && a.total_cost > 0);
+    if (inactive.length > 0) {
+      const sample = inactive[0]!;
+      recs.push({
+        id: "inactive", tone: "info",
+        body: (
+          <>
+            <b>{sample.agent_name || sample.agent_id}</b>
+            {inactive.length > 1 ? <> and {inactive.length - 1} other{inactive.length - 1 === 1 ? "" : "s"}</> : null}{" "}
+            idle ≤2 days.{" "}
+            <em className="not-italic text-[var(--text-tertiary)]">Deactivate to free a seat.</em>
+          </>
+        ),
+      });
+    }
+  }
+
+  // No budget set → info
+  if (overview.budgets.length === 0 && overview.summary.total_cost_usd > 0) {
+    recs.push({
+      id: "nobudget", tone: "info",
+      body: (
+        <>
+          <b>No ceilings set</b> while spending is non-zero.{" "}
+          <em className="not-italic text-[var(--text-tertiary)]">Set a monthly cap to prevent overspending.</em>
+        </>
+      ),
+    });
+  }
+
+  if (recs.length === 0) {
+    return (
+      <Card title="Recommendations" meta="0 open" flush>
+        <p className="px-5 py-4 text-xs text-[var(--text-tertiary)]">All systems on track. Nothing to surface.</p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card title="Recommendations" meta={`${recs.length} open`} flush>
+      <ul className="divide-y divide-[var(--border)]/50">
+        {recs.map((r) => (
+          <li key={r.id} className="flex items-start gap-3 px-5 py-3">
+            <span
+              className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+              style={{
+                backgroundColor: r.tone === "warn" ? `${C.amber}1A` : `${C.slate}1A`,
+                color: r.tone === "warn" ? C.amber : C.slate,
+              }}
+            >
+              {r.tone === "warn" ? <TrendingUp className="h-4 w-4" /> : <Info className="h-4 w-4" />}
+            </span>
+            <p className="min-w-0 flex-1 text-sm leading-relaxed text-[var(--text-secondary)]">
+              {r.body}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+/* ═══ PricingCard — right-rail panel (canonical line 167-187) ═══
+   Subscriptions + Infrastructure + Fixed monthly. Real data from /api/admin/pricing
+   + /api/admin/infra-costs. If either fetch returned null (non-admin viewer or
+   404), Rule 12 fail-loud: render "—" with telemetry-pending sub-text. */
+function PricingCard({
+  pricing, infraCosts,
+}: { pricing: PricingRow[] | null; infraCosts: InfraCostRow[] | null }) {
+  const subscriptionsMonthly = pricing
+    ? pricing
+        .filter((p) => p.pricing_type === "subscription" && p.monthly_cost_usd != null)
+        .reduce((s, p) => s + Number(p.monthly_cost_usd || 0), 0)
+    : null;
+  const infraMonthly = infraCosts
+    ? infraCosts
+        .filter((i) => i.active !== false)
+        .reduce((s, i) => s + Number(i.monthly_cost_usd || 0), 0)
+    : null;
+  const fixedMonthly = subscriptionsMonthly != null && infraMonthly != null
+    ? subscriptionsMonthly + infraMonthly
+    : null;
+
+  // Counts for meta line
+  const providerCount = pricing ? new Set(pricing.map((p) => p.provider)).size : null;
+  const modelCount = pricing ? pricing.length : null;
+  const meta = providerCount != null && modelCount != null
+    ? `${providerCount} provider${providerCount === 1 ? "" : "s"} · ${modelCount} models`
+    : "telemetry pending";
+
+  return (
+    <Card title="Pricing" meta={meta} flush>
+      <div className="px-5 py-4 space-y-2.5">
+        <div className="flex items-baseline justify-between">
+          <span className="font-mono text-xs text-[var(--text-secondary)]">Subscriptions</span>
+          <span className="font-mono text-sm text-[var(--text-primary)]">
+            {subscriptionsMonthly != null ? `${fmt$(subscriptionsMonthly)} /mo` : "—"}
+          </span>
+        </div>
+        <div className="flex items-baseline justify-between">
+          <span className="font-mono text-xs text-[var(--text-secondary)]">Infrastructure</span>
+          <span className="font-mono text-sm text-[var(--text-primary)]">
+            {infraMonthly != null ? `${fmt$(infraMonthly)} /mo` : "—"}
+          </span>
+        </div>
+        <hr className="border-[var(--border)]/60" />
+        <div className="flex items-baseline justify-between">
+          <span className="font-mono text-xs font-medium text-[var(--text-primary)]">Fixed monthly</span>
+          <span className="font-mono text-[18px] font-medium leading-none tracking-normal text-[var(--text-primary)]">
+            {fixedMonthly != null ? fmt$(fixedMonthly) : "—"}
+          </span>
+        </div>
+        {fixedMonthly == null && (
+          <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+            telemetry pending — admin scope required
+          </p>
+        )}
+      </div>
+      <hr className="border-[var(--border)]/60" />
+      <button
+        type="button"
+        className="flex w-full items-center justify-between px-5 py-3 text-sm font-medium text-[var(--text-secondary)] transition hover:bg-white/[0.04] hover:text-[var(--text-primary)]"
+      >
+        Open pricing detail <ArrowRight className="h-4 w-4" />
+      </button>
+    </Card>
   );
 }
 
@@ -636,48 +980,72 @@ function AgentsTab({ agents, loading, anomalies }: { agents: AgentDetailRow[] | 
 
   return (
     <div className="space-y-3">
-      {agents.map((a, i) => (
-        <div key={a.agent_id}
-          className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-4"
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-sm font-medium text-white">{a.agent_name || a.agent_id}</h4>
-                {anomalyMap[a.agent_id] && (
-                  <span className="inline-flex items-center rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)]">
-                    {anomalyMap[a.agent_id].ratio.toFixed(1)}x avg
-                  </span>
-                )}
+      {agents.map((a) => {
+        // Brand bible §3.6 persona palette lock. Falls back to slate for
+        // non-canonical agent slugs (apollo, etc).
+        const agentAccent = personaColor(a.agent_id);
+        return (
+          <div
+            key={a.agent_id}
+            className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-4"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <Avatar name={a.agent_name || a.agent_id} persona={a.agent_id} size="md" />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h4 className="truncate text-sm font-medium text-[var(--text-primary)]">
+                      {a.agent_name || a.agent_id}
+                    </h4>
+                    {anomalyMap[a.agent_id] && (
+                      <span className="inline-flex items-center rounded-full bg-[var(--warning)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--warning)]">
+                        {anomalyMap[a.agent_id].ratio.toFixed(1)}× avg
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[var(--text-tertiary)]">
+                    {a.tenant_id} · {a.active_days}d active
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-[var(--text-tertiary)]">{a.tenant_id} · {a.active_days}d active</p>
+              <div className="text-right">
+                <p
+                  className="font-mono text-[22px] font-medium leading-none tracking-normal"
+                  style={{ color: agentAccent }}
+                >
+                  {fmt$(a.total_cost)}
+                </p>
+                <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                  {fmtK(a.total_tokens)} tokens
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-lg font-semibold" style={{ color: AGENT_COLORS[i % AGENT_COLORS.length] }}>
-                {fmt$(a.total_cost)}
-              </p>
-              <p className="text-xs text-[var(--text-tertiary)]">{fmtK(a.total_tokens)} tokens</p>
+            <div className="mt-3 grid grid-cols-3 gap-3 text-xs">
+              <div>
+                <span className="text-[var(--text-tertiary)]">Messages</span>
+                <p className="font-mono text-[var(--text-secondary)]">{a.total_messages}</p>
+              </div>
+              <div>
+                <span className="text-[var(--text-tertiary)]">Tool Calls</span>
+                <p className="font-mono text-[var(--text-secondary)]">{a.total_tool_calls}</p>
+              </div>
+              <div>
+                <span className="text-[var(--text-tertiary)]">$/1K tokens</span>
+                <p className="font-mono text-[var(--text-secondary)]">{fmt$(a.cost_per_1k_tokens)}</p>
+              </div>
             </div>
+            {a.daily_trend.length > 1 && (
+              <div className="mt-3 h-12">
+                <Sparkline
+                  data={a.daily_trend.map((d) => ({ value: d.cost }))}
+                  color={agentAccent}
+                  height={48}
+                />
+              </div>
+            )}
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-3 text-xs">
-            <div><span className="text-[var(--text-tertiary)]">Messages</span><p className="text-[var(--text-secondary)]">{a.total_messages}</p></div>
-            <div><span className="text-[var(--text-tertiary)]">Tool Calls</span><p className="text-[var(--text-secondary)]">{a.total_tool_calls}</p></div>
-            <div><span className="text-[var(--text-tertiary)]">$/1K tokens</span><p className="text-[var(--text-secondary)]">{fmt$(a.cost_per_1k_tokens)}</p></div>
-          </div>
-          {a.daily_trend.length > 1 && (
-            <div className="mt-3 h-12">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={a.daily_trend}>
-                  <Area type="monotone" dataKey="cost"
-                    stroke={AGENT_COLORS[i % AGENT_COLORS.length]}
-                    fill={AGENT_COLORS[i % AGENT_COLORS.length]}
-                    fillOpacity={0.15} strokeWidth={1.5} dot={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
