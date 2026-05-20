@@ -1591,10 +1591,18 @@ function PricingTab() {
             <tbody>
               {(agents || []).map((a) => {
                 const currentKey = a.default_provider && a.default_model_id ? `${a.default_provider}|${a.default_model_id}` : "";
+                // WI-399 (PR-41 follow-up sibling of WI-398): the prior `|| 0`
+                // coercion turned legitimate null subscription/per-token rates
+                // into a misleading "$0.00/mo" / "$0.0000 per 1k". Guard with
+                // != null and render em-dash on the null side — Rule 12 fail-loud.
                 const rateLabel = a.default_model_pricing_type === "subscription"
-                  ? `$${Number(a.default_model_monthly_cost_usd || 0).toFixed(2)}/mo`
+                  ? (a.default_model_monthly_cost_usd != null
+                      ? `$${Number(a.default_model_monthly_cost_usd).toFixed(2)}/mo`
+                      : "— /mo")
                   : a.default_model_pricing_type === "per_token"
-                    ? `$${Number(a.default_model_cost_per_1k_input || 0).toFixed(4)} / $${Number(a.default_model_cost_per_1k_output || 0).toFixed(4)} per 1k`
+                    ? (a.default_model_cost_per_1k_input != null && a.default_model_cost_per_1k_output != null
+                        ? `$${Number(a.default_model_cost_per_1k_input).toFixed(4)} / $${Number(a.default_model_cost_per_1k_output).toFixed(4)} per 1k`
+                        : "— per 1k")
                     : a.default_model_pricing_type === "free"
                       ? "Free"
                       : "—";
