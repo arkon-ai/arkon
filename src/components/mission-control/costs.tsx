@@ -1157,14 +1157,19 @@ function BudgetDialog({ agents, existingBudgets, onClose, onSaved }: {
   const [action, setAction] = useState("alert");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
+  // PR-39 @claude review follow-up (WI-397): mutation errors must surface.
+  // Mirrors the setError(...) pattern used by PricingTab's createSubscription
+  // / createInfra / deleteInfra / setDefaultModel / syncOpenRouter handlers.
+  const [error, setError] = useState<string | null>(null);
 
   async function handleCreate() {
     if (!scopeId) return;
     if (!dailyLimit && !monthlyLimit) return;
     setSaving(true);
+    setError(null);
     try {
       const csrf = document.cookie.match(/mc_csrf=([^;]+)/)?.[1] || "";
-      await fetch("/api/costs/budgets", {
+      const res = await fetch("/api/costs/budgets", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", "x-csrf-token": csrf },
@@ -1177,18 +1182,31 @@ function BudgetDialog({ agents, existingBudgets, onClose, onSaved }: {
           action_on_exceed: action,
         }),
       });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || `${res.status} ${res.statusText}`);
+      }
       onSaved();
-    } catch { /* ignore */ }
+    } catch (e) {
+      setError(`Create ceiling failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
     setSaving(false);
   }
 
   async function handleDelete(id: number) {
     setDeleting(id);
+    setError(null);
     try {
       const csrf2 = document.cookie.match(/mc_csrf=([^;]+)/)?.[1] || "";
-      await fetch(`/api/costs/budgets?id=${id}`, { method: "DELETE", credentials: "include", headers: { "x-csrf-token": csrf2 } });
+      const res = await fetch(`/api/costs/budgets?id=${id}`, { method: "DELETE", credentials: "include", headers: { "x-csrf-token": csrf2 } });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || `${res.status} ${res.statusText}`);
+      }
       onSaved();
-    } catch { /* ignore */ }
+    } catch (e) {
+      setError(`Delete ceiling failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
     setDeleting(null);
   }
 
@@ -1201,6 +1219,20 @@ function BudgetDialog({ agents, existingBudgets, onClose, onSaved }: {
 
         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">Budget Limits</h2>
         <p className="text-xs text-[var(--text-tertiary)] mb-5">Set daily or monthly spending caps per agent or tenant.</p>
+
+        {error && (
+          <div className="mb-4 flex items-start justify-between gap-3 rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/5 px-3 py-2.5 text-xs text-[var(--danger)]">
+            <span className="whitespace-pre-wrap">{error}</span>
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              className="shrink-0 text-[var(--danger)] hover:opacity-80"
+              aria-label="Dismiss error"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* Existing budgets */}
         {existingBudgets.length > 0 && (
