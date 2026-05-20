@@ -11,6 +11,11 @@ interface DrawerProps {
   children: ReactNode;
   width?: number;
   footer?: ReactNode;
+  /**
+   * When true, suppresses the default title bar (title + close X). Use when
+   * the child renders its own header. Added for transformate WI-392 AgentDrawerDetail.
+   */
+  hideHeader?: boolean;
 }
 
 export function Drawer({
@@ -20,6 +25,7 @@ export function Drawer({
   children,
   width = 480,
   footer,
+  hideHeader = false,
 }: DrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -82,26 +88,28 @@ export function Drawer({
             className="fixed right-0 top-0 z-[91] flex h-full flex-col border-l border-[var(--border)] bg-[var(--bg-primary)] shadow-[-20px_0_60px_rgba(0,0,0,0.5)]"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-5 py-4">
-              {title ? (
-                <h2
-                  className="text-lg font-bold text-[var(--text-primary)]"
-                  style={{ fontFamily: "var(--font-display)" }}
+            {hideHeader ? null : (
+              <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-5 py-4">
+                {title ? (
+                  <h2
+                    className="text-lg font-bold text-[var(--text-primary)]"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {title}
+                  </h2>
+                ) : (
+                  <div />
+                )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition hover:bg-white/[0.04] hover:text-[var(--text-primary)]"
+                  aria-label="Close drawer"
                 >
-                  {title}
-                </h2>
-              ) : (
-                <div />
-              )}
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition hover:bg-white/[0.04] hover:text-[var(--text-primary)]"
-                aria-label="Close drawer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>

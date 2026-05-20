@@ -48,8 +48,14 @@ import {
   PageHeader,
   PulseStrip,
   StatusPill,
+  Tabs,
   SectionTitle as PrimitiveSectionTitle,
 } from "./ui-cards";
+import { Avatar, Kbd, bucketHourly } from "./agents-kit";
+import { AgentsFilterPopover } from "./agents-filter-popover";
+import { NewAgentModal } from "./new-agent-modal";
+import { AgentDrawerDetail } from "./agent-drawer-detail";
+import { Filter, Plus, Pause, MoreVertical, Download } from "lucide-react";
 import { LiveFeed, type LiveFeedItem } from "./kit-extras";
 
 interface ThreatSummary {
@@ -1049,31 +1055,199 @@ function ProgressRing({ progress }: { progress: number }) {
   );
 }
 
+interface FleetIdentity {
+  slug: string;
+  display_name: string;
+  emoji: string | null;
+  model: string | null;
+  home_server: string | null;
+  description: string | null;
+  harness: string | null;
+  role: string;
+}
+interface FleetRecentEvent {
+  event_type: string;
+  ts: string;
+  payload: Record<string, unknown>;
+  status: string | null;
+  duration_ms: number | null;
+}
+interface FleetAgent {
+  identity: FleetIdentity;
+  activity: {
+    last_heartbeat: string | null;
+    last_activity: string | null;
+    started_24h: number;
+    completed_24h: number;
+    events_24h: number;
+    recent_events: FleetRecentEvent[];
+  };
+}
+interface FleetApiData {
+  agents: FleetAgent[];
+  attribution_cutoff: string;
+  timestamp: string;
+}
+
+type RosterFilter = "all" | "live" | "idle" | "errors";
+
+type FleetTone = "live" | "warm" | "idle" | "err";
+
+function fleetStatusTone(lastActivity: string | null): FleetTone {
+  const key = agentStatusKey(lastActivity);
+  return key === "error" ? "err" : key;
+}
+
+function formatAttributionCutoff(iso: string): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return iso;
+  return new Date(t).toISOString().replace("T", " ").replace(/:\d{2}\.\d+Z$/, " UTC");
+}
+
 function AgentsContent() {
   const { data, error, loading } = useOverviewData();
+  const {
+    data: fleetData,
+    error: fleetError,
+    loading: fleetLoading,
+  } = usePollingFetch<FleetApiData>("/api/fleet/agents", 30000);
   const { runs: activeRuns, killRun } = useActiveRuns();
+
+  const [view, setView] = useState<"fleet" | "roster">("roster");
+  const [rosterFilter, setRosterFilter] = useState<RosterFilter>("all");
   const [killTarget, setKillTarget] = useState<typeof activeRuns[0] | null>(null);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedTenants, setSelectedTenants] = useState<Set<string>>(new Set());
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
+  const [newAgentOpen, setNewAgentOpen] = useState(false);
 
   if (loading && !data) return <LoadingState label="Loading agents" />;
   if (error && !data) return <ErrorState error={error} />;
 
   const agents = data?.agents ?? [];
+  const tenantsById = new Map<string, string>((data?.tenants ?? []).map((t) => [t.id, t.name]));
+  const agentsById = new Map<string, OverviewAgent>(agents.map((a) => [a.id, a]));
+  const agentsByName = new Map<string, OverviewAgent>(agents.map((a) => [a.name.toLowerCase(), a]));
 
-  // Build a set of agent IDs with active runs for quick lookup
   const agentsWithRuns = new Map<string, typeof activeRuns[0]>();
   for (const run of activeRuns) {
     if (!agentsWithRuns.has(run.agent_id)) agentsWithRuns.set(run.agent_id, run);
   }
 
+  // Filter options derived from current overview data (tenant + model multiselects)
+  const tenantOptions = (() => {
+    const counts = new Map<string, number>();
+    for (const a of agents) {
+      counts.set(a.tenant_id, (counts.get(a.tenant_id) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([value, count]) => ({ value, label: tenantsById.get(value) ?? value, count }))
+      .sort((x, y) => x.label.localeCompare(y.label));
+  })();
+
+  const modelOptions = (() => {
+    const counts = new Map<string, number>();
+    for (const a of agents) {
+      const m = getAgentModel(a);
+      if (m) counts.set(m, (counts.get(m) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([value, count]) => ({ value, label: value, count }))
+      .sort((x, y) => x.label.localeCompare(y.label));
+  })();
+
+  const filteredRoster = agents.filter((a) => {
+    // Tenant filter (multiselect popover; empty = all)
+    if (selectedTenants.size > 0 && !selectedTenants.has(a.tenant_id)) return false;
+    // Model filter (multiselect popover; empty = all)
+    if (selectedModels.size > 0) {
+      const m = getAgentModel(a);
+      if (!m || !selectedModels.has(m)) return false;
+    }
+    // Status filter (single-select via Roster tabs)
+    if (rosterFilter === "all") return true;
+    const key = agentStatusKey(a.last_active);
+    if (rosterFilter === "live") return key === "live";
+    if (rosterFilter === "idle") return key === "idle" || key === "warm";
+    if (rosterFilter === "errors") return asNumber(a.threats_30d) > 0 || key === "error";
+    return true;
+  });
+
+  const fleetAgents = fleetData?.agents ?? [];
+  const attributionLabel = fleetData?.attribution_cutoff
+    ? `Author attribution accurate from ${formatAttributionCutoff(fleetData.attribution_cutoff)}`
+    : null;
+
   return (
     <div className="space-y-5">
-      <ShellHeader
+      <PageHeader
         title="Agents"
-        subtitle="Sub-agent status cards focused on freshness, model context, and recent workload."
+        subtitle="Registered AI workforce — across every tenant. Click a row to inspect."
+        updated={data?.timestamp ? timeAgo(data.timestamp) : undefined}
+        action={
+          <>
+            <Tabs<typeof view>
+              items={[
+                { id: "fleet", label: "Fleet" },
+                { id: "roster", label: "Roster" },
+              ]}
+              active={view}
+              onChange={setView}
+            />
+            <div className="relative">
+              <Button
+                kind="secondary"
+                icon={Filter}
+                onClick={() => setFilterOpen((v) => !v)}
+              >
+                Filter
+                {selectedTenants.size + selectedModels.size > 0 ? (
+                  <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--text-primary)] px-1 font-mono text-[9px] font-bold text-[var(--bg-primary)]">
+                    {selectedTenants.size + selectedModels.size}
+                  </span>
+                ) : null}
+              </Button>
+              <AgentsFilterPopover
+                open={filterOpen}
+                onClose={() => setFilterOpen(false)}
+                tenantOptions={tenantOptions}
+                modelOptions={modelOptions}
+                selectedTenants={selectedTenants}
+                selectedModels={selectedModels}
+                onTenantToggle={(v) =>
+                  setSelectedTenants((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(v)) next.delete(v);
+                    else next.add(v);
+                    return next;
+                  })
+                }
+                onModelToggle={(v) =>
+                  setSelectedModels((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(v)) next.delete(v);
+                    else next.add(v);
+                    return next;
+                  })
+                }
+                onClearAll={() => {
+                  setSelectedTenants(new Set());
+                  setSelectedModels(new Set());
+                }}
+              />
+            </div>
+            <Button
+              kind="primary"
+              icon={Plus}
+              onClick={() => setNewAgentOpen(true)}
+            >
+              New agent
+            </Button>
+          </>
+        }
       />
-      <SectionDescription id="agents">
-        Manage all registered AI agents. Each card shows the agent&apos;s status, framework, recent cost, and threat count. Click any agent to see its full profile with identity, security, performance, and activity details.
-      </SectionDescription>
+
       {agents.length === 0 ? (
         <EmptyState
           icon={Bot}
@@ -1083,76 +1257,298 @@ function AgentsContent() {
           actionHref="/admin"
         />
       ) : null}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {agents.map((agent) => {
-          const status = activityStatus(agent.last_active);
-          const statusKey = agentStatusKey(agent.last_active);
-          const accentClass =
-            statusKey === "live" ? "agent-accent-live" :
-            statusKey === "warm" ? "agent-accent-warm" :
-            statusKey === "error" ? "agent-accent-error" : "agent-accent-idle";
-          const activeRun = agentsWithRuns.get(agent.id);
 
-          const framework = String(agent.metadata?.framework ?? agent.metadata?.agent_framework ?? "");
-          const threats30d = asNumber(agent.threats_30d);
-          const cost30d = Number(agent.cost_30d ?? 0);
-
-          return (
-            <Card key={agent.id} className={`${status.panel} ${accentClass}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <StatusRing status={statusKey} size={36} />
-                  <div>
-                    <h2 className="text-lg font-semibold text-text">{agent.name}</h2>
-                    <div className="mt-0.5 flex items-center gap-2">
-                      <span className="text-xs text-text-dim">{agent.id}</span>
-                      {framework && (
-                        <span className="rounded-full bg-cyan/10 px-2 py-0.5 text-[10px] font-semibold text-cyan">
-                          {framework}
-                        </span>
-                      )}
+      <section className="space-y-4">
+        <div className="flex items-baseline justify-between gap-4">
+          <div className="flex items-baseline gap-3">
+            <h3 className="text-sm font-medium text-[var(--text-primary)]">
+              Active fleet
+            </h3>
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+              Orchestrated 4-agent layer · last 24h
+            </span>
+          </div>
+          {attributionLabel ? (
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+              {attributionLabel}
+            </span>
+          ) : null}
+        </div>
+        {fleetLoading && !fleetData ? (
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : fleetError && !fleetData ? (
+          <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+              Fleet telemetry unavailable
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">{fleetError}</p>
+          </div>
+        ) : fleetAgents.length === 0 ? (
+          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+            Telemetry pending — no fleet identities returned
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-4">
+            {fleetAgents.map((fa) => {
+              const slug = fa.identity.slug;
+              const overview = agentsByName.get(fa.identity.display_name.toLowerCase()) ?? agentsByName.get(slug);
+              const tone = fleetStatusTone(fa.activity.last_activity);
+              const events24h = fa.activity.events_24h;
+              const tokens24h = overview ? asNumber(overview.tokens_24h) : null;
+              const sparkData = bucketHourly(fa.activity.recent_events.map((e) => e.ts));
+              return (
+                <div
+                  key={slug}
+                  className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Avatar name={fa.identity.display_name} persona={slug} />
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium text-[var(--text-primary)]">
+                          {fa.identity.display_name}
+                        </div>
+                        <div className="truncate font-mono text-[11px] text-[var(--text-tertiary)]">
+                          {fa.identity.model ?? "—"}
+                        </div>
+                      </div>
+                    </div>
+                    <StatusPill status={tone}>
+                      {tone === "live" ? "Live" : tone === "warm" ? "Warm" : tone === "err" ? "Error" : "Idle"}
+                    </StatusPill>
+                  </div>
+                  <div className="mt-3 flex items-baseline gap-5">
+                    <div>
+                      <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                        Events 24h
+                      </div>
+                      <div className="font-mono text-[22px] font-medium leading-none tracking-normal text-[var(--text-primary)]">
+                        {events24h > 0 ? formatFull(events24h) : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                        Tokens 24h
+                      </div>
+                      <div className="font-mono text-[22px] font-medium leading-none tracking-normal text-[var(--text-primary)]">
+                        {tokens24h !== null && tokens24h > 0 ? formatCompact(tokens24h) : "—"}
+                      </div>
+                      {tokens24h === null ? (
+                        <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                          Telemetry pending
+                        </div>
+                      ) : null}
                     </div>
                   </div>
+                  <div className="mt-3 h-14 w-full">
+                    {sparkData.length > 0 ? (
+                      <Sparkline data={sparkData} dataKey="value" height={56} />
+                    ) : (
+                      <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                        No events in window
+                      </span>
+                    )}
+                  </div>
+                  {view === "fleet" && fa.activity.recent_events.length > 0 ? (
+                    <ul className="mt-3 space-y-1 border-t border-[var(--border)] pt-3">
+                      {fa.activity.recent_events.slice(0, 5).map((e, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center justify-between gap-2 font-mono text-[11px] text-[var(--text-secondary)]"
+                        >
+                          <span className="truncate">{e.event_type}</span>
+                          <span className="text-[var(--text-tertiary)]">{timeAgo(e.ts)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
-                <div className="flex items-center gap-2">
-                  {activeRun && (
-                    <>
-                      <span className="h-2 w-2 rounded-full bg-green animate-pulse" title="Active run" />
-                      <button
-                        type="button"
-                        onClick={(e) => { e.preventDefault(); setKillTarget(activeRun); }}
-                        className="flex h-7 items-center gap-1 rounded-lg border border-red-500/30 bg-red-600/15 px-2 text-[11px] font-semibold text-red-300 transition hover:bg-red-600/30"
-                        title="Stop active run"
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {view === "roster" ? (
+        <PrimitiveCard
+          title="Roster"
+          meta={`${agents.length} AGENT${agents.length === 1 ? "" : "S"} REGISTERED`}
+          action={
+            <div className="flex items-center gap-2">
+              <Tabs<RosterFilter>
+                items={[
+                  { id: "all", label: "All" },
+                  { id: "live", label: "Live" },
+                  { id: "idle", label: "Idle" },
+                  { id: "errors", label: "Errors" },
+                ]}
+                active={rosterFilter}
+                onChange={setRosterFilter}
+              />
+              <Button kind="ghost" size="sm" icon={Download}>
+                Export
+              </Button>
+            </div>
+          }
+          flush
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-[var(--border)] text-left font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                  <th className="w-8 px-3 py-2"></th>
+                  <th className="px-3 py-2 font-medium">Name</th>
+                  <th className="px-3 py-2 font-medium">Model</th>
+                  <th className="px-3 py-2 font-medium">Tenant</th>
+                  <th className="px-3 py-2 font-medium">Last active</th>
+                  <th className="px-3 py-2 text-right font-medium">Events 24h</th>
+                  <th className="px-3 py-2 text-right font-medium">Tokens 24h</th>
+                  <th className="px-3 py-2 text-right font-medium">Cost 30d</th>
+                  <th className="px-3 py-2 font-medium">Status</th>
+                  <th className="w-24 px-3 py-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRoster.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="px-3 py-8 text-center text-sm text-[var(--text-tertiary)]">
+                      No agents match this filter.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredRoster.map((agent) => {
+                    const rowTone = fleetStatusTone(agent.last_active);
+                    const statusLabel = activityStatus(agent.last_active).label;
+                    const tenantName = tenantsById.get(agent.tenant_id) ?? agent.tenant_id;
+                    const events24h = asNumber(agent.events_24h);
+                    const tokens24h = asNumber(agent.tokens_24h);
+                    const cost30d = Number(agent.cost_30d ?? 0);
+                    const activeRun = agentsWithRuns.get(agent.id);
+                    const threats30d = asNumber(agent.threats_30d);
+                    return (
+                      <tr
+                        key={agent.id}
+                        className="cursor-pointer border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--bg-surface-2)] focus:bg-[var(--bg-surface-2)] focus:outline-none"
+                        onClick={() => setSelectedAgentId(agent.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedAgentId(agent.id);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Open ${agent.name} detail`}
                       >
-                        <OctagonX className="h-3 w-3" />
-                        Stop
-                      </button>
-                    </>
-                  )}
-                  {threats30d > 0 && (
-                    <span className="rounded-full bg-red/15 px-2 py-0.5 text-[10px] font-bold text-red">
-                      {threats30d} threat{threats30d !== 1 ? "s" : ""}
-                    </span>
-                  )}
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status.tone} bg-white/5`}>
-                    {status.label}
-                  </span>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-                <MiniMetric label="model" value={getAgentModel(agent)} />
-                <MiniMetric label="last active" value={timeAgo(agent.last_active)} />
-                <MiniMetric label="events 24h" value={formatFull(asNumber(agent.events_24h))} />
-                <MiniMetric label="tokens 24h" value={formatCompact(asNumber(agent.tokens_24h))} />
-                <MiniMetric label="cost 30d" value={cost30d < 0.01 ? "<$0.01" : `$${cost30d.toFixed(2)}`} />
-              </div>
-              <Link href={`/agent/${agent.id}`} className="mt-4 inline-flex text-sm font-semibold text-cyan btn-press">
-                View profile &rarr;
-              </Link>
-            </Card>
-          );
-        })}
+                        <td className="px-3 py-2">
+                          <Avatar name={agent.name} persona={agent.name.toLowerCase()} />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Link
+                            href={`/agent/${agent.id}`}
+                            className="font-medium text-[var(--text-primary)] hover:text-emerald-300"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {agent.name}
+                          </Link>
+                          {threats30d > 0 ? (
+                            <span className="ml-2 rounded-full bg-red/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.08em] text-red">
+                              {threats30d} threat{threats30d !== 1 ? "s" : ""}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="px-3 py-2 font-mono text-[12px] text-[var(--text-secondary)]">
+                          {getAgentModel(agent)}
+                        </td>
+                        <td className="px-3 py-2 font-mono text-[12px] text-[var(--text-secondary)]">
+                          {tenantName}
+                        </td>
+                        <td className="px-3 py-2 font-mono text-[12px] text-[var(--text-tertiary)]">
+                          {timeAgo(agent.last_active)}
+                        </td>
+                        <td
+                          className={`px-3 py-2 text-right font-mono text-[12px] ${events24h > 0 ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"}`}
+                        >
+                          {events24h > 0 ? formatFull(events24h) : "—"}
+                        </td>
+                        <td
+                          className={`px-3 py-2 text-right font-mono text-[12px] ${tokens24h > 0 ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"}`}
+                        >
+                          {tokens24h > 0 ? formatCompact(tokens24h) : "—"}
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono text-[12px] text-[var(--text-primary)]">
+                          {cost30d >= 0.01 ? `$${cost30d.toFixed(2)}` : cost30d > 0 ? "<$0.01" : "—"}
+                        </td>
+                        <td className="px-3 py-2">
+                          <StatusPill status={rowTone}>{statusLabel}</StatusPill>
+                        </td>
+                        <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex justify-end gap-1">
+                            <button
+                              type="button"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-2)] hover:text-[var(--text-primary)]"
+                              title="Pause"
+                              aria-label={`Pause ${agent.name}`}
+                              disabled
+                            >
+                              <Pause className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] hover:bg-red/15 hover:text-red disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+                              title={activeRun ? "Kill active run" : "No active run"}
+                              aria-label={`Kill ${agent.name}`}
+                              disabled={!activeRun}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (activeRun) setKillTarget(activeRun);
+                              }}
+                            >
+                              <OctagonX className="h-3.5 w-3.5" />
+                            </button>
+                            <Link
+                              href={`/agent/${agent.id}`}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-2)] hover:text-[var(--text-primary)]"
+                              title="More"
+                              aria-label={`Open ${agent.name} detail`}
+                            >
+                              <MoreVertical className="h-3.5 w-3.5" />
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </PrimitiveCard>
+      ) : null}
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+        <span className="flex flex-wrap items-center gap-2">
+          <span>
+            Press <Kbd>↑</Kbd>/<Kbd>↓</Kbd> to navigate
+          </span>
+          <span>
+            <Kbd>↵</Kbd> to inspect
+          </span>
+          <span>
+            <Kbd>K</Kbd> to kill
+          </span>
+        </span>
+        <span>
+          {view === "roster"
+            ? `Showing ${filteredRoster.length} of ${agents.length}`
+            : `${fleetAgents.length} fleet agents`}
+        </span>
       </div>
+
       {error ? <ErrorState error={error} /> : null}
 
       {killTarget ? (
@@ -1164,6 +1560,44 @@ function AgentsContent() {
             return result;
           }}
           onCancel={() => setKillTarget(null)}
+        />
+      ) : null}
+
+      {selectedAgentId !== null ? (
+        (() => {
+          const sel = agentsById.get(selectedAgentId);
+          return (
+            <Drawer
+              open
+              onClose={() => setSelectedAgentId(null)}
+              hideHeader
+              width={520}
+            >
+              <AgentDrawerDetail
+                agentId={selectedAgentId}
+                overviewAgent={sel}
+                tenantName={
+                  sel ? tenantsById.get(sel.tenant_id) ?? sel.tenant_id : ""
+                }
+                model={sel ? getAgentModel(sel) : ""}
+                statusTone={fleetStatusTone(sel?.last_active ?? null)}
+                statusLabel={activityStatus(sel?.last_active ?? null).label}
+                activeRun={agentsWithRuns.get(selectedAgentId)}
+                onClose={() => setSelectedAgentId(null)}
+                onKill={(run) => {
+                  setSelectedAgentId(null);
+                  setKillTarget(run);
+                }}
+              />
+            </Drawer>
+          );
+        })()
+      ) : null}
+
+      {newAgentOpen ? (
+        <NewAgentModal
+          tenants={(data?.tenants ?? []).map((t) => ({ id: t.id, name: t.name }))}
+          onClose={() => setNewAgentOpen(false)}
         />
       ) : null}
     </div>
@@ -1377,9 +1811,9 @@ function eventTone(type: string) {
   }
 }
 
-function AgentDetailContent() {
-  const params = useParams<{ id: string }>();
-  const agentId = params.id;
+function AgentDetailContent({ agentId: agentIdProp }: { agentId?: string } = {}) {
+  const params = useParams<{ id?: string }>();
+  const agentId = agentIdProp ?? params?.id ?? "";
   const { data, error, loading } = useAgentDetailData(agentId);
 
   if (loading && !data) return <LoadingState label="Loading agent detail" />;
@@ -1617,8 +2051,8 @@ export function VisualsScreen() {
   return <VisualsContent />;
 }
 
-export function AgentDetailScreen() {
+export function AgentDetailScreen({ agentId }: { agentId?: string } = {}) {
   const mounted = useHydrated();
   if (!mounted) return <LoadingState />;
-  return <AgentDetailContent />;
+  return <AgentDetailContent agentId={agentId} />;
 }
