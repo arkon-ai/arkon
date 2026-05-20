@@ -92,15 +92,30 @@ export function NewAgentModal({
       id: slugId,
       name: name.trim(),
       tenant_id: newTenant
-        ? newTenantName.toLowerCase().trim().replace(/[^a-z0-9-]/g, "-")
+        ? newTenantName
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9-]/g, "-")
+            .replace(/^-+|-+$/g, "")
         : tenantId,
     };
     if (newTenant) body.tenant_name = newTenantName.trim();
 
+    // CSRF header — matches ackAlert pattern in AlertsBanner / AnomalyWidget.
+    // /api/admin/agents POST is owner-only and mints a provisioning token;
+    // session-authenticated requests need x-csrf-token. Added per @claude review.
+    const csrf =
+      typeof document !== "undefined"
+        ? (document.cookie.match(/mc_csrf=([^;]+)/)?.[1] ?? "")
+        : "";
+
     try {
       const res = await fetch("/api/admin/agents", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": csrf,
+        },
         body: JSON.stringify(body),
       });
 
