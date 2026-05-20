@@ -111,8 +111,19 @@ export function Drawer({
               </div>
             )}
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+            {/* Content — when hideHeader is true, the child owns its own
+                full-height flex column (header / scrollable body / sticky
+                footer), so we strip padding + outer scroll to avoid double-
+                padding and sticky-footer interference. */}
+            <div
+              className={
+                hideHeader
+                  ? "flex flex-1 flex-col overflow-hidden"
+                  : "flex-1 overflow-y-auto px-5 py-4"
+              }
+            >
+              {children}
+            </div>
 
             {/* Footer */}
             {footer ? (
