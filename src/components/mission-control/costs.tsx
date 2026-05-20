@@ -158,9 +158,10 @@ function Tag({ children }: { children: React.ReactNode }) {
    — uppercase tracking-wider footer: PROJECTED · $X / BREACH · NEVER AT THIS RATE.
    28px KPI (hero surface, canonical line 43). ── */
 function CeilingCard({
-  agentSlug, agentName, scope, used, limit, projected, threshold,
+  scopeType, agentSlug, agentName, scope, used, limit, projected, threshold,
 }: {
-  agentSlug: string;
+  scopeType: "agent" | "tenant"; // budget_limits.scope_type — drives the slug-prefix label
+  agentSlug: string;             // for scope_type="tenant" this is the tenant ID, not an agent
   agentName: string;
   scope: "daily" | "monthly";
   used: number;
@@ -190,8 +191,8 @@ function CeilingCard({
   return (
     <div className="rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] p-5">
       <div className="mb-4 flex items-center gap-2">
-        <Avatar name={agentName} persona={agentSlug} size="sm" />
-        <span className="font-mono text-[13px] font-medium text-[var(--text-primary)]">agent:{agentSlug}</span>
+        <Avatar name={agentName} persona={scopeType === "agent" ? agentSlug : undefined} size="sm" />
+        <span className="font-mono text-[13px] font-medium text-[var(--text-primary)]">{scopeType}:{agentSlug}</span>
         <Tag>{scope}</Tag>
         <span className="ml-auto"><StatusPill status={pillTone}>{pillLabel}</StatusPill></span>
       </div>
@@ -499,30 +500,35 @@ function OverviewTab({
     .filter((v): v is number => v != null)[0] ?? null;
 
   // Flatten budgets → one card per (budget, scope) where the limit is set.
+  // Filter out 0-valued limits at construction: a limit of 0 is degenerate
+  // ("block all spend" semantics) and would NaN the on-track pct otherwise.
+  // Per @claude PR-39 review: !=null lets 0 through; guard explicitly.
   type CeilingRow = {
-    id: string; agentSlug: string; agentName: string;
+    id: string; scopeType: "agent" | "tenant"; agentSlug: string; agentName: string;
     scope: "daily" | "monthly"; used: number; limit: number;
     projected?: number; threshold?: number;
   };
   const ceilingRows: CeilingRow[] = budgets.flatMap((b) => {
     const agentMatch = by_agent.find((x) => x.agent_id === b.scope_id);
     const agentName = agentMatch?.agent_name || b.scope_id;
+    const scopeType: "agent" | "tenant" =
+      b.scope_type === "tenant" ? "tenant" : "agent";
     const rows: CeilingRow[] = [];
-    if (b.daily_limit_usd != null) {
+    if (b.daily_limit_usd != null && b.daily_limit_usd > 0) {
       rows.push({
-        id: `${b.id}-d`, agentSlug: b.scope_id, agentName, scope: "daily",
+        id: `${b.id}-d`, scopeType, agentSlug: b.scope_id, agentName, scope: "daily",
         used: b.today_spend, limit: b.daily_limit_usd,
         projected: dailyBurn, threshold: b.alert_threshold_pct,
       });
     }
-    if (b.monthly_limit_usd != null) {
+    if (b.monthly_limit_usd != null && b.monthly_limit_usd > 0) {
       const now = new Date();
       const daysLeftInMonth = Math.max(
         0,
         new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate()
       );
       rows.push({
-        id: `${b.id}-m`, agentSlug: b.scope_id, agentName, scope: "monthly",
+        id: `${b.id}-m`, scopeType, agentSlug: b.scope_id, agentName, scope: "monthly",
         used: b.month_spend, limit: b.monthly_limit_usd,
         projected: b.month_spend + dailyBurn * daysLeftInMonth,
         threshold: b.alert_threshold_pct,
@@ -530,6 +536,7 @@ function OverviewTab({
     }
     return rows;
   });
+  // limit>0 is guaranteed at row construction, so the division is safe here.
   const onTrackCount = ceilingRows.filter(
     (r) => (r.used / r.limit) * 100 < (r.threshold ?? 80)
   ).length;
@@ -570,6 +577,7 @@ function OverviewTab({
             {ceilingRows.map((r) => (
               <CeilingCard
                 key={r.id}
+                scopeType={r.scopeType}
                 agentSlug={r.agentSlug}
                 agentName={r.agentName}
                 scope={r.scope}
