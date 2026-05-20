@@ -396,7 +396,7 @@ export default function CostsScreen() {
       />
 
       {error && (
-        <div className="rounded-[16px] border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-400">{error}</div>
+        <div className="rounded-[16px] border border-[var(--danger)]/30 bg-[var(--danger)]/5 p-4 text-sm text-[var(--danger)]">{error}</div>
       )}
 
       {/* Tabs */}
@@ -1565,9 +1565,9 @@ function PricingTab() {
   return (
     <div className="space-y-8">
       {error && (
-        <div className="rounded-[16px] border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-400 flex justify-between items-start">
+        <div className="rounded-[16px] border border-[var(--danger)]/30 bg-[var(--danger)]/5 p-4 text-sm text-[var(--danger)] flex justify-between items-start">
           <span className="whitespace-pre-wrap">{error}</span>
-          <button onClick={() => setError(null)} className="ml-4 text-red-400 hover:text-red-300"><X className="h-4 w-4" /></button>
+          <button onClick={() => setError(null)} className="ml-4 text-[var(--danger)] hover:opacity-80"><X className="h-4 w-4" /></button>
         </div>
       )}
 
@@ -1761,7 +1761,7 @@ function PricingTab() {
                     <button
                       onClick={() => deleteInfra(i.id)}
                       disabled={busy === `infra:${i.id}`}
-                      className="text-red-400 hover:text-red-300 disabled:opacity-40"
+                      className="text-[var(--danger)] hover:opacity-80 disabled:opacity-40"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
