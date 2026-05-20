@@ -188,8 +188,14 @@ export function AgentDrawerDetail({
                   <span className="truncate font-mono text-[var(--text-secondary)]">
                     {ev.event_type}
                   </span>
-                  <span className="shrink-0 font-mono text-[11px] text-emerald-300">
-                    ok
+                  <span
+                    className={`shrink-0 font-mono text-[11px] ${
+                      ev.event_type === "error"
+                        ? "text-red-400"
+                        : "text-emerald-300"
+                    }`}
+                  >
+                    {ev.event_type === "error" ? "err" : "ok"}
                   </span>
                   <span className="shrink-0 text-[11px] text-[var(--text-tertiary)]">
                     {timeAgo(ev.created_at)}
