@@ -158,13 +158,13 @@ export function Sparkline({
   data,
   dataKey = "value",
   color = "#00D47E",
-  width = 80,
+  width = "100%",
   height = 28,
 }: {
   data: Array<Record<string, number>>;
   dataKey?: string;
   color?: string;
-  width?: number;
+  width?: number | `${number}%`;
   height?: number;
 }) {
   if (!data || data.length === 0) return null;
@@ -173,15 +173,34 @@ export function Sparkline({
 
   return (
     <ResponsiveContainer width={width} height={height}>
-      <AreaChart data={data} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+      <AreaChart data={data} margin={{ top: 10, right: 2, left: 2, bottom: 2 }}>
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={color} stopOpacity={0.4} />
             <stop offset="100%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
+        {/* Y-axis with 50% headroom above dataMax via string-add syntax
+            (`dataMax + ${maxValueOfData * 0.5}` style fallback isn't available;
+            string-add `dataMax + N` literal is the long-supported form).
+            B-spline ("basis") rounds through data points; the apex overshoot
+            needs explicit headroom. transformate WI-392 PR-7. */}
+        <YAxis
+          width={0}
+          axisLine={false}
+          tickLine={false}
+          tick={false}
+          type="number"
+          domain={[0, (dataMax: number) => Math.max(2, dataMax * 1.5)]}
+          allowDecimals={false}
+          allowDataOverflow={true}
+        />
+        {/* type="basis" — B-spline approximation. Curve does NOT pass exactly
+            through data points; it smooths through them. Gives a single
+            rounded peak even when the underlying data has a multi-bucket
+            plateau. transformate WI-392 PR-7. */}
         <Area
-          type="monotone"
+          type="basis"
           dataKey={dataKey}
           stroke={color}
           strokeWidth={1.5}
