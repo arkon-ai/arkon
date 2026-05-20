@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useId, type ReactNode } from "react";
 import {
   Area,
   AreaChart,
@@ -167,9 +167,15 @@ export function Sparkline({
   width?: number | `${number}%`;
   height?: number;
 }) {
-  if (!data || data.length === 0) return null;
+  // gradId must be unique per instance — SVG `id` is document-global, not
+  // scoped to a single <svg>. Multiple Sparklines previously shared the same
+  // color-derived id and fell back to whichever <linearGradient> appeared
+  // first in the DOM (currently harmless because identical, but a real
+  // footgun when callers pass distinct `color`). Per @claude review.
+  const reactId = useId();
+  const gradId = `spark-${color.replace("#", "")}-${reactId.replace(/[^a-z0-9]/gi, "")}`;
 
-  const gradId = `spark-${color.replace("#", "")}`;
+  if (!data || data.length === 0) return null;
 
   return (
     <ResponsiveContainer width={width} height={height}>
