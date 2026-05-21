@@ -221,7 +221,7 @@ export default function ArkonOSScreen() {
       string,
       { slug: string; name: string; cells: number[]; total: number }
     >();
-    for (const row of data.hourlyByChannel) {
+    for (const row of data.hourlyByChannel ?? []) {
       const e = byChannel.get(row.channel_slug) ?? {
         slug: row.channel_slug,
         name: row.channel_name,
@@ -401,11 +401,11 @@ export default function ArkonOSScreen() {
               />
               <span className="inline-flex items-center gap-1 rounded-[var(--radius-pill)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-secondary)]">
                 channel:warden
-                <X className="h-3 w-3 cursor-pointer text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" />
+                <X className="h-3 w-3 text-[var(--text-tertiary)]" aria-hidden />
               </span>
               <span className="inline-flex items-center gap-1 rounded-[var(--radius-pill)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-secondary)]">
                 model:claude-opus-4-7
-                <X className="h-3 w-3 cursor-pointer text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" />
+                <X className="h-3 w-3 text-[var(--text-tertiary)]" aria-hidden />
               </span>
             </div>
             <Tabs
@@ -618,8 +618,8 @@ export default function ArkonOSScreen() {
               title="Activity by hour"
               note={
                 heat && heat.rows.length > 0
-                  ? `SAST · last 24h · ${heat.rows.length} channel${heat.rows.length === 1 ? "" : "s"}`
-                  : "SAST · last 24h"
+                  ? `UTC · last 24h · ${heat.rows.length} channel${heat.rows.length === 1 ? "" : "s"}`
+                  : "UTC · last 24h"
               }
             />
             {!heat || heat.rows.length === 0 ? (
@@ -690,7 +690,7 @@ export default function ArkonOSScreen() {
           <section>
             <SectionTitle
               title="Recent errors"
-              note={`${data.recentErrors.length} · last ${RANGE_LABEL[range]}`}
+              note={`last ${data.recentErrors.length}`}
               action={
                 data.recentErrors.length > 0 ? (
                   <Button
