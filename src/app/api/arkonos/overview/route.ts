@@ -148,12 +148,30 @@ export async function GET(req: NextRequest) {
         m.status,
         m.metadata,
         m.created_at,
-        c.name as channel_name
+        c.name as channel_name,
+        c.slug as channel_slug
        FROM vos_messages m
        JOIN vos_channels c ON c.id = m.channel_id
        WHERE m.status IN ('error', 'interrupted')
        ORDER BY m.created_at DESC
        LIMIT 5`
+    );
+
+    // 10. Channel × hour matrix for 24h heatmap (PR-9a observability rebuild).
+    //     Fixed 24h window regardless of range selector — heatmap is "last 24h".
+    //     Sparse: rows only for (channel, hour) pairs with at least one message.
+    //     Frontend fills missing cells as 0 using channelActivity's full channel set.
+    const hourlyByChannel = await query(
+      `SELECT
+        c.slug as channel_slug,
+        c.name as channel_name,
+        EXTRACT(HOUR FROM m.created_at)::int as hour,
+        COUNT(*)::int as count
+       FROM vos_messages m
+       JOIN vos_channels c ON c.id = m.channel_id
+       WHERE m.created_at > NOW() - INTERVAL '24 hours'
+       GROUP BY c.slug, c.name, EXTRACT(HOUR FROM m.created_at)
+       ORDER BY c.slug, hour`
     );
 
     return NextResponse.json({
@@ -163,6 +181,7 @@ export async function GET(req: NextRequest) {
       channelActivity: channelActivity.rows,
       modelBreakdown: modelBreakdown.rows,
       hourlyPattern: hourlyPattern.rows,
+      hourlyByChannel: hourlyByChannel.rows,
       dailyVolume: dailyVolume.rows,
       recentMessages: recentMessages.rows,
       recentErrors: recentErrors.rows,

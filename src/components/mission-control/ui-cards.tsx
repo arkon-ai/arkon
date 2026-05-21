@@ -328,6 +328,7 @@ export function MetricCard({
 
 export function PulseStrip({
   cells,
+  cols,
   className = "",
 }: {
   cells: Array<{
@@ -338,10 +339,31 @@ export function PulseStrip({
     tint?: "warn" | "bad" | "ok";
     icon?: ComponentType<{ className?: string }>;
   }>;
+  /**
+   * Strict column count at md+ breakpoints (2|3|4|5|6). When set, overrides the
+   * default `md:grid-cols-4`. Forecast at integrations.tsx:81 — PR-9a ships it.
+   * Below md the strip stacks to a single column regardless.
+   *
+   * NOTE: literal class names only — Tailwind v4 JIT purges template-literal
+   * and arbitrary-CSS-var classes. See memory: tailwind-v4-literal-class-names.
+   */
+  cols?: 2 | 3 | 4 | 5 | 6;
   className?: string;
 }) {
+  const colsClass =
+    cols === 2 ? "md:grid-cols-2"
+    : cols === 3 ? "md:grid-cols-3"
+    : cols === 5 ? "md:grid-cols-5"
+    : cols === 6 ? "md:grid-cols-6"
+    : "md:grid-cols-4";
   return (
-    <div className={cn("grid overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)] md:grid-cols-4", className)}>
+    <div
+      className={cn(
+        "grid overflow-hidden rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--bg-surface)]",
+        colsClass,
+        className,
+      )}
+    >
       {cells.map((cell) => {
         const Icon = cell.icon;
         return (
