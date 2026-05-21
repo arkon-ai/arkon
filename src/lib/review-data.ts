@@ -372,13 +372,31 @@ function getRawReviewModePayload(pathname: string, searchParams: URLSearchParams
         { model: "claude-4.5-sonnet", provider: "anthropic", message_count: 4980, avg_duration_ms: 2140, total_tokens: 5080000 },
       ],
       hourlyPattern: Array.from({ length: 24 }, (_, hour) => ({ hour, count: 12 + (hour % 6) * 8, user_count: 5 + (hour % 5) * 3, assistant_count: 7 + (hour % 6) * 5 })),
+      hourlyByChannel: (() => {
+        const channels = [
+          { channel_slug: "lumina", channel_name: "Lumina", base: 12, peak: 9 },
+          { channel_slug: "forge", channel_name: "Forge", base: 6, peak: 4 },
+          { channel_slug: "atlas", channel_name: "Atlas", base: 3, peak: 2 },
+        ];
+        const rows: Array<{ channel_slug: string; channel_name: string; hour: number; count: number }> = [];
+        for (const c of channels) {
+          for (let h = 0; h < 24; h++) {
+            const dist = Math.min(Math.abs(h - 14), 24 - Math.abs(h - 14));
+            const count = Math.max(0, Math.round(c.base + c.peak * Math.cos((dist / 12) * Math.PI)));
+            if (count > 0) rows.push({ channel_slug: c.channel_slug, channel_name: c.channel_name, hour: h, count });
+          }
+        }
+        return rows;
+      })(),
       dailyVolume: trend.slice(-7).map((item) => ({ day: item.day, total: item.received + item.sent, user_msgs: item.received, assistant_msgs: item.sent, errors: item.errors })),
       recentMessages: [
         { id: "msg-1", role: "assistant", content_preview: "Governance briefing compiled for dashboard review.", status: "delivered", metadata: {}, created_at: "2026-05-18T08:22:00.000Z", channel_name: "Lumina", channel_slug: "lumina" },
         { id: "msg-2", role: "user", content_preview: "Show the current agent risk posture.", status: "delivered", metadata: {}, created_at: "2026-05-18T08:18:00.000Z", channel_name: "Atlas", channel_slug: "atlas" },
       ],
       recentErrors: [
-        { id: "err-1", content_preview: "Provider retry exhausted after gateway timeout.", status: "error", metadata: {}, created_at: "2026-05-18T07:35:00.000Z", channel_name: "Forge" },
+        { id: "err-1", content_preview: "Gateway hard ceiling of 1800000ms exceeded — abort-reason: hard ceiling exceeded", status: "error", metadata: {}, created_at: "2026-05-17T11:35:00.000Z", channel_name: "Warden", channel_slug: "warden" },
+        { id: "err-2", content_preview: "Gateway hard ceiling of 1800000ms exceeded — abort-reason: hard ceiling exceeded", status: "error", metadata: {}, created_at: "2026-05-17T10:35:00.000Z", channel_name: "Warden", channel_slug: "warden" },
+        { id: "err-3", content_preview: "Run interrupted: PR #47 already exists for WI-249 — B-phase doctrine: gate confirmed, moving to WI-250", status: "interrupted", metadata: {}, created_at: "2026-05-17T10:10:00.000Z", channel_name: "Warden", channel_slug: "warden" },
       ],
       range: searchParams.get("range") ?? "7d",
       timestamp: NOW,
