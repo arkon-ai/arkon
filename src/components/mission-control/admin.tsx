@@ -44,8 +44,8 @@ function getSessionRole(): string {
 
 /* ─── Role badge ─────────────────────────────────────────── */
 const ROLE_COLOURS: Record<string, string> = {
-  owner: "bg-[rgba(0,212,126,0.15)] text-purple-400",
-  admin: "bg-[rgba(0,212,126,0.15)] text-cyan-400",
+  owner: "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]",
+  admin: "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]",
   agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
   viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
 };
