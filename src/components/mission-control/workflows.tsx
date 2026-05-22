@@ -554,7 +554,7 @@ export function WorkflowsScreen() {
                         <span>
                           Trigger: {wf.trigger_type}
                           {wf.trigger_type === "cron" && wf.trigger_config?.cron_expression && (
-                            <span className="ml-1 font-mono text-cyan-400">({wf.trigger_config.cron_expression})</span>
+                            <span className="ml-1 font-mono text-[var(--text-primary)]">({wf.trigger_config.cron_expression})</span>
                           )}
                         </span>
                         <span>Runs: <StatCountUp value={wf.run_count} /></span>
@@ -637,7 +637,7 @@ export function WorkflowsScreen() {
                             <div className="flex items-center gap-3 mt-2 text-[11px] text-[var(--text-tertiary)]">
                               <span>{tmpl.definition.nodes.length} nodes</span>
                               {tmpl.trigger_config?.cron_expression && (
-                                <span className="font-mono text-cyan-400/70">{tmpl.trigger_config.cron_expression}</span>
+                                <span className="font-mono text-[var(--text-tertiary)]">{tmpl.trigger_config.cron_expression}</span>
                               )}
                             </div>
                           </div>
@@ -888,7 +888,7 @@ export function WorkflowsScreen() {
               }}
               className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
                 selectedWorkflow.trigger_type === t
-                  ? t === "cron" ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30" : "bg-white/10 text-white border border-white/20"
+                  ? t === "cron" ? "bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30" : "bg-white/10 text-white border border-white/20"
                   : "text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] border border-transparent"
               }`}
             >
@@ -1052,25 +1052,25 @@ function CronConfigBar({ workflow, onUpdate }: { workflow: Workflow; onUpdate: (
   };
 
   return (
-    <div className="mb-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
+    <div className="mb-3 rounded-xl border border-[var(--accent)]/20 bg-[var(--accent-subtle)] p-3">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="text-cyan-400 text-sm">{"\u23F0"}</span>
+          <span className="text-[var(--accent)] text-sm">{"\u23F0"}</span>
           {editing ? (
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={expr}
                 onChange={(e) => setExpr(e.target.value)}
-                className="rounded border border-cyan-500/30 bg-[var(--bg-primary)] px-2 py-1 text-sm font-mono text-white w-40 focus:border-cyan-400 focus:outline-none"
+                className="rounded border border-[var(--accent)]/30 bg-[var(--bg-primary)] px-2 py-1 text-sm font-mono text-white w-40 focus:border-[var(--accent)] focus:outline-none"
                 onKeyDown={(e) => { if (e.key === "Enter") saveCron(); if (e.key === "Escape") { setExpr(cronExpr); setEditing(false); } }}
                 autoFocus
               />
-              <button onClick={saveCron} className="text-xs text-cyan-400 hover:text-[var(--text-primary)] transition">Save</button>
+              <button onClick={saveCron} className="text-xs text-[var(--accent)] hover:text-[var(--text-primary)] transition">Save</button>
               <button onClick={() => { setExpr(cronExpr); setEditing(false); }} className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition">Cancel</button>
             </div>
           ) : (
-            <button onClick={() => setEditing(true)} className="font-mono text-sm text-white hover:text-cyan-400 transition">
+            <button onClick={() => setEditing(true)} className="font-mono text-sm text-white hover:text-[var(--accent)] transition">
               {cronExpr}
             </button>
           )}
@@ -1081,7 +1081,7 @@ function CronConfigBar({ workflow, onUpdate }: { workflow: Workflow; onUpdate: (
                   key={p.expr}
                   onClick={() => onUpdate({ trigger_config: { cron_expression: p.expr } })}
                   className={`rounded px-2 py-0.5 text-[10px] transition ${
-                    cronExpr === p.expr ? "bg-cyan-500/20 text-cyan-400" : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5"
+                    cronExpr === p.expr ? "bg-[var(--accent)]/20 text-[var(--accent)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white/5"
                   }`}
                 >
                   {p.label}
@@ -1092,7 +1092,7 @@ function CronConfigBar({ workflow, onUpdate }: { workflow: Workflow; onUpdate: (
         </div>
         <div className="text-[11px] text-[var(--text-tertiary)]">
           {nextRun ? (
-            <span>Next run: <span className="text-cyan-400">{nextRun} SAST</span></span>
+            <span>Next run: <span className="text-[var(--accent)]">{nextRun} SAST</span></span>
           ) : (
             <span className="text-amber-400">Invalid expression</span>
           )}

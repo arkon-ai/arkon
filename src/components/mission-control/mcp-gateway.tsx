@@ -113,7 +113,7 @@ export function McpGateway() {
                 key={r.value}
                 onClick={() => setRange(r.value)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                  range === r.value ? "bg-cyan-500/20 text-cyan-400" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  range === r.value ? "bg-[var(--accent)]/20 text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 {r.label}
@@ -125,12 +125,12 @@ export function McpGateway() {
 
       {/* Stats summary */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
-        <StatCard label="Total Requests" value={s?.total_requests ?? 0} accent="cyan" />
+        <StatCard label="Total Requests" value={s?.total_requests ?? 0} accent="emerald" />
         <StatCard label="Success" value={s?.success_count ?? 0} accent="emerald" />
         <StatCard label="Errors" value={s?.error_count ?? 0} accent="red" />
         <StatCard label="Avg Latency" value={`${s?.avg_duration_ms ?? 0}ms`} accent="amber" />
         <StatCard label="Total Data" value={formatBytes(s?.total_bytes ?? 0)} accent="purple" />
-        <StatCard label="Active Servers" value={s?.active_servers ?? 0} accent="cyan" />
+        <StatCard label="Active Servers" value={s?.active_servers ?? 0} accent="emerald" />
         <StatCard label="MCP Methods" value={s?.unique_methods ?? 0} accent="slate" />
       </div>
 
@@ -147,7 +147,7 @@ export function McpGateway() {
                   <p className="text-xs text-[var(--text-tertiary)]">{s.avg_ms}ms avg &middot; {parseInt(s.errors)} errors</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-cyan-400">{parseInt(s.requests).toLocaleString()}</p>
+                  <p className="text-sm font-bold text-[var(--text-primary)]">{parseInt(s.requests).toLocaleString()}</p>
                   <p className="text-xs text-[var(--text-tertiary)]">requests</p>
                 </div>
               </div>
@@ -200,7 +200,7 @@ export function McpGateway() {
           <p className="mt-2 text-sm text-[var(--text-tertiary)]">Enable gateway mode on MCP servers, then configure AI clients to route through the proxy.</p>
           <button
             onClick={loadConfig}
-            className="mt-4 rounded-lg bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-400 hover:bg-cyan-500/30 transition"
+            className="mt-4 rounded-lg bg-[var(--accent)]/20 px-4 py-2 text-sm font-medium text-[var(--accent)] hover:bg-[var(--accent)]/30 transition"
           >
             Generate Client Config
           </button>
@@ -223,7 +223,7 @@ export function McpGateway() {
             <div className="mt-4 flex gap-2 justify-end">
               <button
                 onClick={copyConfig}
-                className="rounded-lg bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-400 hover:bg-cyan-500/30 transition"
+                className="rounded-lg bg-[var(--accent)]/20 px-4 py-2 text-sm font-medium text-[var(--accent)] hover:bg-[var(--accent)]/30 transition"
               >
                 {copied ? "Copied!" : "Copy to Clipboard"}
               </button>
@@ -243,14 +243,14 @@ export function McpGateway() {
 
 function StatCard({ label, value, accent }: { label: string; value: string | number; accent: string }) {
   const colors: Record<string, string> = {
-    cyan: "text-cyan-400", emerald: "text-emerald-400", amber: "text-amber-400",
+    emerald: "text-[var(--accent)]", amber: "text-amber-400",
     purple: "text-purple-400", red: "text-red-400", slate: "text-[var(--text-secondary)]",
   };
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{label}</p>
-      <p className={`mt-1 text-lg font-bold ${colors[accent] || colors.cyan}`}>{typeof value === "number" ? value.toLocaleString() : value}</p>
+      <p className={`mt-1 text-lg font-bold ${colors[accent] || colors.emerald}`}>{typeof value === "number" ? value.toLocaleString() : value}</p>
     </div>
   );
 }

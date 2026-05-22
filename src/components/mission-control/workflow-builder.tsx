@@ -283,7 +283,7 @@ function NodeConfigPanel({
                   onClick={() => updateField("cron_expression", p.expr)}
                   className="block w-full text-left rounded px-2 py-1 text-[11px] text-[var(--text-secondary)] hover:bg-white/5 hover:text-[var(--text-primary)] transition"
                 >
-                  <span className="font-mono text-cyan-400">{p.expr}</span>
+                  <span className="font-mono text-[var(--text-primary)]">{p.expr}</span>
                   <span className="ml-2 text-[var(--text-tertiary)]">{p.label}</span>
                 </button>
               ))}

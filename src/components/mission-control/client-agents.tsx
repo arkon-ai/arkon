@@ -92,7 +92,7 @@ export function ClientAgents() {
               <div className="mt-4 grid grid-cols-3 gap-4">
                 <div className="rounded-xl bg-[var(--bg-primary)] px-3 py-2">
                   <p className="text-[10px] font-semibold uppercase text-[var(--text-tertiary)]">Messages (30d)</p>
-                  <p className="text-sm font-bold text-cyan-400">{Number(agent.messages_30d).toLocaleString()}</p>
+                  <p className="text-sm font-bold text-[var(--text-primary)]">{Number(agent.messages_30d).toLocaleString()}</p>
                 </div>
                 <div className="rounded-xl bg-[var(--bg-primary)] px-3 py-2">
                   <p className="text-[10px] font-semibold uppercase text-[var(--text-tertiary)]">Tokens (30d)</p>
