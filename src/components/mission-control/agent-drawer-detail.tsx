@@ -32,7 +32,7 @@ import type { ActiveRun } from "@/hooks/use-active-runs";
  *   - Sticky bottom actions: Pause (disabled) | Kill agent
  *
  * Real-data Rule 12: missing/error values render "—" + telemetry-pending sub-text.
- * Palette: NO cyan, NO purple, NO pink. Red reserved for Kill action only.
+ * Palette: NO emerald, NO purple, NO pink. Red reserved for Kill action only.
  */
 
 export function AgentDrawerDetail({

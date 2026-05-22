@@ -113,7 +113,7 @@ const SEVERITY_COLORS: Record<string, string> = {
 
 const ROLE_COLOURS: Record<string, string> = {
   owner: "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]",
-  admin: "bg-[rgba(6,214,160,0.15)] text-cyan-400",
+  admin: "bg-[rgba(6,214,160,0.15)] text-emerald-400",
   agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
   viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
 };
@@ -308,7 +308,7 @@ export default function AgentDetailPage() {
             </span>
 
             {/* Framework */}
-            <span className="rounded-full bg-cyan/10 px-2.5 py-1 text-xs font-semibold text-cyan">
+            <span className="rounded-full bg-emerald/10 px-2.5 py-1 text-xs font-semibold text-emerald">
               {framework}
             </span>
 
@@ -392,7 +392,7 @@ export default function AgentDetailPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${
               activeTab === tab.key
-                ? "bg-cyan/10 text-cyan"
+                ? "bg-emerald/10 text-emerald"
                 : "text-text-dim hover:bg-white/5 hover:text-text"
             }`}
           >
@@ -578,7 +578,7 @@ function SecurityTab({ data }: { data: AgentData }) {
           </div>
         )}
         {threats.threat_count_30d > threats.recent.length && (
-          <Link href="/threatguard" className="mt-3 inline-flex text-sm font-semibold text-cyan">
+          <Link href="/threatguard" className="mt-3 inline-flex text-sm font-semibold text-emerald">
             View all in ThreatGuard &rarr;
           </Link>
         )}

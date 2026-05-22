@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 // Persona palette (transformate WI-392 / PR-7 visual review locked):
 //   warden=emerald, codesmith=slate (deeper than fallback), lumina=amber, sentinel=teal.
-// Brynn rules: NO cyan, NO purple, NO pink, NO red (red reserved for kill/warning).
+// Brynn rules: NO purple, NO pink, NO blue, NO red (red reserved for kill/warning).
 const PERSONA_COLORS: Record<string, { bg: string; fg: string }> = {
   warden: { bg: "rgba(16, 185, 129, 0.16)", fg: "#6ee7b7" },
   codesmith: { bg: "rgba(100, 116, 139, 0.18)", fg: "#94a3b8" },

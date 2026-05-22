@@ -173,7 +173,7 @@
   --amber: var(--warning);
   --red: var(--danger);
   --green: var(--accent);
-  --cyan: var(--accent);
+  --emerald: var(--accent);
   --purple: var(--accent); /* purple eliminated — maps to accent */
 }
 
@@ -200,7 +200,7 @@
   --color-accent-foreground: var(--accent-foreground);
 
   /* Legacy color aliases (redirect to accent) */
-  --color-cyan: var(--accent);
+  --color-emerald: var(--accent);
   --color-purple: var(--accent);
   --color-green: var(--accent);
 
@@ -380,7 +380,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Glow utilities */
-.glow-cyan   { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
+.glow-emerald   { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
 .glow-green  { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
 .glow-accent { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
 .glow-purple { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
@@ -507,7 +507,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Chart active dot glow */
-.chart-glow-cyan {
+.chart-glow-emerald {
   filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
 }
 .chart-glow-green {
@@ -615,7 +615,7 @@ h1, h2, h3, h4, h5, h6 {
   background-image: radial-gradient(circle, rgba(0, 184, 110, 0.06) 1px, transparent 1px);
 }
 
-[data-theme="light"] .glow-cyan,
+[data-theme="light"] .glow-emerald,
 [data-theme="light"] .glow-green,
 [data-theme="light"] .glow-accent,
 [data-theme="light"] .glow-purple {

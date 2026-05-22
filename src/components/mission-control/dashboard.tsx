@@ -267,13 +267,13 @@ const actionItems = [
 ];
 
 const visuals = [
-  { slug: "briefing", label: "Morning Briefing", tone: "text-cyan", note: "Command center snapshot" },
+  { slug: "briefing", label: "Morning Briefing", tone: "text-emerald", note: "Command center snapshot" },
   { slug: "tokens", label: "Token Tracker", tone: "text-purple", note: "Usage and model mix" },
   { slug: "cycling", label: "Cycling Progress", tone: "text-green", note: "Training route tracker" },
-  { slug: "agents-net", label: "Agent Network", tone: "text-cyan", note: "Constellation view" },
+  { slug: "agents-net", label: "Agent Network", tone: "text-emerald", note: "Constellation view" },
   { slug: "architecture", label: "Architecture", tone: "text-amber", note: "Infrastructure diagram" },
   { slug: "brainmap", label: "Brain Map", tone: "text-purple", note: "Project orbit map" },
-  { slug: "domains", label: "Domains", tone: "text-cyan", note: "DNS and SSL health" },
+  { slug: "domains", label: "Domains", tone: "text-emerald", note: "DNS and SSL health" },
   { slug: "heatmap", label: "Heatmap", tone: "text-green", note: "Activity intensity" },
 ];
 
@@ -463,7 +463,7 @@ function MobileDashboardView({
                   <span className={`inline-block h-2 w-2 rounded-full ${
                     evt.event_type === "error" ? "bg-red" :
                     evt.event_type === "tool_call" ? "bg-purple" :
-                    evt.event_type === "sent" ? "bg-cyan" : "bg-text-dim"
+                    evt.event_type === "sent" ? "bg-emerald" : "bg-text-dim"
                   }`} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -478,7 +478,7 @@ function MobileDashboardView({
             ))}
           </div>
         )}
-        <Link href="/activity" className="mt-2 inline-flex text-xs font-semibold text-cyan btn-press">
+        <Link href="/activity" className="mt-2 inline-flex text-xs font-semibold text-emerald btn-press">
           View all activity &rarr;
         </Link>
       </Card>
@@ -992,7 +992,7 @@ function HealthContent() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Est. KM" value={String(kmTotal)} accent="text-green" sublabel="Derived from recent system movement" />
         <StatCard label="Target Days" value="4" accent="text-purple" sublabel="Training horizon" />
-        <StatCard label="Live Nodes" value={String(metrics.activeAgents)} accent="text-cyan" sublabel="Used as momentum proxy" />
+        <StatCard label="Live Nodes" value={String(metrics.activeAgents)} accent="text-emerald" sublabel="Used as momentum proxy" />
         <StatCard label="Load" value={formatCompact(metrics.events24h)} accent="text-amber" sublabel="Telemetry volume today" />
       </div>
 
@@ -1644,7 +1644,7 @@ function SystemsContent() {
         <div className="grid grid-cols-3 gap-3">
           <StatCard label="Live Services" value={String(summary.online)} accent="text-green" sublabel={`of ${summary.total} total`} />
           <StatCard label="Offline" value={String(summary.offline)} accent={summary.offline > 0 ? "text-red" : "text-text-dim"} sublabel="Not responding" />
-          <StatCard label="Agents Routing" value={String(metrics.activeAgents)} accent="text-cyan" sublabel="Current live agent count" />
+          <StatCard label="Agents Routing" value={String(metrics.activeAgents)} accent="text-emerald" sublabel="Current live agent count" />
         </div>
       )}
 
@@ -1697,7 +1697,7 @@ function SystemsContent() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard label="24h Events" value={formatCompact(metrics.events24h)} accent="text-purple" sublabel="Infrastructure traffic proxy" />
-        <StatCard label="7d Events" value={formatCompact(metrics.events7d)} accent="text-cyan" sublabel="Weekly activity" />
+        <StatCard label="7d Events" value={formatCompact(metrics.events7d)} accent="text-emerald" sublabel="Weekly activity" />
         <StatCard label="Tokens 24H" value={formatCompact(metrics.tokens24h)} accent="text-amber" sublabel="AI compute usage" />
       </div>
     </div>
@@ -1766,7 +1766,7 @@ function VisualsContent() {
           <Link
             key={item.slug}
             href={`/visuals/${item.slug}`}
-            className="card-hover rounded-[22px] border border-border bg-bg-card p-5 transition hover:border-cyan/40 hover:bg-white/[0.03]"
+            className="card-hover rounded-[22px] border border-border bg-bg-card p-5 transition hover:border-emerald/40 hover:bg-white/[0.03]"
           >
             <div className={`text-sm font-semibold uppercase tracking-[0.18em] ${item.tone}`}>{item.label}</div>
             <p className="mt-2 text-sm leading-6 text-text-dim">{item.note}</p>
@@ -1801,7 +1801,7 @@ function eventTone(type: string) {
     case "message_received":
       return "border-green/30 bg-green/10 text-green";
     case "message_sent":
-      return "border-cyan/30 bg-cyan/10 text-cyan";
+      return "border-emerald/30 bg-emerald/10 text-emerald";
     case "tool_call":
       return "border-purple/30 bg-purple/10 text-purple";
     case "error":
@@ -1842,7 +1842,7 @@ function AgentDetailContent({ agentId: agentIdProp }: { agentId?: string } = {})
         <StatCard
           label="Events"
           value={formatCompact(data.events.length)}
-          accent="text-cyan"
+          accent="text-emerald"
           sublabel="Last 50 timeline entries"
         />
         <StatCard

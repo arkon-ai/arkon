@@ -253,9 +253,9 @@ function elapsedLabel(startedAt: string, completedAt: string | null, now: number
   return `${minutes}m ${seconds}s`;
 }
 
-function toneClass(color: "cyan" | "purple" | "amber" | "green" | "red" | "slate") {
+function toneClass(color: "emerald" | "purple" | "amber" | "green" | "red" | "slate") {
   return {
-    cyan: "border-cyan/30 bg-cyan/10 text-cyan",
+    emerald: "border-emerald/30 bg-emerald/10 text-emerald",
     purple: "border-purple/30 bg-purple/10 text-purple",
     amber: "border-amber/30 bg-amber/10 text-amber",
     green: "border-green/30 bg-green/10 text-green",
@@ -279,7 +279,7 @@ function Pill({
       onClick={onClick}
       className={`min-h-11 rounded-full border px-4 text-sm font-semibold transition ${
         active
-          ? "border-cyan/40 bg-cyan/15 text-cyan"
+          ? "border-emerald/40 bg-emerald/15 text-emerald"
           : "border-border bg-bg-deep/80 text-text-dim"
       }`}
     >
@@ -293,7 +293,7 @@ function Badge({
   tone = "slate",
 }: {
   children: ReactNode;
-  tone?: "cyan" | "purple" | "amber" | "green" | "red" | "slate";
+  tone?: "emerald" | "purple" | "amber" | "green" | "red" | "slate";
 }) {
   return (
     <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${toneClass(tone)}`}>
@@ -417,7 +417,7 @@ export function ApprovalsToolScreen() {
             type="button"
             onClick={() => { setBulkMode(!bulkMode); setSelectedIds(new Set()); }}
             className={`min-h-9 rounded-xl border px-3 text-xs font-semibold transition ${
-              bulkMode ? "border-cyan/40 bg-cyan/15 text-cyan" : "border-border bg-bg-deep/80 text-text-dim"
+              bulkMode ? "border-emerald/40 bg-emerald/15 text-emerald" : "border-border bg-bg-deep/80 text-text-dim"
             }`}
           >
             {bulkMode ? "Cancel" : "Bulk"}
@@ -426,8 +426,8 @@ export function ApprovalsToolScreen() {
       </div>
 
       {bulkMode && selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-2xl border border-cyan/30 bg-cyan/5 p-3">
-          <span className="text-sm text-cyan font-medium">{selectedIds.size} selected</span>
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald/30 bg-emerald/5 p-3">
+          <span className="text-sm text-emerald font-medium">{selectedIds.size} selected</span>
           <div className="flex-1" />
           <button type="button" onClick={() => void bulkAction("rejected")}
             className="min-h-9 rounded-xl border border-red/30 bg-red/10 px-4 text-xs font-semibold text-red">
@@ -450,7 +450,7 @@ export function ApprovalsToolScreen() {
               <div
                 key={item.id}
                 className={`rounded-[24px] transition ${
-                  isSelected ? "ring-2 ring-cyan/40" :
+                  isSelected ? "ring-2 ring-emerald/40" :
                   offset > 40 ? "shadow-[0_0_40px_rgba(34,197,94,0.15)]" :
                   offset < -40 ? "shadow-[0_0_40px_rgba(239,68,68,0.18)]" : ""
                 }`}
@@ -479,7 +479,7 @@ export function ApprovalsToolScreen() {
                         {bulkMode && item.status === "pending" && (
                           <button type="button" onClick={() => toggleSelect(item.id)}
                             className={`mt-1 h-5 w-5 rounded border flex-shrink-0 flex items-center justify-center transition ${
-                              isSelected ? "border-cyan bg-cyan text-black" : "border-border"
+                              isSelected ? "border-emerald bg-emerald text-black" : "border-border"
                             }`}>
                             {isSelected && <span className="text-xs">\u2713</span>}
                           </button>
@@ -494,7 +494,7 @@ export function ApprovalsToolScreen() {
                               {item.status}
                             </Badge>
                             <Badge tone="purple">{item.target_channel ?? "general"}</Badge>
-                            <Badge tone={item.priority === "urgent" ? "red" : item.priority === "low" ? "slate" : "cyan"}>
+                            <Badge tone={item.priority === "urgent" ? "red" : item.priority === "low" ? "slate" : "emerald"}>
                               {item.priority}
                             </Badge>
                             {item.expires_at && item.status === "pending" && (
@@ -522,7 +522,7 @@ export function ApprovalsToolScreen() {
                         {item.content}
                       </p>
                       {!isExpanded && item.content.length > 200 && (
-                        <span className="text-xs text-cyan mt-1 inline-block">Show more \u2193</span>
+                        <span className="text-xs text-emerald mt-1 inline-block">Show more \u2193</span>
                       )}
                       {isExpanded && (
                         <span className="text-xs text-text-dim mt-1 inline-block">Show less \u2191</span>
@@ -544,7 +544,7 @@ export function ApprovalsToolScreen() {
                         placeholder="Add a note (optional)..."
                         value={noteInput[item.id] ?? ""}
                         onChange={(e) => setNoteInput((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                        className="w-full rounded-xl border border-border bg-bg-deep/50 px-3 py-2 text-sm text-text placeholder:text-text-dim/50 focus:border-cyan/40 focus:outline-none"
+                        className="w-full rounded-xl border border-border bg-bg-deep/50 px-3 py-2 text-sm text-text placeholder:text-text-dim/50 focus:border-emerald/40 focus:outline-none"
                         onClick={(e) => e.stopPropagation()}
                       />
                     )}
@@ -702,7 +702,7 @@ export function DocsToolScreen() {
                 <button
                   type="button"
                   onClick={clearSelection}
-                  className="mb-3 text-sm font-semibold text-cyan"
+                  className="mb-3 text-sm font-semibold text-emerald"
                 >
                   ← Back to documents
                 </button>
@@ -767,7 +767,7 @@ export function DocsToolScreen() {
                 }}
                 className="w-full text-left"
               >
-                <Card className="space-y-3 transition hover:border-cyan/40">
+                <Card className="space-y-3 transition hover:border-emerald/40">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap gap-2">
@@ -880,7 +880,7 @@ export function TasksToolScreen() {
           <div>
             <div className="flex flex-wrap gap-2">
               <Badge tone={priorityTone(task.priority)}>{task.priority}</Badge>
-              <Badge tone="cyan">{task.assignee}</Badge>
+              <Badge tone="emerald">{task.assignee}</Badge>
               {task.category ? <Badge tone="slate">{task.category}</Badge> : null}
             </div>
             <h3 className="mt-3 text-base font-semibold text-text">{task.title}</h3>
@@ -902,7 +902,7 @@ export function TasksToolScreen() {
           <button
             type="button"
             onClick={() => void moveTask(task, "forward")}
-            className="min-h-11 rounded-2xl border border-cyan/30 bg-cyan/10 text-sm font-semibold text-cyan"
+            className="min-h-11 rounded-2xl border border-emerald/30 bg-emerald/10 text-sm font-semibold text-emerald"
           >
             Advance
           </button>
@@ -966,7 +966,7 @@ export function TasksToolScreen() {
           <button
             type="button"
             onClick={() => void createTask()}
-            className="ml-auto min-h-11 rounded-full border border-cyan/30 bg-cyan/10 px-5 text-xl font-semibold text-cyan"
+            className="ml-auto min-h-11 rounded-full border border-emerald/30 bg-emerald/10 px-5 text-xl font-semibold text-emerald"
           >
             +
           </button>
@@ -1091,7 +1091,7 @@ export function CalendarToolScreen() {
                   type="button"
                   onClick={() => setSelectedDay(key)}
                   className={`min-h-40 rounded-[22px] border p-3 text-left ${
-                    isToday ? "border-cyan/40 bg-cyan/10" : "border-border bg-bg-deep/70"
+                    isToday ? "border-emerald/40 bg-emerald/10" : "border-border bg-bg-deep/70"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -1099,11 +1099,11 @@ export function CalendarToolScreen() {
                       <div className="text-[11px] uppercase tracking-[0.18em] text-text-dim">
                         {day.toLocaleDateString("en-ZA", { weekday: "short" })}
                       </div>
-                      <div className={`mt-1 text-lg font-semibold ${isToday ? "text-cyan" : "text-text"}`}>
+                      <div className={`mt-1 text-lg font-semibold ${isToday ? "text-emerald" : "text-text"}`}>
                         {day.getDate()}
                       </div>
                     </div>
-                    {isToday ? <Badge tone="cyan">Today</Badge> : null}
+                    {isToday ? <Badge tone="emerald">Today</Badge> : null}
                   </div>
                   <div className="mt-4 space-y-2">
                     {items.slice(0, 3).map((item) => (
@@ -1162,7 +1162,7 @@ export function CalendarToolScreen() {
 function runTone(status: string) {
   if (status === "running") return "green" as const;
   if (status === "failed") return "red" as const;
-  if (status === "completed") return "cyan" as const;
+  if (status === "completed") return "emerald" as const;
   if (status === "killed") return "slate" as const;
   return "amber" as const;
 }
@@ -1338,7 +1338,7 @@ export function CommandToolScreen() {
           {data?.items.length ? (
             data.items.map((entry) => (
               <div key={entry.id} className="space-y-2">
-                <div className="ml-auto max-w-[85%] rounded-[22px] rounded-br-md bg-cyan px-4 py-3 text-sm font-medium text-bg-deep">
+                <div className="ml-auto max-w-[85%] rounded-[22px] rounded-br-md bg-emerald px-4 py-3 text-sm font-medium text-bg-deep">
                   {entry.command}
                 </div>
                 <div className="max-w-[88%] rounded-[22px] rounded-bl-md border border-border bg-bg-deep/80 px-4 py-3 text-sm text-text">
@@ -1386,7 +1386,7 @@ export function CommandToolScreen() {
             <button
               type="button"
               onClick={() => void sendCommand(message)}
-              className="min-h-11 rounded-2xl border border-cyan/30 bg-cyan px-5 text-sm font-semibold text-bg-deep"
+              className="min-h-11 rounded-2xl border border-emerald/30 bg-emerald px-5 text-sm font-semibold text-bg-deep"
             >
               Send
             </button>

@@ -308,7 +308,7 @@ function AgentCard({ agent }: { agent: FleetAgent }) {
                     <span
                       className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${
                         w.status === "in_progress"
-                          ? "bg-cyan/15 text-cyan"
+                          ? "bg-emerald/15 text-emerald"
                           : w.status === "blocked"
                           ? "bg-red/15 text-red"
                           : "bg-white/5 text-text-dim"

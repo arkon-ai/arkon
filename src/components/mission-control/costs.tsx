@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 // Brand bible §5.1: Void/S1/S2 surfaces + Quarn Emerald single brand color
 // (one job per section) + semantic locked (warning amber / danger red).
-// No cyan/pink/blue/purple — they are reserved for non-Arkon palettes.
+// No pink/blue/purple — they are reserved for non-Arkon palettes.
 const C = {
   emerald: "#00D47E",      // Quarn Emerald — brand
   emeraldLight: "#3DEEA0", // Quarn Light — secondary brand series, healthy

@@ -245,7 +245,7 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
 }
 
 /* ─────────────────────────────────────────
-   EventsAreaChart — 7-day cyan area chart
+   EventsAreaChart — 7-day emerald area chart
 ───────────────────────────────────────── */
 export function EventsAreaChart({ data }: { data: Array<{ day: string; events: number }> }) {
   return (

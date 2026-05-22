@@ -325,7 +325,7 @@ function BulkPurgeConfirmModal({
       </p>
 
       {progress && (
-        <p className="mt-3 text-sm font-medium text-cyan">{progress}</p>
+        <p className="mt-3 text-sm font-medium text-emerald">{progress}</p>
       )}
 
       <div className="mt-5 flex justify-end gap-3">
@@ -353,7 +353,7 @@ function Toast({ message, type, onDone }: { message: string; type: "success" | "
     return () => clearTimeout(t);
   }, [onDone]);
 
-  const bg = type === "success" ? "bg-green/15 border-green/30 text-green" : type === "error" ? "bg-red/15 border-red/30 text-red" : "bg-cyan/15 border-cyan/30 text-cyan";
+  const bg = type === "success" ? "bg-green/15 border-green/30 text-green" : type === "error" ? "bg-red/15 border-red/30 text-red" : "bg-emerald/15 border-emerald/30 text-emerald";
 
   return (
     <div className={`fixed bottom-6 right-6 z-50 rounded-xl border px-4 py-3 text-sm font-medium shadow-lg ${bg}`}>
@@ -687,12 +687,12 @@ function RecommendedActionsPanel({
   if (actions.length === 0) return null;
 
   return (
-    <div className="mt-3 rounded-xl border border-cyan/20 bg-cyan/[0.03] px-3 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-cyan">Recommended Actions</p>
+    <div className="mt-3 rounded-xl border border-emerald/20 bg-emerald/[0.03] px-3 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald">Recommended Actions</p>
       <ul className="mt-2 space-y-1.5">
         {actions.map((action, i) => (
           <li key={i} className="flex items-center gap-2 text-xs text-text-dim">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-cyan/30 text-[9px] font-bold text-cyan">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-emerald/30 text-[9px] font-bold text-emerald">
               {i + 1}
             </span>
             {action.actionType === "purge" ? (
@@ -750,7 +750,7 @@ function ThreatEventRow({
               ? "border-red/50 bg-red/[0.06]"
               : "border-red/30 bg-red/[0.03] card-hover"
             : selected
-              ? "border-cyan/40 bg-cyan/[0.03]"
+              ? "border-emerald/40 bg-emerald/[0.03]"
               : "border-[var(--border)] bg-[var(--bg-surface)] card-hover"
       }`}
     >
@@ -761,7 +761,7 @@ function ThreatEventRow({
             type="checkbox"
             checked={selected}
             onChange={() => onToggleSelect(event.id)}
-            className="h-4 w-4 rounded border-[var(--border)] bg-transparent accent-cyan"
+            className="h-4 w-4 rounded border-[var(--border)] bg-transparent accent-emerald"
           />
         </label>
 
@@ -1105,7 +1105,7 @@ export function SecurityScreen() {
                 onClick={() => setRange(r)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                   range === r
-                    ? "bg-cyan/15 text-cyan"
+                    ? "bg-emerald/15 text-emerald"
                     : "text-text-dim hover:bg-white/5 hover:text-text"
                 }`}
               >
@@ -1176,7 +1176,7 @@ export function SecurityScreen() {
             type="checkbox"
             checked={showDismissed}
             onChange={(e) => setShowDismissed(e.target.checked)}
-            className="h-3.5 w-3.5 accent-cyan"
+            className="h-3.5 w-3.5 accent-emerald"
           />
           Show dismissed
         </label>
@@ -1184,7 +1184,7 @@ export function SecurityScreen() {
         {/* Bulk Actions */}
         {selectedIds.size > 0 && (
           <div className="ml-auto flex items-center gap-2">
-            <span className="text-sm font-medium text-cyan">{selectedIds.size} selected</span>
+            <span className="text-sm font-medium text-emerald">{selectedIds.size} selected</span>
             <button
               type="button"
               onClick={handleBulkPurge}
@@ -1212,7 +1212,7 @@ export function SecurityScreen() {
                 type="checkbox"
                 checked={allSelected}
                 onChange={selectAll}
-                className="h-4 w-4 accent-cyan"
+                className="h-4 w-4 accent-emerald"
               />
             </label>
           )}

@@ -62,7 +62,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="border-l-2 border-cyan pl-3 text-sm font-semibold uppercase tracking-[0.18em] text-text-dim">
+        <h2 className="border-l-2 border-emerald pl-3 text-sm font-semibold uppercase tracking-[0.18em] text-text-dim">
           Trend Analysis
         </h2>
         <div className="flex gap-1 rounded-xl border border-border p-1">
@@ -70,7 +70,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
             type="button"
             onClick={() => setRange("7d")}
             className={`btn-press rounded-lg px-3 py-1 text-xs font-semibold transition ${
-              range === "7d" ? "bg-cyan/15 text-cyan" : "text-text-dim hover:text-text"
+              range === "7d" ? "bg-emerald/15 text-emerald" : "text-text-dim hover:text-text"
             }`}
           >
             7D
@@ -79,7 +79,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
             type="button"
             onClick={() => setRange("30d")}
             className={`btn-press rounded-lg px-3 py-1 text-xs font-semibold transition ${
-              range === "30d" ? "bg-cyan/15 text-cyan" : "text-text-dim hover:text-text"
+              range === "30d" ? "bg-emerald/15 text-emerald" : "text-text-dim hover:text-text"
             }`}
           >
             30D
@@ -94,7 +94,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
           <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-text-dim">received</div>
         </div>
         <div className="card-hover rounded-2xl border border-border bg-bg-card px-3 py-2">
-          <div className="text-sm font-semibold text-cyan">{formatCompact(totals.sent)}</div>
+          <div className="text-sm font-semibold text-emerald">{formatCompact(totals.sent)}</div>
           <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-text-dim">sent</div>
         </div>
         <div className="card-hover rounded-2xl border border-border bg-bg-card px-3 py-2">

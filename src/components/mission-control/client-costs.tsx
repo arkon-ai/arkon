@@ -55,7 +55,7 @@ export function ClientCosts() {
               key={r.value}
               onClick={() => setRange(r.value)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                range === r.value ? "bg-cyan-500/20 text-cyan-400" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                range === r.value ? "bg-emerald-500/20 text-emerald-400" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
               {r.label}
@@ -71,10 +71,10 @@ export function ClientCosts() {
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Total Cost</p>
           <p className="mt-1 text-2xl font-bold text-amber-400">${data.summary.total_cost_usd.toFixed(4)}</p>
         </div>
-        <div className="relative card-hover rounded-2xl border border-cyan-500/20 bg-[var(--bg-primary)] p-4">
+        <div className="relative card-hover rounded-2xl border border-emerald-500/20 bg-[var(--bg-primary)] p-4">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Total Tokens</p>
-          <p className="mt-1 text-2xl font-bold text-cyan-400">{data.summary.total_tokens.toLocaleString()}</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-400">{data.summary.total_tokens.toLocaleString()}</p>
         </div>
         <div className="relative card-hover rounded-2xl border border-[var(--accent)]/20 bg-[var(--bg-primary)] p-4">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
@@ -98,7 +98,7 @@ export function ClientCosts() {
                     {day}: ${d.cost.toFixed(4)}
                   </div>
                   <div
-                    className="w-full rounded-t bg-gradient-to-t from-cyan-600 to-cyan-400 transition-all group-hover:from-cyan-500 group-hover:to-cyan-300"
+                    className="w-full rounded-t bg-gradient-to-t from-emerald-600 to-emerald-400 transition-all group-hover:from-emerald-500 group-hover:to-emerald-300"
                     style={{ height: `${h}%`, minHeight: 2 }}
                   />
                 </div>

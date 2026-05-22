@@ -518,7 +518,7 @@ export function AnalyticsScreen() {
                 onClick={() => setRange(r)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                   range === r
-                    ? "bg-cyan/15 text-cyan"
+                    ? "bg-emerald/15 text-emerald"
                     : "text-text-dim hover:bg-white/5 hover:text-text"
                 }`}
               >
