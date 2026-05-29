@@ -1,0 +1,5 @@
+# Changes to CI/automation require explicit owner review. Guards against the
+# silent deletion of review workflows from the default branch (which disables
+# @claude comment-triggers entirely). Enforced when branch protection has
+# "Require review from Code Owners" enabled.
+/.github/ @brynnclaw

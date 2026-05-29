@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # Auto-PR GitHub Actions version bumps (SHA-pinned actions get updated here).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "github-actions"
