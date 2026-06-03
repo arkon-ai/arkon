@@ -1,0 +1,68 @@
+# CodeRabbit config — arkon-ai / Heritage-Of-Faith org standard
+# Deploy as `.coderabbit.yaml` in each repo root.
+# Replaces the dual claude-review.yml + claude-security.yml @claude workflows.
+# Security + code review come in ONE consolidated pass (no second API call).
+# Docs: https://docs.coderabbit.ai/reference/configuration
+
+language: "en-US"
+
+# One reviewer, two lenses. Security tooling is ON by default (see `tools`).
+tone_instructions: >-
+  Senior reviewer. Flag security issues (OWASP Top 10: injection, broken
+  authz/tenant-scoping, SSRF, hardcoded secrets, unsafe deserialization,
+  dangerous exec, XSS) AND correctness bugs. Be concise; skip pure style
+  nits unless they cause real risk.
+
+reviews:
+  # 'chill' = fewer nitpicks (you were drowning in re-review noise on @claude).
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false              # don't burn reviews on draft PRs
+    base_branches:
+      - "main"
+      - "master"
+
+  # Keep CodeRabbit out of internal planning + generated noise.
+  # (.planning/ stays off review per no-internal-docs-github doctrine.)
+  path_filters:
+    - "!**/.planning/**"
+    - "!**/*.lock"
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/node_modules/**"
+    - "!**/*.min.*"
+    - "!**/pnpm-lock.yaml"
+    - "!**/package-lock.json"
+
+  path_instructions:
+    - path: "**/*.{ts,tsx,js,mjs,py,go}"
+      instructions: >-
+        Prioritise tenant-scoping / authz checks, secret handling, and
+        injection-safe queries. Multi-tenant code: verify tenantId is
+        enforced on every data path.
+    - path: "**/*.{yml,yaml,tf,Dockerfile}"
+      instructions: >-
+        Review for insecure defaults, exposed ports, plaintext secrets,
+        and over-broad IAM / permissions.
+
+  # Security/SAST tools (all enabled by default; listed for visibility).
+  tools:
+    gitleaks:
+      enabled: true            # secret scanning
+    checkov:
+      enabled: true            # IaC SAST
+    semgrep:
+      enabled: true            # SAST patterns
+    # Trivy, TruffleHog, OSV-Scanner also default-on.
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  learnings:
+    scope: "auto"              # let CodeRabbit learn repo conventions over time
