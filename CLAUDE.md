@@ -78,3 +78,38 @@ Audit transitive cost: every new dep ships its own deps.
 ### Rule 14 — Absolute dates only
 No "today", "tomorrow", "last week" in code, comments, commit messages, or task descriptions.
 They rot. Write ISO-8601 (`2026-05-11`) and let future-you read it cold.
+
+## Arkon Design System (canonical — read before ANY UI work)
+
+This repo is **Arkon** — the **master / parent** of the design system (operator
+command center). **One Arkon design system; three surfaces (Arkon · ArkonOS ·
+ArkonHelm) inherit it wholesale; the only per-product variation is identity
+(wordmark + glyph + switcher chip).** This app additionally hosts the **product
+switcher** (Arkon `Cmd` · ArkonOS `Chat` · ArkonHelm `Tasks`) and the four-pillar
+sidebar IA (Provision · Govern · Observe · Kill).
+
+- **Canonical contract:** `warden-memory/docs/arkon-design-system.md`. Identity
+  authority: `ARKON-BRAND-IDENTITY-v3.md`. Invoke the **`arkon-ui`** skill on any
+  UI / styling / component / redesign task — it loads the contract and runs the
+  build→verify loop before `pr-review-loop`.
+- **Build to the kit:** compose from the 5 primitives (MetricCard / StatusPill /
+  PageHeader / EmptyState / KillModal); reference `var(--*)` tokens — never
+  hardcode hex/px. This repo has **no component kit yet** (each component
+  hand-rolls token usage) — extract an `.ak-*`/kit layer from
+  `arkon-os/client/src/styles/arkon-kit.css` rather than perpetuating one-offs.
+- **Design laws:** numerals in Geist Mono (`tabular-nums`); Quarn does ONE job
+  per region (H1 never emerald; active-nav = emerald-text-on-quiet-fill, not
+  emerald-fill); borders not glows carry state (no glows, no purple); status
+  colour semantic only; sentence case headings/buttons; dark-first / Void;
+  kill = `octagon-x` in Danger + a 350ms deliberate confirm modal; no emoji
+  (Lucide only).
+- **NEVER resurrect** old/redundant/historic styles — retired language ("Arkon
+  Workspace" / "AI Control Plane" / "AI Governance Platform" → "Arkon" / "AI
+  Workforce Platform"), the stale `Inter` fallback (Geist is primary), glows,
+  purple, `--cyan/--purple/--green/--amber` aliases. Migrate off them (backlog
+  in the canonical doc §9), don't copy them.
+- **Identity gaps to fix when chrome is touched:** the sidebar brand is
+  text-only ("Arkon / Workspace") — wire the master `arkon-glyph.svg` and drop
+  "Workspace"; `public/icon-192.svg` is a stale pre-rebrand favicon — regenerate
+  from the canonical A mark (details in the canonical doc §6).
+- **Verify** UI visually (headless screenshot) before opening the PR.
