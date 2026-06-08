@@ -62,11 +62,11 @@ interface NodeConfig {
 // ── Node type colors ──────────────────────────────────────────────────────────
 
 const NODE_STYLES: Record<string, { bg: string; border: string; icon: string; accent: string }> = {
-  "manual-trigger": { bg: "#1a1a2e", border: "#00D47E", icon: "\u25B6", accent: "#00D47E" },
-  "cron-trigger":   { bg: "#1a1a2e", border: "#06b6d4", icon: "\u23F0", accent: "#06b6d4" },
+  "manual-trigger": { bg: "#1a1a2e", border: "var(--quarn)", icon: "\u25B6", accent: "var(--quarn)" },
+  "cron-trigger":   { bg: "#1a1a2e", border: "var(--info)", icon: "\u23F0", accent: "var(--info)" },
   "http-request":   { bg: "#1a1a2e", border: "#3b82f6", icon: "\u21C5", accent: "#3b82f6" },
-  "condition":      { bg: "#1a1a2e", border: "#f59e0b", icon: "\u2747", accent: "#f59e0b" },
-  "notify":         { bg: "#1a1a2e", border: "#00D47E", icon: "\u2709", accent: "#00D47E" },
+  "condition":      { bg: "#1a1a2e", border: "var(--warning)", icon: "\u2747", accent: "var(--warning)" },
+  "notify":         { bg: "#1a1a2e", border: "var(--quarn)", icon: "\u2709", accent: "var(--quarn)" },
 };
 
 // ── Custom Node Components ────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ function ManualTriggerNode({ data, selected }: NodeProps) {
       style={{
         background: s.bg,
         border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
       <div className="flex items-center gap-2 mb-1">
@@ -102,7 +102,7 @@ function CronTriggerNode({ data, selected }: NodeProps) {
       style={{
         background: s.bg,
         border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
       <div className="flex items-center gap-2 mb-1">
@@ -127,7 +127,7 @@ function HttpRequestNode({ data, selected }: NodeProps) {
       style={{
         background: s.bg,
         border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
       <Handle type="target" position={Position.Top} className="!bg-[var(--info)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
@@ -135,7 +135,7 @@ function HttpRequestNode({ data, selected }: NodeProps) {
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>HTTP</span>
         {d.method && (
-          <span className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded" style={{ background: `${s.accent}20`, color: s.accent }}>
+          <span className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded" style={{ background: `color-mix(in srgb, ${s.accent} 12.5%, transparent)`, color: s.accent }}>
             {d.method}
           </span>
         )}
@@ -156,7 +156,7 @@ function ConditionNode({ data, selected }: NodeProps) {
       style={{
         background: s.bg,
         border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
       <Handle type="target" position={Position.Top} className="!bg-[var(--warning)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
@@ -189,7 +189,7 @@ function NotifyNode({ data, selected }: NodeProps) {
       style={{
         background: s.bg,
         border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px ${s.border}40` : "0 4px 12px rgba(0,0,0,0.3)",
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
       }}
     >
       <Handle type="target" position={Position.Top} className="!bg-[var(--accent)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
@@ -197,7 +197,7 @@ function NotifyNode({ data, selected }: NodeProps) {
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Notify</span>
         {d.channel && (
-          <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded" style={{ background: `${s.accent}20`, color: s.accent }}>
+          <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded" style={{ background: `color-mix(in srgb, ${s.accent} 12.5%, transparent)`, color: s.accent }}>
             {d.channel}
           </span>
         )}
@@ -420,11 +420,11 @@ function NodeConfigPanel({
 // ── Add Node Palette ──────────────────────────────────────────────────────────
 
 const PALETTE_ITEMS = [
-  { type: "manual-trigger", label: "Manual Trigger", icon: "\u25B6", color: "#00D47E", description: "Start this workflow by clicking Run Now" },
-  { type: "cron-trigger", label: "Cron Trigger", icon: "\u23F0", color: "#06b6d4", description: "Run this workflow on a schedule (e.g. every 5 minutes)" },
+  { type: "manual-trigger", label: "Manual Trigger", icon: "\u25B6", color: "var(--quarn)", description: "Start this workflow by clicking Run Now" },
+  { type: "cron-trigger", label: "Cron Trigger", icon: "\u23F0", color: "var(--info)", description: "Run this workflow on a schedule (e.g. every 5 minutes)" },
   { type: "http-request", label: "HTTP Request", icon: "\u21C5", color: "#3b82f6", description: "Make an API call to any URL" },
-  { type: "condition", label: "Condition", icon: "\u2747", color: "#f59e0b", description: "Branch the workflow based on a condition (if/else)" },
-  { type: "notify", label: "Notify", icon: "\u2709", color: "#00D47E", description: "Send a notification via Telegram or log" },
+  { type: "condition", label: "Condition", icon: "\u2747", color: "var(--warning)", description: "Branch the workflow based on a condition (if/else)" },
+  { type: "notify", label: "Notify", icon: "\u2709", color: "var(--quarn)", description: "Send a notification via Telegram or log" },
 ];
 
 function NodePalette({ onAdd }: { onAdd: (type: string) => void }) {
@@ -440,8 +440,8 @@ function NodePalette({ onAdd }: { onAdd: (type: string) => void }) {
             onMouseLeave={() => setHoveredItem(null)}
             className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition hover:scale-105 active:scale-95"
             style={{
-              borderColor: `${item.color}40`,
-              background: `${item.color}10`,
+              borderColor: `color-mix(in srgb, ${item.color} 25%, transparent)`,
+              background: `color-mix(in srgb, ${item.color} 6.25%, transparent)`,
               color: item.color,
             }}
           >
@@ -471,8 +471,8 @@ const nodeTypes = {
 
 const defaultEdgeOptions = {
   animated: true,
-  style: { stroke: "#8888A0", strokeWidth: 2 },
-  markerEnd: { type: MarkerType.ArrowClosed, color: "#8888A0" },
+  style: { stroke: "var(--fg-2)", strokeWidth: 2 },
+  markerEnd: { type: MarkerType.ArrowClosed, color: "var(--fg-2)" },
 };
 
 export function WorkflowBuilder({
@@ -649,10 +649,10 @@ export function WorkflowBuilder({
         proOptions={{ hideAttribution: true }}
         className="bg-[var(--bg-primary)]"
       >
-        <Background color="#1E1E2A" gap={20} size={1} />
+        <Background color="var(--border)" gap={20} size={1} />
         <MiniMap
-          nodeStrokeColor="#1E1E2A"
-          nodeColor="#111118"
+          nodeStrokeColor="var(--border)"
+          nodeColor="var(--surface-1)"
           maskColor="rgba(10,10,20,0.8)"
           className="!bg-[var(--bg-surface)] !border-[var(--border)]"
         />

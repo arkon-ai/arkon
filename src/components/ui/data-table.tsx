@@ -270,7 +270,7 @@ export function DataTable<T>({
 
       {/* Bulk action bar */}
       {selected.size > 0 && bulkActions ? (
-        <div className="flex items-center gap-3 border-b border-[var(--accent)]/20 bg-[rgba(0,212,126,0.04)] px-4 py-2">
+        <div className="flex items-center gap-3 border-b border-[var(--accent)]/20 bg-[rgba(var(--quarn-rgb),0.04)] px-4 py-2">
           <span className="text-[12px] font-medium text-[var(--accent)]">
             {selected.size} selected
           </span>
@@ -353,7 +353,7 @@ export function DataTable<T>({
                     key={key}
                     className={`${rowHeight} border-b border-[var(--border)]/30 transition ${
                       isSelected
-                        ? "bg-[rgba(0,212,126,0.04)]"
+                        ? "bg-[rgba(var(--quarn-rgb),0.04)]"
                         : "hover:bg-white/[0.015]"
                     } ${onRowClick ? "cursor-pointer" : ""}`}
                     onClick={() => onRowClick?.(row)}

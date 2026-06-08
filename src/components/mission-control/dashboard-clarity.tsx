@@ -23,7 +23,7 @@ export function MetricTooltip({ text }: { text: string }) {
       {open && (
         <div className="absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2.5 text-xs leading-relaxed text-[#cbd5e1] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
           {text}
-          <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#1E1E2A]" />
+          <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[var(--border)]" />
         </div>
       )}
     </span>
@@ -72,7 +72,7 @@ export function HealthGauge({
           cy={center}
           r={radius}
           fill="none"
-          stroke="#1E1E2A"
+          stroke="var(--border)"
           strokeWidth={strokeW}
         />
         {/* Score arc */}
@@ -95,7 +95,7 @@ export function HealthGauge({
           x={center}
           y={scoreY}
           textAnchor="middle"
-          className="fill-[#E4E4ED] font-bold"
+          className="fill-[var(--fg-1)] font-bold"
           style={{ fontSize: scoreFontSize, fontWeight: 800 }}
         >
           {score}
@@ -104,7 +104,7 @@ export function HealthGauge({
           x={center}
           y={labelY}
           textAnchor="middle"
-          className="fill-[#8888A0] uppercase tracking-widest"
+          className="fill-[var(--fg-2)] uppercase tracking-widest"
           style={{ fontSize: labelFontSize, letterSpacing: "0.15em" }}
         >
           {gradeLabel}
@@ -117,9 +117,9 @@ export function HealthGauge({
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
             Score Breakdown
           </p>
-          <BreakdownRow label="Agent Uptime" value={breakdown.agents} max={25} color="#00D47E" />
-          <BreakdownRow label="Threat Level" value={breakdown.threats} max={25} color="#00D47E" />
-          <BreakdownRow label="Budget Status" value={breakdown.budget} max={25} color="#f59e0b" />
+          <BreakdownRow label="Agent Uptime" value={breakdown.agents} max={25} color="var(--quarn)" />
+          <BreakdownRow label="Threat Level" value={breakdown.threats} max={25} color="var(--quarn)" />
+          <BreakdownRow label="Budget Status" value={breakdown.budget} max={25} color="var(--warning)" />
           <BreakdownRow label="Infrastructure" value={breakdown.infra} max={25} color="#3b82f6" />
         </div>
       )}

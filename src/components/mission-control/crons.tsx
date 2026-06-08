@@ -186,7 +186,7 @@ function CronCard({ job, onMessage, onAction }: {
         <div className="flex shrink-0 gap-1.5">
           <button
             onClick={onMessage}
-            className="rounded-xl border border-[var(--accent)]/30 px-3 py-1.5 text-xs font-semibold text-[var(--accent)] hover:bg-[rgba(0,212,126,0.08)] transition"
+            className="rounded-xl border border-[var(--accent)]/30 px-3 py-1.5 text-xs font-semibold text-[var(--accent)] hover:bg-[rgba(var(--quarn-rgb),0.08)] transition"
           >
             Message Agent
           </button>
@@ -219,7 +219,7 @@ function CronCard({ job, onMessage, onAction }: {
 
       {/* Error */}
       {job.last_error && (
-        <div className="mt-2 rounded-xl border border-red-500/20 bg-[rgba(239,68,68,0.05)] px-3 py-2 text-xs text-red-400">
+        <div className="mt-2 rounded-xl border border-red-500/20 bg-[rgba(var(--danger-rgb),0.05)] px-3 py-2 text-xs text-red-400">
           Warning: {job.last_error}
         </div>
       )}
@@ -265,7 +265,7 @@ function CronCard({ job, onMessage, onAction }: {
               )}
               <button
                 onClick={() => onAction("delete")}
-                className="rounded-xl border border-red-500/20 px-3 py-1.5 text-xs text-red-400 hover:bg-[rgba(239,68,68,0.08)] transition"
+                className="rounded-xl border border-red-500/20 px-3 py-1.5 text-xs text-red-400 hover:bg-[rgba(var(--danger-rgb),0.08)] transition"
               >
                 Delete
               </button>

@@ -121,7 +121,7 @@ export function NuclearGatewayStopModal({
         tabIndex={-1}
         onKeyDown={(e) => { if (e.key === "Escape" && phase !== "executing") onClose(); }}
       />
-      <div className="relative w-full max-w-lg rounded-2xl border-2 border-amber-500/50 bg-[var(--bg-surface)] shadow-[0_20px_80px_rgba(245,158,11,0.2)]">
+      <div className="relative w-full max-w-lg rounded-2xl border-2 border-amber-500/50 bg-[var(--bg-surface)] shadow-[0_20px_80px_rgba(var(--warning-rgb),0.2)]">
         {/* Hazard header */}
         <div className="flex items-center gap-3 border-b border-amber-500/30 bg-amber-500/5 px-6 py-4">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/15 ring-2 ring-amber-500/30">

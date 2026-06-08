@@ -17,14 +17,14 @@ interface StatusBadgeProps {
 }
 
 const statusConfig: Record<BadgeStatus, { bg: string; text: string; dot: string; pulse?: boolean }> = {
-  running:   { bg: "bg-[rgba(0,212,126,0.15)]", text: "text-[var(--accent)]",  dot: "bg-[var(--accent)]",  pulse: true },
-  healthy:   { bg: "bg-[rgba(16,185,129,0.15)]", text: "text-[#10B981]",  dot: "bg-[#10B981]" },
-  paused:    { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[#8888A0]" },
-  scheduled: { bg: "bg-[rgba(6,182,212,0.15)]",  text: "text-[#06B6D4]",  dot: "bg-[#06B6D4]" },
-  degraded:  { bg: "bg-[rgba(245,158,11,0.15)]", text: "text-[var(--warning)]",  dot: "bg-[#F59E0B]",  pulse: true },
-  failed:    { bg: "bg-[rgba(239,68,68,0.15)]",  text: "text-[var(--danger)]",  dot: "bg-[#EF4444]" },
-  offline:   { bg: "bg-[rgba(85,85,102,0.15)]",  text: "text-[var(--text-tertiary)]",  dot: "bg-[#555566]" },
-  idle:      { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[#8888A0]" },
+  running:   { bg: "bg-[rgba(var(--quarn-rgb),0.15)]", text: "text-[var(--accent)]",  dot: "bg-[var(--accent)]",  pulse: true },
+  healthy:   { bg: "bg-[rgba(var(--success-rgb),0.15)]", text: "text-[var(--success)]",  dot: "bg-[var(--success)]" },
+  paused:    { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[var(--fg-2)]" },
+  scheduled: { bg: "bg-[rgba(var(--info-rgb),0.15)]",  text: "text-[var(--info)]",  dot: "bg-[var(--info)]" },
+  degraded:  { bg: "bg-[rgba(var(--warning-rgb),0.15)]", text: "text-[var(--warning)]",  dot: "bg-[var(--warning)]",  pulse: true },
+  failed:    { bg: "bg-[rgba(var(--danger-rgb),0.15)]",  text: "text-[var(--danger)]",  dot: "bg-[var(--danger)]" },
+  offline:   { bg: "bg-[rgba(85,85,102,0.15)]",  text: "text-[var(--text-tertiary)]",  dot: "bg-[var(--fg-3)]" },
+  idle:      { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[var(--fg-2)]" },
 };
 
 export function StatusBadge({ status, label, className = "" }: StatusBadgeProps) {

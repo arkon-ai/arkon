@@ -12,10 +12,10 @@ import { SectionDescription } from "./dashboard-clarity";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const C = {
-  green: "#00D47E", purple: "#00D47E", amber: "#f59e0b",
-  red: "#ef4444", slate: "#8888A0", teal: "#14b8a6",
+  green: "var(--quarn)", purple: "var(--quarn)", amber: "var(--warning)",
+  red: "var(--danger)", slate: "var(--fg-2)", teal: "#14b8a6",
   pink: "#ec4899", blue: "#3b82f6",
-  grid: "#1E1E2A", tooltipBg: "#111118",
+  grid: "var(--border)", tooltipBg: "var(--surface-1)",
 };
 const MODEL_COLORS = [C.green, C.purple, C.amber, C.teal, C.pink, C.blue, C.red, C.slate];
 
@@ -136,7 +136,7 @@ export function BenchmarksDashboard() {
           {(["overview", "compare"] as const).map((t) => (
             <button key={t} type="button" onClick={() => setTab(t)}
               className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                tab === t ? "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                tab === t ? "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >{t === "overview" ? "Overview" : "Compare Models"}</button>
           ))}

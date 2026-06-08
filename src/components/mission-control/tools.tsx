@@ -451,8 +451,8 @@ export function ApprovalsToolScreen() {
                 key={item.id}
                 className={`rounded-[24px] transition ${
                   isSelected ? "ring-2 ring-cyan/40" :
-                  offset > 40 ? "shadow-[0_0_40px_rgba(34,197,94,0.15)]" :
-                  offset < -40 ? "shadow-[0_0_40px_rgba(239,68,68,0.18)]" : ""
+                  offset > 40 ? "shadow-[0_0_40px_rgba(var(--quarn-rgb),0.15)]" :
+                  offset < -40 ? "shadow-[0_0_40px_rgba(var(--danger-rgb),0.18)]" : ""
                 }`}
               >
                 <Card className="transition-transform">
@@ -980,12 +980,12 @@ export function TasksToolScreen() {
 
 const itemTypeColors: Record<string, string> = {
   linkedin: "#3b82f6",
-  email: "#00D47E",
-  campaign: "#00D47E",
-  confession: "#f59e0b",
-  task: "#8888A0",
-  event: "#22c55e",
-  reminder: "#ef4444",
+  email: "var(--quarn)",
+  campaign: "var(--quarn)",
+  confession: "var(--warning)",
+  task: "var(--fg-2)",
+  event: "var(--quarn)",
+  reminder: "var(--danger)",
 };
 
 function getWeekStart(date = new Date()) {
@@ -1110,7 +1110,7 @@ export function CalendarToolScreen() {
                       <div key={item.id} className="flex items-center gap-2 text-xs text-text">
                         <span
                           className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: item.color ?? itemTypeColors[item.item_type] ?? "#8888A0" }}
+                          style={{ backgroundColor: item.color ?? itemTypeColors[item.item_type] ?? "var(--fg-2)" }}
                         />
                         <span className="truncate">{item.title}</span>
                       </div>

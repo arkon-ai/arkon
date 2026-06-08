@@ -217,7 +217,7 @@ export function CommandPalette({
                       key={item.id}
                       value={`${item.label} ${item.keywords ?? ""}`}
                       onSelect={() => select(item)}
-                      className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-[var(--text-secondary)] transition data-[selected=true]:bg-[rgba(0,212,126,0.08)] data-[selected=true]:text-[var(--text-primary)]"
+                      className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-[var(--text-secondary)] transition data-[selected=true]:bg-[rgba(var(--quarn-rgb),0.08)] data-[selected=true]:text-[var(--text-primary)]"
                     >
                       <Icon className="h-4 w-4 shrink-0 [[data-selected=true]_&]:text-[var(--accent)]" />
                       <span className="flex-1 truncate">{item.label}</span>

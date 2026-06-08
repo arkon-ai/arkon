@@ -81,10 +81,10 @@ interface SecurityData {
 /* ─── Helpers ───────────────────────────────────────────── */
 
 const SEVERITY_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
-  critical: { color: "#ef4444", bg: "rgba(239,68,68,0.1)", label: "CRITICAL" },
-  high: { color: "#f59e0b", bg: "rgba(245,158,11,0.1)", label: "HIGH" },
-  medium: { color: "#00D47E", bg: "rgba(0,212,126,0.1)", label: "MEDIUM" },
-  low: { color: "#8888A0", bg: "rgba(100,116,139,0.1)", label: "LOW" },
+  critical: { color: "var(--danger)", bg: "rgba(var(--danger-rgb), 0.1)", label: "CRITICAL" },
+  high: { color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)", label: "HIGH" },
+  medium: { color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.1)", label: "MEDIUM" },
+  low: { color: "var(--fg-2)", bg: "rgba(100,116,139,0.1)", label: "LOW" },
 };
 
 const CLASS_LABELS: Record<string, string> = {
@@ -94,9 +94,9 @@ const CLASS_LABELS: Record<string, string> = {
 };
 
 const CLASS_COLORS: Record<string, string> = {
-  prompt_injection: "#ef4444",
-  shell_command: "#f59e0b",
-  credential_leak: "#00D47E",
+  prompt_injection: "var(--danger)",
+  shell_command: "var(--warning)",
+  credential_leak: "var(--quarn)",
 };
 
 /* ── Threat Class Explainers (Step 6.1) ── */
@@ -489,25 +489,25 @@ function ThreatTimeline({ data }: { data: TimelineDay[] }) {
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
           <defs>
             <linearGradient id="critGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--danger)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--danger)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="highGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--warning)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--warning)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="medGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#00D47E" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" vertical={false} />
-          <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+          <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
           <Tooltip content={<SecurityTooltip />} />
-          <Area type="monotone" dataKey="critical" stackId="1" stroke="#ef4444" fill="url(#critGrad)" strokeWidth={2} dot={false} />
-          <Area type="monotone" dataKey="high" stackId="1" stroke="#f59e0b" fill="url(#highGrad)" strokeWidth={1.5} dot={false} />
-          <Area type="monotone" dataKey="medium" stackId="1" stroke="#00D47E" fill="url(#medGrad)" strokeWidth={1.5} dot={false} />
+          <Area type="monotone" dataKey="critical" stackId="1" stroke="var(--danger)" fill="url(#critGrad)" strokeWidth={2} dot={false} />
+          <Area type="monotone" dataKey="high" stackId="1" stroke="var(--warning)" fill="url(#highGrad)" strokeWidth={1.5} dot={false} />
+          <Area type="monotone" dataKey="medium" stackId="1" stroke="var(--quarn)" fill="url(#medGrad)" strokeWidth={1.5} dot={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -518,7 +518,7 @@ function ClassBreakdown({ data }: { data: ClassCount[] }) {
   const chartData = data.map((d) => ({
     name: CLASS_LABELS[d.threat_class] ?? d.threat_class,
     count: d.count,
-    color: CLASS_COLORS[d.threat_class] ?? "#8888A0",
+    color: CLASS_COLORS[d.threat_class] ?? "var(--fg-2)",
   }));
 
   return (
@@ -530,9 +530,9 @@ function ClassBreakdown({ data }: { data: ClassCount[] }) {
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" horizontal={false} />
-            <XAxis dataKey="name" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+            <XAxis dataKey="name" tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip content={<SecurityTooltip />} />
             <Bar dataKey="count" radius={[6, 6, 0, 0]}>
               {chartData.map((entry, i) => (
@@ -559,7 +559,7 @@ function TopAgentsCard({ data }: { data: TopAgent[] }) {
             <span className="text-sm text-text">{agent.agent_name}</span>
             <div className="flex items-center gap-3">
               {agent.severe_count > 0 && (
-                <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444" }}>
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "rgba(var(--danger-rgb), 0.15)", color: "var(--danger)" }}>
                   {agent.severe_count} severe
                 </span>
               )}
@@ -589,7 +589,7 @@ function ThreatHealthBar({ total, threats }: { total: number; threats: number })
           </div>
           <div className="text-right">
             <p className="text-sm text-text-dim">{formatCompact(total)} total events</p>
-            <p className="text-sm" style={{ color: threats > 0 ? "#ef4444" : "#22c55e" }}>
+            <p className="text-sm" style={{ color: threats > 0 ? "var(--danger)" : "var(--quarn)" }}>
               {formatCompact(threats)} flagged
             </p>
           </div>
@@ -781,7 +781,7 @@ function ThreatEventRow({
                 {config.label}
               </span>
               {classes.map((cls) => (
-                <span key={cls} className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: (CLASS_COLORS[cls] ?? "#8888A0") + "15", color: CLASS_COLORS[cls] ?? "#8888A0" }}>
+                <span key={cls} className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: (CLASS_COLORS[cls] ?? "var(--fg-2)") + "15", color: CLASS_COLORS[cls] ?? "var(--fg-2)" }}>
                   {CLASS_LABELS[cls] ?? cls}
                 </span>
               ))}
@@ -851,7 +851,7 @@ function ThreatEventRow({
               {matches.map((match, i) => (
                 <div key={i} className="rounded-lg bg-white/[0.02] px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: CLASS_COLORS[match.class] + "22", color: CLASS_COLORS[match.class] ?? "#8888A0" }}>
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: CLASS_COLORS[match.class] + "22", color: CLASS_COLORS[match.class] ?? "var(--fg-2)" }}>
                       {match.class}
                     </span>
                     <span className="text-xs font-medium text-text">{match.pattern}</span>

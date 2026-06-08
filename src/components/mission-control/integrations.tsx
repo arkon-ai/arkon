@@ -173,7 +173,7 @@ function OverflowMenu({
           <div className="my-1 border-t border-[var(--border)]" />
           <button
             onClick={() => { onRevoke(); setOpen(false); }}
-            className="block w-full px-3 py-2 text-left text-xs text-[var(--danger)] hover:bg-[rgba(239,68,68,0.08)]"
+            className="block w-full px-3 py-2 text-left text-xs text-[var(--danger)] hover:bg-[rgba(var(--danger-rgb),0.08)]"
             role="menuitem"
           >
             Remove…
@@ -256,7 +256,7 @@ function IntegrationRow({
           </span>
           <StatusPill status={display}>{statusLabel(display)}</StatusPill>
           {!server.approved && (
-            <span className="rounded-[var(--radius-badge)] bg-[rgba(245,158,11,0.15)] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-[var(--warning)]">
+            <span className="rounded-[var(--radius-badge)] bg-[rgba(var(--warning-rgb),0.15)] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-[var(--warning)]">
               Unapproved
             </span>
           )}

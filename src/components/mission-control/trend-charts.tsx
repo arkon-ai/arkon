@@ -125,33 +125,33 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="msgGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00D47E" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#00D47E" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--quarn)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="var(--quarn)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="toolGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00D47E" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#00D47E" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--quarn)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="var(--quarn)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,42,74,0.4)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8888A0" }} />
-                <YAxis tick={{ fontSize: 10, fill: "#8888A0" }} width={40} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "var(--fg-2)" }} />
+                <YAxis tick={{ fontSize: 10, fill: "var(--fg-2)" }} width={40} />
                 <Tooltip content={<TrendTooltip />} />
                 <Area
                   type="monotone"
                   dataKey="Messages"
-                  stroke="#00D47E"
+                  stroke="var(--quarn)"
                   fill="url(#msgGrad)"
                   strokeWidth={2}
-                  activeDot={{ r: 4, fill: "#00D47E", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(0,212,126,0.5))" } }}
+                  activeDot={{ r: 4, fill: "var(--quarn)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--quarn-rgb),0.5))" } }}
                 />
                 <Area
                   type="monotone"
                   dataKey="Tool Calls"
-                  stroke="#00D47E"
+                  stroke="var(--quarn)"
                   fill="url(#toolGrad)"
                   strokeWidth={2}
-                  activeDot={{ r: 4, fill: "#00D47E", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(0,212,126,0.5))" } }}
+                  activeDot={{ r: 4, fill: "var(--quarn)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--quarn-rgb),0.5))" } }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -168,21 +168,21 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
               <AreaChart data={tokenData}>
                 <defs>
                   <linearGradient id="tokGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--warning)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="var(--warning)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,42,74,0.4)" />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#8888A0" }} />
-                <YAxis tick={{ fontSize: 10, fill: "#8888A0" }} width={50} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "var(--fg-2)" }} />
+                <YAxis tick={{ fontSize: 10, fill: "var(--fg-2)" }} width={50} />
                 <Tooltip content={<TrendTooltip />} />
                 <Area
                   type="monotone"
                   dataKey="Tokens"
-                  stroke="#f59e0b"
+                  stroke="var(--warning)"
                   fill="url(#tokGrad)"
                   strokeWidth={2}
-                  activeDot={{ r: 4, fill: "#f59e0b", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(245,158,11,0.5))" } }}
+                  activeDot={{ r: 4, fill: "var(--warning)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--warning-rgb),0.5))" } }}
                 />
               </AreaChart>
             </ResponsiveContainer>

@@ -94,17 +94,17 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 const ROLE_COLORS: Record<string, { color: string; bg: string; border: string }> = {
-  primary:     { color: "#22c55e", bg: "rgba(34, 197, 94, 0.08)",  border: "rgba(34, 197, 94, 0.25)" },
-  failover:    { color: "#f59e0b", bg: "rgba(245, 158, 11, 0.08)", border: "rgba(245, 158, 11, 0.25)" },
+  primary:     { color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.08)",  border: "rgba(var(--quarn-rgb), 0.25)" },
+  failover:    { color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.08)", border: "rgba(var(--warning-rgb), 0.25)" },
   static:      { color: "#737373", bg: "rgba(115, 115, 115, 0.08)",border: "rgba(115, 115, 115, 0.25)" },
-  dfy_client:  { color: "#00E88A", bg: "rgba(167, 139, 250, 0.08)", border: "rgba(167, 139, 250, 0.25)" },
+  dfy_client:  { color: "var(--quarn-light)", bg: "rgba(167, 139, 250, 0.08)", border: "rgba(167, 139, 250, 0.25)" },
   workstation: { color: "#60a5fa", bg: "rgba(96, 165, 250, 0.08)", border: "rgba(96, 165, 250, 0.25)" },
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  online: "#22c55e",
-  degraded: "#f59e0b",
-  offline: "#ef4444",
+  online: "var(--quarn)",
+  degraded: "var(--warning)",
+  offline: "var(--danger)",
   unknown: "#525252",
 };
 
@@ -127,7 +127,7 @@ const ROLE_ICONS: Record<string, LucideIcon> = {
 function pctBar(value: number | null, total: number | null, thresholds = { warn: 65, danger: 85 }) {
   if (value == null || total == null || total === 0) return null;
   const pct = Math.round((value / total) * 100);
-  const color = pct > thresholds.danger ? "#ef4444" : pct > thresholds.warn ? "#f59e0b" : "#22c55e";
+  const color = pct > thresholds.danger ? "var(--danger)" : pct > thresholds.warn ? "var(--warning)" : "var(--quarn)";
   return { pct, color };
 }
 
@@ -214,7 +214,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
         {d.metrics && (
           <div className={`mt-1 grid gap-2 ${isCompact ? "grid-cols-1" : "grid-cols-2"}`}>
             {cpuPct != null && (
-              <StatBar label="CPU" value={cpuPct} color={cpuPct > 85 ? "#ef4444" : cpuPct > 65 ? "#f59e0b" : "#22c55e"} />
+              <StatBar label="CPU" value={cpuPct} color={cpuPct > 85 ? "var(--danger)" : cpuPct > 65 ? "var(--warning)" : "var(--quarn)"} />
             )}
             {memBar && (
               <StatBar label="RAM" value={memBar.pct} color={memBar.color}
@@ -240,9 +240,9 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
                 key={svc.name}
                 className="rounded-md border px-1.5 py-0.5 text-[10px] font-medium"
                 style={{
-                  background: svc.active ? "rgba(34, 197, 94, 0.06)" : "rgba(255,255,255,0.02)",
-                  color: svc.active ? "#22c55e" : "#525252",
-                  borderColor: svc.active ? "rgba(34, 197, 94, 0.12)" : "#1a1a1a",
+                  background: svc.active ? "rgba(var(--quarn-rgb), 0.06)" : "rgba(255,255,255,0.02)",
+                  color: svc.active ? "var(--quarn)" : "#525252",
+                  borderColor: svc.active ? "rgba(var(--quarn-rgb), 0.12)" : "#1a1a1a",
                 }}
               >
                 {svc.name}
@@ -256,9 +256,9 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
           <div
             className="mt-3 flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px]"
             style={{
-              background: d.status === "offline" ? "rgba(239,68,68,0.06)" : "rgba(245,158,11,0.06)",
-              borderColor: d.status === "offline" ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)",
-              color: d.status === "offline" ? "#ef4444" : "#f59e0b",
+              background: d.status === "offline" ? "rgba(var(--danger-rgb), 0.06)" : "rgba(var(--warning-rgb), 0.06)",
+              borderColor: d.status === "offline" ? "rgba(var(--danger-rgb), 0.12)" : "rgba(var(--warning-rgb), 0.12)",
+              color: d.status === "offline" ? "var(--danger)" : "var(--warning)",
             }}
           >
             <AlertTriangle className="h-3.5 w-3.5" /> {d.status === "offline" ? "Node unreachable" : "Performance degraded"}
@@ -413,7 +413,7 @@ function DetailPanel({
           node.agents.map((agent) => (
             <div key={agent.id} className="mb-2 flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2.5">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(34,197,94,0.08)] text-xs font-semibold text-[var(--success)]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(var(--quarn-rgb),0.08)] text-xs font-semibold text-[var(--success)]">
                   {agent.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -421,7 +421,7 @@ function DetailPanel({
                   <p className="font-mono text-[10px] text-[var(--text-tertiary)]">{agent.role}</p>
                 </div>
               </div>
-              <span className="rounded-full bg-[rgba(34,197,94,0.06)] px-2.5 py-0.5 text-[10px] font-semibold text-[var(--success)]">
+              <span className="rounded-full bg-[rgba(var(--quarn-rgb),0.06)] px-2.5 py-0.5 text-[10px] font-semibold text-[var(--success)]">
                 {agent.role}
               </span>
             </div>
@@ -435,7 +435,7 @@ function DetailPanel({
           <div className="grid grid-cols-2 gap-2">
             {(node.services as Array<{ name: string; active: boolean }>).map((svc) => (
               <div key={svc.name} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2">
-                <div className="h-1.5 w-1.5 rounded-full" style={{ background: svc.active ? "#22c55e" : "#525252" }} />
+                <div className="h-1.5 w-1.5 rounded-full" style={{ background: svc.active ? "var(--quarn)" : "#525252" }} />
                 <span className="text-[11px] font-medium text-[var(--text-secondary)]">{svc.name}</span>
               </div>
             ))}
@@ -455,9 +455,9 @@ function DetailPanel({
                 disabled={loading !== null}
                 className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition
                   ${action.style === "primary"
-                    ? "border-[rgba(34,197,94,0.15)] bg-[rgba(34,197,94,0.05)] text-[var(--success)] hover:bg-[rgba(34,197,94,0.1)]"
+                    ? "border-[rgba(var(--quarn-rgb),0.15)] bg-[rgba(var(--quarn-rgb),0.05)] text-[var(--success)] hover:bg-[rgba(var(--quarn-rgb),0.1)]"
                     : action.style === "danger"
-                      ? "border-[rgba(239,68,68,0.12)] text-[var(--danger)] hover:bg-[rgba(239,68,68,0.05)]"
+                      ? "border-[rgba(var(--danger-rgb),0.12)] text-[var(--danger)] hover:bg-[rgba(var(--danger-rgb),0.05)]"
                       : "border-[var(--border)] text-[var(--text-tertiary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                   }
                   disabled:opacity-40`}
@@ -508,7 +508,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function ResourceRow({ label, value, total, display }: { label: string; value: number; total: number; display: string }) {
   const pct = Math.round((value / total) * 100);
-  const color = pct > 85 ? "#ef4444" : pct > 65 ? "#f59e0b" : "#22c55e";
+  const color = pct > 85 ? "var(--danger)" : pct > 65 ? "var(--warning)" : "var(--quarn)";
   return (
     <div className="mb-2.5 flex items-center gap-3">
       <span className="w-9 text-xs font-medium text-[var(--text-tertiary)]">{label}</span>
@@ -575,11 +575,11 @@ export function InfrastructureTopology() {
         type: "default",
         animated: true,
         style: {
-          stroke: "rgba(34, 197, 94, 0.12)",
+          stroke: "rgba(var(--quarn-rgb), 0.12)",
           strokeWidth: 1.5,
           strokeDasharray: "6 4",
         },
-        markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(34, 197, 94, 0.18)", width: 12, height: 12 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(var(--quarn-rgb), 0.18)", width: 12, height: 12 },
         label: e.latencyMs != null ? `${e.latencyMs.toFixed(0)}ms` : undefined,
         labelStyle: { fill: "#525252", fontSize: 10, fontFamily: "monospace" },
         labelBgStyle: { fill: "#0a0a0a", fillOpacity: 0.95 },
@@ -702,7 +702,7 @@ export function InfrastructureTopology() {
                 onClick={() => setFilter(f)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition
                   ${filter === f
-                    ? "bg-[rgba(34,197,94,0.08)] text-[var(--success)] ring-1 ring-[rgba(34,197,94,0.2)]"
+                    ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--success)] ring-1 ring-[rgba(var(--quarn-rgb),0.2)]"
                     : "text-[var(--text-tertiary)] hover:bg-white/5 hover:text-[var(--text-secondary)]"
                   }`}
               >
@@ -740,7 +740,7 @@ export function InfrastructureTopology() {
           defaultEdgeOptions={{ animated: true }}
           style={{ background: "transparent" }}
         >
-          <Background color="rgba(34, 197, 94, 0.06)" gap={24} size={1} />
+          <Background color="rgba(var(--quarn-rgb), 0.06)" gap={24} size={1} />
           <MiniMap
             nodeColor={(node) => {
               const d = node.data as unknown as InfraNode;

@@ -51,7 +51,7 @@ export default function GlossaryPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search terms..."
-          className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder-[#555566] outline-none transition focus:border-[var(--accent)]/50 focus:ring-1 focus:ring-[#00D47E]/20"
+          className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder-[var(--fg-3)] outline-none transition focus:border-[var(--accent)]/50 focus:ring-1 focus:ring-[var(--quarn)]/20"
         />
         {query && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[var(--text-tertiary)]">

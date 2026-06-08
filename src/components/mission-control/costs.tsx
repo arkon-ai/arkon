@@ -16,15 +16,15 @@ import { cn } from "@/lib/utils";
 // (one job per section) + semantic locked (warning amber / danger red).
 // No cyan/pink/blue/purple — they are reserved for non-Arkon palettes.
 const C = {
-  emerald: "#00D47E",      // Quarn Emerald — brand
-  emeraldLight: "#3DEEA0", // Quarn Light — secondary brand series, healthy
-  emeraldDeep: "#006B41",  // Quarn Deep — gradient anchor
-  amber: "#f59e0b",        // semantic warning
-  red: "#ef4444",          // semantic danger (kill only)
-  slate: "#8888A0",        // text-secondary tone
+  emerald: "var(--quarn)",      // Quarn Emerald — brand
+  emeraldLight: "var(--quarn-light)", // Quarn Light — secondary brand series, healthy
+  emeraldDeep: "var(--quarn-deep)",  // Quarn Deep — gradient anchor
+  amber: "var(--warning)",        // semantic warning
+  red: "var(--danger)",          // semantic danger (kill only)
+  slate: "var(--fg-2)",        // text-secondary tone
   teal: "#14b8a6",         // info adjunct (sparingly)
-  grid: "#1E1E2A",
-  tooltipBg: "#111118",
+  grid: "var(--border)",
+  tooltipBg: "var(--surface-1)",
 };
 
 // Persona palette LOCKED (brand bible §3.6 + Brynn's brief):
@@ -664,10 +664,10 @@ function OverviewTab({
                   <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
                   <XAxis
                     dataKey="day"
-                    tick={{ fill: "#555566", fontSize: 11 }}
+                    tick={{ fill: "var(--fg-3)", fontSize: 11 }}
                     tickFormatter={(v: string) => new Date(v).toLocaleDateString("en", { month: "short", day: "numeric" })}
                   />
-                  <YAxis tick={{ fill: "#555566", fontSize: 11 }} tickFormatter={(v: number) => fmt$(v)} />
+                  <YAxis tick={{ fill: "var(--fg-3)", fontSize: 11 }} tickFormatter={(v: number) => fmt$(v)} />
                   <Tooltip content={<CostTooltip />} />
                   <Area type="monotone" dataKey="cost" stroke={C.emerald} fill="url(#costGrad)" strokeWidth={2} />
                   {dailyCeiling != null && (
@@ -704,7 +704,7 @@ function OverviewTab({
                   <li key={a.agent_id} className="flex items-start gap-3 px-5 py-3">
                     <span
                       className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-                      style={{ backgroundColor: `${C.amber}1A`, color: C.amber }}
+                      style={{ backgroundColor: "rgba(var(--warning-rgb), 0.102)", color: C.amber }}
                     >
                       <TrendingUp className="h-4 w-4" />
                     </span>
@@ -884,7 +884,7 @@ function RecommendationsCard({
             <span
               className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
               style={{
-                backgroundColor: r.tone === "warn" ? `${C.amber}1A` : `${C.slate}1A`,
+                backgroundColor: r.tone === "warn" ? "rgba(var(--warning-rgb), 0.102)" : "#8888A01A",
                 color: r.tone === "warn" ? C.amber : C.slate,
               }}
             >
