@@ -1,18 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0A0A0C;
-  --foreground: #E4E4ED;
-  --bg-deep: #0A0A0C;
-  --bg-card: #111118;
-  --border: #1E1E2A;
-  --cyan: #00D47E;
-  --purple: #00D47E;
-  --amber: #f59e0b;
-  --red: #ef4444;
-  --green: #22c55e;
-  --text: #E4E4ED;
-  --text-dim: #8888A0;
+  /* WI-997: defer to the canonical Arkon token foundation declared in
+     src/app/globals.css (loaded by the root layout on every page). These
+     bespoke names stay as back-compat aliases → canonical so the
+     mission-control component hex sweep (WI-998) is incremental.
+     --border is intentionally NOT redeclared here — it inherits the
+     canonical --border (#2E2E3A) instead of the old #1E1E2A drift. */
+  --background: var(--void);
+  --foreground: var(--fg-1);
+  --bg-deep:    var(--void);
+  --bg-card:    var(--surface-1);   /* was #111118 → canonical #1A1A22 */
+  --cyan:   var(--quarn);
+  --purple: var(--quarn);
+  --amber:  var(--warning);
+  --red:    var(--danger);
+  --green:  var(--quarn);           /* was #22c55e → single brand green */
+  --text:     var(--fg-1);
+  --text-dim: var(--fg-2);
 }
 
 @theme inline {
@@ -28,8 +33,8 @@
   --color-green: var(--green);
   --color-text: var(--text);
   --color-text-dim: var(--text-dim);
-  --font-sans: "Avenir Next", "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 * {
@@ -43,7 +48,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   min-height: 100vh;
   background-image:

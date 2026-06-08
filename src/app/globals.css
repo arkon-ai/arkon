@@ -46,16 +46,24 @@
   --accent: var(--quarn);
   --accent-hover: var(--quarn-light);
   --accent-dim: var(--quarn-deep);
-  --accent-muted: rgba(0, 212, 126, 0.15);
-  --accent-subtle: rgba(0, 212, 126, 0.08);
-  --accent-foreground: #0A0A0C;
-  --text-link: #00D47E;
+  --accent-muted: rgba(var(--quarn-rgb), 0.15);
+  --accent-subtle: rgba(var(--quarn-rgb), 0.08);
+  --accent-foreground: var(--void);
+  --text-link: var(--quarn);
 
   /* ── Status ── */
   --success: #10B981;
   --warning: #F59E0B;
   --danger: #EF4444;
+  --danger-hover: #DC2626;   /* danger-solid button :hover darken */
   --info: #06B6D4;
+
+  /* ── Channel triplets (R,G,B) — for rgba tints: rgba(var(--quarn-rgb), 0.15) ── */
+  --quarn-rgb:   0, 212, 126;
+  --success-rgb: 16, 185, 129;
+  --warning-rgb: 245, 158, 11;
+  --danger-rgb:  239, 68, 68;
+  --info-rgb:    6, 182, 212;
 
   /* ── Text ── */
   --text-primary: #E4E4ED;
@@ -138,7 +146,18 @@
   --shadow-sm:         0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-md:         0 4px 12px 0 rgba(0, 0, 0, 0.45);
   --shadow-lg:         0 12px 40px 0 rgba(0, 0, 0, 0.55);
-  --shadow-quarn-glow: 0 0 0 4px rgba(0, 212, 126, 0.15); /* focus ring */
+  --shadow-quarn-glow: 0 0 0 4px rgba(var(--quarn-rgb), 0.15); /* focus ring */
+
+  /* ── Premium card primitives (transformate WI-994) ──
+     Depth + ONE disciplined Quarn glow (design-law #3). Dark-first;
+     [data-theme="light"] overrides below so export/OG cards don't get a
+     dark gradient on white. --quarn-glow is Quarn's ONE hover/active job. */
+  --lift-surface:    linear-gradient(180deg, #20202B 0%, #16161D 100%);
+  --edge-top:        inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  --edge-top-strong: inset 0 1px 0 rgba(255, 255, 255, 0.085);
+  --depth-md: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 28px -10px rgba(0, 0, 0, 0.65);
+  --depth-lg: 0 2px 4px rgba(0, 0, 0, 0.5), 0 18px 44px -14px rgba(0, 0, 0, 0.70);
+  --quarn-glow: 0 0 0 1px rgba(var(--quarn-rgb), 0.35), 0 14px 40px -12px rgba(var(--quarn-rgb), 0.22);
 
   /* Motion */
   --dur-fast:       150ms;
@@ -578,6 +597,18 @@ h1, h2, h3, h4, h5, h6 {
   /* ── Effects ── */
   --glow-accent: 0 0 40px rgba(0, 184, 110, 0.1);
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+  /* ── Brand channel — AAA-on-white (light is export/beta only, law #6) ── */
+  --quarn:     #00B86E;
+  --quarn-rgb: 0, 184, 110;
+
+  /* ── Premium card primitives — light (no dark gradient on white) ── */
+  --lift-surface:    #FFFFFF;
+  --edge-top:        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --edge-top-strong: inset 0 1px 0 rgba(255, 255, 255, 1);
+  --depth-md: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --depth-lg: 0 6px 20px rgba(0, 0, 0, 0.10);
+  --quarn-glow: 0 0 0 1px rgba(var(--quarn-rgb), 0.35), 0 14px 40px -12px rgba(var(--quarn-rgb), 0.20);
 }
 
 /* ── Light mode overrides for components using hardcoded colors ── */
