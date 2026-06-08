@@ -367,7 +367,7 @@ export default function NotificationPreferencesPage() {
                       placeholder={field.placeholder}
                       value={(state.config[field.key] as string) ?? ""}
                       onChange={(e) => updateChannelConfig(ch.key, field.key, e.target.value)}
-                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[#555566] transition focus:border-[var(--accent)]/50 focus:outline-none"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--fg-3)] transition focus:border-[var(--accent)]/50 focus:outline-none"
                     />
                     {field.help ? (
                       <p className="mt-1 text-[11px] text-[var(--text-tertiary)]">{field.help}</p>
@@ -390,7 +390,7 @@ export default function NotificationPreferencesPage() {
                           type="checkbox"
                           checked={isTypeEnabled(ch.key, nt.key)}
                           onChange={() => toggleNotificationType(ch.key, nt.key)}
-                          className="h-3.5 w-3.5 rounded border-[var(--border)] bg-[var(--bg-primary)] text-[var(--accent)] focus:ring-[#00D47E]/50"
+                          className="h-3.5 w-3.5 rounded border-[var(--border)] bg-[var(--bg-primary)] text-[var(--accent)] focus:ring-[var(--quarn)]/50"
                         />
                         <span>{nt.label}</span>
                       </label>

@@ -645,7 +645,7 @@ export default function ArkonOSScreen() {
                           <div
                             key={i}
                             className="h-4 rounded-[2px]"
-                            style={{ backgroundColor: `rgba(0, 212, 126, ${alpha})` }}
+                            style={{ backgroundColor: `rgba(var(--quarn-rgb), ${alpha})` }}
                             title={`${row.slug} · ${i.toString().padStart(2, "0")}:00 · ${v} msg${v === 1 ? "" : "s"}`}
                           />
                         );
@@ -671,7 +671,7 @@ export default function ArkonOSScreen() {
                       <div
                         key={v}
                         className="h-3 w-3 rounded-[2px]"
-                        style={{ backgroundColor: `rgba(0, 212, 126, ${v === 0 ? 0.05 : 0.15 + v * 0.17})` }}
+                        style={{ backgroundColor: `rgba(var(--quarn-rgb), ${v === 0 ? 0.05 : 0.15 + v * 0.17})` }}
                       />
                     ))}
                     <span>More</span>

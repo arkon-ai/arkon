@@ -102,17 +102,17 @@ const CHANNEL_COLORS: Record<string, string> = {
   discord: "#5865F2",
   telegram: "#0088cc",
   whatsapp: "#25D366",
-  unknown: "#8888A0",
+  unknown: "var(--fg-2)",
 };
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
-  message_received: "#00D47E",
-  message_sent: "#00D47E",
-  tool_call: "#f59e0b",
-  error: "#ef4444",
+  message_received: "var(--quarn)",
+  message_sent: "var(--quarn)",
+  tool_call: "var(--warning)",
+  error: "var(--danger)",
   cron: "#3b82f6",
-  system: "#8888A0",
-  note: "#8888A0",
+  system: "var(--fg-2)",
+  note: "var(--fg-2)",
 };
 
 
@@ -143,10 +143,10 @@ function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payloa
 
 function SummaryCards({ totals, sessionStats }: { totals: AnalyticsData["totals"]; sessionStats: SessionStats }) {
   const stats = [
-    { label: "Total Events", value: totals.total_events, color: "#00D47E" },
-    { label: "Active Agents", value: totals.active_agents, color: "#00D47E" },
+    { label: "Total Events", value: totals.total_events, color: "var(--quarn)" },
+    { label: "Active Agents", value: totals.active_agents, color: "var(--quarn)" },
     { label: "Sessions", value: totals.unique_sessions, color: "#3b82f6" },
-    { label: "Tokens Used", value: Number(totals.total_tokens), color: "#f59e0b", format: true },
+    { label: "Tokens Used", value: Number(totals.total_tokens), color: "var(--warning)", format: true },
   ];
 
   return (
@@ -182,20 +182,20 @@ function DailyVolumeChart({ data }: { data: DailyVolume[] }) {
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
           <defs>
             <linearGradient id="recvGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#00D47E" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="sentGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#00D47E" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" vertical={false} />
-          <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+          <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
           <Tooltip content={<AnalyticsTooltip />} />
-          <Area type="monotone" dataKey="received" name="Received" stroke="#00D47E" fill="url(#recvGrad)" strokeWidth={2} dot={false} />
-          <Area type="monotone" dataKey="sent" name="Sent" stroke="#00D47E" fill="url(#sentGrad)" strokeWidth={2} dot={false} />
+          <Area type="monotone" dataKey="received" name="Received" stroke="var(--quarn)" fill="url(#recvGrad)" strokeWidth={2} dot={false} />
+          <Area type="monotone" dataKey="sent" name="Sent" stroke="var(--quarn)" fill="url(#sentGrad)" strokeWidth={2} dot={false} />
         </AreaChart>
       </ResponsiveContainer>
       <div className="mt-2 flex justify-center gap-4 text-xs">
@@ -230,7 +230,7 @@ function HourlyHeatmap({ data }: { data: HourlyPoint[] }) {
                 className="absolute bottom-0 w-full rounded-t transition-all"
                 style={{
                   height: `${Math.max(heightPct, 2)}%`,
-                  backgroundColor: `rgba(0, 212, 126, ${opacity})`,
+                  backgroundColor: `rgba(var(--quarn-rgb), ${opacity})`,
                 }}
               />
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 rounded bg-[var(--bg-surface)] px-1.5 py-0.5 text-[9px] text-text opacity-0 transition group-hover:opacity-100 whitespace-nowrap border border-[var(--border)]">
@@ -266,7 +266,7 @@ function ChannelBreakdown({ data }: { data: VolumeByChannel[] }) {
         <div className="space-y-3">
           {data.map((ch) => {
             const pct = total > 0 ? (ch.count / total) * 100 : 0;
-            const color = CHANNEL_COLORS[ch.channel] ?? "#8888A0";
+            const color = CHANNEL_COLORS[ch.channel] ?? "var(--fg-2)";
             return (
               <div key={ch.channel}>
                 <div className="flex items-center justify-between text-sm">
@@ -368,7 +368,7 @@ function TopSendersCard({ data }: { data: TopSender[] }) {
       <p className="mb-3 text-sm font-semibold text-text">Top Senders</p>
       <div className="space-y-2">
         {data.map((sender, i) => {
-          const color = CHANNEL_COLORS[sender.channel] ?? "#8888A0";
+          const color = CHANNEL_COLORS[sender.channel] ?? "var(--fg-2)";
           return (
             <div key={`${sender.sender_name}-${sender.channel}-${i}`} className="flex items-center justify-between rounded-xl bg-white/[0.02] px-3 py-2">
               <div className="flex items-center gap-2">

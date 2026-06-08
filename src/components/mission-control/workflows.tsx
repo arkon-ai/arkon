@@ -43,7 +43,7 @@ const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Health Check",
     description: "Monitor your servers every 5 minutes. Get alerted if anything goes down.",
     icon: HeartPulse,
-    color: "#00D47E",
+    color: "var(--quarn)",
     trigger_type: "cron",
     trigger_config: { cron_expression: "*/5 * * * *" },
     definition: {
@@ -66,7 +66,7 @@ const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Threat Auto-Response",
     description: "Automatically pause an agent when a critical threat is detected.",
     icon: ShieldAlert,
-    color: "#ef4444",
+    color: "var(--danger)",
     trigger_type: "cron",
     trigger_config: { cron_expression: "*/5 * * * *" },
     definition: {
@@ -112,7 +112,7 @@ const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Client Heartbeat",
     description: "Alert you if a client's agent goes silent for more than 30 minutes.",
     icon: Activity,
-    color: "#f59e0b",
+    color: "var(--warning)",
     trigger_type: "cron",
     trigger_config: { cron_expression: "*/30 * * * *" },
     definition: {
@@ -135,7 +135,7 @@ const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Budget Alert",
     description: "Notify you when spending hits 80% of your budget limit.",
     icon: Wallet,
-    color: "#00D47E",
+    color: "var(--quarn)",
     trigger_type: "cron",
     trigger_config: { cron_expression: "0 * * * *" },
     definition: {
@@ -242,15 +242,15 @@ function timeAgo(dateStr: string): string {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  draft: { bg: "rgba(100,116,139,0.15)", text: "#8888A0" },
-  active: { bg: "rgba(0,212,126,0.15)", text: "#00D47E" },
-  paused: { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
-  archived: { bg: "rgba(100,116,139,0.1)", text: "#8888A0" },
+  draft: { bg: "rgba(100,116,139,0.15)", text: "var(--fg-2)" },
+  active: { bg: "rgba(var(--quarn-rgb), 0.15)", text: "var(--quarn)" },
+  paused: { bg: "rgba(var(--warning-rgb), 0.15)", text: "var(--warning)" },
+  archived: { bg: "rgba(100,116,139,0.1)", text: "var(--fg-2)" },
   running: { bg: "rgba(59,130,246,0.15)", text: "#3b82f6" },
-  completed: { bg: "rgba(0,212,126,0.15)", text: "#00D47E" },
-  failed: { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
-  success: { bg: "rgba(0,212,126,0.15)", text: "#00D47E" },
-  skipped: { bg: "rgba(100,116,139,0.1)", text: "#8888A0" },
+  completed: { bg: "rgba(var(--quarn-rgb), 0.15)", text: "var(--quarn)" },
+  failed: { bg: "rgba(var(--danger-rgb), 0.15)", text: "var(--danger)" },
+  success: { bg: "rgba(var(--quarn-rgb), 0.15)", text: "var(--quarn)" },
+  skipped: { bg: "rgba(100,116,139,0.1)", text: "var(--fg-2)" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -619,7 +619,7 @@ export function WorkflowsScreen() {
                         <div className="flex items-start gap-4">
                           <div
                             className="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg"
-                            style={{ background: `${tmpl.color}15`, border: `1px solid ${tmpl.color}30` }}
+                            style={{ background: `color-mix(in srgb, ${tmpl.color} 8%, transparent)`, border: `1px solid color-mix(in srgb, ${tmpl.color} 19%, transparent)` }}
                           >
                             <Icon className="w-5 h-5" style={{ color: tmpl.color }} />
                           </div>
@@ -628,7 +628,7 @@ export function WorkflowsScreen() {
                               <span className="text-sm font-semibold text-white group-hover:text-[var(--accent)] transition">{tmpl.name}</span>
                               <span
                                 className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                                style={{ background: `${tmpl.color}15`, color: tmpl.color }}
+                                style={{ background: `color-mix(in srgb, ${tmpl.color} 8%, transparent)`, color: tmpl.color }}
                               >
                                 {tmpl.trigger_type}
                               </span>
@@ -1149,9 +1149,9 @@ function RunCard({ run }: { run: WorkflowRun }) {
               style={{
                 background:
                   step.status === "success"
-                    ? "rgba(0,212,126,0.05)"
+                    ? "rgba(var(--quarn-rgb), 0.05)"
                     : step.status === "failed"
-                    ? "rgba(239,68,68,0.05)"
+                    ? "rgba(var(--danger-rgb), 0.05)"
                     : "rgba(100,116,139,0.05)",
               }}
             >

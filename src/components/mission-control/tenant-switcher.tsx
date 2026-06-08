@@ -12,9 +12,9 @@ interface Tenant {
 }
 
 const PLAN_COLORS: Record<string, string> = {
-  starter: "#06B6D4",
-  growth: "#00D47E",
-  enterprise: "#F59E0B",
+  starter: "var(--info)",
+  growth: "var(--quarn)",
+  enterprise: "var(--warning)",
 };
 
 export function TenantSwitcher() {
@@ -56,14 +56,14 @@ export function TenantSwitcher() {
 
   const currentTenant = tenants.find((t) => t.id === activeTenant);
   const label = currentTenant?.name ?? "All Tenants";
-  const planColor = currentTenant ? (PLAN_COLORS[currentTenant.plan] ?? "#8888A0") : "#00D47E";
+  const planColor = currentTenant ? (PLAN_COLORS[currentTenant.plan] ?? "var(--fg-2)") : "var(--quarn)";
 
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex h-9 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-primary)] transition hover:border-[rgba(0,212,126,0.25)]"
+        className="flex h-9 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-primary)] transition hover:border-[rgba(var(--quarn-rgb),0.25)]"
       >
         <div className="flex h-5 w-5 items-center justify-center rounded-md" style={{ backgroundColor: `${planColor}15` }}>
           {currentTenant ? (
@@ -87,7 +87,7 @@ export function TenantSwitcher() {
             onClick={() => { setActiveTenant(null); setOpen(false); }}
             className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs transition ${
               !activeTenant
-                ? "bg-[rgba(0,212,126,0.08)] text-[var(--accent)]"
+                ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--accent)]"
                 : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
             }`}
           >
@@ -99,7 +99,7 @@ export function TenantSwitcher() {
           <div className="my-1 border-t border-[var(--border)]" />
 
           {tenants.map((t) => {
-            const color = PLAN_COLORS[t.plan] ?? "#8888A0";
+            const color = PLAN_COLORS[t.plan] ?? "var(--fg-2)";
             const active = activeTenant === t.id;
             return (
               <button
@@ -108,7 +108,7 @@ export function TenantSwitcher() {
                 onClick={() => { setActiveTenant(t.id); setOpen(false); }}
                 className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs transition ${
                   active
-                    ? "bg-[rgba(0,212,126,0.08)] text-[var(--accent)]"
+                    ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--accent)]"
                     : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                 }`}
               >

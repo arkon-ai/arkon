@@ -50,10 +50,10 @@ export function StatCountUp({
    PulsingDot — animated status indicator
 ───────────────────────────────────────── */
 const dotColors: Record<string, string> = {
-  live: "#00D47E",
-  warm: "#f59e0b",
-  idle: "#8888A0",
-  error: "#ef4444",
+  live: "var(--quarn)",
+  warm: "var(--warning)",
+  idle: "var(--fg-2)",
+  error: "var(--danger)",
 };
 
 export function PulsingDot({ status }: { status: "live" | "warm" | "idle" | "error" }) {
@@ -80,10 +80,10 @@ export function PulsingDot({ status }: { status: "live" | "warm" | "idle" | "err
    StatusRing — SVG ring status indicator
 ───────────────────────────────────────── */
 const ringColors: Record<string, string> = {
-  live: "#00D47E",
-  warm: "#f59e0b",
-  idle: "#8888A0",
-  error: "#ef4444",
+  live: "var(--quarn)",
+  warm: "var(--warning)",
+  idle: "var(--fg-2)",
+  error: "var(--danger)",
 };
 
 const ringFill: Record<string, number> = {
@@ -119,7 +119,7 @@ export function StatusRing({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="#1E1E2A"
+          stroke="var(--border)"
           strokeWidth={2.5}
           fill="none"
         />
@@ -157,7 +157,7 @@ export function StatusRing({
 export function Sparkline({
   data,
   dataKey = "value",
-  color = "#00D47E",
+  color = "var(--quarn)",
   width = "100%",
   height = 28,
 }: {
@@ -224,7 +224,7 @@ export function Sparkline({
 ───────────────────────────────────────── */
 export function LiveBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(0,212,126,0.1)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)]">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(var(--quarn-rgb),0.1)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)]">
       <PulsingDot status="live" />
       LIVE
     </span>
@@ -253,22 +253,22 @@ export function EventsAreaChart({ data }: { data: Array<{ day: string; events: n
       <AreaChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
         <defs>
           <linearGradient id="eventsGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#00D47E" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
+            <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" vertical={false} />
-        <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+        <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} />
         <Tooltip content={<ChartTooltip />} />
         <Area
           type="monotone"
           dataKey="events"
-          stroke="#00D47E"
+          stroke="var(--quarn)"
           strokeWidth={2}
           fill="url(#eventsGrad)"
           dot={false}
-          activeDot={{ r: 4, fill: "#00D47E", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(0,212,126,0.5))" } }}
+          activeDot={{ r: 4, fill: "var(--quarn)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--quarn-rgb),0.5))" } }}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -284,22 +284,22 @@ export function TokensAreaChart({ data }: { data: Array<{ day: string; tokens: n
       <AreaChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
         <defs>
           <linearGradient id="tokensGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#00D47E" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
+            <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" vertical={false} />
-        <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+        <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} />
         <Tooltip content={<ChartTooltip />} />
         <Area
           type="monotone"
           dataKey="tokens"
-          stroke="#00D47E"
+          stroke="var(--quarn)"
           strokeWidth={2}
           fill="url(#tokensGrad)"
           dot={false}
-          activeDot={{ r: 4, fill: "#00D47E", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(0,212,126,0.5))" } }}
+          activeDot={{ r: 4, fill: "var(--quarn)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--quarn-rgb),0.5))" } }}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -314,22 +314,22 @@ export function AgentBarChart({ agents }: { agents: Array<{ name: string; events
   return (
     <ResponsiveContainer width="100%" height={180}>
       <BarChart data={sorted} layout="vertical" margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" horizontal={false} />
-        <XAxis type="number" tick={{ fill: "#8888A0", fontSize: 10 }} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+        <XAxis type="number" tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} />
         <YAxis
           type="category"
           dataKey="name"
-          tick={{ fill: "#8888A0", fontSize: 11 }}
+          tick={{ fill: "var(--fg-2)", fontSize: 11 }}
           axisLine={false}
           tickLine={false}
           width={72}
         />
-        <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,212,126,0.05)" }} />
+        <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(var(--quarn-rgb),0.05)" }} />
         <Bar dataKey="events" radius={[0, 6, 6, 0]}>
           {sorted.map((_, i) => (
             <Cell
               key={i}
-              fill={`rgba(0,212,126,${0.9 - i * 0.1})`}
+              fill={`rgba(var(--quarn-rgb),${0.9 - i * 0.1})`}
             />
           ))}
         </Bar>

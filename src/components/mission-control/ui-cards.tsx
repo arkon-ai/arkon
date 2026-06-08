@@ -16,15 +16,15 @@ function cn(...parts: Array<string | false | null | undefined>) {
 function toneClasses(tone: Tone) {
   switch (tone) {
     case "live":
-      return "border-[rgba(0,212,126,0.35)] text-[var(--accent)]";
+      return "border-[rgba(var(--quarn-rgb),0.35)] text-[var(--accent)]";
     case "warm":
-      return "border-[rgba(245,158,11,0.35)] text-[var(--warning)]";
+      return "border-[rgba(var(--warning-rgb),0.35)] text-[var(--warning)]";
     case "err":
-      return "border-[rgba(239,68,68,0.35)] text-[var(--danger)]";
+      return "border-[rgba(var(--danger-rgb),0.35)] text-[var(--danger)]";
     case "info":
-      return "border-[rgba(6,182,212,0.35)] text-[var(--info)]";
+      return "border-[rgba(var(--info-rgb),0.35)] text-[var(--info)]";
     case "ok":
-      return "border-[rgba(16,185,129,0.35)] text-[var(--success)]";
+      return "border-[rgba(var(--success-rgb),0.35)] text-[var(--success)]";
     case "neutral":
       return "border-[var(--border)] bg-[var(--bg-surface-2)] text-[var(--text-secondary)]";
     case "idle":
@@ -49,7 +49,7 @@ export function StatusPill({
       className={cn(
         "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]",
         toneClasses(status),
-        solid && "border-transparent bg-[rgba(0,212,126,0.12)] text-[var(--accent)]",
+        solid && "border-transparent bg-[rgba(var(--quarn-rgb),0.12)] text-[var(--accent)]",
         className,
       )}
     >
@@ -82,7 +82,7 @@ export function Button({
         kind === "primary" && "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--accent-hover)]",
         kind === "secondary" && "border-[var(--border)] bg-transparent text-[var(--text-primary)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-surface)]",
         kind === "ghost" && "border-transparent bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-surface-2)] hover:text-[var(--text-primary)]",
-        kind === "danger" && "border-[rgba(239,68,68,0.4)] bg-transparent text-[var(--danger)] hover:border-[var(--danger)] hover:bg-[rgba(239,68,68,0.08)]",
+        kind === "danger" && "border-[rgba(var(--danger-rgb),0.4)] bg-transparent text-[var(--danger)] hover:border-[var(--danger)] hover:bg-[rgba(var(--danger-rgb),0.08)]",
         className,
       )}
     >

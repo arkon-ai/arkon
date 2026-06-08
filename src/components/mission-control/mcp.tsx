@@ -146,7 +146,7 @@ export function RegistryBrowser({ onImported }: { onImported: () => void }) {
                   isImported
                     ? "border-[var(--border)]/50 bg-[var(--bg-primary)]/40 opacity-60 cursor-default"
                     : isSelected
-                    ? "border-[var(--accent)]/60 bg-[rgba(0,212,126,0.08)]"
+                    ? "border-[var(--accent)]/60 bg-[rgba(var(--quarn-rgb),0.08)]"
                     : "border-[var(--border)] bg-[var(--bg-primary)]/60 hover:border-[var(--border)]/80"
                 }`}
               >

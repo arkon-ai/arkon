@@ -36,7 +36,7 @@ export default function RootLayout({
         <Toaster
           position="top-right"
           toastOptions={{
-            style: { background: "#111118", border: "1px solid #1E1E2A", color: "#E4E4ED" },
+            style: { background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--fg-1)" },
           }}
         />
         <Suspense fallback={<div className="min-h-screen bg-[var(--bg-primary)]" />}><NotionShell>{children}</NotionShell></Suspense>

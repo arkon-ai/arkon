@@ -69,11 +69,11 @@ function fmtTokens(t: number): string {
   return String(t);
 }
 
-const STATUS_CONFIG: Record<string, { icon: typeof CheckCircle; color: string; label: string }> = {
-  ok: { icon: CheckCircle, color: "#10B981", label: "Success" },
-  error: { icon: XCircle, color: "#EF4444", label: "Error" },
-  running: { icon: Activity, color: "#F59E0B", label: "Running" },
-  timeout: { icon: AlertTriangle, color: "#F59E0B", label: "Timeout" },
+const STATUS_CONFIG: Record<string, { icon: typeof CheckCircle; color: string; bg: string; label: string }> = {
+  ok: { icon: CheckCircle, color: "var(--success)", bg: "rgba(var(--success-rgb), 0.1)", label: "Success" },
+  error: { icon: XCircle, color: "var(--danger)", bg: "rgba(var(--danger-rgb), 0.1)", label: "Error" },
+  running: { icon: Activity, color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)", label: "Running" },
+  timeout: { icon: AlertTriangle, color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)", label: "Timeout" },
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
       <div className="flex items-center gap-4">
         <Link
           href="/traces"
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[rgba(0,212,126,0.25)] hover:text-[var(--text-primary)]"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[rgba(var(--quarn-rgb),0.25)] hover:text-[var(--text-primary)]"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
@@ -150,7 +150,7 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
           </h1>
           <p className="mt-0.5 font-mono text-xs text-[var(--text-tertiary)]">{trace.trace_id}</p>
         </div>
-        <div className="ml-auto flex items-center gap-2 rounded-xl px-3 py-1.5" style={{ background: `${cfg.color}15` }}>
+        <div className="ml-auto flex items-center gap-2 rounded-xl px-3 py-1.5" style={{ background: cfg.bg }}>
           <StatusIcon className="h-4 w-4" style={{ color: cfg.color }} />
           <span className="text-sm font-medium" style={{ color: cfg.color }}>{cfg.label}</span>
         </div>
@@ -159,11 +159,11 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         {[
-          { label: "DURATION", value: fmtDuration(trace.duration_ms), icon: Clock, color: "#E4E4ED" },
-          { label: "SPANS", value: String(spans.length), icon: Hash, color: "#06B6D4" },
-          { label: "TOKENS", value: fmtTokens(trace.token_count), icon: Zap, color: "#F59E0B" },
-          { label: "COST", value: fmtCost(Number(trace.cost)), icon: Coins, color: "#00D47E" },
-          { label: "AGENT", value: trace.agent_id || "—", icon: Bot, color: "#8888A0" },
+          { label: "DURATION", value: fmtDuration(trace.duration_ms), icon: Clock, color: "var(--fg-1)" },
+          { label: "SPANS", value: String(spans.length), icon: Hash, color: "var(--info)" },
+          { label: "TOKENS", value: fmtTokens(trace.token_count), icon: Zap, color: "var(--warning)" },
+          { label: "COST", value: fmtCost(Number(trace.cost)), icon: Coins, color: "var(--quarn)" },
+          { label: "AGENT", value: trace.agent_id || "—", icon: Bot, color: "var(--fg-2)" },
         ].map((s) => (
           <motion.div
             key={s.label}

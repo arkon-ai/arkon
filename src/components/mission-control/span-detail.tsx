@@ -86,7 +86,7 @@ export function SpanDetail({ span }: { span: Span }) {
           <div className="space-y-4">
             {/* Error banner */}
             {isError && span.error && (
-              <div className="flex items-start gap-3 rounded-xl border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.06)] p-3">
+              <div className="flex items-start gap-3 rounded-xl border border-[rgba(var(--danger-rgb),0.2)] bg-[rgba(var(--danger-rgb),0.06)] p-3">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--danger)]" />
                 <div>
                   <p className="text-xs font-semibold text-[var(--danger)]">Error</p>
@@ -98,10 +98,10 @@ export function SpanDetail({ span }: { span: Span }) {
             {/* Stats grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Duration", value: fmtDuration(span.duration_ms), icon: Clock, color: "#E4E4ED" },
-                { label: "Tokens", value: fmtTokens(span.token_count), icon: Zap, color: "#F59E0B" },
-                { label: "Cost", value: fmtCost(Number(span.cost)), icon: Coins, color: "#00D47E" },
-                { label: "Status", value: span.status.toUpperCase(), icon: Hash, color: isError ? "#EF4444" : "#10B981" },
+                { label: "Duration", value: fmtDuration(span.duration_ms), icon: Clock, color: "var(--fg-1)" },
+                { label: "Tokens", value: fmtTokens(span.token_count), icon: Zap, color: "var(--warning)" },
+                { label: "Cost", value: fmtCost(Number(span.cost)), icon: Coins, color: "var(--quarn)" },
+                { label: "Status", value: span.status.toUpperCase(), icon: Hash, color: isError ? "var(--danger)" : "var(--success)" },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">
                   <div className="flex items-center gap-1.5">

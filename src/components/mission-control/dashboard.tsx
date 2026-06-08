@@ -182,7 +182,7 @@ export function StatCard({
         sparkData && sparkData.length > 0 ? (
           <Sparkline
             data={sparkData}
-            color={sparkColor ?? "#00D47E"}
+            color={sparkColor ?? "var(--quarn)"}
             width={hero ? 120 : 80}
             height={hero ? 40 : 28}
           />
@@ -320,7 +320,7 @@ function AlertsBanner() {
   if (anomalies.length === 0) {
     return (
       <div className="flex items-center gap-3 rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(0,212,126,0.08)]">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(var(--quarn-rgb),0.08)]">
           <ShieldCheckIcon className="h-4 w-4 text-[var(--accent)]" />
         </div>
         <span className="text-sm text-[var(--accent)]">All systems nominal</span>
@@ -335,7 +335,7 @@ function AlertsBanner() {
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-white/[0.02]"
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(245,158,11,0.08)]">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(var(--warning-rgb),0.08)]">
           <AlertTriangle className="h-4 w-4 text-[var(--warning)]" />
         </div>
         <span className="flex-1 text-sm font-medium text-[var(--text-primary)]">
@@ -347,7 +347,7 @@ function AlertsBanner() {
         <div className="space-y-2 px-4 pb-3">
           {anomalies.map((a) => (
             <div key={a.id} className={`flex items-center justify-between rounded-xl border px-3 py-2.5 ${
-              a.level === "high" ? "border-red-500/30 bg-[rgba(239,68,68,0.06)]" : "border-[var(--warning)]/20 bg-[rgba(245,158,11,0.06)]"
+              a.level === "high" ? "border-red-500/30 bg-[rgba(var(--danger-rgb),0.06)]" : "border-[var(--warning)]/20 bg-[rgba(var(--warning-rgb),0.06)]"
             }`}>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -534,8 +534,8 @@ function MessageVolumeChart({ trend }: { trend: Array<{ day: string; received: n
       <AreaChart data={chartData} margin={{ top: 12, right: 10, bottom: 0, left: -10 }}>
         <defs>
           <linearGradient id="dashboardMessageVolume" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#00D47E" stopOpacity={0.28} />
-            <stop offset="100%" stopColor="#00D47E" stopOpacity={0.02} />
+            <stop offset="0%" stopColor="var(--quarn)" stopOpacity={0.28} />
+            <stop offset="100%" stopColor="var(--quarn)" stopOpacity={0.02} />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} stroke="rgba(136,136,160,0.16)" strokeDasharray="2 3" />
@@ -549,7 +549,7 @@ function MessageVolumeChart({ trend }: { trend: Array<{ day: string; received: n
             color: "var(--text-primary)",
           }}
         />
-        <Area type="monotone" dataKey="Messages" stroke="#00D47E" strokeWidth={2} fill="url(#dashboardMessageVolume)" activeDot={{ r: 4 }} />
+        <Area type="monotone" dataKey="Messages" stroke="var(--quarn)" strokeWidth={2} fill="url(#dashboardMessageVolume)" activeDot={{ r: 4 }} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -969,7 +969,7 @@ function HealthContent() {
               </div>
               <div className="h-3 rounded-full bg-border">
                 <div
-                  className="relative h-full rounded-full bg-[linear-gradient(90deg,#22c55e,#00D47E)]"
+                  className="relative h-full rounded-full bg-[linear-gradient(90deg,var(--quarn),var(--quarn))]"
                   style={{ width: `${progress}%` }}
                 >
                   <span className="absolute right-0 top-1/2 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border-2 border-bg-deep bg-green text-[10px]">
@@ -1029,11 +1029,11 @@ function ProgressRing({ progress }: { progress: number }) {
       <svg viewBox="0 0 220 220" className="-rotate-90">
         <defs>
           <linearGradient id="healthRing" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#22c55e" />
-            <stop offset="100%" stopColor="#00D47E" />
+            <stop offset="0%" stopColor="var(--quarn)" />
+            <stop offset="100%" stopColor="var(--quarn)" />
           </linearGradient>
         </defs>
-        <circle cx="110" cy="110" r={radius} stroke="#1E1E2A" strokeWidth="14" fill="none" />
+        <circle cx="110" cy="110" r={radius} stroke="var(--border)" strokeWidth="14" fill="none" />
         <circle
           cx="110"
           cy="110"
@@ -1980,7 +1980,7 @@ export function AnomalyWidget() {
       <div className="space-y-2">
         {anomalies.map((a) => (
           <div key={a.id} className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${
-            a.level === "high" ? "border-red-500/30 bg-[rgba(239,68,68,0.06)]" : "border-amber-500/20 bg-[rgba(245,158,11,0.06)]"
+            a.level === "high" ? "border-red-500/30 bg-[rgba(var(--danger-rgb),0.06)]" : "border-amber-500/20 bg-[rgba(var(--warning-rgb),0.06)]"
           }`}>
             <div>
               <div className="flex items-center gap-2">

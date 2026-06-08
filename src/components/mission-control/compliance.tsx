@@ -8,8 +8,8 @@ import { SectionDescription } from "./dashboard-clarity";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const C = {
-  green: "#00D47E", purple: "#00D47E", amber: "#f59e0b",
-  red: "#ef4444", slate: "#8888A0",
+  green: "var(--quarn)", purple: "var(--quarn)", amber: "var(--warning)",
+  red: "var(--danger)", slate: "var(--fg-2)",
 };
 
 async function apiFetch<T>(url: string, opts?: RequestInit): Promise<T> {
@@ -54,7 +54,7 @@ export function ComplianceDashboard() {
         ] as const).map(([t, label]) => (
           <button key={t} type="button" onClick={() => setTab(t)}
             className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-              tab === t ? "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              tab === t ? "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >{label}</button>
         ))}
@@ -114,7 +114,7 @@ function AuditLogTab() {
               actionFilter === f
                 ? f === "agent.kill"
                   ? "bg-red-500/15 text-red-400"
-                  : "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]"
+                  : "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
             }`}
           >
@@ -170,7 +170,7 @@ function AuditLogTab() {
                       e.action === "agent.pause" ? "bg-amber-500/15 text-amber-400" :
                       e.action === "agent.resume" ? "bg-green-500/15 text-green-400" :
                       e.action.includes("delete") || e.action.includes("purge") ? "bg-red-500/10 text-red-400" :
-                      e.action.includes("create") ? "bg-[rgba(0,212,126,0.1)] text-[var(--accent)]" :
+                      e.action.includes("create") ? "bg-[rgba(var(--quarn-rgb),0.1)] text-[var(--accent)]" :
                       "bg-[var(--bg-surface-2)] text-[var(--text-primary)]"
                     }`}>{e.action}</span>
                   </td>

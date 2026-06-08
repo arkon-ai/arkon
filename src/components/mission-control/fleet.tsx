@@ -190,7 +190,7 @@ function AgentCard({ agent }: { agent: FleetAgent }) {
                 </span>
               ) : null}
               {isWarden ? (
-                <span className="rounded-[var(--radius-sm)] border border-[rgba(0,212,126,0.35)] bg-[rgba(0,212,126,0.08)] px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--accent)]">
+                <span className="rounded-[var(--radius-sm)] border border-[rgba(var(--quarn-rgb),0.35)] bg-[rgba(var(--quarn-rgb),0.08)] px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--accent)]">
                   governor
                 </span>
               ) : null}

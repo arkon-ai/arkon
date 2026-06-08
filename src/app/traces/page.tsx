@@ -68,10 +68,10 @@ function relativeTime(iso: string): string {
 }
 
 const STATUS_CONFIG: Record<string, { icon: typeof CheckCircle; color: string; bg: string }> = {
-  ok: { icon: CheckCircle, color: "#10B981", bg: "rgba(16, 185, 129, 0.1)" },
-  error: { icon: XCircle, color: "#EF4444", bg: "rgba(239, 68, 68, 0.1)" },
-  running: { icon: Activity, color: "#F59E0B", bg: "rgba(245, 158, 11, 0.1)" },
-  timeout: { icon: AlertTriangle, color: "#F59E0B", bg: "rgba(245, 158, 11, 0.1)" },
+  ok: { icon: CheckCircle, color: "var(--success)", bg: "rgba(var(--success-rgb), 0.1)" },
+  error: { icon: XCircle, color: "var(--danger)", bg: "rgba(var(--danger-rgb), 0.1)" },
+  running: { icon: Activity, color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)" },
+  timeout: { icon: AlertTriangle, color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)" },
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -139,10 +139,10 @@ export default function TracesPage() {
       {/* Stats Row */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
-          { label: "TOTAL TRACES", value: String(total), color: "#E4E4ED" },
-          { label: "AVG DURATION", value: fmtDuration(stats.avgDuration), color: "#00D47E" },
-          { label: "TOKENS USED", value: fmtTokens(stats.totalTokens), color: "#06B6D4" },
-          { label: "ERRORS", value: String(stats.errorCount), color: stats.errorCount > 0 ? "#EF4444" : "#10B981" },
+          { label: "TOTAL TRACES", value: String(total), color: "var(--fg-1)" },
+          { label: "AVG DURATION", value: fmtDuration(stats.avgDuration), color: "var(--quarn)" },
+          { label: "TOKENS USED", value: fmtTokens(stats.totalTokens), color: "var(--info)" },
+          { label: "ERRORS", value: String(stats.errorCount), color: stats.errorCount > 0 ? "var(--danger)" : "var(--success)" },
         ].map((s) => (
           <motion.div
             key={s.label}
@@ -165,13 +165,13 @@ export default function TracesPage() {
             placeholder="Search traces..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setOffset(0); }}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder-[#555566] outline-none focus:border-[rgba(0,212,126,0.25)]"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder-[var(--fg-3)] outline-none focus:border-[rgba(var(--quarn-rgb),0.25)]"
           />
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:border-[rgba(0,212,126,0.25)] hover:text-[var(--text-primary)]"
+            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:border-[rgba(var(--quarn-rgb),0.25)] hover:text-[var(--text-primary)]"
           >
             <Filter className="h-4 w-4" />
             Filters
@@ -264,7 +264,7 @@ export default function TracesPage() {
                     <tr
                       key={trace.trace_id}
                       onClick={() => router.push(`/traces/${trace.trace_id}`)}
-                      className="cursor-pointer border-b border-[var(--border)]/50 transition-colors hover:bg-[rgba(0,212,126,0.03)]"
+                      className="cursor-pointer border-b border-[var(--border)]/50 transition-colors hover:bg-[rgba(var(--quarn-rgb),0.03)]"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -302,14 +302,14 @@ export default function TracesPage() {
               <button
                 onClick={() => setOffset(Math.max(0, offset - limit))}
                 disabled={offset === 0}
-                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(0,212,126,0.25)] disabled:opacity-30"
+                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(var(--quarn-rgb),0.25)] disabled:opacity-30"
               >
                 Previous
               </button>
               <button
                 onClick={() => setOffset(offset + limit)}
                 disabled={offset + limit >= total}
-                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(0,212,126,0.25)] disabled:opacity-30"
+                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(var(--quarn-rgb),0.25)] disabled:opacity-30"
               >
                 Next
               </button>

@@ -99,20 +99,27 @@ const EVENT_ICON: Record<string, string> = {
 const EVENT_COLOUR: Record<string, string> = {
   message_received: "border-[var(--accent)]/30 bg-[rgba(6,214,160,0.04)]",
   message_sent: "border-[var(--accent)]/30 bg-[rgba(139,92,246,0.04)]",
-  tool_call: "border-[#f59e0b]/30 bg-[rgba(245,158,11,0.04)]",
-  error: "border-red-500/30 bg-[rgba(239,68,68,0.04)]",
+  tool_call: "border-[var(--warning)]/30 bg-[rgba(var(--warning-rgb),0.04)]",
+  error: "border-red-500/30 bg-[rgba(var(--danger-rgb),0.04)]",
   cron: "border-sky-500/30 bg-[rgba(14,165,233,0.04)]",
 };
 
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: "#ef4444",
-  high: "#f59e0b",
-  medium: "#00D47E",
-  low: "#8888A0",
+  critical: "var(--danger)",
+  high: "var(--warning)",
+  medium: "var(--quarn)",
+  low: "var(--fg-2)",
+};
+
+const SEVERITY_BG: Record<string, string> = {
+  critical: "rgba(var(--danger-rgb), 0.08)",
+  high: "rgba(var(--warning-rgb), 0.08)",
+  medium: "rgba(var(--quarn-rgb), 0.08)",
+  low: "rgba(136, 136, 160, 0.08)",
 };
 
 const ROLE_COLOURS: Record<string, string> = {
-  owner: "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]",
+  owner: "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]",
   admin: "bg-[rgba(6,214,160,0.15)] text-[var(--accent)]",
   agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
   viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
@@ -175,7 +182,7 @@ function ChartTip({ active, payload, label }: { active?: boolean; payload?: Arra
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-xs">
       <p className="mb-1 font-semibold text-[var(--text-secondary)]">{label}</p>
       {payload.map((p) => (
-        <p key={p.name} style={{ color: p.fill ?? p.stroke ?? "#00D47E" }}>{p.name}: {p.value}</p>
+        <p key={p.name} style={{ color: p.fill ?? p.stroke ?? "var(--quarn)" }}>{p.name}: {p.value}</p>
       ))}
     </div>
   );
@@ -285,7 +292,7 @@ export default function AgentDetailPage() {
 
   if (!data?.agent) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-2xl border border-red-500/20 bg-[rgba(239,68,68,0.04)]">
+      <div className="flex h-64 items-center justify-center rounded-2xl border border-red-500/20 bg-[rgba(var(--danger-rgb),0.04)]">
         <p className="text-sm text-red-400">Agent not found</p>
       </div>
     );
@@ -462,20 +469,20 @@ function OverviewTab({ data, chartData, model, framework }: {
             <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradRecv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00D47E" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradSent" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00D47E" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#00D47E" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
-              <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
-              <Area type="monotone" dataKey="received" name="Received" stroke="#00D47E" strokeWidth={2} fill="url(#gradRecv)" dot={false} />
-              <Area type="monotone" dataKey="sent" name="Sent" stroke="#00D47E" strokeWidth={2} fill="url(#gradSent)" dot={false} />
+              <Area type="monotone" dataKey="received" name="Received" stroke="var(--quarn)" strokeWidth={2} fill="url(#gradRecv)" dot={false} />
+              <Area type="monotone" dataKey="sent" name="Sent" stroke="var(--quarn)" strokeWidth={2} fill="url(#gradSent)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </Card>
@@ -553,13 +560,13 @@ function SecurityTab({ data }: { data: AgentData }) {
                   className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
                 >
                   <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-4 w-4" style={{ color: SEVERITY_COLORS[t.threat_level] ?? "#8888A0" }} />
+                    <AlertTriangle className="h-4 w-4" style={{ color: SEVERITY_COLORS[t.threat_level] ?? "var(--fg-2)" }} />
                     <div>
                       <span
                         className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
                         style={{
-                          background: `${SEVERITY_COLORS[t.threat_level]}15`,
-                          color: SEVERITY_COLORS[t.threat_level] ?? "#8888A0",
+                          background: SEVERITY_BG[t.threat_level],
+                          color: SEVERITY_COLORS[t.threat_level] ?? "var(--fg-2)",
                         }}
                       >
                         {t.threat_level}
@@ -616,11 +623,11 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
           <SectionTitle title="Daily Cost — 7 Days" />
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
-              <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
               <Tooltip content={<ChartTip />} />
-              <Bar dataKey="cost" name="Cost ($)" fill="#00D47E" radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar dataKey="cost" name="Cost ($)" fill="var(--quarn)" radius={[4, 4, 0, 0]} maxBarSize={28} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -634,15 +641,15 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
             <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradTokens" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--warning)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--warning)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
-              <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
-              <Area type="monotone" dataKey="tokens" name="Tokens (k)" stroke="#f59e0b" strokeWidth={2} fill="url(#gradTokens)" dot={false} />
+              <Area type="monotone" dataKey="tokens" name="Tokens (k)" stroke="var(--warning)" strokeWidth={2} fill="url(#gradTokens)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </Card>
@@ -654,11 +661,11 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
           <SectionTitle title="Tool Calls — 7 Days" />
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1E1E2A" />
-              <XAxis dataKey="day" tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#8888A0", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
-              <Bar dataKey="tools" name="Tool Calls" fill="#00D47E" radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar dataKey="tools" name="Tool Calls" fill="var(--quarn)" radius={[4, 4, 0, 0]} maxBarSize={28} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -757,8 +764,8 @@ function ActivityTab({
                     <span
                       className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
                       style={{
-                        background: `${SEVERITY_COLORS[event.threat_level]}15`,
-                        color: SEVERITY_COLORS[event.threat_level] ?? "#8888A0",
+                        background: SEVERITY_BG[event.threat_level],
+                        color: SEVERITY_COLORS[event.threat_level] ?? "var(--fg-2)",
                       }}
                     >
                       {event.threat_level}

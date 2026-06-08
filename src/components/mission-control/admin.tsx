@@ -44,8 +44,8 @@ function getSessionRole(): string {
 
 /* ─── Role badge ─────────────────────────────────────────── */
 const ROLE_COLOURS: Record<string, string> = {
-  owner: "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]",
-  admin: "bg-[rgba(0,212,126,0.15)] text-[var(--accent)]",
+  owner: "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]",
+  admin: "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]",
   agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
   viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
 };
@@ -88,7 +88,7 @@ function Input({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> 
       <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">{label}</label>
       <input
         {...props}
-        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(var(--quarn-rgb),0.12)] transition"
       />
     </div>
   );
@@ -101,7 +101,7 @@ function Textarea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextArea
       <textarea
         {...props}
         rows={3}
-        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(0,212,126,0.12)] transition resize-y"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(var(--quarn-rgb),0.12)] transition resize-y"
       />
     </div>
   );
@@ -127,7 +127,7 @@ function Btn({ children, variant = "primary", disabled, onClick, type = "button"
   const base = "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed";
   const styles = {
     primary: "bg-[var(--accent)] text-[var(--accent-foreground)] hover:opacity-90",
-    danger: "bg-[rgba(239,68,68,0.15)] text-red-400 border border-red-500/30 hover:bg-[rgba(239,68,68,0.25)]",
+    danger: "bg-[rgba(var(--danger-rgb),0.15)] text-red-400 border border-red-500/30 hover:bg-[rgba(var(--danger-rgb),0.25)]",
     ghost: "border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)]",
   };
   return (
@@ -141,7 +141,7 @@ function Btn({ children, variant = "primary", disabled, onClick, type = "button"
 function TokenReveal({ token, onDismiss }: { token: string; onDismiss: () => void }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="relative card-hover mt-4 rounded-2xl border border-amber-500/30 bg-[rgba(245,158,11,0.08)] p-4">
+    <div className="relative card-hover mt-4 rounded-2xl border border-amber-500/30 bg-[rgba(var(--warning-rgb),0.08)] p-4">
       <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-amber-400">
         <AlertTriangle className="h-3.5 w-3.5" />

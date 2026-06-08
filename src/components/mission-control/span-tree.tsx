@@ -6,11 +6,11 @@ import type { Span } from "@/app/traces/[traceId]/page";
 
 // Type colors — LLM=emerald, tool=blue, retrieval=teal, chain=gray, error=red
 const TYPE_COLORS: Record<string, { color: string; bg: string; label: string }> = {
-  llm:       { color: "#00D47E", bg: "rgba(0, 212, 126, 0.12)",  label: "LLM" },
-  tool:      { color: "#06B6D4", bg: "rgba(6, 182, 212, 0.12)",  label: "Tool" },
+  llm:       { color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.12)",  label: "LLM" },
+  tool:      { color: "var(--info)", bg: "rgba(var(--info-rgb), 0.12)",  label: "Tool" },
   retrieval: { color: "#14B8A6", bg: "rgba(20, 184, 166, 0.12)", label: "RAG" },
-  chain:     { color: "#8888A0", bg: "rgba(136, 136, 160, 0.12)", label: "Chain" },
-  agent:     { color: "#F59E0B", bg: "rgba(245, 158, 11, 0.12)", label: "Agent" },
+  chain:     { color: "var(--fg-2)", bg: "rgba(136, 136, 160, 0.12)", label: "Chain" },
+  agent:     { color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.12)", label: "Agent" },
 };
 
 interface TreeNode {
@@ -107,7 +107,7 @@ function SpanTreeNode({
         onClick={() => onSelectSpan(node.span)}
         className={`group flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left transition-colors ${
           isSelected
-            ? "bg-[rgba(0,212,126,0.08)] border border-[rgba(0,212,126,0.2)]"
+            ? "bg-[rgba(var(--quarn-rgb),0.08)] border border-[rgba(var(--quarn-rgb),0.2)]"
             : "hover:bg-[var(--bg-surface-2)] border border-transparent"
         }`}
         style={{ paddingLeft: `${8 + node.depth * 20}px` }}
@@ -127,7 +127,7 @@ function SpanTreeNode({
         {/* Type badge */}
         <span
           className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
-          style={{ color: isError ? "#EF4444" : typeConfig.color, background: isError ? "rgba(239,68,68,0.12)" : typeConfig.bg }}
+          style={{ color: isError ? "var(--danger)" : typeConfig.color, background: isError ? "rgba(var(--danger-rgb), 0.12)" : typeConfig.bg }}
         >
           {typeConfig.label}
         </span>
@@ -145,7 +145,7 @@ function SpanTreeNode({
                 className="h-full rounded-full"
                 style={{
                   width: `${Math.min(barWidth, 100)}%`,
-                  background: isError ? "#EF4444" : typeConfig.color,
+                  background: isError ? "var(--danger)" : typeConfig.color,
                   opacity: 0.6,
                 }}
               />

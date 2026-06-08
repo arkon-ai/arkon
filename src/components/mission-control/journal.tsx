@@ -30,10 +30,10 @@ const CATEGORY_COLORS: Record<string, string> = {
   task: "#3b82f6",
   log: "#64748b",
   decision: "#a855f7",
-  insight: "#10b981",
+  insight: "var(--success)",
   question: "#eab308",
-  blocker: "#ef4444",
-  ship: "#22c55e",
+  blocker: "var(--danger)",
+  ship: "var(--quarn)",
   note: "#94a3b8",
 };
 
@@ -118,7 +118,7 @@ export function Journal() {
   }, [entries]);
 
   return (
-    <div className="min-h-screen text-slate-100" style={{ background: "#0A0A0C" }}>
+    <div className="min-h-screen text-slate-100" style={{ background: "var(--void)" }}>
       <div className="mx-auto max-w-screen-xl px-6 py-8">
         <header className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -301,7 +301,7 @@ function EntryRow({ entry }: { entry: JournalEntry }) {
           <span>·</span>
           <span
             className="rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider"
-            style={{ color: catColor, background: `${catColor}1a` }}
+            style={{ color: catColor, background: `color-mix(in srgb, ${catColor} 10%, transparent)` }}
           >
             {entry.category}
           </span>

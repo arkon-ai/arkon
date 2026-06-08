@@ -77,19 +77,19 @@ interface DetailData {
 /* ── Constants ── */
 
 const SEVERITY_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  P1: { label: "P1 \u2014 Critical", color: "#ef4444", bg: "rgba(239,68,68,0.1)" },
-  P2: { label: "P2 \u2014 High", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
-  P3: { label: "P3 \u2014 Medium", color: "#06B6D4", bg: "rgba(6,182,212,0.1)" },
+  P1: { label: "P1 \u2014 Critical", color: "var(--danger)", bg: "rgba(var(--danger-rgb), 0.1)" },
+  P2: { label: "P2 \u2014 High", color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)" },
+  P3: { label: "P3 \u2014 Medium", color: "var(--info)", bg: "rgba(var(--info-rgb), 0.1)" },
   P4: { label: "P4 \u2014 Low", color: "#64748b", bg: "rgba(100,116,139,0.1)" },
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  created: { label: "Created", color: "#8888A0", bg: "rgba(136,136,160,0.1)" },
+  created: { label: "Created", color: "var(--fg-2)", bg: "rgba(136,136,160,0.1)" },
   assigned: { label: "Assigned", color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
-  investigating: { label: "Investigating", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
-  resolved: { label: "Resolved", color: "#00D47E", bg: "rgba(0,212,126,0.1)" },
+  investigating: { label: "Investigating", color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)" },
+  resolved: { label: "Resolved", color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.1)" },
   postmortem: { label: "Post-Mortem", color: "#a855f7", bg: "rgba(168,85,247,0.1)" },
-  closed: { label: "Closed", color: "#555566", bg: "rgba(85,85,102,0.1)" },
+  closed: { label: "Closed", color: "var(--fg-3)", bg: "rgba(85,85,102,0.1)" },
 };
 
 const UPDATE_ICONS: Record<string, typeof Zap> = {
@@ -110,18 +110,18 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 function formatSla(ms: number | null, breached: boolean): { text: string; color: string } {
-  if (ms === null) return { text: "No SLA", color: "#555566" };
+  if (ms === null) return { text: "No SLA", color: "var(--fg-3)" };
   if (breached || ms <= 0) {
     const hrs = Math.abs(ms) / 3600000;
     return {
       text: `Breached by ${hrs >= 1 ? `${Math.floor(hrs)}h ${Math.floor((hrs % 1) * 60)}m` : `${Math.floor(Math.abs(ms) / 60000)}m`}`,
-      color: "#ef4444",
+      color: "var(--danger)",
     };
   }
   const hrs = ms / 3600000;
-  if (hrs < 0.25) return { text: `${Math.floor(ms / 60000)}m left`, color: "#ef4444" };
-  if (hrs < 1) return { text: `${Math.floor(ms / 60000)}m left`, color: "#f59e0b" };
-  return { text: `${Math.floor(hrs)}h ${Math.floor((hrs % 1) * 60)}m left`, color: "#00D47E" };
+  if (hrs < 0.25) return { text: `${Math.floor(ms / 60000)}m left`, color: "var(--danger)" };
+  if (hrs < 1) return { text: `${Math.floor(ms / 60000)}m left`, color: "var(--warning)" };
+  return { text: `${Math.floor(hrs)}h ${Math.floor((hrs % 1) * 60)}m left`, color: "var(--quarn)" };
 }
 
 /* ── Main Screen ── */
@@ -198,10 +198,10 @@ function IncidentList({
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: "Open", value: stats.open_count, color: "#f59e0b" },
-            { label: "P1/P2 Active", value: stats.critical_count, color: "#ef4444" },
-            { label: "SLA Breaches", value: stats.sla_breaches, color: "#ef4444" },
-            { label: "Avg Resolution", value: stats.avg_resolution_hours ? `${stats.avg_resolution_hours}h` : "\u2014", color: "#00D47E" },
+            { label: "Open", value: stats.open_count, color: "var(--warning)" },
+            { label: "P1/P2 Active", value: stats.critical_count, color: "var(--danger)" },
+            { label: "SLA Breaches", value: stats.sla_breaches, color: "var(--danger)" },
+            { label: "Avg Resolution", value: stats.avg_resolution_hours ? `${stats.avg_resolution_hours}h` : "\u2014", color: "var(--quarn)" },
           ].map((s) => (
             <div key={s.label} className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
               <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
@@ -421,7 +421,7 @@ function IncidentDetail({ id, onBack }: { id: number; onBack: () => void }) {
         <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
           <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">SLA</p>
-          <p className="mt-1 text-sm font-bold" style={{ color: slaInfo?.color ?? "#555566" }}>
+          <p className="mt-1 text-sm font-bold" style={{ color: slaInfo?.color ?? "var(--fg-3)" }}>
             {slaInfo?.text ?? "No SLA"}
           </p>
         </div>

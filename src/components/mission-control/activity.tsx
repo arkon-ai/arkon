@@ -45,9 +45,9 @@ const EVENT_ICON: Record<string, string> = {
 };
 
 const EVENT_BORDER: Record<string, string> = {
-  message_received: "border-l-[#00D47E]",
-  message_sent: "border-l-[#00D47E]",
-  tool_call: "border-l-[#f59e0b]",
+  message_received: "border-l-[var(--quarn)]",
+  message_sent: "border-l-[var(--quarn)]",
+  tool_call: "border-l-[var(--warning)]",
   error: "border-l-red-500",
   cron: "border-l-sky-400",
   system: "border-l-slate-400",

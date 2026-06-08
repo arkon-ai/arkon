@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 //   warden=emerald, codesmith=slate (deeper than fallback), lumina=amber, sentinel=teal.
 // Brynn rules: NO cyan, NO purple, NO pink, NO red (red reserved for kill/warning).
 const PERSONA_COLORS: Record<string, { bg: string; fg: string }> = {
-  warden: { bg: "rgba(16, 185, 129, 0.16)", fg: "#6ee7b7" },
+  warden: { bg: "rgba(var(--success-rgb), 0.16)", fg: "#6ee7b7" },
   codesmith: { bg: "rgba(100, 116, 139, 0.18)", fg: "#94a3b8" },
   lumina: { bg: "rgba(251, 191, 36, 0.16)", fg: "#fcd34d" },
   sentinel: { bg: "rgba(20, 184, 166, 0.16)", fg: "#5eead4" },
