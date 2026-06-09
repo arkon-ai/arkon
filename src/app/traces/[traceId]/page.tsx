@@ -159,11 +159,11 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         {[
-          { label: "DURATION", value: fmtDuration(trace.duration_ms), icon: Clock, color: "var(--fg-1)" },
-          { label: "SPANS", value: String(spans.length), icon: Hash, color: "var(--info)" },
-          { label: "TOKENS", value: fmtTokens(trace.token_count), icon: Zap, color: "var(--warning)" },
-          { label: "COST", value: fmtCost(Number(trace.cost)), icon: Coins, color: "var(--quarn)" },
-          { label: "AGENT", value: trace.agent_id || "—", icon: Bot, color: "var(--fg-2)" },
+          { label: "Duration", value: fmtDuration(trace.duration_ms), icon: Clock, color: "var(--fg-1)" },
+          { label: "Spans", value: String(spans.length), icon: Hash, color: "var(--info)" },
+          { label: "Tokens", value: fmtTokens(trace.token_count), icon: Zap, color: "var(--warning)" },
+          { label: "Cost", value: fmtCost(Number(trace.cost)), icon: Coins, color: "var(--quarn)" },
+          { label: "Agent", value: trace.agent_id || "—", icon: Bot, color: "var(--fg-2)" },
         ].map((s) => (
           <motion.div
             key={s.label}

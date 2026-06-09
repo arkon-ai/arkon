@@ -99,14 +99,18 @@ sidebar IA (Provision · Govern · Observe · Kill).
   `arkon-os/client/src/styles/arkon-kit.css` rather than perpetuating one-offs.
 - **Design laws:** numerals in Geist Mono (`tabular-nums`); Quarn does ONE job
   per region (H1 never emerald; active-nav = emerald-text-on-quiet-fill, not
-  emerald-fill); borders not glows carry state (no glows, no purple); status
+  emerald-fill); depth + borders carry state, plus ONE sanctioned `--quarn-glow`
+  per card on hover/active (WI-994 amendment, 2026-06-08 — was "no glows"); no
+  *legacy decorative* glows, no purple; status
   colour semantic only; sentence case headings/buttons; dark-first / Void;
   kill = `octagon-x` in Danger + a 350ms deliberate confirm modal; no emoji
   (Lucide only).
 - **NEVER resurrect** old/redundant/historic styles — retired language ("Arkon
   Workspace" / "AI Control Plane" / "AI Governance Platform" → "Arkon" / "AI
-  Workforce Platform"), the stale `Inter` fallback (Geist is primary), glows,
-  purple, `--cyan/--purple/--green/--amber` aliases. Migrate off them (backlog
+  Workforce Platform"), the stale `Inter` fallback (Geist is primary), *legacy
+  decorative* glows (`.glow-*`, `glowing-effect` — NOT the sanctioned premium
+  `--quarn-glow`/`--depth-*` primitives), purple,
+  `--cyan/--purple/--green/--amber` aliases. Migrate off them (backlog
   in the canonical doc §9), don't copy them.
 - **Identity gaps to fix when chrome is touched:** the sidebar brand is
   text-only ("Arkon / Workspace") — wire the master `arkon-glyph.svg` and drop

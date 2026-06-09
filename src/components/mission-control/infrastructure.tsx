@@ -97,7 +97,7 @@ const ROLE_COLORS: Record<string, { color: string; bg: string; border: string }>
   primary:     { color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.08)",  border: "rgba(var(--quarn-rgb), 0.25)" },
   failover:    { color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.08)", border: "rgba(var(--warning-rgb), 0.25)" },
   static:      { color: "#737373", bg: "rgba(115, 115, 115, 0.08)",border: "rgba(115, 115, 115, 0.25)" },
-  dfy_client:  { color: "var(--quarn-light)", bg: "rgba(167, 139, 250, 0.08)", border: "rgba(167, 139, 250, 0.25)" },
+  dfy_client:  { color: "var(--info)", bg: "rgba(var(--info-rgb), 0.08)", border: "rgba(var(--info-rgb), 0.25)" },
   workstation: { color: "#60a5fa", bg: "rgba(96, 165, 250, 0.08)", border: "rgba(96, 165, 250, 0.25)" },
 };
 
@@ -413,7 +413,7 @@ function DetailPanel({
           node.agents.map((agent) => (
             <div key={agent.id} className="mb-2 flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2.5">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(var(--quarn-rgb),0.08)] text-xs font-semibold text-[var(--success)]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(var(--quarn-rgb),0.08)] text-xs font-semibold text-[var(--quarn)]">
                   {agent.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -421,7 +421,7 @@ function DetailPanel({
                   <p className="font-mono text-[10px] text-[var(--text-tertiary)]">{agent.role}</p>
                 </div>
               </div>
-              <span className="rounded-full bg-[rgba(var(--quarn-rgb),0.06)] px-2.5 py-0.5 text-[10px] font-semibold text-[var(--success)]">
+              <span className="rounded-full bg-[rgba(var(--quarn-rgb),0.06)] px-2.5 py-0.5 text-[10px] font-semibold text-[var(--quarn)]">
                 {agent.role}
               </span>
             </div>
@@ -455,7 +455,7 @@ function DetailPanel({
                 disabled={loading !== null}
                 className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition
                   ${action.style === "primary"
-                    ? "border-[rgba(var(--quarn-rgb),0.15)] bg-[rgba(var(--quarn-rgb),0.05)] text-[var(--success)] hover:bg-[rgba(var(--quarn-rgb),0.1)]"
+                    ? "border-[rgba(var(--quarn-rgb),0.15)] bg-[rgba(var(--quarn-rgb),0.05)] text-[var(--quarn)] hover:bg-[rgba(var(--quarn-rgb),0.1)]"
                     : action.style === "danger"
                       ? "border-[rgba(var(--danger-rgb),0.12)] text-[var(--danger)] hover:bg-[rgba(var(--danger-rgb),0.05)]"
                       : "border-[var(--border)] text-[var(--text-tertiary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
@@ -702,7 +702,7 @@ export function InfrastructureTopology() {
                 onClick={() => setFilter(f)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition
                   ${filter === f
-                    ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--success)] ring-1 ring-[rgba(var(--quarn-rgb),0.2)]"
+                    ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--quarn)] ring-1 ring-[rgba(var(--quarn-rgb),0.2)]"
                     : "text-[var(--text-tertiary)] hover:bg-white/5 hover:text-[var(--text-secondary)]"
                   }`}
               >

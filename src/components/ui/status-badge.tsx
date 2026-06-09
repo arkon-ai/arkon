@@ -19,12 +19,12 @@ interface StatusBadgeProps {
 const statusConfig: Record<BadgeStatus, { bg: string; text: string; dot: string; pulse?: boolean }> = {
   running:   { bg: "bg-[rgba(var(--quarn-rgb),0.15)]", text: "text-[var(--accent)]",  dot: "bg-[var(--accent)]",  pulse: true },
   healthy:   { bg: "bg-[rgba(var(--success-rgb),0.15)]", text: "text-[var(--success)]",  dot: "bg-[var(--success)]" },
-  paused:    { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[var(--fg-2)]" },
+  paused:    { bg: "bg-[rgba(var(--fg-2-rgb),0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[var(--fg-2)]" },
   scheduled: { bg: "bg-[rgba(var(--info-rgb),0.15)]",  text: "text-[var(--info)]",  dot: "bg-[var(--info)]" },
   degraded:  { bg: "bg-[rgba(var(--warning-rgb),0.15)]", text: "text-[var(--warning)]",  dot: "bg-[var(--warning)]",  pulse: true },
   failed:    { bg: "bg-[rgba(var(--danger-rgb),0.15)]",  text: "text-[var(--danger)]",  dot: "bg-[var(--danger)]" },
-  offline:   { bg: "bg-[rgba(85,85,102,0.15)]",  text: "text-[var(--text-tertiary)]",  dot: "bg-[var(--fg-3)]" },
-  idle:      { bg: "bg-[rgba(136,136,160,0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[var(--fg-2)]" },
+  offline:   { bg: "bg-[rgba(var(--fg-3-rgb),0.15)]",  text: "text-[var(--text-tertiary)]",  dot: "bg-[var(--fg-3)]" },
+  idle:      { bg: "bg-[rgba(var(--fg-2-rgb),0.15)]", text: "text-[var(--text-secondary)]", dot: "bg-[var(--fg-2)]" },
 };
 
 export function StatusBadge({ status, label, className = "" }: StatusBadgeProps) {

@@ -781,7 +781,7 @@ function ThreatEventRow({
                 {config.label}
               </span>
               {classes.map((cls) => (
-                <span key={cls} className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: (CLASS_COLORS[cls] ?? "var(--fg-2)") + "15", color: CLASS_COLORS[cls] ?? "var(--fg-2)" }}>
+                <span key={cls} className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: `color-mix(in srgb, ${CLASS_COLORS[cls] ?? "var(--fg-2)"} 8%, transparent)`, color: CLASS_COLORS[cls] ?? "var(--fg-2)" }}>
                   {CLASS_LABELS[cls] ?? cls}
                 </span>
               ))}
@@ -851,7 +851,7 @@ function ThreatEventRow({
               {matches.map((match, i) => (
                 <div key={i} className="rounded-lg bg-white/[0.02] px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: CLASS_COLORS[match.class] + "22", color: CLASS_COLORS[match.class] ?? "var(--fg-2)" }}>
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: `color-mix(in srgb, ${CLASS_COLORS[match.class] ?? "var(--fg-2)"} 13%, transparent)`, color: CLASS_COLORS[match.class] ?? "var(--fg-2)" }}>
                       {match.class}
                     </span>
                     <span className="text-xs font-medium text-text">{match.pattern}</span>

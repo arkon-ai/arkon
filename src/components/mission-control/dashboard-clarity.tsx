@@ -118,7 +118,7 @@ export function HealthGauge({
             Score Breakdown
           </p>
           <BreakdownRow label="Agent Uptime" value={breakdown.agents} max={25} color="var(--quarn)" />
-          <BreakdownRow label="Threat Level" value={breakdown.threats} max={25} color="var(--quarn)" />
+          <BreakdownRow label="Threat Level" value={breakdown.threats} max={25} color="var(--danger)" />
           <BreakdownRow label="Budget Status" value={breakdown.budget} max={25} color="var(--warning)" />
           <BreakdownRow label="Infrastructure" value={breakdown.infra} max={25} color="#3b82f6" />
         </div>

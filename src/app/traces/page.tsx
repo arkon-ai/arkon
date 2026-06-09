@@ -139,10 +139,10 @@ export default function TracesPage() {
       {/* Stats Row */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
-          { label: "TOTAL TRACES", value: String(total), color: "var(--fg-1)" },
-          { label: "AVG DURATION", value: fmtDuration(stats.avgDuration), color: "var(--quarn)" },
-          { label: "TOKENS USED", value: fmtTokens(stats.totalTokens), color: "var(--info)" },
-          { label: "ERRORS", value: String(stats.errorCount), color: stats.errorCount > 0 ? "var(--danger)" : "var(--success)" },
+          { label: "Total traces", value: String(total), color: "var(--fg-1)" },
+          { label: "Avg duration", value: fmtDuration(stats.avgDuration), color: "var(--quarn)" },
+          { label: "Tokens used", value: fmtTokens(stats.totalTokens), color: "var(--info)" },
+          { label: "Errors", value: String(stats.errorCount), color: stats.errorCount > 0 ? "var(--danger)" : "var(--success)" },
         ].map((s) => (
           <motion.div
             key={s.label}

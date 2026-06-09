@@ -828,7 +828,7 @@ function FeatureCard({
 }
 
 function ConfettiEffect() {
-  const colors = ["var(--quarn)", "var(--quarn)", "var(--warning)", "var(--info)", "var(--danger)"];
+  const colors = ["var(--quarn)", "var(--quarn-light)", "var(--accent)", "var(--accent-subtle)", "var(--fg-2)"];
   const [particles] = useState(() =>
     Array.from({ length: 30 }, (_, i) => ({
       key: i,

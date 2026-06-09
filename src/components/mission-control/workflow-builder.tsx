@@ -64,7 +64,7 @@ interface NodeConfig {
 const NODE_STYLES: Record<string, { bg: string; border: string; icon: string; accent: string }> = {
   "manual-trigger": { bg: "#1a1a2e", border: "var(--quarn)", icon: "\u25B6", accent: "var(--quarn)" },
   "cron-trigger":   { bg: "#1a1a2e", border: "var(--info)", icon: "\u23F0", accent: "var(--info)" },
-  "http-request":   { bg: "#1a1a2e", border: "#3b82f6", icon: "\u21C5", accent: "#3b82f6" },
+  "http-request":   { bg: "#1a1a2e", border: "var(--info)", icon: "\u21C5", accent: "var(--info)" },
   "condition":      { bg: "#1a1a2e", border: "var(--warning)", icon: "\u2747", accent: "var(--warning)" },
   "notify":         { bg: "#1a1a2e", border: "var(--quarn)", icon: "\u2709", accent: "var(--quarn)" },
 };
@@ -422,7 +422,7 @@ function NodeConfigPanel({
 const PALETTE_ITEMS = [
   { type: "manual-trigger", label: "Manual Trigger", icon: "\u25B6", color: "var(--quarn)", description: "Start this workflow by clicking Run Now" },
   { type: "cron-trigger", label: "Cron Trigger", icon: "\u23F0", color: "var(--info)", description: "Run this workflow on a schedule (e.g. every 5 minutes)" },
-  { type: "http-request", label: "HTTP Request", icon: "\u21C5", color: "#3b82f6", description: "Make an API call to any URL" },
+  { type: "http-request", label: "HTTP Request", icon: "\u21C5", color: "var(--info)", description: "Make an API call to any URL" },
   { type: "condition", label: "Condition", icon: "\u2747", color: "var(--warning)", description: "Branch the workflow based on a condition (if/else)" },
   { type: "notify", label: "Notify", icon: "\u2709", color: "var(--quarn)", description: "Send a notification via Telegram or log" },
 ];
