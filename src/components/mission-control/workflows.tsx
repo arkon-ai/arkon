@@ -242,15 +242,15 @@ function timeAgo(dateStr: string): string {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  draft: { bg: "rgba(100,116,139,0.15)", text: "var(--fg-2)" },
+  draft: { bg: "rgba(var(--fg-2-rgb), 0.15)", text: "var(--fg-2)" },
   active: { bg: "rgba(var(--quarn-rgb), 0.15)", text: "var(--quarn)" },
   paused: { bg: "rgba(var(--warning-rgb), 0.15)", text: "var(--warning)" },
-  archived: { bg: "rgba(100,116,139,0.1)", text: "var(--fg-2)" },
-  running: { bg: "rgba(59,130,246,0.15)", text: "#3b82f6" },
+  archived: { bg: "rgba(var(--fg-2-rgb), 0.1)", text: "var(--fg-2)" },
+  running: { bg: "rgba(var(--info-rgb), 0.15)", text: "var(--info)" },
   completed: { bg: "rgba(var(--quarn-rgb), 0.15)", text: "var(--quarn)" },
   failed: { bg: "rgba(var(--danger-rgb), 0.15)", text: "var(--danger)" },
   success: { bg: "rgba(var(--quarn-rgb), 0.15)", text: "var(--quarn)" },
-  skipped: { bg: "rgba(100,116,139,0.1)", text: "var(--fg-2)" },
+  skipped: { bg: "rgba(var(--fg-2-rgb), 0.1)", text: "var(--fg-2)" },
 };
 
 function StatusBadge({ status }: { status: string }) {

@@ -373,7 +373,7 @@ function TopSendersCard({ data }: { data: TopSender[] }) {
             <div key={`${sender.sender_name}-${sender.channel}-${i}`} className="flex items-center justify-between rounded-xl bg-white/[0.02] px-3 py-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-text">{sender.sender_name}</span>
-                <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold capitalize" style={{ background: color + "22", color }}>
+                <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold capitalize" style={{ background: `color-mix(in srgb, ${color} 13%, transparent)`, color }}>
                   {sender.channel}
                 </span>
               </div>

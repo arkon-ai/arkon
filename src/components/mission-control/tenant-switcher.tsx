@@ -65,7 +65,7 @@ export function TenantSwitcher() {
         onClick={() => setOpen(!open)}
         className="flex h-9 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-primary)] transition hover:border-[rgba(var(--quarn-rgb),0.25)]"
       >
-        <div className="flex h-5 w-5 items-center justify-center rounded-md" style={{ backgroundColor: `${planColor}15` }}>
+        <div className="flex h-5 w-5 items-center justify-center rounded-md" style={{ backgroundColor: `color-mix(in srgb, ${planColor} 8%, transparent)` }}>
           {currentTenant ? (
             <Building2 className="h-3 w-3" style={{ color: planColor }} />
           ) : (
@@ -112,7 +112,7 @@ export function TenantSwitcher() {
                     : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                 }`}
               >
-                <div className="flex h-6 w-6 items-center justify-center rounded-md" style={{ backgroundColor: `${color}15` }}>
+                <div className="flex h-6 w-6 items-center justify-center rounded-md" style={{ backgroundColor: `color-mix(in srgb, ${color} 8%, transparent)` }}>
                   <span className="text-[10px] font-bold" style={{ color }}>{t.name.charAt(0).toUpperCase()}</span>
                 </div>
                 <div className="min-w-0 flex-1">

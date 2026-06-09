@@ -884,7 +884,7 @@ function RecommendationsCard({
             <span
               className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
               style={{
-                backgroundColor: r.tone === "warn" ? "rgba(var(--warning-rgb), 0.102)" : "#8888A01A",
+                backgroundColor: r.tone === "warn" ? "rgba(var(--warning-rgb), 0.102)" : "rgba(var(--fg-2-rgb), 0.102)",
                 color: r.tone === "warn" ? C.amber : C.slate,
               }}
             >
