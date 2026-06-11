@@ -2,7 +2,6 @@
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { AlertTriangle, RotateCcw } from "lucide-react";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 interface Props {
   children: ReactNode;
@@ -34,7 +33,6 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="relative card-hover flex min-h-[300px] flex-col items-center justify-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-8">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <AlertTriangle className="h-8 w-8 text-[var(--warning)]" />
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">Something went wrong</h2>
           <p className="max-w-md text-center text-sm text-[var(--text-secondary)]">

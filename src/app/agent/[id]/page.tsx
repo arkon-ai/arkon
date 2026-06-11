@@ -13,7 +13,6 @@ import { CardEntranceWrapper, SkeletonCard } from "@/components/mission-control/
 import { useActiveRuns } from "@/hooks/use-active-runs";
 import { KillConfirmModal } from "@/components/mission-control/kill-confirm-modal";
 import { OctagonX, Pause, Play, Shield, DollarSign, Activity, Zap, AlertTriangle } from "lucide-react";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -204,7 +203,6 @@ const TABS: Array<{ key: ProfileTab; label: string; icon: React.ReactNode }> = [
 function StatPill({ label, value, colour = "text-[var(--accent)]", subtext }: { label: string; value: string | number; colour?: string; subtext?: string }) {
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-4 py-3 text-center">
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className={`text-xl font-bold ${colour}`}>{value}</div>
       <div className="mt-0.5 text-xs text-[var(--text-secondary)]">{label}</div>
       {subtext && <div className="mt-0.5 text-[10px] text-[var(--text-tertiary)]">{subtext}</div>}
@@ -495,7 +493,6 @@ function OverviewTab({ data, chartData, model, framework }: {
           <div className="space-y-2">
             {data.sessions.slice(0, 5).map((s) => (
               <div key={s.session_key} className="relative card-hover flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-4 py-3">
-                <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                 <div>
                   <div className="font-mono text-xs text-[var(--accent)] truncate max-w-[200px] sm:max-w-none">{s.session_key}</div>
                   <div className="mt-0.5 text-xs text-[var(--text-secondary)]">{s.channel_id || "unknown channel"}</div>

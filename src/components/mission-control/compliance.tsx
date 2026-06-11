@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { Shield, AlertTriangle } from "lucide-react";
 import { EmptyCard } from "./ui-cards";
 import { SectionDescription } from "./dashboard-clarity";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const C = {
   green: "var(--quarn)", amber: "var(--warning)",
@@ -147,7 +146,6 @@ function AuditLogTab() {
         />
       ) : (
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] overflow-hidden">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-[var(--border)] text-xs uppercase tracking-wider text-[var(--text-tertiary)]">
@@ -251,7 +249,6 @@ function ExportTab() {
   return (
     <div className="space-y-6">
       <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 space-y-4">
-        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <h3 className="text-sm font-semibold text-[var(--text-primary)]">Export Data</h3>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -344,7 +341,6 @@ function PurgeTab() {
   return (
     <div className="space-y-6">
       <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[var(--bg-surface)] p-6 space-y-4">
-        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-red-400" />
           <h3 className="text-sm font-semibold text-red-400">GDPR Data Purge</h3>

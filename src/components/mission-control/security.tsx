@@ -18,7 +18,6 @@ import { ShellHeader } from "@/components/mission-control/dashboard";
 import { formatCompact, timeAgo, usePollingFetch } from "@/components/mission-control/api";
 import { ThreatGuardEmpty } from "./empty-states";
 import { SectionDescription } from "./dashboard-clarity";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { formatDay } from "@/lib/time-format";
 import { KeyRound, Target, Terminal, type LucideIcon } from "lucide-react";
 
@@ -460,7 +459,6 @@ function SeverityCards({ data }: { data: SeverityCount[] }) {
               className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 card-hover"
               style={{ borderTopColor: config.color, borderTopWidth: 2 }}
             >
-                <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
               <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: config.color }}>
                 {config.label}
               </p>
@@ -483,7 +481,6 @@ function ThreatTimeline({ data }: { data: TimelineDay[] }) {
 
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Threat Timeline</p>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
@@ -523,7 +520,6 @@ function ClassBreakdown({ data }: { data: ClassCount[] }) {
 
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Threat Classes</p>
       {chartData.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-dim">No threats detected in this period</p>
@@ -551,7 +547,6 @@ function TopAgentsCard({ data }: { data: TopAgent[] }) {
 
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-3 text-sm font-semibold text-text">Most Targeted Agents</p>
       <div className="space-y-2">
         {data.map((agent) => (
@@ -579,7 +574,6 @@ function ThreatHealthBar({ total, threats }: { total: number; threats: number })
   return (
     <CardEntranceWrapper index={4}>
       <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-text-dim">Event Health</p>
@@ -630,7 +624,6 @@ function ThreatClassExplainers() {
 
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)]">
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <button
         type="button"
         onClick={handleToggle}

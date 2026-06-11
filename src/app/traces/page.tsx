@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
 import { Search, Filter, Clock, Zap, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronRight, Activity } from "lucide-react";
 
@@ -149,7 +148,6 @@ export default function TracesPage() {
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
             className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-5"
           >
-            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">{s.label}</p>
             <p className="mt-1.5 font-mono text-2xl font-bold" style={{ color: s.color }}>{s.value}</p>
           </motion.div>
@@ -226,7 +224,6 @@ export default function TracesPage() {
 
       {/* Trace Table */}
       <div className="relative card-hover overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)]">
-        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>

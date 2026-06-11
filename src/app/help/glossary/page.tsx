@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Search, BookOpen, ArrowRight } from "lucide-react";
 import { glossaryTerms } from "@/components/mission-control/help-content";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 export default function GlossaryPage() {
   const [query, setQuery] = useState("");
@@ -78,7 +77,6 @@ export default function GlossaryPage() {
                     key={t.term}
                     className="relative card-hover rounded-xl border border-[var(--border)]/50 bg-[var(--bg-surface)]/40 px-4 py-3 transition hover:border-[var(--border)]"
                   >
-                    <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <h3 className="text-sm font-semibold text-[var(--text-primary)]">

@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { ShellHeader, Card } from "./dashboard";
 import { SkeletonCard } from "./charts";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type CronJob = {
@@ -116,7 +115,6 @@ function MessageModal({ job, onClose }: { job: CronJob; onClose: () => void }) {
 
         <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Your message</div>
         <div className="relative card-hover mb-3 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-3 py-2 text-xs text-[var(--text-secondary)]">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[var(--text-secondary)] font-medium mb-1">Suggestions:</p>
           <ul className="space-y-1">
             {["Change the schedule to run at 8AM daily", "Disable this cron job", "Delete this cron job", "Run this cron job right now", "Change the model to Fast"].map((s) => (
@@ -164,7 +162,6 @@ function CronCard({ job, onMessage, onAction }: {
 
   return (
     <motion.div layout className={`relative card-hover rounded-2xl border px-4 py-4 transition ${job.enabled ? "border-[var(--border)] bg-[var(--bg-primary)]/70" : "border-[var(--border)]/50 bg-[var(--bg-primary)]/40 opacity-60"}`}>
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1" onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer" }}>
           <div className="flex items-center gap-2 flex-wrap">
@@ -235,7 +232,6 @@ function CronCard({ job, onMessage, onAction }: {
           >
             {job.payload_message && (
               <div className="relative card-hover mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">
-                <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Payload Preview</p>
                 <p className="line-clamp-4 text-xs text-[var(--text-secondary)]">{job.payload_message}</p>
               </div>

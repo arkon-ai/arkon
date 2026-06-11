@@ -18,7 +18,6 @@ import {
   Zap,
 } from "lucide-react";
 import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { usePollingFetch, timeAgo } from "@/components/mission-control/api";
 
 /* ── Types ── */
@@ -204,7 +203,6 @@ function IncidentList({
             { label: "Avg Resolution", value: stats.avg_resolution_hours ? `${stats.avg_resolution_hours}h` : "\u2014", color: "var(--quarn)" },
           ].map((s) => (
             <div key={s.label} className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-              <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{s.label}</p>
               <p className="mt-1 text-2xl font-extrabold font-display" style={{ color: s.color }}>{s.value}</p>
             </div>
@@ -262,7 +260,6 @@ function IncidentList({
                 onClick={() => onSelect(inc.id)}
                 className="relative w-full card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 text-left transition"
               >
-                <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                 <div className="flex items-center gap-3">
                   <span
                     className="shrink-0 rounded-lg px-2 py-1 text-[11px] font-bold"
@@ -414,19 +411,16 @@ function IncidentDetail({ id, onBack }: { id: number; onBack: () => void }) {
       {/* Info grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Assigned To</p>
           <p className="mt-1 text-sm font-medium text-[var(--text-primary)]">{inc.assigned_to || "Unassigned"}</p>
         </div>
         <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">SLA</p>
           <p className="mt-1 text-sm font-bold" style={{ color: slaInfo?.color ?? "var(--fg-3)" }}>
             {slaInfo?.text ?? "No SLA"}
           </p>
         </div>
         <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Created</p>
           <p className="mt-1 text-sm text-[var(--text-primary)]">{timeAgo(inc.created_at)}</p>
         </div>

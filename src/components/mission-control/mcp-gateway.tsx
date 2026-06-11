@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { SectionDescription } from "./dashboard-clarity";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 interface GatewayStats {
   range: string;
@@ -137,7 +136,6 @@ export function McpGateway() {
       {/* By server */}
       {stats && stats.by_server.length > 0 ? (
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-5">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Traffic by Server</h2>
           <div className="space-y-2">
             {stats.by_server.map((s) => (
@@ -159,7 +157,6 @@ export function McpGateway() {
       {/* By method */}
       {stats && stats.by_method.length > 0 ? (
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-5">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">MCP Methods</h2>
           <div className="flex flex-wrap gap-2">
             {stats.by_method.map((m) => (
@@ -175,7 +172,6 @@ export function McpGateway() {
       {/* Recent errors */}
       {stats && stats.recent_errors.length > 0 ? (
         <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[var(--bg-primary)] p-5">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-red-400">Recent Errors</h2>
           <div className="space-y-2">
             {stats.recent_errors.map((e, i) => (
@@ -194,7 +190,6 @@ export function McpGateway() {
       {/* Empty state */}
       {!loading && stats && stats.summary.total_requests === 0 ? (
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-8 text-center">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="mb-3 font-mono text-xs uppercase tracking-[0.08em] text-[var(--text-tertiary)]">MCP</p>
           <p className="text-white font-semibold">No proxy traffic yet</p>
           <p className="mt-2 text-sm text-[var(--text-tertiary)]">Enable gateway mode on MCP servers, then configure AI clients to route through the proxy.</p>
@@ -248,7 +243,6 @@ function StatCard({ label, value, accent }: { label: string; value: string | num
   };
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{label}</p>
       <p className={`mt-1 text-lg font-bold ${colors[accent] || colors.emerald}`}>{typeof value === "number" ? value.toLocaleString() : value}</p>
     </div>

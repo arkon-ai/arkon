@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, use } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { SpanTree } from "@/components/mission-control/span-tree";
 import { SpanDetail } from "@/components/mission-control/span-detail";
 import { ArrowLeft, Clock, Zap, Coins, Hash, Bot, CheckCircle, XCircle, AlertTriangle, Activity } from "lucide-react";
@@ -170,7 +169,6 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4"
           >
-            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <div className="flex items-center gap-2">
               <s.icon className="h-3.5 w-3.5 text-[var(--text-tertiary)]" />
               <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">{s.label}</span>
@@ -184,7 +182,6 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
       <div className="grid gap-4 lg:grid-cols-5">
         {/* Span Tree (left 2/5) */}
         <div className="relative card-hover overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] lg:col-span-2">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <div className="border-b border-[var(--border)] px-4 py-3">
             <h3 className="text-sm font-semibold text-[var(--text-primary)]">Span Tree</h3>
             <p className="text-[11px] text-[var(--text-tertiary)]">{spans.length} spans</p>
@@ -205,7 +202,6 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
 
         {/* Span Detail (right 3/5) */}
         <div className="relative card-hover overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] lg:col-span-3">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           {selectedSpan ? (
             <SpanDetail span={selectedSpan} />
           ) : (
@@ -220,7 +216,6 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
       {/* Metadata */}
       {trace.metadata && Object.keys(trace.metadata).length > 0 && (
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <h3 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Trace Metadata</h3>
           <pre className="overflow-x-auto rounded-lg bg-[var(--bg-primary)] p-3 font-mono text-xs text-[var(--text-secondary)]">
             {JSON.stringify(trace.metadata, null, 2)}

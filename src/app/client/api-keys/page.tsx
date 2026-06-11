@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ClientShell } from "@/components/mission-control/client-shell";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { Key, Plus, Trash2, Copy, Check, AlertTriangle, Clock, Shield } from "lucide-react";
 
 interface ApiKey {
@@ -170,7 +169,6 @@ export default function ClientApiKeysPage() {
 
         {showCreate && !rawKey && (
           <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 card-hover">
-            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <h2 className="text-lg font-bold text-[var(--text-primary)] font-[family-name:var(--font-display)]">
               Create API Key
             </h2>
@@ -254,7 +252,6 @@ export default function ClientApiKeysPage() {
             </div>
           ) : activeKeys.length === 0 ? (
             <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-8 text-center card-hover">
-              <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
               <Key className="mx-auto mb-3 h-8 w-8 text-[var(--text-tertiary)]" />
               <p className="text-sm text-[var(--text-secondary)]">No API keys yet</p>
               <p className="mt-1 text-xs text-[var(--text-tertiary)]">Create a key to authenticate your agent integrations</p>
@@ -262,7 +259,6 @@ export default function ClientApiKeysPage() {
           ) : (
             activeKeys.map((k) => (
               <div key={k.id} className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 card-hover">
-                <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                 <div className="flex items-start justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">

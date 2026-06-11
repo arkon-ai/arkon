@@ -7,7 +7,6 @@ import { ShellHeader, Card, SectionTitle } from "./dashboard";
 import { SkeletonCard } from "./charts";
 import { ActivityEmpty } from "./empty-states";
 import { SectionDescription } from "./dashboard-clarity";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type FeedEvent = {
@@ -79,7 +78,6 @@ function EventRow({ event, expanded, onToggle }: {
       className={`relative card-hover cursor-pointer rounded-2xl border border-[var(--border)] border-l-2 bg-[var(--bg-primary)]/70 px-4 py-3 transition hover:border-[var(--border-strong)] ${EVENT_BORDER[event.event_type] ?? "border-l-slate-600"}`}
       onClick={onToggle}
     >
-        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span className="shrink-0 rounded-[var(--radius-sm)] border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-secondary)]">
@@ -268,7 +266,6 @@ export function ActivityFeed() {
           { label: "Errors", value: typeCount("error"), colour: typeCount("error") > 0 ? "text-red-400" : "text-[var(--text-secondary)]" },
         ].map((s) => (
           <div key={s.label} className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-4 py-3 text-center">
-            <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
             <div className={`text-xl font-bold ${s.colour}`}>{s.value}</div>
             <div className="text-xs text-[var(--text-secondary)]">{s.label}</div>
           </div>
