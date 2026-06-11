@@ -184,7 +184,7 @@ export function ActiveRunBanner() {
               <button
                 type="button"
                 onClick={() => handleResume(primary.run_id)}
-                className="flex h-7 items-center gap-1.5 rounded-lg border border-green-500/30 bg-green-500/10 px-2.5 text-[11px] font-semibold text-green-300 transition hover:bg-green-500/20"
+                className="flex h-7 items-center gap-1.5 rounded-lg border border-success/30 bg-success/10 px-2.5 text-[11px] font-semibold text-success transition hover:bg-success/20"
                 title="Resume agent"
               >
                 <Play className="h-3 w-3" />
@@ -245,7 +245,7 @@ export function ActiveRunBanner() {
                     <button
                       type="button"
                       onClick={() => handleResume(run.run_id)}
-                      className="rounded p-1 text-green-400/60 transition hover:bg-green-500/10 hover:text-green-300"
+                      className="rounded p-1 text-success/60 transition hover:bg-success/10 hover:text-success"
                       title="Resume"
                     >
                       <Play className="h-3 w-3" />

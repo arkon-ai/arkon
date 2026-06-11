@@ -19,7 +19,6 @@ import {
   Sparkles,
   PartyPopper,
 } from "lucide-react";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const TOTAL_STEPS = 5;
 
@@ -247,7 +246,7 @@ export default function SetupPage() {
             {step === 5 && "You're All Set!"}
           </h1>
           <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
-            AI Control Plane
+            AI Workforce Platform
           </p>
         </div>
 
@@ -271,7 +270,6 @@ export default function SetupPage() {
 
         {/* Step content */}
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           {error && (
             <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
               {error}
@@ -646,7 +644,6 @@ function SdkStep({
       label: "Node.js",
       code: `// npm install @arkon/sdk
 import { Arkon } from "@arkon/sdk";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const arkon = new Arkon({
   baseUrl: "${baseUrl}",
@@ -698,7 +695,6 @@ telemetry:
 
       {/* Token display */}
       <div className="relative card-hover rounded-xl border border-[var(--accent)]/20 bg-[var(--accent)]/5 p-3">
-        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="mb-1.5 flex items-center justify-between">
           <span className="text-xs font-medium text-[var(--accent)]">Your API Token</span>
           <CopyButton text={agentToken} />
@@ -729,7 +725,6 @@ telemetry:
 
       {/* Code block */}
       <div className="relative card-hover rounded-xl border border-[var(--border)] bg-[var(--bg-primary)]">
-        <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
         <div className="absolute right-2 top-2">
           <CopyButton text={snippets[tab].code} />
         </div>
@@ -817,7 +812,6 @@ function FeatureCard({
       href={href}
       className="relative card-hover flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3 transition hover:border-[var(--border-strong)] hover:bg-[var(--bg-primary)]"
     >
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <Icon className="h-5 w-5 text-[var(--accent)]" />
       <div>
         <p className="text-sm font-semibold text-white">{title}</p>

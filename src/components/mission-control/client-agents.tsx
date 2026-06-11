@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 interface AgentWithStats {
   id: string;
@@ -69,14 +68,12 @@ export function ClientAgents() {
 
       {agents.length === 0 ? (
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-8 text-center">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[var(--text-tertiary)]">No agents provisioned for your account yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {agents.map((agent) => (
             <div key={agent.id} className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-5 transition hover:border-[var(--border-strong)]">
-              <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2">
@@ -100,7 +97,7 @@ export function ClientAgents() {
                 </div>
                 <div className="rounded-xl bg-[var(--bg-primary)] px-3 py-2">
                   <p className="text-[10px] font-semibold uppercase text-[var(--text-tertiary)]">Cost (30d)</p>
-                  <p className="text-sm font-bold text-purple-400">${Number(agent.cost_30d).toFixed(4)}</p>
+                  <p className="text-sm font-bold text-accent">${Number(agent.cost_30d).toFixed(4)}</p>
                 </div>
               </div>
             </div>

@@ -130,12 +130,12 @@ export function FleetScreen() {
         action={
           <span
             className={`flex items-center gap-2 rounded-full border border-border bg-bg-card px-3 py-1 text-xs ${
-              connected ? "text-green" : "text-text-dim"
+              connected ? "text-accent" : "text-text-dim"
             }`}
           >
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                connected ? "bg-green animate-pulse" : "bg-text-dim"
+                connected ? "bg-accent animate-pulse" : "bg-text-dim"
               }`}
             />
             {connected ? "Live" : "Polling 15s"}
@@ -232,9 +232,9 @@ function AgentCard({ agent }: { agent: FleetAgent }) {
                       <span
                         className={`ml-2 text-[10px] ${
                           ev.status === "error"
-                            ? "text-red"
+                            ? "text-danger"
                             : ev.status === "timeout"
-                            ? "text-amber"
+                            ? "text-warning"
                             : "text-text-dim"
                         }`}
                       >
@@ -308,9 +308,9 @@ function AgentCard({ agent }: { agent: FleetAgent }) {
                     <span
                       className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${
                         w.status === "in_progress"
-                          ? "bg-cyan/15 text-cyan"
+                          ? "bg-accent/15 text-accent"
                           : w.status === "blocked"
-                          ? "bg-red/15 text-red"
+                          ? "bg-danger/15 text-danger"
                           : "bg-white/5 text-text-dim"
                       }`}
                     >
@@ -319,9 +319,9 @@ function AgentCard({ agent }: { agent: FleetAgent }) {
                     <span
                       className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${
                         w.priority <= 1
-                          ? "bg-red/15 text-red"
+                          ? "bg-danger/15 text-danger"
                           : w.priority <= 3
-                          ? "bg-amber/15 text-amber"
+                          ? "bg-warning/15 text-warning"
                           : "bg-white/5 text-text-dim"
                       }`}
                     >
@@ -350,7 +350,7 @@ function DelegationBreakdown({
   const done = items.find((i) => i.status === "done")?.count ?? 0;
   const successRate = total > 0 ? Math.round((done / total) * 100) : 0;
   const successTone =
-    successRate >= 90 ? "text-green" : successRate >= 70 ? "text-amber" : "text-red";
+    successRate >= 90 ? "text-accent" : successRate >= 70 ? "text-warning" : "text-danger";
 
   return (
     <div className="space-y-2">
@@ -366,11 +366,11 @@ function DelegationBreakdown({
             key={i.status}
             className={`rounded-full px-2 py-0.5 font-semibold ${
               i.status === "done"
-                ? "bg-green/15 text-green"
+                ? "bg-accent/15 text-accent"
                 : i.status === "error"
-                ? "bg-red/15 text-red"
+                ? "bg-danger/15 text-danger"
                 : i.status === "reaped"
-                ? "bg-amber/15 text-amber"
+                ? "bg-warning/15 text-warning"
                 : "bg-white/5 text-text-dim"
             }`}
           >

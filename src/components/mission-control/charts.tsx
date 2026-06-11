@@ -14,7 +14,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 /* ─────────────────────────────────────────
    StatCountUp — animated count-up number
@@ -276,7 +275,7 @@ export function EventsAreaChart({ data }: { data: Array<{ day: string; events: n
 }
 
 /* ─────────────────────────────────────────
-   TokensAreaChart — 7-day purple area chart
+   TokensAreaChart — 7-day Quarn area chart
 ───────────────────────────────────────── */
 export function TokensAreaChart({ data }: { data: Array<{ day: string; tokens: number }> }) {
   return (
@@ -344,7 +343,6 @@ export function AgentBarChart({ agents }: { agents: Array<{ name: string; events
 export function SkeletonCard({ lines = 3, height = "h-20" }: { lines?: number; height?: string }) {
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <div className="skeleton mb-3 h-4 w-1/3 rounded-lg" />
       <div className={`skeleton ${height} w-full rounded-xl`} />
       {lines > 1 && Array.from({ length: lines - 1 }).map((_, i) => (

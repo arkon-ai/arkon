@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 interface Session {
   id: string;
@@ -120,7 +119,6 @@ export default function SessionsPage() {
         </div>
       ) : sessions.length === 0 ? (
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-8 text-center">
-          <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
           <p className="text-[var(--text-secondary)]">No active sessions found. You may be using passphrase auth.</p>
         </div>
       ) : (
@@ -130,7 +128,6 @@ export default function SessionsPage() {
               key={session.id}
               className="relative card-hover flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4"
             >
-              <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
               <div className="space-y-1 relative z-10">
                 <div className="flex items-center gap-3">
                   <span className="font-medium text-[var(--text-primary)]">

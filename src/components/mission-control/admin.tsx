@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { ShellHeader, Card, SectionTitle } from "./dashboard";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 import {
   AlertTriangle,
   Download,
@@ -142,7 +141,6 @@ function TokenReveal({ token, onDismiss }: { token: string; onDismiss: () => voi
   const [copied, setCopied] = useState(false);
   return (
     <div className="relative card-hover mt-4 rounded-2xl border border-amber-500/30 bg-[rgba(var(--warning-rgb),0.08)] p-4">
-      <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
       <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-amber-400">
         <AlertTriangle className="h-3.5 w-3.5" />
         Copy this token now. It will never be shown again.
@@ -417,7 +415,6 @@ export function AdminPanel() {
           <div className="space-y-2">
             {agents.map((a) => (
               <div key={a.id} className="relative card-hover flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-4 py-3">
-              <GlowingEffect spread={40} glow disabled={false} proximity={64} inactiveZone={0.01} borderWidth={2} />
                 <div>
                   <span className="text-sm font-semibold text-[var(--text-primary)]">{a.name}</span>
                   <span className="ml-2 text-xs text-[var(--text-secondary)]">id: {a.id}</span>

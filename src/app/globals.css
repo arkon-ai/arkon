@@ -22,180 +22,70 @@
 
 @import "tailwindcss";
 
+/* ── Arkon design system — shared package (WI-1033) ──
+   tokens.css + kit.css are byte-copies of the ArkonOS reference. They own the
+   canonical token values; Arkon re-declares ONLY the thin alias layer below
+   that the package lacks. Imported before @theme inline so Tailwind sees them. */
+@import "@arkon-ai/ui/tokens.css";
+@import "@arkon-ai/ui/kit.css";
+
 :root {
-  /* ── Locked brand names from package ── */
-  --void: #0A0A0C;
-  --quarn: #00D47E;
-  --quarn-light: #3DEEA0;
-  --quarn-deep: #006B41;
+  /* ══════════════════════════════════════
+     Aliases over @arkon-ai/ui — do not redefine values.
+     Package owns: --void --quarn --quarn-light --quarn-deep --surface-1/2
+     --border --border-hover --text-primary/secondary/tertiary --fg-1/2/3
+     --success --warning --danger --danger-hover --info --*-rgb --accent
+     --accent-hover --accent-pressed --font-* --fs-* --tracking-* --lh-*
+     --space-* --radius-xs/sm/md/lg/xl/pill --border-width --border-default
+     --shadow-sm/md/lg --shadow-quarn-glow --lift-surface --edge-top(-strong)
+     --depth-md/lg --quarn-glow --dur-* --ease-* --container-max --sidebar-w.
+     The names below are Arkon-local aliases the package does not define. ══ */
 
-  /* ── Surfaces ── */
+  /* Surface aliases (package: --surface-1/2, --bg/--void) */
   --bg-primary: var(--void);
-  --bg-surface: #1A1A22;
-  --bg-surface-2: #22222E;
+  --bg-surface: var(--surface-1);
+  --bg-surface-2: var(--surface-2);
   --bg-hover: rgba(255, 255, 255, 0.03);
-  --surface-1: var(--bg-surface);
-  --surface-2: var(--bg-surface-2);
 
-  /* ── Borders ── */
-  --border: #2E2E3A;
-  --border-hover: #3A3A4A;
+  /* Border alias (package lacks --border-strong) */
   --border-strong: #4A4A5A;
 
-  /* ── Brand — Quarn Emerald (SOLE accent, no purple) ── */
-  --accent: var(--quarn);
-  --accent-hover: var(--quarn-light);
+  /* Accent tint aliases (package lacks these named tints) */
   --accent-dim: var(--quarn-deep);
   --accent-muted: rgba(var(--quarn-rgb), 0.15);
   --accent-subtle: rgba(var(--quarn-rgb), 0.08);
   --accent-foreground: var(--void);
   --text-link: var(--quarn);
 
-  /* ── Status ── */
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --danger-hover: #DC2626;   /* danger-solid button :hover darken */
-  --info: #06B6D4;
+  /* Gray-tint channels (Arkon-local, WI-999 — package has no fg-2/3 rgb) */
+  --fg-2-rgb:    136, 136, 160; /* #8888A0 — muted-text gray tint base */
+  --fg-3-rgb:    85, 85, 102;   /* #555566 — tertiary-text gray tint base */
 
-  /* ── Channel triplets (R,G,B) — for rgba tints: rgba(var(--quarn-rgb), 0.15) ── */
-  --quarn-rgb:   0, 212, 126;
-  --success-rgb: 16, 185, 129;
-  --warning-rgb: 245, 158, 11;
-  --danger-rgb:  239, 68, 68;
-  --info-rgb:    6, 182, 212;
-  --fg-2-rgb:    136, 136, 160; /* #8888A0 — muted-text gray tint base (WI-999) */
-  --fg-3-rgb:    85, 85, 102;   /* #555566 — tertiary-text gray tint base (WI-999) */
+  /* Effects aliases (package has --shadow-quarn-glow / --shadow-sm) */
+  --glow-accent: var(--shadow-quarn-glow);
+  --shadow-card: var(--shadow-sm);
 
-  /* ── Text ── */
-  --text-primary: #E4E4ED;
-  --text-secondary: #8888A0;
-  --text-tertiary: #555566;
-  --fg-1: var(--text-primary);
-  --fg-2: var(--text-secondary);
-  --fg-3: var(--text-tertiary);
+  /* Radius aliases (package: --radius-md/lg/pill) */
+  --radius-card: var(--radius-lg);
+  --radius-button: var(--radius-md);
+  --radius-badge: var(--radius-pill);
 
-  /* ── Effects ── */
-  --glow-accent: 0 0 0 4px rgba(0, 212, 126, 0.15);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
-
-  /* ── Radii ── */
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-card: 10px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
-  --radius-button: 6px;
-  --radius-badge: 999px;
-  --radius-pill: 999px;
-
-  /* ── Typography ── */
-  --font-display: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-ui: var(--font-sans);
-  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-wordmark: 'Urbanist', 'Geist', system-ui, sans-serif;
-  --tracking-label: 0.08em;
-
-  /* ══════════════════════════════════════
-     Phase F1 backfill — design-token alignment
-     Source: brand-package/assets/arkon-tokens.css
-     PR-30 shipped colors + fonts + radii; the
-     scale tokens below were missing. Additive —
-     existing component classes keep their Tailwind
-     utilities until Phase F2 starts wiring them up.
-     ══════════════════════════════════════ */
-
-  /* Type scale (semantic) */
-  --fs-display-xl: 72px;
-  --fs-display-lg: 56px;
-  --fs-display-md: 44px;
-  --fs-h1:         36px;
-  --fs-h2:         28px;
-  --fs-h3:         22px;
-  --fs-h4:         18px;
-  --fs-body:       16px;
-  --fs-body-sm:    14px;
-  --fs-caption:    13px;
-  --fs-label:      12px;
-  --fs-mono:       13px;
-
-  /* Tracking + leading (--tracking-label defined above) */
-  --tracking-display: -0.02em;
-  --tracking-section: -0.01em;
-  --tracking-body:     0;
-  --lh-display: 1.1;
-  --lh-heading: 1.3;
-  --lh-body:    1.6;
-
-  /* Spacing scale (4-based) */
-  --space-0:  0;
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-8:  32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --space-20: 80px;
-  --space-24: 96px;
-
-  /* Shadows (additive — --shadow-card kept for legacy consumers) */
-  --shadow-sm:         0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md:         0 4px 12px 0 rgba(0, 0, 0, 0.45);
-  --shadow-lg:         0 12px 40px 0 rgba(0, 0, 0, 0.55);
-  --shadow-quarn-glow: 0 0 0 4px rgba(var(--quarn-rgb), 0.15); /* focus ring */
-
-  /* ── Premium card primitives (transformate WI-994) ──
-     Depth + ONE disciplined Quarn glow (design-law #3). Dark-first;
-     [data-theme="light"] overrides below so export/OG cards don't get a
-     dark gradient on white. --quarn-glow is Quarn's ONE hover/active job. */
-  --lift-surface:    linear-gradient(180deg, #20202B 0%, #16161D 100%);
-  --edge-top:        inset 0 1px 0 rgba(255, 255, 255, 0.055);
-  --edge-top-strong: inset 0 1px 0 rgba(255, 255, 255, 0.085);
-  --depth-md: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 28px -10px rgba(0, 0, 0, 0.65);
-  --depth-lg: 0 2px 4px rgba(0, 0, 0, 0.5), 0 18px 44px -14px rgba(0, 0, 0, 0.70);
-  --quarn-glow: 0 0 0 1px rgba(var(--quarn-rgb), 0.35), 0 14px 40px -12px rgba(var(--quarn-rgb), 0.22);
-
-  /* Motion */
-  --dur-fast:       150ms;
-  --dur-medium:     200ms;
-  --dur-slow:       250ms;
-  --dur-deliberate: 350ms; /* kill modal cadence */
-  --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
-  --ease-in:     cubic-bezier(0.5, 0, 1, 0.5);
-  --ease-in-out: cubic-bezier(0.5, 0, 0.5, 1);
-
-  /* Layout */
-  --container-max: 1200px;
-  --sidebar-w:     240px;
-
-  /* Misc additions */
-  --accent-pressed: var(--quarn-deep);
-  --border-width:   1px;
-  --border-default: 1px solid var(--border);
-
-  /* ══════════════════════════════════════
-     Backward-compat aliases (old → new)
-     Remove these once hex sweep is complete.
-     ══════════════════════════════════════ */
-  --background: var(--bg-primary);
-  --foreground: var(--text-primary);
-  --bg-deep: var(--bg-primary);
-  --bg-card: var(--bg-surface);
-  --bg-elevated: var(--bg-surface-2);
+  /* Text aliases (package: --text-primary/secondary/tertiary, --fg-1/2/3) */
   --text: var(--text-primary);
   --text-dim: var(--text-secondary);
   --text-muted: var(--text-tertiary);
-  --amber: var(--warning);
-  --red: var(--danger);
-  --green: var(--accent);
-  --cyan: var(--accent);
-  --purple: var(--accent); /* purple eliminated — maps to accent */
+
+  /* Surface aliases for legacy shadcn-era names */
+  --bg-deep: var(--void);
+  --bg-card: var(--surface-1);
+  --bg-elevated: var(--surface-2);
+
+  /* Background/foreground aliases (package: --bg / --fg-1) */
+  --background: var(--void);
+  --foreground: var(--text-primary);
+
+  /* Font alias (package: --font-display/-ui/-mono/-wordmark — no --font-sans) */
+  --font-sans: var(--font-display);
 }
 
 @theme inline {
@@ -220,14 +110,7 @@
   --color-accent-subtle: var(--accent-subtle);
   --color-accent-foreground: var(--accent-foreground);
 
-  /* Legacy color aliases (redirect to accent) */
-  --color-cyan: var(--accent);
-  --color-purple: var(--accent);
-  --color-green: var(--accent);
-
   /* Status */
-  --color-amber: var(--warning);
-  --color-red: var(--danger);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -390,22 +273,11 @@ h1, h2, h3, h4, h5, h6 {
    Card & Layout Utilities
 ═══════════════════════════════════════ */
 
-.glass-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  transition: border-color 0.2s ease;
-}
-.glass-card:hover {
-  border-color: var(--border-hover);
-}
+/* .glass-card retired (WI-1033, 0 consumers) — card treatment is .ak-card. */
 
-/* Glow utilities */
-.glow-cyan   { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-green  { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-accent { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-purple { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-amber  { box-shadow: 0 0 20px rgba(245, 158, 11, 0.1), 0 0 40px rgba(245, 158, 11, 0.04); }
+/* Legacy decorative glow utilities (.glow-*, .chart-glow-*) retired — WI-994/999
+   never-resurrect glow law. The only sanctioned glow is the --quarn-glow token
+   (ONE hover/active job per card, carried by .ak-card). */
 
 /* Gradient text */
 .gradient-text {
@@ -467,17 +339,16 @@ h1, h2, h3, h4, h5, h6 {
   .bento-tall { grid-row: span 2; }
 }
 
-/* Card hover interaction */
+/* Card hover interaction — depth + the ONE sanctioned --quarn-glow (WI-994/999).
+   Legacy decorative cyan glow retired; glow now flows through the token so it
+   stays in sync with .ak-card hover. */
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform var(--dur-medium) var(--ease-out), box-shadow var(--dur-medium) var(--ease-out), border-color var(--dur-fast);
 }
 .card-hover:hover {
   transform: translateY(-1px);
   border-color: var(--border-hover);
-  box-shadow:
-    0 14px 48px rgba(0, 0, 0, 0.35),
-    0 0 20px rgba(0, 212, 126, 0.15),
-    0 0 60px rgba(0, 212, 126, 0.08);
+  box-shadow: var(--depth-lg), var(--quarn-glow);
 }
 
 /* Button press feedback */
@@ -525,23 +396,6 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 11px;
   font-weight: 600;
   font-family: var(--font-mono);
-}
-
-/* Chart active dot glow */
-.chart-glow-cyan {
-  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
-}
-.chart-glow-green {
-  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
-}
-.chart-glow-accent {
-  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
-}
-.chart-glow-purple {
-  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
-}
-.chart-glow-amber {
-  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));
 }
 
 /* ═══════════════════════════════════════
@@ -624,19 +478,8 @@ h1, h2, h3, h4, h5, h6 {
   color: #18181B;
 }
 
-[data-theme="light"] .glass-card {
-  background: #FFFFFF;
-  border-color: #D4D4D8;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-[data-theme="light"] .glass-card:hover {
-  border-color: rgba(0, 180, 100, 0.35);
-}
-
 [data-theme="light"] .card-hover:hover {
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 0 16px rgba(0, 184, 110, 0.08);
+  box-shadow: var(--depth-lg), var(--quarn-glow);
 }
 
 [data-theme="light"] .skeleton {
@@ -646,16 +489,6 @@ h1, h2, h3, h4, h5, h6 {
 
 [data-theme="light"] .grid-bg {
   background-image: radial-gradient(circle, rgba(0, 184, 110, 0.06) 1px, transparent 1px);
-}
-
-[data-theme="light"] .glow-cyan,
-[data-theme="light"] .glow-green,
-[data-theme="light"] .glow-accent,
-[data-theme="light"] .glow-purple {
-  box-shadow: 0 0 12px rgba(0, 184, 110, 0.06);
-}
-[data-theme="light"] .glow-amber {
-  box-shadow: 0 0 12px rgba(217, 119, 6, 0.06);
 }
 
 [data-theme="light"] .gradient-text {

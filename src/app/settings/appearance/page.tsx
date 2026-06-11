@@ -3,7 +3,6 @@
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useTheme, type ThemeMode } from "@/components/mission-control/theme-provider";
 import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const themeOptions: Array<{ value: ThemeMode; icon: typeof Sun; label: string; description: string }> = [
   { value: "system", icon: Monitor, label: "System", description: "Follow your operating system preference." },
@@ -36,7 +35,6 @@ export default function AppearancePage() {
                   : "border-[var(--border)] bg-[var(--bg-surface)]"
               }`}
             >
-              <GlowingEffect spread={40} glow disabled={!active} proximity={64} inactiveZone={0.01} borderWidth={2} />
               <div className="flex items-center gap-3 mb-3">
                 <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                   active ? "bg-[var(--accent)]/10" : "bg-[var(--bg-hover)]"

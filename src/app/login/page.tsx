@@ -69,7 +69,7 @@ export default function LoginPage() {
             <span className="text-2xl font-bold text-[var(--accent)]">A</span>
           </div>
           <h1 className="text-2xl font-bold text-white">Arkon</h1>
-          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-tertiary)]">AI Control Plane</p>
+          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-tertiary)]">AI Workforce Platform</p>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">Enter your passphrase to continue</p>
         </div>
 

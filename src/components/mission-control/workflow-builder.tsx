@@ -171,10 +171,10 @@ function ConditionNode({ data, selected }: NodeProps) {
         </div>
       )}
       <div className="flex justify-between mt-2 text-[10px]">
-        <span className="text-green-400">True</span>
+        <span className="text-success">True</span>
         <span className="text-red-400">False</span>
       </div>
-      <Handle type="source" position={Position.Bottom} id="true" className="!bg-green-400 !w-3 !h-3 !border-2 !border-[var(--border)]" style={{ left: "30%" }} />
+      <Handle type="source" position={Position.Bottom} id="true" className="!bg-success !w-3 !h-3 !border-2 !border-[var(--border)]" style={{ left: "30%" }} />
       <Handle type="source" position={Position.Bottom} id="false" className="!bg-red-400 !w-3 !h-3 !border-2 !border-[var(--border)]" style={{ left: "70%" }} />
     </div>
   );
@@ -254,7 +254,7 @@ function NodeConfigPanel({
             type="text"
             value={d.label ?? ""}
             onChange={(e) => updateField("label", e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
           />
         </div>
 
@@ -266,7 +266,7 @@ function NodeConfigPanel({
               value={String(d.cron_expression ?? "")}
               onChange={(e) => updateField("cron_expression", e.target.value)}
               placeholder="*/5 * * * *"
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-accent focus:outline-none"
             />
             <div className="mt-2 space-y-1">
               <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">Presets</p>
@@ -299,7 +299,7 @@ function NodeConfigPanel({
                 <select
                   value={String(d.method ?? "GET")}
                   onChange={(e) => updateField("method", e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-accent focus:outline-none"
                 >
                   <option>GET</option>
                   <option>POST</option>
@@ -314,7 +314,7 @@ function NodeConfigPanel({
                   type="number"
                   value={Number(d.timeout ?? 10000)}
                   onChange={(e) => updateField("timeout", Number(e.target.value))}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white focus:border-accent focus:outline-none"
                 />
               </div>
             </div>
@@ -325,7 +325,7 @@ function NodeConfigPanel({
                 value={String(d.url ?? "")}
                 onChange={(e) => updateField("url", e.target.value)}
                 placeholder="https://example.com/api/..."
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-accent focus:outline-none"
               />
             </div>
             <div>
@@ -335,7 +335,7 @@ function NodeConfigPanel({
                 onChange={(e) => updateField("body", e.target.value)}
                 rows={3}
                 placeholder='{"key": "value"}'
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-accent focus:outline-none resize-none"
               />
             </div>
           </>
@@ -350,7 +350,7 @@ function NodeConfigPanel({
                 value={String(d.field ?? "")}
                 onChange={(e) => updateField("field", e.target.value)}
                 placeholder="status, body, httpStatus..."
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-accent focus:outline-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -359,7 +359,7 @@ function NodeConfigPanel({
                 <select
                   value={String(d.operator ?? "eq")}
                   onChange={(e) => updateField("operator", e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-accent focus:outline-none"
                 >
                   <option value="eq">equals</option>
                   <option value="neq">not equals</option>
@@ -378,7 +378,7 @@ function NodeConfigPanel({
                   value={String(d.value ?? "")}
                   onChange={(e) => updateField("value", e.target.value)}
                   placeholder="200"
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-accent focus:outline-none"
                 />
               </div>
             </div>
@@ -392,7 +392,7 @@ function NodeConfigPanel({
               <select
                 value={String(d.channel ?? "telegram")}
                 onChange={(e) => updateField("channel", e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-cyan focus:outline-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-accent focus:outline-none"
               >
                 <option value="telegram">Telegram</option>
                 <option value="log">Log Only</option>
@@ -407,7 +407,7 @@ function NodeConfigPanel({
                 onChange={(e) => updateField("message", e.target.value)}
                 rows={3}
                 placeholder="Workflow completed. Status: {{status}}"
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan focus:outline-none resize-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-accent focus:outline-none resize-none"
               />
             </div>
           </>

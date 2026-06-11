@@ -267,7 +267,7 @@ export function FloatingKillSwitch() {
                         <button
                           type="button"
                           onClick={() => resumeRun(run.run_id)}
-                          className="flex h-6 items-center gap-1 rounded-lg border border-green-500/25 bg-green-500/8 px-2 text-[10px] font-semibold text-green-300 transition hover:bg-green-500/15"
+                          className="flex h-6 items-center gap-1 rounded-lg border border-success/25 bg-success/8 px-2 text-[10px] font-semibold text-success transition hover:bg-success/15"
                         >
                           <Play className="h-2.5 w-2.5" />
                           Resume
