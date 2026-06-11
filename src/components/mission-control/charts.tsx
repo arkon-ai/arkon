@@ -276,7 +276,7 @@ export function EventsAreaChart({ data }: { data: Array<{ day: string; events: n
 }
 
 /* ─────────────────────────────────────────
-   TokensAreaChart — 7-day purple area chart
+   TokensAreaChart — 7-day Quarn area chart
 ───────────────────────────────────────── */
 export function TokensAreaChart({ data }: { data: Array<{ day: string; tokens: number }> }) {
   return (

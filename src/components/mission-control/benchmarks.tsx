@@ -12,12 +12,12 @@ import { SectionDescription } from "./dashboard-clarity";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const C = {
-  green: "var(--quarn)", purple: "var(--quarn)", amber: "var(--warning)",
+  green: "var(--quarn)", accent2: "var(--quarn-light)", amber: "var(--warning)",
   red: "var(--danger)", slate: "var(--fg-2)", teal: "#14b8a6",
   pink: "#ec4899", blue: "#3b82f6",
   grid: "var(--border)", tooltipBg: "var(--surface-1)",
 };
-const MODEL_COLORS = [C.green, C.purple, C.amber, C.teal, C.pink, C.blue, C.red, C.slate];
+const MODEL_COLORS = [C.green, C.accent2, C.amber, C.teal, C.pink, C.blue, C.red, C.slate];
 
 function fmt$(v: number): string {
   if (v >= 1) return `$${v.toFixed(2)}`;

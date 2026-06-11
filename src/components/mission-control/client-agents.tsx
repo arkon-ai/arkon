@@ -100,7 +100,7 @@ export function ClientAgents() {
                 </div>
                 <div className="rounded-xl bg-[var(--bg-primary)] px-3 py-2">
                   <p className="text-[10px] font-semibold uppercase text-[var(--text-tertiary)]">Cost (30d)</p>
-                  <p className="text-sm font-bold text-purple-400">${Number(agent.cost_30d).toFixed(4)}</p>
+                  <p className="text-sm font-bold text-accent">${Number(agent.cost_30d).toFixed(4)}</p>
                 </div>
               </div>
             </div>

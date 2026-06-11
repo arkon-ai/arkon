@@ -110,9 +110,10 @@
   --color-accent-subtle: var(--accent-subtle);
   --color-accent-foreground: var(--accent-foreground);
 
-  /* Legacy color aliases (redirect to accent) */
+  /* Legacy color aliases (redirect to accent) — purple eliminated (WI-1033).
+     FLAG: cyan/green class names remain a compat layer pending a follow-up
+     class-rename sweep to canonical `accent`. */
   --color-cyan: var(--accent);
-  --color-purple: var(--accent);
   --color-green: var(--accent);
 
   /* Status */

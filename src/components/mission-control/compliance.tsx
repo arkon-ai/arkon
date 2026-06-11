@@ -8,7 +8,7 @@ import { SectionDescription } from "./dashboard-clarity";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const C = {
-  green: "var(--quarn)", purple: "var(--quarn)", amber: "var(--warning)",
+  green: "var(--quarn)", amber: "var(--warning)",
   red: "var(--danger)", slate: "var(--fg-2)",
 };
 

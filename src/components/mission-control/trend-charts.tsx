@@ -98,7 +98,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
           <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-text-dim">sent</div>
         </div>
         <div className="card-hover rounded-2xl border border-border bg-bg-card px-3 py-2">
-          <div className="text-sm font-semibold text-purple">{formatCompact(totals.tools)}</div>
+          <div className="text-sm font-semibold text-accent">{formatCompact(totals.tools)}</div>
           <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-text-dim">tools</div>
         </div>
         <div className="card-hover rounded-2xl border border-border bg-bg-card px-3 py-2">

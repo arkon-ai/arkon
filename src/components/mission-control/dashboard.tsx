@@ -268,11 +268,11 @@ const actionItems = [
 
 const visuals = [
   { slug: "briefing", label: "Morning Briefing", tone: "text-cyan", note: "Command center snapshot" },
-  { slug: "tokens", label: "Token Tracker", tone: "text-purple", note: "Usage and model mix" },
+  { slug: "tokens", label: "Token Tracker", tone: "text-accent", note: "Usage and model mix" },
   { slug: "cycling", label: "Cycling Progress", tone: "text-green", note: "Training route tracker" },
   { slug: "agents-net", label: "Agent Network", tone: "text-cyan", note: "Constellation view" },
   { slug: "architecture", label: "Architecture", tone: "text-amber", note: "Infrastructure diagram" },
-  { slug: "brainmap", label: "Brain Map", tone: "text-purple", note: "Project orbit map" },
+  { slug: "brainmap", label: "Brain Map", tone: "text-accent", note: "Project orbit map" },
   { slug: "domains", label: "Domains", tone: "text-cyan", note: "DNS and SSL health" },
   { slug: "heatmap", label: "Heatmap", tone: "text-green", note: "Activity intensity" },
 ];
@@ -462,7 +462,7 @@ function MobileDashboardView({
                 <div className="flex-shrink-0">
                   <span className={`inline-block h-2 w-2 rounded-full ${
                     evt.event_type === "error" ? "bg-red" :
-                    evt.event_type === "tool_call" ? "bg-purple" :
+                    evt.event_type === "tool_call" ? "bg-accent" :
                     evt.event_type === "sent" ? "bg-cyan" : "bg-text-dim"
                   }`} />
                 </div>
@@ -867,7 +867,7 @@ function ActionsContent() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard label="Warm Agents" value={String(warmCount)} accent="text-amber" sublabel="Recently active, not hot" />
         <StatCard label="Offline Agents" value={String(offlineCount)} accent="text-red" sublabel="Need follow-up or expected idle state" />
-        <StatCard label="Token Leaders" value={String(tokenHeavy.length)} accent="text-purple" sublabel="High-consumption sessions today" />
+        <StatCard label="Token Leaders" value={String(tokenHeavy.length)} accent="text-accent" sublabel="High-consumption sessions today" />
       </div>
 
       <Card>
@@ -991,7 +991,7 @@ function HealthContent() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Est. KM" value={String(kmTotal)} accent="text-green" sublabel="Derived from recent system movement" />
-        <StatCard label="Target Days" value="4" accent="text-purple" sublabel="Training horizon" />
+        <StatCard label="Target Days" value="4" accent="text-accent" sublabel="Training horizon" />
         <StatCard label="Live Nodes" value={String(metrics.activeAgents)} accent="text-cyan" sublabel="Used as momentum proxy" />
         <StatCard label="Load" value={formatCompact(metrics.events24h)} accent="text-amber" sublabel="Telemetry volume today" />
       </div>
@@ -1696,7 +1696,7 @@ function SystemsContent() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard label="24h Events" value={formatCompact(metrics.events24h)} accent="text-purple" sublabel="Infrastructure traffic proxy" />
+        <StatCard label="24h Events" value={formatCompact(metrics.events24h)} accent="text-accent" sublabel="Infrastructure traffic proxy" />
         <StatCard label="7d Events" value={formatCompact(metrics.events7d)} accent="text-cyan" sublabel="Weekly activity" />
         <StatCard label="Tokens 24H" value={formatCompact(metrics.tokens24h)} accent="text-amber" sublabel="AI compute usage" />
       </div>
@@ -1722,14 +1722,14 @@ function ConfessionsContent() {
         {confessions.map((item) => (
           <Card
             key={item.title}
-            className="bg-[linear-gradient(135deg,rgba(13,13,26,1),rgba(26,13,46,0.96))] border-purple/30"
+            className="bg-[var(--surface-1)] border-accent/30"
           >
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-text-dim">
               {item.title}
             </p>
-            <p className="mt-4 text-base italic leading-7 text-purple">{item.verse}</p>
+            <p className="mt-4 text-base italic leading-7 text-accent">{item.verse}</p>
             <p className="mt-2 text-right text-xs text-text-dim">{item.reference}</p>
-            <p className="mt-4 border-t border-purple/20 pt-4 text-sm leading-7 text-text">
+            <p className="mt-4 border-t border-accent/20 pt-4 text-sm leading-7 text-text">
               {item.confession}
             </p>
           </Card>
@@ -1803,7 +1803,7 @@ function eventTone(type: string) {
     case "message_sent":
       return "border-cyan/30 bg-cyan/10 text-cyan";
     case "tool_call":
-      return "border-purple/30 bg-purple/10 text-purple";
+      return "border-accent/30 bg-accent/10 text-accent";
     case "error":
       return "border-red/30 bg-red/10 text-red";
     default:
@@ -1848,7 +1848,7 @@ function AgentDetailContent({ agentId: agentIdProp }: { agentId?: string } = {})
         <StatCard
           label="Sessions"
           value={formatCompact(data.sessions.length)}
-          accent="text-purple"
+          accent="text-accent"
           sublabel="Recent active channels"
         />
         <StatCard

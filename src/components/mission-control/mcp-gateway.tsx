@@ -103,7 +103,7 @@ export function McpGateway() {
         <div className="flex gap-2">
           <button
             onClick={loadConfig}
-            className="rounded-lg bg-purple-500/20 px-3 py-1.5 text-xs font-medium text-purple-400 hover:bg-purple-500/30 transition"
+            className="rounded-lg bg-accent/20 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/30 transition"
           >
             Export Config
           </button>
@@ -129,7 +129,7 @@ export function McpGateway() {
         <StatCard label="Success" value={s?.success_count ?? 0} accent="emerald" />
         <StatCard label="Errors" value={s?.error_count ?? 0} accent="red" />
         <StatCard label="Avg Latency" value={`${s?.avg_duration_ms ?? 0}ms`} accent="amber" />
-        <StatCard label="Total Data" value={formatBytes(s?.total_bytes ?? 0)} accent="purple" />
+        <StatCard label="Total Data" value={formatBytes(s?.total_bytes ?? 0)} accent="emerald" />
         <StatCard label="Active Servers" value={s?.active_servers ?? 0} accent="emerald" />
         <StatCard label="MCP Methods" value={s?.unique_methods ?? 0} accent="slate" />
       </div>
@@ -164,7 +164,7 @@ export function McpGateway() {
           <div className="flex flex-wrap gap-2">
             {stats.by_method.map((m) => (
               <div key={m.mcp_method} className="rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2">
-                <p className="text-xs font-mono text-purple-400">{m.mcp_method}</p>
+                <p className="text-xs font-mono text-accent">{m.mcp_method}</p>
                 <p className="text-xs text-[var(--text-tertiary)]">{parseInt(m.count)} calls &middot; {m.avg_ms}ms</p>
               </div>
             ))}
@@ -244,7 +244,7 @@ export function McpGateway() {
 function StatCard({ label, value, accent }: { label: string; value: string | number; accent: string }) {
   const colors: Record<string, string> = {
     emerald: "text-[var(--accent)]", amber: "text-amber-400",
-    purple: "text-purple-400", red: "text-red-400", slate: "text-[var(--text-secondary)]",
+    red: "text-red-400", slate: "text-[var(--text-secondary)]",
   };
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">

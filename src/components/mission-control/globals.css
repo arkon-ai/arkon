@@ -12,7 +12,6 @@
   --bg-deep:    var(--void);
   --bg-card:    var(--surface-1);   /* was #111118 → canonical #1A1A22 */
   --cyan:   var(--quarn);
-  --purple: var(--quarn);
   --amber:  var(--warning);
   --red:    var(--danger);
   --green:  var(--quarn);           /* was #22c55e → single brand green */
@@ -27,7 +26,6 @@
   --color-bg-card: var(--bg-card);
   --color-border: var(--border);
   --color-cyan: var(--cyan);
-  --color-purple: var(--purple);
   --color-amber: var(--amber);
   --color-red: var(--red);
   --color-green: var(--green);
