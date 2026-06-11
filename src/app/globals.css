@@ -280,22 +280,11 @@ h1, h2, h3, h4, h5, h6 {
    Card & Layout Utilities
 ═══════════════════════════════════════ */
 
-.glass-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  transition: border-color 0.2s ease;
-}
-.glass-card:hover {
-  border-color: var(--border-hover);
-}
+/* .glass-card retired (WI-1033, 0 consumers) — card treatment is .ak-card. */
 
-/* Glow utilities */
-.glow-cyan   { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-green  { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-accent { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-purple { box-shadow: 0 0 20px rgba(0, 212, 126, 0.1), 0 0 40px rgba(0, 212, 126, 0.04); }
-.glow-amber  { box-shadow: 0 0 20px rgba(245, 158, 11, 0.1), 0 0 40px rgba(245, 158, 11, 0.04); }
+/* Legacy decorative glow utilities (.glow-*, .chart-glow-*) retired — WI-994/999
+   never-resurrect glow law. The only sanctioned glow is the --quarn-glow token
+   (ONE hover/active job per card, carried by .ak-card). */
 
 /* Gradient text */
 .gradient-text {
@@ -357,17 +346,16 @@ h1, h2, h3, h4, h5, h6 {
   .bento-tall { grid-row: span 2; }
 }
 
-/* Card hover interaction */
+/* Card hover interaction — depth + the ONE sanctioned --quarn-glow (WI-994/999).
+   Legacy decorative cyan glow retired; glow now flows through the token so it
+   stays in sync with .ak-card hover. */
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform var(--dur-medium) var(--ease-out), box-shadow var(--dur-medium) var(--ease-out), border-color var(--dur-fast);
 }
 .card-hover:hover {
   transform: translateY(-1px);
   border-color: var(--border-hover);
-  box-shadow:
-    0 14px 48px rgba(0, 0, 0, 0.35),
-    0 0 20px rgba(0, 212, 126, 0.15),
-    0 0 60px rgba(0, 212, 126, 0.08);
+  box-shadow: var(--depth-lg), var(--quarn-glow);
 }
 
 /* Button press feedback */
@@ -415,23 +403,6 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 11px;
   font-weight: 600;
   font-family: var(--font-mono);
-}
-
-/* Chart active dot glow */
-.chart-glow-cyan {
-  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
-}
-.chart-glow-green {
-  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
-}
-.chart-glow-accent {
-  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
-}
-.chart-glow-purple {
-  filter: drop-shadow(0 0 6px rgba(0, 212, 126, 0.4));
-}
-.chart-glow-amber {
-  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));
 }
 
 /* ═══════════════════════════════════════
@@ -514,19 +485,8 @@ h1, h2, h3, h4, h5, h6 {
   color: #18181B;
 }
 
-[data-theme="light"] .glass-card {
-  background: #FFFFFF;
-  border-color: #D4D4D8;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-[data-theme="light"] .glass-card:hover {
-  border-color: rgba(0, 180, 100, 0.35);
-}
-
 [data-theme="light"] .card-hover:hover {
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 0 16px rgba(0, 184, 110, 0.08);
+  box-shadow: var(--depth-lg), var(--quarn-glow);
 }
 
 [data-theme="light"] .skeleton {
@@ -536,16 +496,6 @@ h1, h2, h3, h4, h5, h6 {
 
 [data-theme="light"] .grid-bg {
   background-image: radial-gradient(circle, rgba(0, 184, 110, 0.06) 1px, transparent 1px);
-}
-
-[data-theme="light"] .glow-cyan,
-[data-theme="light"] .glow-green,
-[data-theme="light"] .glow-accent,
-[data-theme="light"] .glow-purple {
-  box-shadow: 0 0 12px rgba(0, 184, 110, 0.06);
-}
-[data-theme="light"] .glow-amber {
-  box-shadow: 0 0 12px rgba(217, 119, 6, 0.06);
 }
 
 [data-theme="light"] .gradient-text {

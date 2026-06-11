@@ -167,18 +167,8 @@ pre {
    Phase 7 — Visual Upgrade Utilities
 ═══════════════════════════════════════ */
 
-/* Glassmorphism */
-.glass-card {
-  background: rgba(13, 13, 26, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* Glow utilities */
-.glow-cyan  { box-shadow: 0 0 24px rgba(0, 212, 126, 0.18), 0 0 48px rgba(0, 212, 126, 0.07); }
-.glow-purple{ box-shadow: 0 0 24px rgba(0, 212, 126, 0.18), 0 0 48px rgba(0, 212, 126, 0.07); }
-.glow-amber { box-shadow: 0 0 24px rgba(245, 158, 11, 0.18), 0 0 48px rgba(245, 158, 11, 0.07); }
+/* Legacy .glass-card + .glow-* utilities retired (WI-1033) — never-resurrect
+   glow law (WI-994/999). Card treatment is .ak-card from @arkon-ai/ui. */
 
 /* Gradient text */
 .gradient-text {
