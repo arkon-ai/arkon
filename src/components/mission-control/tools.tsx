@@ -255,11 +255,11 @@ function elapsedLabel(startedAt: string, completedAt: string | null, now: number
 
 function toneClass(color: "cyan" | "accent" | "amber" | "green" | "red" | "slate") {
   return {
-    cyan: "border-cyan/30 bg-cyan/10 text-cyan",
+    cyan: "border-accent/30 bg-accent/10 text-accent",
     accent: "border-accent/30 bg-accent/10 text-accent",
-    amber: "border-amber/30 bg-amber/10 text-amber",
-    green: "border-green/30 bg-green/10 text-green",
-    red: "border-red/30 bg-red/10 text-red",
+    amber: "border-warning/30 bg-warning/10 text-warning",
+    green: "border-accent/30 bg-accent/10 text-accent",
+    red: "border-danger/30 bg-danger/10 text-danger",
     slate: "border-border bg-bg-deep/80 text-text-dim",
   }[color];
 }
@@ -279,7 +279,7 @@ function Pill({
       onClick={onClick}
       className={`min-h-11 rounded-full border px-4 text-sm font-semibold transition ${
         active
-          ? "border-cyan/40 bg-cyan/15 text-cyan"
+          ? "border-accent/40 bg-accent/15 text-accent"
           : "border-border bg-bg-deep/80 text-text-dim"
       }`}
     >
@@ -417,7 +417,7 @@ export function ApprovalsToolScreen() {
             type="button"
             onClick={() => { setBulkMode(!bulkMode); setSelectedIds(new Set()); }}
             className={`min-h-9 rounded-xl border px-3 text-xs font-semibold transition ${
-              bulkMode ? "border-cyan/40 bg-cyan/15 text-cyan" : "border-border bg-bg-deep/80 text-text-dim"
+              bulkMode ? "border-accent/40 bg-accent/15 text-accent" : "border-border bg-bg-deep/80 text-text-dim"
             }`}
           >
             {bulkMode ? "Cancel" : "Bulk"}
@@ -426,15 +426,15 @@ export function ApprovalsToolScreen() {
       </div>
 
       {bulkMode && selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-2xl border border-cyan/30 bg-cyan/5 p-3">
-          <span className="text-sm text-cyan font-medium">{selectedIds.size} selected</span>
+        <div className="flex items-center gap-3 rounded-2xl border border-accent/30 bg-accent/5 p-3">
+          <span className="text-sm text-accent font-medium">{selectedIds.size} selected</span>
           <div className="flex-1" />
           <button type="button" onClick={() => void bulkAction("rejected")}
-            className="min-h-9 rounded-xl border border-red/30 bg-red/10 px-4 text-xs font-semibold text-red">
+            className="min-h-9 rounded-xl border border-danger/30 bg-danger/10 px-4 text-xs font-semibold text-danger">
             Reject All
           </button>
           <button type="button" onClick={() => void bulkAction("approved")}
-            className="min-h-9 rounded-xl border border-green/30 bg-green/10 px-4 text-xs font-semibold text-green">
+            className="min-h-9 rounded-xl border border-accent/30 bg-accent/10 px-4 text-xs font-semibold text-accent">
             Approve All
           </button>
         </div>
@@ -450,7 +450,7 @@ export function ApprovalsToolScreen() {
               <div
                 key={item.id}
                 className={`rounded-[24px] transition ${
-                  isSelected ? "ring-2 ring-cyan/40" :
+                  isSelected ? "ring-2 ring-accent/40" :
                   offset > 40 ? "shadow-[0_0_40px_rgba(var(--quarn-rgb),0.15)]" :
                   offset < -40 ? "shadow-[0_0_40px_rgba(var(--danger-rgb),0.18)]" : ""
                 }`}
@@ -479,7 +479,7 @@ export function ApprovalsToolScreen() {
                         {bulkMode && item.status === "pending" && (
                           <button type="button" onClick={() => toggleSelect(item.id)}
                             className={`mt-1 h-5 w-5 rounded border flex-shrink-0 flex items-center justify-center transition ${
-                              isSelected ? "border-cyan bg-cyan text-black" : "border-border"
+                              isSelected ? "border-accent bg-accent text-black" : "border-border"
                             }`}>
                             {isSelected && <span className="text-xs">\u2713</span>}
                           </button>
@@ -522,7 +522,7 @@ export function ApprovalsToolScreen() {
                         {item.content}
                       </p>
                       {!isExpanded && item.content.length > 200 && (
-                        <span className="text-xs text-cyan mt-1 inline-block">Show more \u2193</span>
+                        <span className="text-xs text-accent mt-1 inline-block">Show more \u2193</span>
                       )}
                       {isExpanded && (
                         <span className="text-xs text-text-dim mt-1 inline-block">Show less \u2191</span>
@@ -544,7 +544,7 @@ export function ApprovalsToolScreen() {
                         placeholder="Add a note (optional)..."
                         value={noteInput[item.id] ?? ""}
                         onChange={(e) => setNoteInput((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                        className="w-full rounded-xl border border-border bg-bg-deep/50 px-3 py-2 text-sm text-text placeholder:text-text-dim/50 focus:border-cyan/40 focus:outline-none"
+                        className="w-full rounded-xl border border-border bg-bg-deep/50 px-3 py-2 text-sm text-text placeholder:text-text-dim/50 focus:border-accent/40 focus:outline-none"
                         onClick={(e) => e.stopPropagation()}
                       />
                     )}
@@ -556,7 +556,7 @@ export function ApprovalsToolScreen() {
                           type="button"
                           disabled={mutatingId === item.id}
                           onClick={() => void updateStatus(item.id, "rejected", noteInput[item.id])}
-                          className="min-h-11 rounded-2xl border border-red/30 bg-red/10 text-sm font-semibold text-red"
+                          className="min-h-11 rounded-2xl border border-danger/30 bg-danger/10 text-sm font-semibold text-danger"
                         >
                           Reject
                         </button>
@@ -564,7 +564,7 @@ export function ApprovalsToolScreen() {
                           type="button"
                           disabled={mutatingId === item.id}
                           onClick={() => void updateStatus(item.id, "approved", noteInput[item.id])}
-                          className="min-h-11 rounded-2xl border border-green/30 bg-green/10 text-sm font-semibold text-green"
+                          className="min-h-11 rounded-2xl border border-accent/30 bg-accent/10 text-sm font-semibold text-accent"
                         >
                           Approve
                         </button>
@@ -702,7 +702,7 @@ export function DocsToolScreen() {
                 <button
                   type="button"
                   onClick={clearSelection}
-                  className="mb-3 text-sm font-semibold text-cyan"
+                  className="mb-3 text-sm font-semibold text-accent"
                 >
                   ← Back to documents
                 </button>
@@ -724,7 +724,7 @@ export function DocsToolScreen() {
                 <button
                   type="button"
                   onClick={() => void togglePin(selected)}
-                  className="min-h-11 rounded-xl border border-border px-3 text-sm text-amber"
+                  className="min-h-11 rounded-xl border border-border px-3 text-sm text-warning"
                 >
                   {selected.pinned ? "Unpin" : "Pin"}
                 </button>
@@ -767,7 +767,7 @@ export function DocsToolScreen() {
                 }}
                 className="w-full text-left"
               >
-                <Card className="space-y-3 transition hover:border-cyan/40">
+                <Card className="space-y-3 transition hover:border-accent/40">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap gap-2">
@@ -785,7 +785,7 @@ export function DocsToolScreen() {
                         event.stopPropagation();
                         void togglePin(doc);
                       }}
-                      className="min-h-11 rounded-xl border border-border px-3 text-sm text-amber"
+                      className="min-h-11 rounded-xl border border-border px-3 text-sm text-warning"
                     >
                       {doc.pinned ? "Unpin" : "Pin"}
                     </button>
@@ -886,7 +886,7 @@ export function TasksToolScreen() {
             <h3 className="mt-3 text-base font-semibold text-text">{task.title}</h3>
           </div>
           <div className="text-right text-xs text-text-dim">
-            <div className={overdue ? "text-red" : ""}>{task.due_date ? formatShortDate(task.due_date) : "No due"}</div>
+            <div className={overdue ? "text-danger" : ""}>{task.due_date ? formatShortDate(task.due_date) : "No due"}</div>
             <div className="mt-1">{task.status.replace("_", " ")}</div>
           </div>
         </div>
@@ -902,7 +902,7 @@ export function TasksToolScreen() {
           <button
             type="button"
             onClick={() => void moveTask(task, "forward")}
-            className="min-h-11 rounded-2xl border border-cyan/30 bg-cyan/10 text-sm font-semibold text-cyan"
+            className="min-h-11 rounded-2xl border border-accent/30 bg-accent/10 text-sm font-semibold text-accent"
           >
             Advance
           </button>
@@ -966,7 +966,7 @@ export function TasksToolScreen() {
           <button
             type="button"
             onClick={() => void createTask()}
-            className="ml-auto min-h-11 rounded-full border border-cyan/30 bg-cyan/10 px-5 text-xl font-semibold text-cyan"
+            className="ml-auto min-h-11 rounded-full border border-accent/30 bg-accent/10 px-5 text-xl font-semibold text-accent"
           >
             +
           </button>
@@ -1091,7 +1091,7 @@ export function CalendarToolScreen() {
                   type="button"
                   onClick={() => setSelectedDay(key)}
                   className={`min-h-40 rounded-[22px] border p-3 text-left ${
-                    isToday ? "border-cyan/40 bg-cyan/10" : "border-border bg-bg-deep/70"
+                    isToday ? "border-accent/40 bg-accent/10" : "border-border bg-bg-deep/70"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -1099,7 +1099,7 @@ export function CalendarToolScreen() {
                       <div className="text-[11px] uppercase tracking-[0.18em] text-text-dim">
                         {day.toLocaleDateString("en-ZA", { weekday: "short" })}
                       </div>
-                      <div className={`mt-1 text-lg font-semibold ${isToday ? "text-cyan" : "text-text"}`}>
+                      <div className={`mt-1 text-lg font-semibold ${isToday ? "text-accent" : "text-text"}`}>
                         {day.getDate()}
                       </div>
                     </div>
@@ -1209,7 +1209,7 @@ export function AgentsLiveToolScreen() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`h-2.5 w-2.5 rounded-full ${run.status === "running" ? "animate-pulse bg-green" : run.status === "failed" ? "bg-red" : "bg-text-dim"}`}
+                      className={`h-2.5 w-2.5 rounded-full ${run.status === "running" ? "animate-pulse bg-accent" : run.status === "failed" ? "bg-danger" : "bg-text-dim"}`}
                     />
                     <Badge tone={runTone(run.status)}>{run.status}</Badge>
                     <Badge tone="accent">{run.model}</Badge>
@@ -1221,7 +1221,7 @@ export function AgentsLiveToolScreen() {
                   type="button"
                   onClick={() => void killRun(run)}
                   disabled={run.status !== "running"}
-                  className="min-h-11 rounded-2xl border border-red/30 bg-red/10 px-4 text-sm font-semibold text-red disabled:opacity-40"
+                  className="min-h-11 rounded-2xl border border-danger/30 bg-danger/10 px-4 text-sm font-semibold text-danger disabled:opacity-40"
                 >
                   Kill
                 </button>
@@ -1257,7 +1257,7 @@ export function AgentsLiveToolScreen() {
                   <pre className="overflow-x-auto whitespace-pre-wrap rounded-2xl border border-border bg-bg-deep p-4 text-xs leading-6 text-text">
                     {run.last_output ?? "No output captured yet."}
                   </pre>
-                  {run.error_message ? <div className="text-sm text-red">{run.error_message}</div> : null}
+                  {run.error_message ? <div className="text-sm text-danger">{run.error_message}</div> : null}
                 </div>
               ) : null}
             </Card>
@@ -1338,7 +1338,7 @@ export function CommandToolScreen() {
           {data?.items.length ? (
             data.items.map((entry) => (
               <div key={entry.id} className="space-y-2">
-                <div className="ml-auto max-w-[85%] rounded-[22px] rounded-br-md bg-cyan px-4 py-3 text-sm font-medium text-bg-deep">
+                <div className="ml-auto max-w-[85%] rounded-[22px] rounded-br-md bg-accent px-4 py-3 text-sm font-medium text-bg-deep">
                   {entry.command}
                 </div>
                 <div className="max-w-[88%] rounded-[22px] rounded-bl-md border border-border bg-bg-deep/80 px-4 py-3 text-sm text-text">
@@ -1386,7 +1386,7 @@ export function CommandToolScreen() {
             <button
               type="button"
               onClick={() => void sendCommand(message)}
-              className="min-h-11 rounded-2xl border border-cyan/30 bg-cyan px-5 text-sm font-semibold text-bg-deep"
+              className="min-h-11 rounded-2xl border border-accent/30 bg-accent px-5 text-sm font-semibold text-bg-deep"
             >
               Send
             </button>

@@ -434,7 +434,7 @@ function ToolCallsCard({ data }: { data: ToolCall[] }) {
                 <td className="py-2 pr-4 text-right text-text-dim">{tool.avg_duration_ms}ms</td>
                 <td className="py-2 text-right">
                   {tool.failures > 0 ? (
-                    <span className="text-red">{tool.failures}</span>
+                    <span className="text-danger">{tool.failures}</span>
                   ) : (
                     <span className="text-text-dim">0</span>
                   )}
@@ -475,8 +475,8 @@ export function AnalyticsScreen() {
     return (
       <div className="space-y-5">
         <ShellHeader title="Analytics" subtitle="Event intelligence and usage patterns" />
-        <div className="rounded-2xl border border-red/40 bg-red/5 p-6 text-center">
-          <p className="text-sm text-red">Failed to load analytics: {error}</p>
+        <div className="rounded-2xl border border-danger/40 bg-danger/5 p-6 text-center">
+          <p className="text-sm text-danger">Failed to load analytics: {error}</p>
         </div>
       </div>
     );
@@ -508,7 +508,7 @@ export function AnalyticsScreen() {
                 onClick={() => setRange(r)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                   range === r
-                    ? "bg-cyan/15 text-cyan"
+                    ? "bg-accent/15 text-accent"
                     : "text-text-dim hover:bg-white/5 hover:text-text"
                 }`}
               >

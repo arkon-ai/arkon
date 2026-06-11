@@ -306,14 +306,14 @@ export default function AgentDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             {/* Status */}
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-              isOnline ? "bg-green/15 text-green" : "bg-white/5 text-text-dim"
+              isOnline ? "bg-accent/15 text-accent" : "bg-white/5 text-text-dim"
             }`}>
-              <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-green animate-pulse" : "bg-[var(--text-tertiary)]"}`} />
+              <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-accent animate-pulse" : "bg-[var(--text-tertiary)]"}`} />
               {isOnline ? "Active" : "Offline"}
             </span>
 
             {/* Framework */}
-            <span className="rounded-full bg-cyan/10 px-2.5 py-1 text-xs font-semibold text-cyan">
+            <span className="rounded-full bg-accent/10 px-2.5 py-1 text-xs font-semibold text-accent">
               {framework}
             </span>
 
@@ -340,7 +340,7 @@ export default function AgentDetailPage() {
                   <button
                     type="button"
                     onClick={() => resumeRun(agentRuns[0].run_id)}
-                    className="flex h-8 items-center gap-1.5 rounded-xl border border-green-500/30 bg-green-500/10 px-3 text-xs font-semibold text-green-300 transition hover:bg-green-500/20"
+                    className="flex h-8 items-center gap-1.5 rounded-xl border border-success/30 bg-success/10 px-3 text-xs font-semibold text-success transition hover:bg-success/20"
                   >
                     <Play className="h-3.5 w-3.5" />
                     Resume
@@ -397,7 +397,7 @@ export default function AgentDetailPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${
               activeTab === tab.key
-                ? "bg-cyan/10 text-cyan"
+                ? "bg-accent/10 text-accent"
                 : "text-text-dim hover:bg-white/5 hover:text-text"
             }`}
           >
@@ -582,7 +582,7 @@ function SecurityTab({ data }: { data: AgentData }) {
           </div>
         )}
         {threats.threat_count_30d > threats.recent.length && (
-          <Link href="/threatguard" className="mt-3 inline-flex text-sm font-semibold text-cyan">
+          <Link href="/threatguard" className="mt-3 inline-flex text-sm font-semibold text-accent">
             View all in ThreatGuard &rarr;
           </Link>
         )}

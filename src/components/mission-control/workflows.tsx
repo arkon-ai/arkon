@@ -1093,7 +1093,7 @@ function CronConfigBar({ workflow, onUpdate }: { workflow: Workflow; onUpdate: (
           ) : (
             <span className="text-amber-400">Invalid expression</span>
           )}
-          {workflow.status === "active" && <span className="ml-2 text-green-400">Scheduled</span>}
+          {workflow.status === "active" && <span className="ml-2 text-success">Scheduled</span>}
           {workflow.status !== "active" && <span className="ml-2 text-[var(--text-tertiary)]">Activate to enable</span>}
         </div>
       </div>

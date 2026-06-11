@@ -111,7 +111,7 @@ export function LoadingState({ label = "Syncing dashboard" }: { label?: string }
 
 export function ErrorState({ error }: { error: string }) {
   return (
-    <div className="rounded-3xl border border-red/40 bg-bg-card p-5 text-sm text-red">
+    <div className="rounded-3xl border border-danger/40 bg-bg-card p-5 text-sm text-danger">
       Live data request failed: {error}
     </div>
   );
@@ -267,14 +267,14 @@ const actionItems = [
 ];
 
 const visuals = [
-  { slug: "briefing", label: "Morning Briefing", tone: "text-cyan", note: "Command center snapshot" },
+  { slug: "briefing", label: "Morning Briefing", tone: "text-accent", note: "Command center snapshot" },
   { slug: "tokens", label: "Token Tracker", tone: "text-accent", note: "Usage and model mix" },
-  { slug: "cycling", label: "Cycling Progress", tone: "text-green", note: "Training route tracker" },
-  { slug: "agents-net", label: "Agent Network", tone: "text-cyan", note: "Constellation view" },
-  { slug: "architecture", label: "Architecture", tone: "text-amber", note: "Infrastructure diagram" },
+  { slug: "cycling", label: "Cycling Progress", tone: "text-accent", note: "Training route tracker" },
+  { slug: "agents-net", label: "Agent Network", tone: "text-accent", note: "Constellation view" },
+  { slug: "architecture", label: "Architecture", tone: "text-warning", note: "Infrastructure diagram" },
   { slug: "brainmap", label: "Brain Map", tone: "text-accent", note: "Project orbit map" },
-  { slug: "domains", label: "Domains", tone: "text-cyan", note: "DNS and SSL health" },
-  { slug: "heatmap", label: "Heatmap", tone: "text-green", note: "Activity intensity" },
+  { slug: "domains", label: "Domains", tone: "text-accent", note: "DNS and SSL health" },
+  { slug: "heatmap", label: "Heatmap", tone: "text-accent", note: "Activity intensity" },
 ];
 
 // Systems data is loaded from /api/systems (database-driven, no hardcoded IPs)
@@ -461,9 +461,9 @@ function MobileDashboardView({
               >
                 <div className="flex-shrink-0">
                   <span className={`inline-block h-2 w-2 rounded-full ${
-                    evt.event_type === "error" ? "bg-red" :
+                    evt.event_type === "error" ? "bg-danger" :
                     evt.event_type === "tool_call" ? "bg-accent" :
-                    evt.event_type === "sent" ? "bg-cyan" : "bg-text-dim"
+                    evt.event_type === "sent" ? "bg-accent" : "bg-text-dim"
                   }`} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -478,7 +478,7 @@ function MobileDashboardView({
             ))}
           </div>
         )}
-        <Link href="/activity" className="mt-2 inline-flex text-xs font-semibold text-cyan btn-press">
+        <Link href="/activity" className="mt-2 inline-flex text-xs font-semibold text-accent btn-press">
           View all activity &rarr;
         </Link>
       </Card>
@@ -865,8 +865,8 @@ function ActionsContent() {
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard label="Warm Agents" value={String(warmCount)} accent="text-amber" sublabel="Recently active, not hot" />
-        <StatCard label="Offline Agents" value={String(offlineCount)} accent="text-red" sublabel="Need follow-up or expected idle state" />
+        <StatCard label="Warm Agents" value={String(warmCount)} accent="text-warning" sublabel="Recently active, not hot" />
+        <StatCard label="Offline Agents" value={String(offlineCount)} accent="text-danger" sublabel="Need follow-up or expected idle state" />
         <StatCard label="Token Leaders" value={String(tokenHeavy.length)} accent="text-accent" sublabel="High-consumption sessions today" />
       </div>
 
@@ -902,7 +902,7 @@ function ActionsContent() {
                 <div className="text-xs text-text-dim">{getAgentModel(agent)}</div>
               </div>
               <div className="text-right">
-                <div className="text-sm font-semibold text-amber">
+                <div className="text-sm font-semibold text-warning">
                   {formatCompact(asNumber(agent.tokens_24h))}
                 </div>
                 <div className="text-[11px] text-text-dim">tokens / 24h</div>
@@ -920,9 +920,9 @@ function ActionsContent() {
 function PriorityBadge({ priority }: { priority: string }) {
   const classes =
     priority === "P1"
-      ? "bg-red text-white"
+      ? "bg-danger text-white"
       : priority === "P2"
-        ? "bg-amber text-bg-deep"
+        ? "bg-warning text-bg-deep"
         : "bg-text-dim text-white";
 
   return (
@@ -972,7 +972,7 @@ function HealthContent() {
                   className="relative h-full rounded-full bg-[linear-gradient(90deg,var(--quarn),var(--quarn))]"
                   style={{ width: `${progress}%` }}
                 >
-                  <span className="absolute right-0 top-1/2 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border-2 border-bg-deep bg-green text-[10px]">
+                  <span className="absolute right-0 top-1/2 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border-2 border-bg-deep bg-accent text-[10px]">
                     &nearr;
                   </span>
                 </div>
@@ -990,10 +990,10 @@ function HealthContent() {
       </Card>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Est. KM" value={String(kmTotal)} accent="text-green" sublabel="Derived from recent system movement" />
+        <StatCard label="Est. KM" value={String(kmTotal)} accent="text-accent" sublabel="Derived from recent system movement" />
         <StatCard label="Target Days" value="4" accent="text-accent" sublabel="Training horizon" />
-        <StatCard label="Live Nodes" value={String(metrics.activeAgents)} accent="text-cyan" sublabel="Used as momentum proxy" />
-        <StatCard label="Load" value={formatCompact(metrics.events24h)} accent="text-amber" sublabel="Telemetry volume today" />
+        <StatCard label="Live Nodes" value={String(metrics.activeAgents)} accent="text-accent" sublabel="Used as momentum proxy" />
+        <StatCard label="Load" value={formatCompact(metrics.events24h)} accent="text-warning" sublabel="Telemetry volume today" />
       </div>
 
       <Card>
@@ -1003,11 +1003,11 @@ function HealthContent() {
             <div key={ride.label} className="rounded-2xl bg-bg-deep/70 p-4">
               <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
                 <span className="font-semibold text-text">{ride.label}</span>
-                <span className="text-green">{ride.duration}</span>
+                <span className="text-accent">{ride.duration}</span>
               </div>
               <div className="mt-1 text-xs text-text-dim">{ride.distance}km estimated effort</div>
-              <div className="mt-3 h-2 rounded-full bg-green/10">
-                <div className="h-full rounded-full bg-green" style={{ width: `${ride.intensity}%` }} />
+              <div className="mt-3 h-2 rounded-full bg-accent/10">
+                <div className="h-full rounded-full bg-accent" style={{ width: `${ride.intensity}%` }} />
               </div>
             </div>
           ))}
@@ -1047,7 +1047,7 @@ function ProgressRing({ progress }: { progress: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <div className="text-4xl font-bold text-green">{progress}%</div>
+        <div className="text-4xl font-bold text-accent">{progress}%</div>
         <div className="text-sm text-text-dim">of 400km</div>
         <div className="mt-1 text-xs text-text-dim">progress ring</div>
       </div>
@@ -1456,7 +1456,7 @@ function AgentsContent() {
                             {agent.name}
                           </Link>
                           {threats30d > 0 ? (
-                            <span className="ml-2 rounded-full bg-red/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.08em] text-red">
+                            <span className="ml-2 rounded-full bg-danger/15 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.08em] text-danger">
                               {threats30d} threat{threats30d !== 1 ? "s" : ""}
                             </span>
                           ) : null}
@@ -1499,7 +1499,7 @@ function AgentsContent() {
                             </button>
                             <button
                               type="button"
-                              className="inline-flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] hover:bg-red/15 hover:text-red disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] hover:bg-danger/15 hover:text-danger disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
                               title={activeRun ? "Kill active run" : "No active run"}
                               aria-label={`Kill ${agent.name}`}
                               disabled={!activeRun}
@@ -1642,9 +1642,9 @@ function SystemsContent() {
 
       {summary && (
         <div className="grid grid-cols-3 gap-3">
-          <StatCard label="Live Services" value={String(summary.online)} accent="text-green" sublabel={`of ${summary.total} total`} />
-          <StatCard label="Offline" value={String(summary.offline)} accent={summary.offline > 0 ? "text-red" : "text-text-dim"} sublabel="Not responding" />
-          <StatCard label="Agents Routing" value={String(metrics.activeAgents)} accent="text-cyan" sublabel="Current live agent count" />
+          <StatCard label="Live Services" value={String(summary.online)} accent="text-accent" sublabel={`of ${summary.total} total`} />
+          <StatCard label="Offline" value={String(summary.offline)} accent={summary.offline > 0 ? "text-danger" : "text-text-dim"} sublabel="Not responding" />
+          <StatCard label="Agents Routing" value={String(metrics.activeAgents)} accent="text-accent" sublabel="Current live agent count" />
         </div>
       )}
 
@@ -1653,14 +1653,14 @@ function SystemsContent() {
           const allOnline = services.every((s) => s.online);
           const anyOnline = services.some((s) => s.online);
           return (
-            <Card key={groupName} className={allOnline ? "border-green/20" : anyOnline ? "border-amber/20" : "border-red/20"}>
+            <Card key={groupName} className={allOnline ? "border-accent/20" : anyOnline ? "border-warning/20" : "border-danger/20"}>
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-text">{groupName}</h2>
                   <p className="mt-1 text-xs text-text-dim">{services[0]?.host}</p>
                 </div>
                 <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                  allOnline ? "bg-green/15 text-green" : anyOnline ? "bg-amber/15 text-amber" : "bg-red/15 text-red"
+                  allOnline ? "bg-accent/15 text-accent" : anyOnline ? "bg-warning/15 text-warning" : "bg-danger/15 text-danger"
                 }`}>
                   {allOnline ? "All Online" : anyOnline ? "Degraded" : "Offline"}
                 </span>
@@ -1677,7 +1677,7 @@ function SystemsContent() {
                         <span className="text-xs text-text-dim">{svc.latencyMs}ms</span>
                       )}
                       <PulsingDot status={svc.online ? "live" : "error"} />
-                      <span className={`text-xs font-semibold ${svc.online ? "text-green" : "text-red"}`}>
+                      <span className={`text-xs font-semibold ${svc.online ? "text-accent" : "text-danger"}`}>
                         {svc.online ? "Live" : "Down"}
                       </span>
                     </div>
@@ -1697,8 +1697,8 @@ function SystemsContent() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard label="24h Events" value={formatCompact(metrics.events24h)} accent="text-accent" sublabel="Infrastructure traffic proxy" />
-        <StatCard label="7d Events" value={formatCompact(metrics.events7d)} accent="text-cyan" sublabel="Weekly activity" />
-        <StatCard label="Tokens 24H" value={formatCompact(metrics.tokens24h)} accent="text-amber" sublabel="AI compute usage" />
+        <StatCard label="7d Events" value={formatCompact(metrics.events7d)} accent="text-accent" sublabel="Weekly activity" />
+        <StatCard label="Tokens 24H" value={formatCompact(metrics.tokens24h)} accent="text-warning" sublabel="AI compute usage" />
       </div>
     </div>
   );
@@ -1766,7 +1766,7 @@ function VisualsContent() {
           <Link
             key={item.slug}
             href={`/visuals/${item.slug}`}
-            className="card-hover rounded-[22px] border border-border bg-bg-card p-5 transition hover:border-cyan/40 hover:bg-white/[0.03]"
+            className="card-hover rounded-[22px] border border-border bg-bg-card p-5 transition hover:border-accent/40 hover:bg-white/[0.03]"
           >
             <div className={`text-sm font-semibold uppercase tracking-[0.18em] ${item.tone}`}>{item.label}</div>
             <p className="mt-2 text-sm leading-6 text-text-dim">{item.note}</p>
@@ -1799,13 +1799,13 @@ function eventIcon(type: string) {
 function eventTone(type: string) {
   switch (type) {
     case "message_received":
-      return "border-green/30 bg-green/10 text-green";
+      return "border-accent/30 bg-accent/10 text-accent";
     case "message_sent":
-      return "border-cyan/30 bg-cyan/10 text-cyan";
+      return "border-accent/30 bg-accent/10 text-accent";
     case "tool_call":
       return "border-accent/30 bg-accent/10 text-accent";
     case "error":
-      return "border-red/30 bg-red/10 text-red";
+      return "border-danger/30 bg-danger/10 text-danger";
     default:
       return "border-border bg-bg-deep/60 text-text-dim";
   }
@@ -1842,7 +1842,7 @@ function AgentDetailContent({ agentId: agentIdProp }: { agentId?: string } = {})
         <StatCard
           label="Events"
           value={formatCompact(data.events.length)}
-          accent="text-cyan"
+          accent="text-accent"
           sublabel="Last 50 timeline entries"
         />
         <StatCard
@@ -1854,13 +1854,13 @@ function AgentDetailContent({ agentId: agentIdProp }: { agentId?: string } = {})
         <StatCard
           label="7 Day Stats"
           value={formatCompact(data.stats.length)}
-          accent="text-amber"
+          accent="text-warning"
           sublabel="Daily stat rows"
         />
         <StatCard
           label="Updated"
           value={getUpdatedAtLabel(data.timestamp)}
-          accent="text-green"
+          accent="text-accent"
           sublabel="Live polling active"
         />
       </div>

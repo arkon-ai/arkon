@@ -166,7 +166,7 @@ function AuditLogTab() {
                     <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${
                       e.action === "agent.kill" ? "bg-red-500/15 text-red-400 font-semibold" :
                       e.action === "agent.pause" ? "bg-amber-500/15 text-amber-400" :
-                      e.action === "agent.resume" ? "bg-green-500/15 text-green-400" :
+                      e.action === "agent.resume" ? "bg-success/15 text-success" :
                       e.action.includes("delete") || e.action.includes("purge") ? "bg-red-500/10 text-red-400" :
                       e.action.includes("create") ? "bg-[rgba(var(--quarn-rgb),0.1)] text-[var(--accent)]" :
                       "bg-[var(--bg-surface-2)] text-[var(--text-primary)]"

@@ -11,10 +11,6 @@
   --foreground: var(--fg-1);
   --bg-deep:    var(--void);
   --bg-card:    var(--surface-1);   /* was #111118 → canonical #1A1A22 */
-  --cyan:   var(--quarn);
-  --amber:  var(--warning);
-  --red:    var(--danger);
-  --green:  var(--quarn);           /* was #22c55e → single brand green */
   --text:     var(--fg-1);
   --text-dim: var(--fg-2);
 }
@@ -25,10 +21,6 @@
   --color-bg-deep: var(--bg-deep);
   --color-bg-card: var(--bg-card);
   --color-border: var(--border);
-  --color-cyan: var(--cyan);
-  --color-amber: var(--amber);
-  --color-red: var(--red);
-  --color-green: var(--green);
   --color-text: var(--text);
   --color-text-dim: var(--text-dim);
   --font-sans: var(--font-sans);
