@@ -161,7 +161,7 @@ export default function LoginPage() {
             <span className="text-3xl font-extrabold text-[var(--accent)] font-[family-name:var(--font-display)]">A</span>
           </div>
           <h1 className="text-2xl font-extrabold text-white font-[family-name:var(--font-display)]">Arkon</h1>
-          <p className="mt-2 text-sm text-[var(--text-secondary)]">AI Control Plane</p>
+          <p className="mt-2 text-sm text-[var(--text-secondary)]">AI Workforce Platform</p>
         </div>
 
         <div className="mb-6 flex rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-1">

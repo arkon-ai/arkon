@@ -247,7 +247,7 @@ export default function SetupPage() {
             {step === 5 && "You're All Set!"}
           </h1>
           <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
-            AI Control Plane
+            AI Workforce Platform
           </p>
         </div>
 

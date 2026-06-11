@@ -455,7 +455,7 @@ export const glossaryTerms: GlossaryTerm[] = [
   { term: "Approval", definition: "A request from an agent asking for human permission before performing a sensitive action. Approvals are configured per agent and action type.", link: "/integrations/approvals" },
   { term: "Baseline", definition: "The expected range of normal behavior for an agent, computed from its rolling 7-day history. Used to detect anomalies.", link: "/analytics" },
   { term: "Budget Limit", definition: "A spending cap set per tenant. Arkon sends alerts at 80% and 100% of the limit. Configurable as daily or monthly.", link: "/costs" },
-  { term: "Governance Platform", definition: "The management layer that monitors, governs, and orchestrates AI agents. Arkon is an AI Governance Platform." },
+  { term: "Governance Platform", definition: "The management layer that monitors, governs, and orchestrates AI agents. Arkon is an AI Workforce Platform." },
   { term: "Credential Leak", definition: "A threat class where an agent exposes an API key, password, or secret in its output. Requires immediate purging and credential rotation.", link: "/security" },
   { term: "Event", definition: "Any logged action from an agent — messages sent/received, tool calls, errors, or system actions. Events are the core data unit in Arkon.", link: "/activity" },
   { term: "Health Score", definition: "A composite 0–100 score combining agent uptime (25pts), threat level (25pts), budget status (25pts), and infrastructure health (25pts).", link: "/" },

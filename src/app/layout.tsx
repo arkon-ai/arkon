@@ -25,6 +25,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      // Modern SVG favicon — canonical Quarn A glyph (WI-1033)
+      { url: "/arkon-glyph.svg", type: "image/svg+xml" },
+      // .ico fallback for browsers without SVG-favicon support
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/icon-192.svg", type: "image/svg+xml", sizes: "192x192" },
       { url: "/icon-512.svg", type: "image/svg+xml", sizes: "512x512" },
     ],
