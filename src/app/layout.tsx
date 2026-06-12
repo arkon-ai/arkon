@@ -32,7 +32,7 @@ export const metadata: Metadata = {
       { url: "/icon-192.svg", type: "image/svg+xml", sizes: "192x192" },
       { url: "/icon-512.svg", type: "image/svg+xml", sizes: "512x512" },
     ],
-    apple: "/icon-192.svg",
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
   },
   other: {
     "mobile-web-app-capable": "yes",
