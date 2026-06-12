@@ -1,10 +1,9 @@
 /**
  * generate-favicons.mjs
- * Regenerates the raster favicon set from public/arkon-glyph.svg.
- *
- * Brand tokens (locked — change here if brand changes):
- *   Void background: #0A0A0C
- *   Quarn emerald:   #00D47E
+ * Regenerates the raster favicon set from public/icon-192.svg — the canonical
+ * composite (WI-1033 treatment: inset glyph on a rounded void rect, itself
+ * derived from arkon-glyph.svg). All geometry and colors are parsed from that
+ * file at generation time; a brand change there propagates on the next run.
  *
  * Outputs (all under public/):
  *   favicon-16x16.png         — 16×16 raster
@@ -41,30 +40,53 @@ const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
 const APP_DIR = path.join(ROOT, 'src', 'app');
 
-// Brand tokens — read from layout.tsx comment / globals.css comment
-const VOID_BG = '#0A0A0C';   // --void; confirmed in layout.tsx viewport.themeColor
-const QUARN   = '#00D47E';   // Quarn emerald; confirmed in icon-192.svg
+// Visual source of truth: the canonical composite icon. The raw
+// arkon-glyph.svg is a bare path with DIFFERENT (non-inset) coordinates and
+// must not be rasterized directly — icon-192.svg carries the WI-1033
+// treatment (inset glyph + rounded void rect) that all app icons mirror.
+const SOURCE_SVG = path.join(PUBLIC, 'icon-192.svg');
 
-// Corner radius ratio — matches icon-192.svg rx="234" on a 1024 canvas ≈ 22.85%
-const RADIUS_RATIO = 234 / 1024;
+function attrOf(tag, name) {
+  const m = tag.match(new RegExp(`\\b${name}="([^"]+)"`));
+  return m ? m[1] : null;
+}
+
+/**
+ * Parse brand geometry + colors from icon-192.svg so a brand update there
+ * propagates to every generated raster (no hardcoded duplicates here).
+ */
+async function readBrandSource() {
+  const svg = await fs.readFile(SOURCE_SVG, 'utf8');
+  const rectTag = (svg.match(/<rect[^>]*>/i) || [])[0];
+  const pathTag = (svg.match(/<path[^>]*>/i) || [])[0];
+  const viewBox = attrOf(svg, 'viewBox');
+  if (!rectTag || !pathTag || !viewBox) {
+    throw new Error(`Cannot parse <rect>/<path>/viewBox from ${SOURCE_SVG}`);
+  }
+  const brand = {
+    vb: Number(viewBox.split(/\s+/)[3]),
+    rx: Number(attrOf(rectTag, 'rx')),
+    bg: attrOf(rectTag, 'fill'),
+    glyphPath: attrOf(pathTag, 'd'),
+    glyphFill: attrOf(pathTag, 'fill'),
+  };
+  for (const [k, v] of Object.entries(brand)) {
+    if (v === null || v === '' || (typeof v === 'number' && !Number.isFinite(v))) {
+      throw new Error(`Missing/invalid "${k}" parsed from ${SOURCE_SVG}`);
+    }
+  }
+  return brand;
+}
 
 /**
  * Build a composite SVG at `size`×`size` with:
  *   - void background rect with proportional rounded corners
  *   - glyph path scaled to fill ~66% of the canvas (matches icon-192.svg proportions)
- *
- * The raw arkon-glyph.svg is a bare path on a 1024×1024 viewBox.
- * icon-192.svg wraps it in a bg rect with inset path coords — we replicate that.
  */
-function buildSvg(size) {
-  const vb = 1024;
-  const rx = Math.round(RADIUS_RATIO * vb);
-  // Glyph path as used in icon-192.svg (slightly inset from the 1024 canvas)
-  const glyphPath = 'M512 196 L848 868 L676 868 L512 562 L348 868 L176 868 Z';
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${vb} ${vb}">
-  <rect width="${vb}" height="${vb}" rx="${rx}" fill="${VOID_BG}"/>
-  <path d="${glyphPath}" fill="${QUARN}"/>
+function buildSvg(size, brand) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${brand.vb} ${brand.vb}">
+  <rect width="${brand.vb}" height="${brand.vb}" rx="${brand.rx}" fill="${brand.bg}"/>
+  <path d="${brand.glyphPath}" fill="${brand.glyphFill}"/>
 </svg>`;
 }
 
@@ -72,22 +94,23 @@ function buildSvg(size) {
  * Render an SVG string to a PNG Buffer at the requested pixel size.
  * sharp handles the SVG→raster pipeline (uses librsvg under the hood).
  */
-async function renderPng(size, { appleBackground = false } = {}) {
-  const svgBuf = Buffer.from(buildSvg(size));
+async function renderPng(size, brand, { appleBackground = false } = {}) {
+  const svgBuf = Buffer.from(buildSvg(size, brand));
   let pipeline = sharp(svgBuf, { density: 300 })
     .resize(size, size);
 
   if (appleBackground) {
     // Apple touch icons: composite on solid void bg to suppress transparency
-    pipeline = pipeline.flatten({ background: VOID_BG });
+    pipeline = pipeline.flatten({ background: brand.bg });
   }
 
   return pipeline.png().toBuffer();
 }
 
 async function main() {
-  console.log('Generating raster favicons from arkon-glyph.svg ...');
-  console.log(`  Brand: bg=${VOID_BG}  glyph=${QUARN}`);
+  const brand = await readBrandSource();
+  console.log(`Generating raster favicons from ${path.relative(ROOT, SOURCE_SVG)} ...`);
+  console.log(`  Brand: bg=${brand.bg}  glyph=${brand.glyphFill}  rx=${brand.rx}/${brand.vb}`);
   console.log('');
 
   // 1. Standard PNG set
@@ -99,7 +122,7 @@ async function main() {
   ];
 
   for (const { name, size } of outputs) {
-    const buf = await renderPng(size);
+    const buf = await renderPng(size, brand);
     const dest = path.join(PUBLIC, name);
     await fs.writeFile(dest, buf);
     const meta = await sharp(buf).metadata();
@@ -109,7 +132,7 @@ async function main() {
   // 2. Apple touch icon — 180×180, solid bg (no transparency)
   {
     const size = 180;
-    const buf = await renderPng(size, { appleBackground: true });
+    const buf = await renderPng(size, brand, { appleBackground: true });
     const dest = path.join(PUBLIC, 'apple-touch-icon.png');
     await fs.writeFile(dest, buf);
     const meta = await sharp(buf).metadata();
@@ -122,18 +145,19 @@ async function main() {
     const sizes = [16, 32, 48];
     const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'arkon-favicons-'));
     const tmpPaths = [];
-    for (const size of sizes) {
-      const buf = await renderPng(size);
-      const tmpPath = path.join(tmpDir, `icon-${size}.png`);
-      await fs.writeFile(tmpPath, buf);
-      tmpPaths.push(tmpPath);
+    let icoBuf;
+    try {
+      for (const size of sizes) {
+        const buf = await renderPng(size, brand);
+        const tmpPath = path.join(tmpDir, `icon-${size}.png`);
+        await fs.writeFile(tmpPath, buf);
+        tmpPaths.push(tmpPath);
+      }
+      icoBuf = await pngToIco(tmpPaths);
+    } finally {
+      // Cleanup must survive a pngToIco/render failure.
+      await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
     }
-
-    const icoBuf = await pngToIco(tmpPaths);
-
-    // Cleanup temp files
-    for (const p of tmpPaths) await fs.unlink(p).catch(() => {});
-    await fs.rmdir(tmpDir).catch(() => {});
 
     // public/favicon.ico — static fallback
     const publicIco = path.join(PUBLIC, 'favicon.ico');
