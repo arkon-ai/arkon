@@ -64,6 +64,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // Add crossfade transition
     root.style.setProperty("transition", "background-color 200ms ease, color 200ms ease");
     root.setAttribute("data-theme", theme);
+    // Keep @arkon-ai/ui package CSS in sync — its light-mode rules target .theme-light
+    // (tokens.css + arkon-kit.css use class selector; app globals.css uses [data-theme]).
+    // Both must be set so package rules (e.g. .theme-light .ak-metric__val AAA fix, WI-994)
+    // activate at runtime.
+    root.classList.toggle("theme-light", theme === "light");
     // Update theme-color meta tag
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", theme === "light" ? "#F5F5F7" : "#0A0A0C"); // literal --void; <meta> rejects CSS vars (WI-999)
