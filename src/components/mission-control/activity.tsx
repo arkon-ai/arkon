@@ -100,7 +100,7 @@ function EventRow({ event, expanded, onToggle }: {
               )}
               {event.threat_level && event.threat_level !== "none" && (
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                  event.threat_level === "critical" ? "bg-danger/50 text-danger animate-pulse" :
+                  event.threat_level === "critical" ? "bg-danger text-white animate-pulse" :
                   event.threat_level === "high" ? "bg-danger/30 text-danger" :
                   event.threat_level === "medium" ? "bg-warning/30 text-warning" :
                   "bg-[var(--bg-surface)] text-[var(--text-secondary)]"

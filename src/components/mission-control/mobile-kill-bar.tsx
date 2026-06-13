@@ -49,11 +49,11 @@ export function MobileKillBar() {
             <span className="truncate text-[13px] font-semibold">
               {primary.agent_name}
             </span>
-            <span className="text-[12px] font-medium text-danger">
+            <span className="text-[12px] font-medium text-white/80">
               {formatDuration(primary.started_at)}
             </span>
             {runs.length > 1 && (
-              <span className="rounded-full bg-danger/50 px-1.5 py-0.5 text-[10px] font-bold text-danger">
+              <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-[10px] font-bold text-white">
                 +{runs.length - 1}
               </span>
             )}
