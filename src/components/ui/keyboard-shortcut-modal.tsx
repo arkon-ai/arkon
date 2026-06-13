@@ -63,7 +63,7 @@ export function KeyboardShortcutModal({ open, onClose }: KeyboardShortcutModalPr
         aria-label="Close shortcuts"
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
-      <div className="relative w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+      <div className="relative w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-overlay)]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-5 py-3">
           <h2

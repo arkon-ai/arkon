@@ -168,7 +168,7 @@ export function NewAgentModal({
         aria-label="Close"
         tabIndex={-1}
       />
-      <div className="relative w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+      <div className="relative w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-[var(--shadow-overlay)]">
         {phase === "form" && (
           <>
             <div className="mb-4 flex items-center gap-3">

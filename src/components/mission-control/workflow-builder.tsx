@@ -62,11 +62,11 @@ interface NodeConfig {
 // ── Node type colors ──────────────────────────────────────────────────────────
 
 const NODE_STYLES: Record<string, { bg: string; border: string; icon: string; accent: string }> = {
-  "manual-trigger": { bg: "#1a1a2e", border: "var(--quarn)", icon: "\u25B6", accent: "var(--quarn)" },
-  "cron-trigger":   { bg: "#1a1a2e", border: "var(--info)", icon: "\u23F0", accent: "var(--info)" },
-  "http-request":   { bg: "#1a1a2e", border: "var(--info)", icon: "\u21C5", accent: "var(--info)" },
-  "condition":      { bg: "#1a1a2e", border: "var(--warning)", icon: "\u2747", accent: "var(--warning)" },
-  "notify":         { bg: "#1a1a2e", border: "var(--quarn)", icon: "\u2709", accent: "var(--quarn)" },
+  "manual-trigger": { bg: "var(--bg-surface-2)", border: "var(--quarn)", icon: "\u25B6", accent: "var(--quarn)" },
+  "cron-trigger":   { bg: "var(--bg-surface-2)", border: "var(--info)", icon: "\u23F0", accent: "var(--info)" },
+  "http-request":   { bg: "var(--bg-surface-2)", border: "var(--info)", icon: "\u21C5", accent: "var(--info)" },
+  "condition":      { bg: "var(--bg-surface-2)", border: "var(--warning)", icon: "\u2747", accent: "var(--warning)" },
+  "notify":         { bg: "var(--bg-surface-2)", border: "var(--quarn)", icon: "\u2709", accent: "var(--quarn)" },
 };
 
 // ── Custom Node Components ────────────────────────────────────────────────────
@@ -79,8 +79,8 @@ function ManualTriggerNode({ data, selected }: NodeProps) {
       className="rounded-xl px-4 py-3 shadow-lg min-w-[180px] transition-shadow"
       style={{
         background: s.bg,
-        border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
+        border: `2px solid ${selected ? "var(--text-primary)" : s.border}`,
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "var(--shadow-md)",
       }}
     >
       <div className="flex items-center gap-2 mb-1">
@@ -101,8 +101,8 @@ function CronTriggerNode({ data, selected }: NodeProps) {
       className="rounded-xl px-4 py-3 shadow-lg min-w-[180px] transition-shadow"
       style={{
         background: s.bg,
-        border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
+        border: `2px solid ${selected ? "var(--text-primary)" : s.border}`,
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "var(--shadow-md)",
       }}
     >
       <div className="flex items-center gap-2 mb-1">
@@ -126,8 +126,8 @@ function HttpRequestNode({ data, selected }: NodeProps) {
       className="rounded-xl px-4 py-3 shadow-lg min-w-[200px] transition-shadow"
       style={{
         background: s.bg,
-        border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
+        border: `2px solid ${selected ? "var(--text-primary)" : s.border}`,
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "var(--shadow-md)",
       }}
     >
       <Handle type="target" position={Position.Top} className="!bg-[var(--info)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
@@ -155,8 +155,8 @@ function ConditionNode({ data, selected }: NodeProps) {
       className="rounded-xl px-4 py-3 shadow-lg min-w-[200px] transition-shadow"
       style={{
         background: s.bg,
-        border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
+        border: `2px solid ${selected ? "var(--text-primary)" : s.border}`,
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "var(--shadow-md)",
       }}
     >
       <Handle type="target" position={Position.Top} className="!bg-[var(--warning)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
@@ -188,8 +188,8 @@ function NotifyNode({ data, selected }: NodeProps) {
       className="rounded-xl px-4 py-3 shadow-lg min-w-[180px] transition-shadow"
       style={{
         background: s.bg,
-        border: `2px solid ${selected ? "#fff" : s.border}`,
-        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "0 4px 12px rgba(0,0,0,0.3)",
+        border: `2px solid ${selected ? "var(--text-primary)" : s.border}`,
+        boxShadow: selected ? `0 0 20px color-mix(in srgb, ${s.border} 25%, transparent)` : "var(--shadow-md)",
       }}
     >
       <Handle type="target" position={Position.Top} className="!bg-[var(--accent)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
@@ -656,7 +656,7 @@ export function WorkflowBuilder({
           maskColor="rgba(10,10,20,0.8)"
           className="!bg-[var(--bg-surface)] !border-[var(--border)]"
         />
-        <Controls className="!bg-[var(--bg-surface)] !border-[var(--border)] !shadow-lg [&>button]:!bg-[var(--bg-surface)] [&>button]:!border-[var(--border)] [&>button]:!text-[var(--text-secondary)] [&>button:hover]:!bg-[#1a1a2e]" />
+        <Controls className="!bg-[var(--bg-surface)] !border-[var(--border)] !shadow-lg [&>button]:!bg-[var(--bg-surface)] [&>button]:!border-[var(--border)] [&>button]:!text-[var(--text-secondary)] [&>button:hover]:!bg-[var(--bg-surface-2)]" />
 
         {!readOnly && (
           <Panel position="top-left">

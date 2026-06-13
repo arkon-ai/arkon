@@ -133,7 +133,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
                     <stop offset="100%" stopColor="var(--quarn)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,42,74,0.4)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="day" tick={{ fontSize: 10, fill: "var(--fg-2)" }} />
                 <YAxis tick={{ fontSize: 10, fill: "var(--fg-2)" }} width={40} />
                 <Tooltip content={<TrendTooltip />} />
@@ -172,7 +172,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
                     <stop offset="100%" stopColor="var(--warning)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,42,74,0.4)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="day" tick={{ fontSize: 10, fill: "var(--fg-2)" }} />
                 <YAxis tick={{ fontSize: 10, fill: "var(--fg-2)" }} width={50} />
                 <Tooltip content={<TrendTooltip />} />

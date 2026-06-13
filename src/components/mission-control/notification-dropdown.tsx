@@ -185,7 +185,7 @@ export function NotificationDropdown() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-96 rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+        <div className="absolute right-0 top-12 z-50 w-96 rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-overlay)]">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-4 py-3">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">

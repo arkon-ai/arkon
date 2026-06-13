@@ -22,7 +22,7 @@ export function MetricTooltip({ text }: { text: string }) {
         <Info className="h-3 w-3" />
       </button>
       {open && (
-        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2.5 text-xs leading-relaxed text-[#cbd5e1] shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2.5 text-xs leading-relaxed text-[var(--text-secondary)] shadow-[var(--shadow-popover)]">
           {text}
           <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[var(--border)]" />
         </div>
@@ -114,7 +114,7 @@ export function HealthGauge({
 
       {/* Tooltip breakdown on hover */}
       {hover && (
-        <div className="absolute top-full z-50 mt-2 w-52 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute top-full z-50 mt-2 w-52 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-[var(--shadow-popover)]">
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
             Score Breakdown
           </p>

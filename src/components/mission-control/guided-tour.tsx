@@ -193,7 +193,7 @@ export function GuidedTour() {
 
       {/* Tooltip */}
       <div
-        className="fixed z-[9999] w-72 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
+        className="fixed z-[9999] w-72 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-[var(--shadow-overlay)]"
         style={{
           top: tooltipPos.top,
           left: tooltipPos.left,

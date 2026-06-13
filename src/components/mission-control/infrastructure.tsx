@@ -143,7 +143,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
   const cpuPct = d.metrics?.cpu != null ? Math.round(d.metrics.cpu) : null;
   const memBar = d.metrics?.memoryUsedMb && d.metrics?.memoryTotalMb
     ? pctBar(d.metrics.memoryUsedMb, d.metrics.memoryTotalMb)
-    : ramGb ? { pct: 0, color: "#525252" } : null;
+    : ramGb ? { pct: 0, color: "var(--text-tertiary)" } : null;
   const diskBar = d.metrics?.diskUsedGb && d.metrics?.diskTotalGb
     ? pctBar(d.metrics.diskUsedGb, d.metrics.diskTotalGb)
     : null;
@@ -162,11 +162,11 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
       <div
         className="rounded-[var(--radius-card)] border p-4 transition-all duration-200"
         style={{
-          background: selected ? "#111111" : "#0a0a0a",
-          borderColor: selected ? roleStyle.border : "#1a1a1a",
+          background: selected ? "var(--surface-1)" : "var(--void)",
+          borderColor: selected ? roleStyle.border : "var(--border)",
           boxShadow: selected
-            ? `0 0 30px -10px ${roleStyle.color}40, 0 20px 60px -20px rgba(0,0,0,0.6)`
-            : "0 4px 20px -4px rgba(0,0,0,0.4)",
+            ? `0 0 30px -10px ${roleStyle.color}40, var(--depth-lg)`
+            : "var(--depth-md)",
         }}
       >
         {/* Top glow line */}
@@ -206,7 +206,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
         {/* Role badge */}
         <span
           className="mb-3 inline-block rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-          style={{ background: roleStyle.bg, color: roleStyle.color, borderColor: "#1a1a1a" }}
+          style={{ background: roleStyle.bg, color: roleStyle.color, borderColor: "var(--border)" }}
         >
           {ROLE_LABELS[d.role] || d.role}
         </span>
@@ -241,9 +241,9 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
                 key={svc.name}
                 className="rounded-md border px-1.5 py-0.5 text-[10px] font-medium"
                 style={{
-                  background: svc.active ? "rgba(var(--quarn-rgb), 0.06)" : "rgba(255,255,255,0.02)",
-                  color: svc.active ? "var(--quarn)" : "#525252",
-                  borderColor: svc.active ? "rgba(var(--quarn-rgb), 0.12)" : "#1a1a1a",
+                  background: svc.active ? "rgba(var(--quarn-rgb), 0.06)" : "var(--bg-hover)",
+                  color: svc.active ? "var(--quarn)" : "var(--text-tertiary)",
+                  borderColor: svc.active ? "rgba(var(--quarn-rgb), 0.12)" : "var(--border)",
                 }}
               >
                 {svc.name}
@@ -436,7 +436,7 @@ function DetailPanel({
           <div className="grid grid-cols-2 gap-2">
             {(node.services as Array<{ name: string; active: boolean }>).map((svc) => (
               <div key={svc.name} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2">
-                <div className="h-1.5 w-1.5 rounded-full" style={{ background: svc.active ? "var(--quarn)" : "#525252" }} />
+                <div className="h-1.5 w-1.5 rounded-full" style={{ background: svc.active ? "var(--quarn)" : "var(--text-tertiary)" }} />
                 <span className="text-[11px] font-medium text-[var(--text-secondary)]">{svc.name}</span>
               </div>
             ))}
@@ -582,8 +582,8 @@ export function InfrastructureTopology() {
         },
         markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(var(--quarn-rgb), 0.18)", width: 12, height: 12 },
         label: e.latencyMs != null ? `${e.latencyMs.toFixed(0)}ms` : undefined,
-        labelStyle: { fill: "#525252", fontSize: 10, fontFamily: "monospace" },
-        labelBgStyle: { fill: "#0a0a0a", fillOpacity: 0.95 },
+        labelStyle: { fill: "var(--text-tertiary)", fontSize: 10, fontFamily: "monospace" },
+        labelBgStyle: { fill: "var(--void)", fillOpacity: 0.95 },
         labelBgPadding: [4, 2] as [number, number],
         labelBgBorderRadius: 4,
       }));
@@ -745,12 +745,13 @@ export function InfrastructureTopology() {
           <MiniMap
             nodeColor={(node) => {
               const d = node.data as unknown as InfraNode;
+              // hex-ok: ReactFlow MiniMap paints node fills as SVG attributes — CSS var() does not resolve here.
               return STATUS_COLORS[d?.status] || "#1a1a1a";
             }}
             maskColor="rgba(5, 5, 5, 0.85)"
             style={{
-              background: "#0a0a0a",
-              border: "1px solid #1a1a1a",
+              background: "var(--void)",
+              border: "1px solid var(--border)",
               borderRadius: 12,
             }}
             pannable

@@ -721,7 +721,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
           />
-          <div className="relative h-full w-[272px] max-w-[85vw] border-r border-[var(--border)]/50 shadow-[0_20px_60px_rgba(0,0,0,0.6)]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative h-full w-[272px] max-w-[85vw] border-r border-[var(--border)]/50 shadow-[var(--shadow-overlay)]" onClick={(e) => e.stopPropagation()}>
             {sidebar}
           </div>
         </div>
@@ -738,7 +738,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}
           />
-          <div className="absolute inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] mx-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+          <div className="absolute inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] mx-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-[var(--shadow-overlay-up)]">
             <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--text-tertiary)]">
               More
             </div>

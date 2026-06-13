@@ -245,7 +245,7 @@ export function DataTable<T>({
                 Columns
               </button>
               {showColumnPicker ? (
-                <div className="absolute right-0 top-10 z-30 min-w-[180px] rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.4)]">
+                <div className="absolute right-0 top-10 z-30 min-w-[180px] rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-2 shadow-[var(--shadow-popover)]">
                   {columns.filter((c) => c.hideable).map((col) => (
                     <button
                       key={col.id}

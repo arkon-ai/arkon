@@ -30,7 +30,6 @@ export interface HealthInput {
 export interface HealthResult {
   score: number;
   grade: "healthy" | "warning" | "critical";
-  color: string;
   breakdown: {
     agents: number;
     threats: number;
@@ -76,14 +75,11 @@ export function computeHealthScore(input: HealthInput): HealthResult {
   const score = agents + threats + budget + infra;
 
   let grade: HealthResult["grade"] = "healthy";
-  let color = "#00D47E";
   if (score < 50) {
     grade = "critical";
-    color = "#ef4444";
   } else if (score < 80) {
     grade = "warning";
-    color = "#f59e0b";
   }
 
-  return { score, grade, color, breakdown: { agents, threats, budget, infra } };
+  return { score, grade, breakdown: { agents, threats, budget, infra } };
 }

@@ -85,7 +85,7 @@ export function Drawer({
               mass: 1,
             }}
             style={{ width }}
-            className="fixed right-0 top-0 z-[91] flex h-full flex-col border-l border-[var(--border)] bg-[var(--bg-primary)] shadow-[-20px_0_60px_rgba(0,0,0,0.5)]"
+            className="fixed right-0 top-0 z-[91] flex h-full flex-col border-l border-[var(--border)] bg-[var(--bg-primary)] shadow-[var(--shadow-overlay)]"
           >
             {/* Header */}
             {hideHeader ? null : (

@@ -318,7 +318,7 @@ function BottomSheet({
   return (
     <div className="fixed inset-0 z-50 flex items-end bg-black/60">
       <button type="button" className="absolute inset-0" onClick={onClose} aria-label="Close" />
-      <div className="relative max-h-[78vh] w-full overflow-y-auto rounded-t-[28px] border border-border bg-bg-card p-5 shadow-[0_-20px_60px_rgba(0,0,0,0.45)]">
+      <div className="relative max-h-[78vh] w-full overflow-y-auto rounded-t-[28px] border border-border bg-bg-card p-5 shadow-[var(--shadow-overlay-up)]">
         <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-border" />
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="text-base font-semibold text-text">{title}</h3>
@@ -949,7 +949,7 @@ export function TasksToolScreen() {
         ))}
       </div>
 
-      <div className="fixed bottom-[88px] right-4 z-40 w-[calc(100%-2rem)] max-w-sm rounded-[24px] border border-border bg-bg-card/95 p-3 shadow-[0_18px_48px_rgba(0,0,0,0.4)] backdrop-blur">
+      <div className="fixed bottom-[88px] right-4 z-40 w-[calc(100%-2rem)] max-w-sm rounded-[24px] border border-border bg-bg-card/95 p-3 shadow-[var(--shadow-popover)] backdrop-blur">
         <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim">Quick Add</div>
         <input
           value={quickTitle}
@@ -979,7 +979,7 @@ export function TasksToolScreen() {
 }
 
 const itemTypeColors: Record<string, string> = {
-  linkedin: "#3b82f6",
+  linkedin: "rgb(var(--chart-blue-rgb))",
   email: "var(--quarn)",
   campaign: "var(--quarn)",
   confession: "var(--warning)",
@@ -1359,7 +1359,7 @@ export function CommandToolScreen() {
       </Card>
 
       <div className="fixed inset-x-0 bottom-[72px] z-40 mx-auto w-full max-w-3xl px-4 sm:px-6">
-        <div className="rounded-[24px] border border-border bg-bg-card/95 p-3 shadow-[0_18px_48px_rgba(0,0,0,0.4)] backdrop-blur">
+        <div className="rounded-[24px] border border-border bg-bg-card/95 p-3 shadow-[var(--shadow-popover)] backdrop-blur">
           <div className="mb-3 flex gap-2 overflow-x-auto">
             {quickActions.map((action) => (
               <button

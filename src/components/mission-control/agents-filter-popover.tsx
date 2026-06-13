@@ -75,7 +75,7 @@ export function AgentsFilterPopover({
   return (
     <div
       ref={panelRef}
-      className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
+      className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-[var(--shadow-popover)]"
       role="dialog"
       aria-label="Filter agents"
     >

@@ -179,7 +179,7 @@ export function CommandPalette({
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
       <Command
-        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-overlay)]"
         label="Command palette"
       >
         {/* Search input */}
