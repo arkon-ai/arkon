@@ -369,16 +369,19 @@ h1, h2, h3, h4, h5, h6 {
   .bento-tall { grid-row: span 2; }
 }
 
-/* Card hover interaction — depth + the ONE sanctioned --quarn-glow (WI-994/999).
-   Legacy decorative cyan glow retired; glow now flows through the token so it
-   stays in sync with .ak-card hover. */
+/* Card hover interaction — the canonical Arkon card treatment (WI-1097; design
+   law #3 / WI-994): rest sits on --edge-top + --depth-md (lifted surface); hover
+   lifts 2px and carries --depth-lg + the ONE sanctioned --quarn-glow. Legacy
+   decorative cyan glow retired; glow flows through the token so it stays in sync
+   with .ak-card. Tokens are theme-aware, so this one rule covers dark + light. */
 .card-hover {
+  box-shadow: var(--edge-top), var(--depth-md);
   transition: transform var(--dur-medium) var(--ease-out), box-shadow var(--dur-medium) var(--ease-out), border-color var(--dur-fast);
 }
 .card-hover:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   border-color: var(--border-hover);
-  box-shadow: var(--depth-lg), var(--quarn-glow);
+  box-shadow: var(--edge-top), var(--depth-lg), var(--quarn-glow);
 }
 
 /* Button press feedback */
@@ -506,10 +509,6 @@ h1, h2, h3, h4, h5, h6 {
 [data-theme="light"] ::selection {
   background: rgba(0, 184, 110, 0.2);
   color: #18181B;
-}
-
-[data-theme="light"] .card-hover:hover {
-  box-shadow: var(--depth-lg), var(--quarn-glow);
 }
 
 [data-theme="light"] .skeleton {
