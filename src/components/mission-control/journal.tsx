@@ -284,7 +284,7 @@ function EntryRow({ entry }: { entry: JournalEntry }) {
   const catColor = CATEGORY_COLORS[entry.category] ?? "#64748b";
   const statusStyle = STATUS_STYLES[entry.status] ?? STATUS_STYLES.log;
   return (
-    <div className="flex items-start gap-3 rounded-md border border-[var(--border)] bg-[var(--bg-surface)]/40 px-4 py-3 hover:border-[var(--border)]">
+    <div className="flex items-start gap-3 rounded-md border border-[var(--border)] bg-[var(--bg-surface)]/40 px-4 py-3 hover:border-[var(--border-hover)]">
       <div
         className="mt-1.5 h-3 w-3 shrink-0 rounded-full"
         style={{ background: catColor }}
@@ -525,12 +525,12 @@ function CaptureModal({
             onChange={(e) => setTags(e.target.value)}
             className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
           />
-          {error && <div className="rounded-md border border-danger bg-danger/60 px-3 py-2 text-sm text-danger">{error}</div>}
+          {error && <div className="rounded-md border border-danger/40 bg-[rgba(var(--danger-rgb),0.12)] px-3 py-2 text-sm text-danger">{error}</div>}
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-surface-2)]"
+              className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--border)]"
             >
               Cancel
             </button>

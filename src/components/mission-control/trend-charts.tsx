@@ -117,7 +117,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Message volume chart */}
           <CardEntranceWrapper index={0}>
-          <div className="card-hover rounded-[22px] border border-border bg-bg-card p-4 shadow-[0_10px_40px_rgba(0,0,0,0.22)]">
+          <div className="card-hover rounded-[22px] border border-border bg-bg-card p-4">
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-dim">
               Message Volume
             </p>
@@ -160,7 +160,7 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
 
           {/* Token burn chart */}
           <CardEntranceWrapper index={1}>
-          <div className="card-hover rounded-[22px] border border-border bg-bg-card p-4 shadow-[0_10px_40px_rgba(0,0,0,0.22)]">
+          <div className="card-hover rounded-[22px] border border-border bg-bg-card p-4">
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-dim">
               Token Burn
             </p>

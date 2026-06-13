@@ -33,7 +33,7 @@ export function KillSwitchButton() {
         title={hasRuns ? `Kill active agent (${runs.length} running)` : "No active agents"}
         className={`relative flex h-10 w-10 items-center justify-center rounded-xl border transition ${
           hasRuns
-            ? "border-danger/50 bg-danger/20 text-danger hover:bg-danger/30 hover:text-danger animate-pulse"
+            ? "border-danger/50 bg-danger/20 text-danger hover:bg-danger/30 animate-pulse"
             : "border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:text-[var(--text-secondary)] cursor-default"
         }`}
       >
