@@ -237,12 +237,12 @@ export function StatusSummary({
   const hasThreat = threatCount > 0;
   const hasBudgetWarn = !hasThreat && budgetPct != null && budgetPct >= 80;
   const borderColor = hasThreat
-    ? "border-red-500/40"
+    ? "border-danger/40"
     : hasBudgetWarn
     ? "border-[var(--warning)]/40"
     : "border-[var(--border)]";
   const bgColor = hasThreat
-    ? "bg-red-500/[0.04]"
+    ? "bg-danger/[0.04]"
     : hasBudgetWarn
     ? "bg-[var(--warning)]/[0.04]"
     : "bg-[var(--bg-surface)]/80";
@@ -256,7 +256,7 @@ export function StatusSummary({
     <Wrapper
       {...wrapperProps}
       className={`w-full rounded-[16px] border ${borderColor} ${bgColor} px-4 py-3 text-left text-sm leading-relaxed text-[var(--text-secondary)] transition-colors ${
-        hasThreat && onThreatClick ? "group cursor-pointer hover:border-red-500/60" : ""
+        hasThreat && onThreatClick ? "group cursor-pointer hover:border-danger/60" : ""
       }`}
     >
       {parts}

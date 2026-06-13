@@ -132,33 +132,33 @@ export function ActiveRunBanner() {
 
   return (
     <>
-      <div className="border-b border-red-500/30 bg-gradient-to-r from-red-950/40 via-red-900/20 to-red-950/40">
+      <div className="border-b border-danger/30 bg-gradient-to-r from-danger/40 via-danger/20 to-danger/40">
         <div className="flex items-center gap-3 px-4 py-2 sm:px-6">
           {/* Pulsing indicator */}
           <div className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-danger opacity-75" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-danger" />
           </div>
 
           {/* Run info */}
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <Zap className="h-3.5 w-3.5 shrink-0 text-red-400" />
-            <span className="truncate text-[13px] font-medium text-red-200">
-              <span className="font-semibold text-red-100">{primary.agent_name}</span>
+            <Zap className="h-3.5 w-3.5 shrink-0 text-danger" />
+            <span className="truncate text-[13px] font-medium text-danger">
+              <span className="font-semibold text-danger">{primary.agent_name}</span>
               {primary.status === "paused" ? (
-                <span className="ml-1.5 text-amber-400">(paused)</span>
+                <span className="ml-1.5 text-warning">(paused)</span>
               ) : null}
-              <span className="mx-1.5 text-red-400/60">&middot;</span>
-              <span className="text-red-300/80">{formatDuration(primary.started_at)}</span>
-              <span className="mx-1.5 text-red-400/60">&middot;</span>
-              <span className="text-red-300/60">{primary.current_action}</span>
+              <span className="mx-1.5 text-danger/60">&middot;</span>
+              <span className="text-danger/80">{formatDuration(primary.started_at)}</span>
+              <span className="mx-1.5 text-danger/60">&middot;</span>
+              <span className="text-danger/60">{primary.current_action}</span>
             </span>
 
             {hasMultiple ? (
               <button
                 type="button"
                 onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1 rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[11px] font-medium text-red-300 transition hover:bg-red-500/20"
+                className="flex items-center gap-1 rounded-lg border border-danger/20 bg-danger/10 px-2 py-0.5 text-[11px] font-medium text-danger transition hover:bg-danger/20"
               >
                 +{runs.length - 1} more
                 <ChevronDown
@@ -174,7 +174,7 @@ export function ActiveRunBanner() {
               <button
                 type="button"
                 onClick={() => handlePause(primary.run_id)}
-                className="flex h-7 items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 text-[11px] font-semibold text-amber-300 transition hover:bg-amber-500/20"
+                className="flex h-7 items-center gap-1.5 rounded-lg border border-warning/30 bg-warning/10 px-2.5 text-[11px] font-semibold text-warning transition hover:bg-warning/20"
                 title="Pause agent"
               >
                 <Pause className="h-3 w-3" />
@@ -195,7 +195,7 @@ export function ActiveRunBanner() {
             <button
               type="button"
               onClick={() => setKillTarget(primary)}
-              className="flex h-7 items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-600/20 px-3 text-[11px] font-bold uppercase tracking-wide text-red-200 transition hover:bg-red-600/40"
+              className="flex h-7 items-center gap-1.5 rounded-lg border border-danger/40 bg-danger/20 px-3 text-[11px] font-bold uppercase tracking-wide text-danger transition hover:bg-danger/40"
             >
               <OctagonX className="h-3.5 w-3.5" />
               Kill
@@ -204,7 +204,7 @@ export function ActiveRunBanner() {
             <button
               type="button"
               onClick={handleDismiss}
-              className="ml-1 text-[11px] text-red-400/50 transition hover:text-red-300"
+              className="ml-1 text-[11px] text-danger/50 transition hover:text-danger"
               title="Dismiss for 5 minutes"
             >
               &times;
@@ -214,21 +214,21 @@ export function ActiveRunBanner() {
 
         {/* Expanded: show all runs */}
         {expanded && hasMultiple ? (
-          <div className="border-t border-red-500/20 px-4 py-1.5 sm:px-6">
+          <div className="border-t border-danger/20 px-4 py-1.5 sm:px-6">
             {runs.slice(1).map((run) => (
               <div
                 key={run.run_id}
                 className="flex items-center gap-3 py-1.5"
               >
-                <div className="h-1.5 w-1.5 rounded-full bg-red-500/60" />
-                <span className="min-w-0 flex-1 truncate text-[12px] text-red-300/70">
-                  <span className="font-medium text-red-200">{run.agent_name}</span>
+                <div className="h-1.5 w-1.5 rounded-full bg-danger/60" />
+                <span className="min-w-0 flex-1 truncate text-[12px] text-danger/70">
+                  <span className="font-medium text-danger">{run.agent_name}</span>
                   {run.status === "paused" ? (
-                    <span className="ml-1 text-amber-400">(paused)</span>
+                    <span className="ml-1 text-warning">(paused)</span>
                   ) : null}
-                  <span className="mx-1.5 text-red-400/40">&middot;</span>
+                  <span className="mx-1.5 text-danger/40">&middot;</span>
                   {formatDuration(run.started_at)}
-                  <span className="mx-1.5 text-red-400/40">&middot;</span>
+                  <span className="mx-1.5 text-danger/40">&middot;</span>
                   {run.current_action}
                 </span>
                 <div className="flex items-center gap-1">
@@ -236,7 +236,7 @@ export function ActiveRunBanner() {
                     <button
                       type="button"
                       onClick={() => handlePause(run.run_id)}
-                      className="rounded p-1 text-amber-400/60 transition hover:bg-amber-500/10 hover:text-amber-300"
+                      className="rounded p-1 text-warning/60 transition hover:bg-warning/10 hover:text-warning"
                       title="Pause"
                     >
                       <Pause className="h-3 w-3" />
@@ -254,7 +254,7 @@ export function ActiveRunBanner() {
                   <button
                     type="button"
                     onClick={() => setKillTarget(run)}
-                    className="rounded p-1 text-red-400/60 transition hover:bg-red-500/10 hover:text-red-300"
+                    className="rounded p-1 text-danger/60 transition hover:bg-danger/10 hover:text-danger"
                     title="Kill"
                   >
                     <OctagonX className="h-3 w-3" />

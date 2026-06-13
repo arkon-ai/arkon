@@ -172,10 +172,10 @@ function ConditionNode({ data, selected }: NodeProps) {
       )}
       <div className="flex justify-between mt-2 text-[10px]">
         <span className="text-success">True</span>
-        <span className="text-red-400">False</span>
+        <span className="text-danger">False</span>
       </div>
       <Handle type="source" position={Position.Bottom} id="true" className="!bg-success !w-3 !h-3 !border-2 !border-[var(--border)]" style={{ left: "30%" }} />
-      <Handle type="source" position={Position.Bottom} id="false" className="!bg-red-400 !w-3 !h-3 !border-2 !border-[var(--border)]" style={{ left: "70%" }} />
+      <Handle type="source" position={Position.Bottom} id="false" className="!bg-danger !w-3 !h-3 !border-2 !border-[var(--border)]" style={{ left: "70%" }} />
     </div>
   );
 }
@@ -266,7 +266,7 @@ function NodeConfigPanel({
               value={String(d.cron_expression ?? "")}
               onChange={(e) => updateField("cron_expression", e.target.value)}
               placeholder="*/5 * * * *"
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-accent focus:outline-none"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
             />
             <div className="mt-2 space-y-1">
               <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">Presets</p>
@@ -325,7 +325,7 @@ function NodeConfigPanel({
                 value={String(d.url ?? "")}
                 onChange={(e) => updateField("url", e.target.value)}
                 placeholder="https://example.com/api/..."
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-accent focus:outline-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
               />
             </div>
             <div>
@@ -335,7 +335,7 @@ function NodeConfigPanel({
                 onChange={(e) => updateField("body", e.target.value)}
                 rows={3}
                 placeholder='{"key": "value"}'
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-slate-600 focus:border-accent focus:outline-none resize-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white font-mono placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none resize-none"
               />
             </div>
           </>
@@ -350,7 +350,7 @@ function NodeConfigPanel({
                 value={String(d.field ?? "")}
                 onChange={(e) => updateField("field", e.target.value)}
                 placeholder="status, body, httpStatus..."
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-accent focus:outline-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -378,7 +378,7 @@ function NodeConfigPanel({
                   value={String(d.value ?? "")}
                   onChange={(e) => updateField("value", e.target.value)}
                   placeholder="200"
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-accent focus:outline-none"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
                 />
               </div>
             </div>
@@ -407,7 +407,7 @@ function NodeConfigPanel({
                 onChange={(e) => updateField("message", e.target.value)}
                 rows={3}
                 placeholder="Workflow completed. Status: {{status}}"
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-accent focus:outline-none resize-none"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none resize-none"
               />
             </div>
           </>
@@ -669,7 +669,7 @@ export function WorkflowBuilder({
             <div className="flex gap-2">
               <button
                 onClick={deleteSelected}
-                className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20 transition"
+                className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/20 transition"
               >
                 Delete Node
               </button>

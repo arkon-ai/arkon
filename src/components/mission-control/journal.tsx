@@ -118,26 +118,26 @@ export function Journal() {
   }, [entries]);
 
   return (
-    <div className="min-h-screen text-slate-100" style={{ background: "var(--void)" }}>
+    <div className="min-h-screen text-[var(--text-primary)]" style={{ background: "var(--void)" }}>
       <div className="mx-auto max-w-screen-xl px-6 py-8">
         <header className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-7 w-7 text-amber-500" />
+            <BookOpen className="h-7 w-7 text-accent" />
             <div>
               <h1 className="t-h2 text-[var(--text-primary)]">Journal</h1>
-              <p className="text-sm text-slate-400">Everything your agents are working on, one feed.</p>
+              <p className="text-sm text-[var(--text-secondary)]">Everything your agents are working on, one feed.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setView(view === "feed" ? "kanban" : "feed")}
-              className="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
+              className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)]"
             >
               {view === "feed" ? "Kanban view" : "Feed view"}
             </button>
             <button
               onClick={() => setShowCapture(true)}
-              className="flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-500"
+              className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
             >
               <Plus className="h-4 w-4" />
               New entry
@@ -148,7 +148,7 @@ export function Journal() {
         <FilterBar filters={filters} setFilters={setFilters} owners={distinctOwners} projects={distinctProjects} />
 
         {loading ? (
-          <div className="py-24 text-center text-slate-500">Loading…</div>
+          <div className="py-24 text-center text-[var(--text-tertiary)]">Loading…</div>
         ) : view === "feed" ? (
           <FeedView entries={filteredEntries} />
         ) : (
@@ -175,13 +175,13 @@ function FilterBar({
   return (
     <div className="mb-5 flex flex-wrap items-center gap-2">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-tertiary)]" />
         <input
           type="text"
           placeholder="Search titles, body, tags…"
           value={filters.q ?? ""}
           onChange={(e) => setFilters({ ...filters, q: e.target.value || undefined })}
-          className="rounded-md border border-slate-700 bg-slate-900 py-1.5 pl-8 pr-3 text-sm text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+          className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] py-1.5 pl-8 pr-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
         />
       </div>
       <Select
@@ -227,7 +227,7 @@ function FilterBar({
       {(filters.status || filters.category || filters.owner || filters.q || filters.project) && (
         <button
           onClick={() => setFilters({})}
-          className="flex items-center gap-1 rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-400 hover:bg-slate-800"
+          className="flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-surface-2)]"
         >
           <X className="h-3.5 w-3.5" />
           Clear
@@ -252,7 +252,7 @@ function Select({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100 focus:border-amber-500 focus:outline-none"
+      className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-primary)] focus:border-accent focus:outline-none"
     >
       {options.map((o) => (
         <option key={o.v} value={o.v}>
@@ -266,7 +266,7 @@ function Select({
 function FeedView({ entries }: { entries: JournalEntry[] }) {
   if (entries.length === 0) {
     return (
-      <div className="py-24 text-center text-slate-500">
+      <div className="py-24 text-center text-[var(--text-tertiary)]">
         No entries match the current filters. Create one with "New entry".
       </div>
     );
@@ -284,17 +284,17 @@ function EntryRow({ entry }: { entry: JournalEntry }) {
   const catColor = CATEGORY_COLORS[entry.category] ?? "#64748b";
   const statusStyle = STATUS_STYLES[entry.status] ?? STATUS_STYLES.log;
   return (
-    <div className="flex items-start gap-3 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-slate-700">
+    <div className="flex items-start gap-3 rounded-md border border-[var(--border)] bg-[var(--bg-surface)]/40 px-4 py-3 hover:border-[var(--border)]">
       <div
         className="mt-1.5 h-3 w-3 shrink-0 rounded-full"
         style={{ background: catColor }}
         title={entry.category}
       />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 text-xs text-slate-400">
+        <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
           <span className="font-mono">{new Date(entry.occurred_at).toLocaleString()}</span>
           <span>·</span>
-          <span className="font-medium text-slate-300">
+          <span className="font-medium text-[var(--text-secondary)]">
             {entry.owner_emoji ? `${entry.owner_emoji} ` : ""}
             {entry.owner_display_name ?? entry.owner_agent}
           </span>
@@ -314,19 +314,19 @@ function EntryRow({ entry }: { entry: JournalEntry }) {
             </span>
           )}
           {entry.related_project && (
-            <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-400">
+            <span className="rounded bg-[var(--bg-surface-2)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-secondary)]">
               {entry.related_project}
             </span>
           )}
         </div>
-        <div className="mt-1 text-sm font-medium text-slate-100">{entry.title}</div>
+        <div className="mt-1 text-sm font-medium text-[var(--text-primary)]">{entry.title}</div>
         {entry.body_md && (
-          <div className="mt-1 whitespace-pre-wrap text-sm text-slate-400">{entry.body_md}</div>
+          <div className="mt-1 whitespace-pre-wrap text-sm text-[var(--text-secondary)]">{entry.body_md}</div>
         )}
         {entry.tags && entry.tags.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1">
             {entry.tags.map((t) => (
-              <span key={t} className="rounded-sm bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400">
+              <span key={t} className="rounded-sm bg-[var(--bg-surface-2)] px-1.5 py-0.5 text-[10px] text-[var(--text-secondary)]">
                 #{t}
               </span>
             ))}
@@ -340,7 +340,7 @@ function EntryRow({ entry }: { entry: JournalEntry }) {
                 href={l.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-amber-500 hover:underline"
+                className="text-accent hover:underline"
               >
                 → {l.title || l.url}
               </a>
@@ -368,21 +368,21 @@ function KanbanView({ entries, onMutate }: { entries: JournalEntry[]; onMutate: 
   return (
     <div className="grid grid-cols-4 gap-3">
       {columns.map((c) => (
-        <div key={c.key} className="rounded-md border border-slate-800 bg-slate-900/40 p-2">
-          <div className="mb-2 flex items-center justify-between px-1 text-xs font-medium uppercase tracking-wider text-slate-400">
+        <div key={c.key} className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)]/40 p-2">
+          <div className="mb-2 flex items-center justify-between px-1 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
             {c.label}
-            <span className="rounded bg-slate-800 px-1.5 text-slate-500">{byStatus[c.key]?.length ?? 0}</span>
+            <span className="rounded bg-[var(--bg-surface-2)] px-1.5 text-[var(--text-tertiary)]">{byStatus[c.key]?.length ?? 0}</span>
           </div>
           <div className="space-y-2">
             {(byStatus[c.key] ?? []).map((t) => (
-              <div key={t.id} className="rounded-md border border-slate-800 bg-slate-900 p-2.5">
-                <div className="text-xs text-slate-400">
+              <div key={t.id} className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] p-2.5">
+                <div className="text-xs text-[var(--text-secondary)]">
                   {t.owner_emoji ? `${t.owner_emoji} ` : ""}
                   {t.owner_display_name ?? t.owner_agent}
                 </div>
-                <div className="mt-1 text-sm text-slate-100">{t.title}</div>
+                <div className="mt-1 text-sm text-[var(--text-primary)]">{t.title}</div>
                 {t.related_project && (
-                  <div className="mt-1 font-mono text-[10px] text-slate-500">{t.related_project}</div>
+                  <div className="mt-1 font-mono text-[10px] text-[var(--text-tertiary)]">{t.related_project}</div>
                 )}
               </div>
             ))}
@@ -454,10 +454,10 @@ function CaptureModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-8">
-      <div className="w-full max-w-xl rounded-lg border border-slate-700 bg-slate-900 p-5 shadow-2xl">
+      <div className="w-full max-w-xl rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-5 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-100">New entry</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">New entry</h2>
+          <button onClick={onClose} className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -469,20 +469,20 @@ function CaptureModal({
             placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
           />
           <textarea
             placeholder="Body (markdown)"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={4}
-            className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
           />
           <div className="grid grid-cols-2 gap-2">
             <select
               value={ownerAgent}
               onChange={(e) => setOwnerAgent(e.target.value)}
-              className="rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:outline-none"
+              className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-accent focus:outline-none"
             >
               {["brynn", "warden", "lumina", "sentinel", "scout", "codesmith", "hermes"].map((o) => (
                 <option key={o} value={o}>
@@ -493,7 +493,7 @@ function CaptureModal({
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:outline-none"
+              className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-accent focus:outline-none"
             >
               <option value="task">Task</option>
               <option value="log">Log</option>
@@ -511,7 +511,7 @@ function CaptureModal({
             value={project}
             onChange={(e) => setProject(e.target.value)}
             list="project-list"
-            className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
           />
           <datalist id="project-list">
             {projects.map((p) => (
@@ -523,21 +523,21 @@ function CaptureModal({
             placeholder="Tags, comma separated"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+            className="w-full rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-accent focus:outline-none"
           />
-          {error && <div className="rounded-md border border-red-800 bg-red-950/60 px-3 py-2 text-sm text-red-300">{error}</div>}
+          {error && <div className="rounded-md border border-danger bg-danger/60 px-3 py-2 text-sm text-danger">{error}</div>}
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700"
+              className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-surface-2)]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="rounded-md bg-amber-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-500 disabled:opacity-50"
+              className="rounded-md bg-accent px-4 py-1.5 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save"}
             </button>

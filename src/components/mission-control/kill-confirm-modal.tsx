@@ -159,13 +159,13 @@ export function KillConfirmModal({
           if (e.key === "Escape" && (phase === "confirm" || phase === "result")) onCancel();
         }}
       />
-      <div className="relative w-full max-w-md rounded-2xl border border-red-500/30 bg-[var(--bg-surface)] p-6 shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
+      <div className="relative w-full max-w-md rounded-2xl border border-danger/30 bg-[var(--bg-surface)] p-6 shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
         {/* ── Phase: Confirm ── */}
         {phase === "confirm" && (
           <>
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10">
-                <AlertTriangle className="h-5 w-5 text-red-400" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10">
+                <AlertTriangle className="h-5 w-5 text-danger" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-[var(--text-primary)]">Kill Agent</h3>
@@ -189,7 +189,7 @@ export function KillConfirmModal({
                   <span className="text-[var(--text-secondary)]">{formatDuration(run.started_at)}</span>
                 </p>
               </div>
-              <p className="mt-2 text-[11px] text-amber-400/70">
+              <p className="mt-2 text-[11px] text-warning/70">
                 Any in-progress changes may be incomplete.
               </p>
             </div>
@@ -209,7 +209,7 @@ export function KillConfirmModal({
                 onChange={(e) => setReason(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleConfirm(); }}
                 placeholder="e.g. Agent producing incorrect outputs"
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-red-500/40"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-danger/40"
               />
             </div>
 
@@ -224,7 +224,7 @@ export function KillConfirmModal({
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-600/20 px-4 py-2 text-[13px] font-semibold text-red-200 transition hover:bg-red-600/40"
+                className="flex items-center gap-2 rounded-xl border border-danger/40 bg-danger/20 px-4 py-2 text-[13px] font-semibold text-danger transition hover:bg-danger/40"
               >
                 <OctagonX className="h-3.5 w-3.5" />
                 Kill Agent
@@ -236,8 +236,8 @@ export function KillConfirmModal({
         {/* ── Phase: Killing ── */}
         {phase === "killing" && (
           <div className="flex flex-col items-center gap-4 py-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10">
-              <Loader2 className="h-7 w-7 animate-spin text-red-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-danger/10">
+              <Loader2 className="h-7 w-7 animate-spin text-danger" />
             </div>
             <div className="text-center">
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">
@@ -253,8 +253,8 @@ export function KillConfirmModal({
         {/* ── Phase: Verifying ── */}
         {phase === "verifying" && (
           <div className="flex flex-col items-center gap-4 py-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10">
-              <ShieldCheck className="h-7 w-7 animate-pulse text-amber-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/10">
+              <ShieldCheck className="h-7 w-7 animate-pulse text-warning" />
             </div>
             <div className="text-center">
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">
@@ -274,11 +274,11 @@ export function KillConfirmModal({
             <div className="flex flex-col items-center gap-3 pb-4">
               {isVerifiedDead ? (
                 <>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10">
-                    <CheckCircle2 className="h-7 w-7 text-emerald-400" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success/10">
+                    <CheckCircle2 className="h-7 w-7 text-success" />
                   </div>
                   <div className="text-center">
-                    <h3 className="text-sm font-semibold text-emerald-300">
+                    <h3 className="text-sm font-semibold text-success">
                       Confirmed Dead
                     </h3>
                     <p className="mt-1 text-[12px] text-[var(--text-tertiary)]">
@@ -288,11 +288,11 @@ export function KillConfirmModal({
                 </>
               ) : isKillOk ? (
                 <>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10">
-                    <ShieldAlert className="h-7 w-7 text-amber-400" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/10">
+                    <ShieldAlert className="h-7 w-7 text-warning" />
                   </div>
                   <div className="text-center">
-                    <h3 className="text-sm font-semibold text-amber-300">
+                    <h3 className="text-sm font-semibold text-warning">
                       Kill Sent — Verification Inconclusive
                     </h3>
                     <p className="mt-1 text-[12px] text-[var(--text-tertiary)]">
@@ -302,11 +302,11 @@ export function KillConfirmModal({
                 </>
               ) : (
                 <>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10">
-                    <XCircle className="h-7 w-7 text-red-400" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-danger/10">
+                    <XCircle className="h-7 w-7 text-danger" />
                   </div>
                   <div className="text-center">
-                    <h3 className="text-sm font-semibold text-red-300">
+                    <h3 className="text-sm font-semibold text-danger">
                       Kill Failed
                     </h3>
                     <p className="mt-1 text-[12px] text-[var(--text-tertiary)]">
@@ -327,9 +327,9 @@ export function KillConfirmModal({
                   {result.sessions.map((s) => (
                     <div key={s.session_key} className="flex items-center gap-2 text-[12px]">
                       {s.ok ? (
-                        <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-400" />
+                        <CheckCircle2 className="h-3 w-3 shrink-0 text-success" />
                       ) : (
-                        <XCircle className="h-3 w-3 shrink-0 text-red-400" />
+                        <XCircle className="h-3 w-3 shrink-0 text-danger" />
                       )}
                       <span className="truncate text-[var(--text-secondary)]">{s.label}</span>
                       <span className="ml-auto shrink-0 text-[11px] text-[var(--text-tertiary)]">
@@ -346,8 +346,8 @@ export function KillConfirmModal({
               <div
                 className={`mb-4 rounded-xl border p-2.5 text-center text-[11px] font-medium ${
                   isVerifiedDead
-                    ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
-                    : "border-amber-500/20 bg-amber-500/5 text-amber-400"
+                    ? "border-success/20 bg-success/5 text-success"
+                    : "border-warning/20 bg-warning/5 text-warning"
                 }`}
               >
                 {isVerifiedDead ? (

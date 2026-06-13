@@ -347,11 +347,11 @@ function AlertsBanner() {
         <div className="space-y-2 px-4 pb-3">
           {anomalies.map((a) => (
             <div key={a.id} className={`flex items-center justify-between rounded-xl border px-3 py-2.5 ${
-              a.level === "high" ? "border-red-500/30 bg-[rgba(var(--danger-rgb),0.06)]" : "border-[var(--warning)]/20 bg-[rgba(var(--warning-rgb),0.06)]"
+              a.level === "high" ? "border-danger/30 bg-[rgba(var(--danger-rgb),0.06)]" : "border-[var(--warning)]/20 bg-[rgba(var(--warning-rgb),0.06)]"
             }`}>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold ${a.level === "high" ? "text-red-400" : "text-[var(--warning)]"}`}>
+                  <span className={`text-[10px] font-bold ${a.level === "high" ? "text-danger" : "text-[var(--warning)]"}`}>
                     {a.level.toUpperCase()}
                   </span>
                   <span className="truncate text-sm text-[var(--text-primary)]">{a.agent_name}</span>
@@ -1450,7 +1450,7 @@ function AgentsContent() {
                         <td className="px-3 py-2">
                           <Link
                             href={`/agent/${agent.id}`}
-                            className="font-medium text-[var(--text-primary)] hover:text-emerald-300"
+                            className="font-medium text-[var(--text-primary)] hover:text-success"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {agent.name}
@@ -1975,16 +1975,16 @@ export function AnomalyWidget() {
   );
 
   return (
-    <Card className="border-amber-500/30">
+    <Card className="border-warning/30">
       <SectionTitle title="Anomaly Alerts" note={`${anomalies.length} active`} />
       <div className="space-y-2">
         {anomalies.map((a) => (
           <div key={a.id} className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${
-            a.level === "high" ? "border-red-500/30 bg-[rgba(var(--danger-rgb),0.06)]" : "border-amber-500/20 bg-[rgba(var(--warning-rgb),0.06)]"
+            a.level === "high" ? "border-danger/30 bg-[rgba(var(--danger-rgb),0.06)]" : "border-warning/20 bg-[rgba(var(--warning-rgb),0.06)]"
           }`}>
             <div>
               <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold ${a.level === "high" ? "text-red-400" : "text-amber-400"}`}>
+                <span className={`text-xs font-bold ${a.level === "high" ? "text-danger" : "text-warning"}`}>
                   {a.level.toUpperCase()}
                 </span>
                 <span className="text-sm text-[var(--text-primary)]">{a.agent_name}</span>

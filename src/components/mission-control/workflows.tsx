@@ -546,7 +546,7 @@ export function WorkflowsScreen() {
                       {wf.description ? (
                         <p className="text-sm text-[var(--text-secondary)] line-clamp-1 mb-2">{wf.description}</p>
                       ) : (
-                        <p className="text-sm text-amber-400/50 italic mb-2">No description</p>
+                        <p className="text-sm text-warning/50 italic mb-2">No description</p>
                       )}
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[var(--text-tertiary)]">
                         <span>
@@ -557,7 +557,7 @@ export function WorkflowsScreen() {
                         </span>
                         <span>Runs: <StatCountUp value={wf.run_count} /></span>
                         {wf.failed_runs > 0 && (
-                          <span className="text-red-400">Failed: {wf.failed_runs}</span>
+                          <span className="text-danger">Failed: {wf.failed_runs}</span>
                         )}
                         {wf.last_run_at && <span>Last run: {timeAgo(wf.last_run_at)}</span>}
                         <span>Created: {timeAgo(wf.created_at)}</span>
@@ -578,7 +578,7 @@ export function WorkflowsScreen() {
                       </button>
                       <button
                         onClick={() => handleDelete(wf)}
-                        className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 transition"
+                        className="rounded-lg border border-danger/20 px-3 py-1.5 text-xs text-danger hover:bg-danger/10 transition"
                       >
                         Delete
                       </button>
@@ -720,30 +720,30 @@ export function WorkflowsScreen() {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">
-                      Name <span className="text-red-400">*</span>
+                      Name <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
                       placeholder="e.g. Daily Health Check"
-                      className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[var(--accent)] focus:outline-none"
+                      className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-[var(--text-tertiary)] focus:border-[var(--accent)] focus:outline-none"
                       autoFocus
                     />
                   </div>
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] mb-1">
-                      Description <span className="text-red-400">*</span>
+                      Description <span className="text-danger">*</span>
                     </label>
                     <textarea
                       value={newDesc}
                       onChange={(e) => setNewDesc(e.target.value)}
                       rows={2}
                       placeholder="In plain English, what does this workflow do?"
-                      className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-[var(--accent)] focus:outline-none resize-none"
+                      className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white placeholder-[var(--text-tertiary)] focus:border-[var(--accent)] focus:outline-none resize-none"
                     />
                     {!newDesc.trim() && newName.trim() && (
-                      <p className="text-[11px] text-amber-400/70 mt-1">Description is required — tell users what this workflow does</p>
+                      <p className="text-[11px] text-warning/70 mt-1">Description is required — tell users what this workflow does</p>
                     )}
                   </div>
                 </div>
@@ -813,7 +813,7 @@ export function WorkflowsScreen() {
                     const desc = prompt("What does this workflow do?");
                     if (desc?.trim()) handleUpdateMeta({ description: desc.trim() } as Partial<Workflow>);
                   }}
-                  className="text-xs text-amber-400/70 hover:text-amber-400 transition"
+                  className="text-xs text-warning/70 hover:text-warning transition"
                 >
                   + Add description (required)
                 </button>
@@ -1091,7 +1091,7 @@ function CronConfigBar({ workflow, onUpdate }: { workflow: Workflow; onUpdate: (
           {nextRun ? (
             <span>Next run: <span className="text-[var(--accent)]">{nextRun} SAST</span></span>
           ) : (
-            <span className="text-amber-400">Invalid expression</span>
+            <span className="text-warning">Invalid expression</span>
           )}
           {workflow.status === "active" && <span className="ml-2 text-success">Scheduled</span>}
           {workflow.status !== "active" && <span className="ml-2 text-[var(--text-tertiary)]">Activate to enable</span>}
@@ -1132,7 +1132,7 @@ function RunCard({ run }: { run: WorkflowRun }) {
           </div>
         </div>
         {run.error && (
-          <p className="mt-2 text-xs text-red-400 line-clamp-1">{run.error}</p>
+          <p className="mt-2 text-xs text-danger line-clamp-1">{run.error}</p>
         )}
       </button>
 
@@ -1163,7 +1163,7 @@ function RunCard({ run }: { run: WorkflowRun }) {
                   )}
                 </div>
                 {step.error && (
-                  <p className="text-xs text-red-400 mt-1">{step.error}</p>
+                  <p className="text-xs text-danger mt-1">{step.error}</p>
                 )}
                 {step.output != null && (
                   <pre className="text-[11px] text-[var(--text-secondary)] mt-1 overflow-x-auto max-h-24 font-mono">

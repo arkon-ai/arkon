@@ -381,7 +381,7 @@ export function AgentMappingPanel({ serverId, onClose }: { serverId: number; onC
               {mapped.map(m => (
                 <div key={m.agent_id} className="flex items-center justify-between rounded-lg bg-white/[0.02] px-2 py-1.5">
                   <span className="text-xs text-[var(--text-primary)]">{m.agent_name}</span>
-                  <button onClick={() => void removeAgent(m.agent_id)} className="text-[10px] text-red-400 hover:text-red-300">Remove</button>
+                  <button onClick={() => void removeAgent(m.agent_id)} className="text-[10px] text-danger hover:text-danger">Remove</button>
                 </div>
               ))}
             </div>

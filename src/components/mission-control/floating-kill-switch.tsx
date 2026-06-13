@@ -49,7 +49,7 @@ function RestartGatewayInline() {
       type="button"
       onClick={handleRestart}
       disabled={state === "restarting"}
-      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-600/10 py-2 text-[10px] font-bold uppercase tracking-wide text-emerald-300/80 transition hover:border-emerald-500/50 hover:bg-emerald-600/20 hover:text-emerald-200 disabled:opacity-50"
+      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-success/30 bg-success/10 py-2 text-[10px] font-bold uppercase tracking-wide text-success/80 transition hover:border-success/50 hover:bg-success/20 hover:text-success disabled:opacity-50"
     >
       {state === "restarting" ? (
         <Loader2 className="h-3 w-3 animate-spin" />
@@ -138,18 +138,18 @@ export function FloatingKillSwitch() {
       >
         {/* Expanded panel */}
         {expanded && (
-          <div className="mb-3 w-[340px] overflow-hidden rounded-2xl border border-red-500/30 bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(220,38,38,0.2)]">
+          <div className="mb-3 w-[340px] overflow-hidden rounded-2xl border border-danger/30 bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(220,38,38,0.2)]">
             {/* Panel header */}
-            <div className="flex items-center justify-between border-b border-red-500/20 px-4 py-3">
+            <div className="flex items-center justify-between border-b border-danger/20 px-4 py-3">
               <div className="flex items-center gap-2">
                 <div className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-danger opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-danger" />
                 </div>
-                <span className="text-[13px] font-semibold text-red-200">
+                <span className="text-[13px] font-semibold text-danger">
                   Active Agents
                 </span>
-                <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
+                <span className="rounded-full bg-danger/15 px-2 py-0.5 text-[10px] font-bold text-danger">
                   {runs.length}
                 </span>
               </div>
@@ -179,13 +179,13 @@ export function FloatingKillSwitch() {
                       <div className="flex items-center gap-2 min-w-0">
                         {/* Green pulsing dot for live main agents */}
                         <div className="relative flex h-2 w-2 shrink-0">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
                         </div>
                         <span className="truncate text-[13px] font-semibold text-[var(--text-primary)]">
                           {run.agent_name}
                         </span>
-                        <span className="shrink-0 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-400">
+                        <span className="shrink-0 rounded bg-success/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-success">
                           Live
                         </span>
                       </div>
@@ -203,7 +203,7 @@ export function FloatingKillSwitch() {
                       <button
                         type="button"
                         onClick={() => setKillTarget(run)}
-                        className="flex h-6 items-center gap-1 rounded-lg border border-red-500/30 bg-red-600/15 px-2 text-[10px] font-bold text-red-300 transition hover:bg-red-600/30"
+                        className="flex h-6 items-center gap-1 rounded-lg border border-danger/30 bg-danger/15 px-2 text-[10px] font-bold text-danger transition hover:bg-danger/30"
                       >
                         <OctagonX className="h-2.5 w-2.5" />
                         Kill
@@ -231,19 +231,19 @@ export function FloatingKillSwitch() {
                       <div className="flex items-center gap-2 min-w-0">
                         <div
                           className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                            run.status === "running" ? "bg-red-500" : "bg-amber-500"
+                            run.status === "running" ? "bg-danger" : "bg-warning"
                           }`}
                         />
                         <span className="truncate text-[13px] font-semibold text-[var(--text-primary)]">
                           {run.agent_name}
                         </span>
                         {run.status === "paused" && (
-                          <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-400">
+                          <span className="shrink-0 rounded bg-warning/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-warning">
                             Paused
                           </span>
                         )}
                       </div>
-                      <span className="shrink-0 font-mono text-[12px] tabular-nums text-red-300/80">
+                      <span className="shrink-0 font-mono text-[12px] tabular-nums text-danger/80">
                         {formatDurationClock(run.started_at)}
                       </span>
                     </div>
@@ -258,7 +258,7 @@ export function FloatingKillSwitch() {
                         <button
                           type="button"
                           onClick={() => pauseRun(run.run_id)}
-                          className="flex h-6 items-center gap-1 rounded-lg border border-amber-500/25 bg-amber-500/8 px-2 text-[10px] font-semibold text-amber-300 transition hover:bg-amber-500/15"
+                          className="flex h-6 items-center gap-1 rounded-lg border border-warning/25 bg-warning/8 px-2 text-[10px] font-semibold text-warning transition hover:bg-warning/15"
                         >
                           <Pause className="h-2.5 w-2.5" />
                           Pause
@@ -276,7 +276,7 @@ export function FloatingKillSwitch() {
                       <button
                         type="button"
                         onClick={() => setKillTarget(run)}
-                        className="flex h-6 items-center gap-1 rounded-lg border border-red-500/30 bg-red-600/15 px-2 text-[10px] font-bold text-red-300 transition hover:bg-red-600/30"
+                        className="flex h-6 items-center gap-1 rounded-lg border border-danger/30 bg-danger/15 px-2 text-[10px] font-bold text-danger transition hover:bg-danger/30"
                       >
                         <OctagonX className="h-2.5 w-2.5" />
                         Kill
@@ -289,12 +289,12 @@ export function FloatingKillSwitch() {
 
             {/* Kill All footer */}
             {runs.length > 1 && (
-              <div className="border-t border-red-500/20 p-3">
+              <div className="border-t border-danger/20 p-3">
                 <button
                   type="button"
                   onClick={handleKillAll}
                   disabled={killingAll}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-600/20 py-2 text-[12px] font-bold uppercase tracking-wide text-red-200 transition hover:bg-red-600/35 disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-danger/40 bg-danger/20 py-2 text-[12px] font-bold uppercase tracking-wide text-danger transition hover:bg-danger/35 disabled:opacity-50"
                 >
                   <OctagonX className="h-3.5 w-3.5" />
                   {killingAll ? "Killing All..." : "Kill All Agents"}
@@ -303,10 +303,10 @@ export function FloatingKillSwitch() {
             )}
 
             {/* Nuclear Options section */}
-            <div className="border-t border-amber-500/20 bg-amber-500/[0.02] px-4 py-3">
+            <div className="border-t border-warning/20 bg-warning/[0.02] px-4 py-3">
               <div className="mb-2 flex items-center gap-1.5">
-                <Power className="h-3 w-3 text-amber-400/70" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-400/70">
+                <Power className="h-3 w-3 text-warning/70" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-warning/70">
                   Gateway Control
                 </span>
               </div>
@@ -314,14 +314,14 @@ export function FloatingKillSwitch() {
                 <button
                   type="button"
                   onClick={() => { setExpanded(false); setShowNuclear(true); }}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-amber-500/30 bg-amber-600/10 py-2 text-[10px] font-bold uppercase tracking-wide text-amber-300/80 transition hover:border-amber-500/50 hover:bg-amber-600/20 hover:text-amber-200"
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-warning/30 bg-warning/10 py-2 text-[10px] font-bold uppercase tracking-wide text-warning/80 transition hover:border-warning/50 hover:bg-warning/20 hover:text-warning"
                 >
                   <Power className="h-3 w-3" />
                   Nuclear Stop
                 </button>
                 <RestartGatewayInline />
               </div>
-              <p className="mt-1.5 text-center text-[9px] text-amber-500/40">
+              <p className="mt-1.5 text-center text-[9px] text-warning/40">
                 Stop or restart the OpenCLAW gateway
               </p>
             </div>
@@ -342,12 +342,12 @@ export function FloatingKillSwitch() {
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="group relative flex h-14 w-14 items-center justify-center rounded-full border border-red-500/50 bg-red-600/90 text-white shadow-[0_4px_20px_rgba(220,38,38,0.4)] transition-all hover:bg-red-600 hover:shadow-[0_4px_30px_rgba(220,38,38,0.6)] active:scale-95"
+          className="group relative flex h-14 w-14 items-center justify-center rounded-full border border-danger/50 bg-danger/90 text-white shadow-[0_4px_20px_rgba(220,38,38,0.4)] transition-all hover:bg-danger hover:shadow-[0_4px_30px_rgba(220,38,38,0.6)] active:scale-95"
           aria-label={`${runs.length} active agent${runs.length !== 1 ? "s" : ""} — click to manage`}
         >
           {/* Pulsing ring */}
-          <span className="absolute inset-0 rounded-full animate-ping border-2 border-red-500 opacity-30" />
-          <span className="absolute inset-[-3px] rounded-full animate-pulse border border-red-500/40" />
+          <span className="absolute inset-0 rounded-full animate-ping border-2 border-danger opacity-30" />
+          <span className="absolute inset-[-3px] rounded-full animate-pulse border border-danger/40" />
 
           {expanded ? (
             <ChevronUp className="h-5 w-5 relative z-10" />
@@ -356,15 +356,15 @@ export function FloatingKillSwitch() {
           )}
 
           {/* Agent count badge */}
-          <span className="absolute -right-1 -top-1 z-10 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-red-600 shadow-sm">
+          <span className="absolute -right-1 -top-1 z-10 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-danger shadow-sm">
             {runs.length}
           </span>
         </button>
 
         {/* Status summary below FAB (collapsed state only) */}
         {!expanded && (
-          <div className="mt-1.5 rounded-lg bg-[var(--bg-surface)]/90 border border-red-500/20 px-2.5 py-1 backdrop-blur">
-            <p className="text-center text-[10px] font-medium text-red-300/80">
+          <div className="mt-1.5 rounded-lg bg-[var(--bg-surface)]/90 border border-danger/20 px-2.5 py-1 backdrop-blur">
+            <p className="text-center text-[10px] font-medium text-danger/80">
               {mainAgents.length > 0 && `${mainAgents.length} live`}
               {mainAgents.length > 0 && subRuns.length > 0 && " · "}
               {subRuns.length > 0 && `${subRuns.length} task${subRuns.length !== 1 ? "s" : ""}`}

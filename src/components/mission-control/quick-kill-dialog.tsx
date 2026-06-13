@@ -65,11 +65,11 @@ export function QuickKillDialog({
         tabIndex={-1}
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       />
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-red-500/30 bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-danger/30 bg-[var(--bg-surface)] shadow-[0_20px_60px_rgba(220,38,38,0.15)]">
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-red-500/20 px-4 py-3">
-          <OctagonX className="h-4 w-4 text-red-400" />
-          <span className="flex-1 text-sm font-semibold text-red-200">Quick Kill</span>
+        <div className="flex items-center gap-3 border-b border-danger/20 px-4 py-3">
+          <OctagonX className="h-4 w-4 text-danger" />
+          <span className="flex-1 text-sm font-semibold text-danger">Quick Kill</span>
           <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-tertiary)]">
             ESC
           </kbd>
@@ -90,19 +90,19 @@ export function QuickKillDialog({
                 disabled={killing}
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
                   i === selected
-                    ? "bg-red-500/10 text-red-200"
+                    ? "bg-danger/10 text-danger"
                     : "text-[var(--text-secondary)] hover:bg-white/[0.03]"
                 } disabled:opacity-50`}
               >
                 <div className="relative flex h-2 w-2 shrink-0">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-danger opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-danger" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-[13px] font-semibold text-[var(--text-primary)]">{run.agent_name}</span>
                     {run.status === "paused" && (
-                      <span className="text-[10px] text-amber-400">(paused)</span>
+                      <span className="text-[10px] text-warning">(paused)</span>
                     )}
                   </div>
                   <p className="mt-0.5 truncate text-[11px] text-[var(--text-secondary)]">
@@ -110,12 +110,12 @@ export function QuickKillDialog({
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <div className="text-[11px] font-medium text-red-300">
+                  <div className="text-[11px] font-medium text-danger">
                     {formatDuration(run.started_at)}
                   </div>
                 </div>
                 {i === selected && (
-                  <Zap className="h-3.5 w-3.5 shrink-0 text-red-400" />
+                  <Zap className="h-3.5 w-3.5 shrink-0 text-danger" />
                 )}
               </button>
             ))
@@ -124,7 +124,7 @@ export function QuickKillDialog({
 
         {/* Footer */}
         {runs.length > 0 && (
-          <div className="flex items-center gap-4 border-t border-red-500/20 px-4 py-2 text-[10px] text-[var(--text-tertiary)]">
+          <div className="flex items-center gap-4 border-t border-danger/20 px-4 py-2 text-[10px] text-[var(--text-tertiary)]">
             <span>
               <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">&uarr;</kbd>{" "}
               <kbd className="rounded border border-[var(--border)] bg-[var(--bg-primary)] px-1 py-0.5 text-[9px]">&darr;</kbd>{" "}

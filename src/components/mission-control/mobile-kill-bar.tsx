@@ -39,7 +39,7 @@ export function MobileKillBar() {
         <button
           type="button"
           onClick={() => setKillTarget(primary)}
-          className="flex w-full items-center justify-between gap-3 bg-red-700 px-4 py-2.5 text-white active:bg-red-800 transition-colors touch-manipulation"
+          className="flex w-full items-center justify-between gap-3 bg-danger px-4 py-2.5 text-white active:bg-[var(--danger-hover)] transition-colors touch-manipulation"
         >
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
             <div className="relative flex h-2 w-2 shrink-0">
@@ -49,17 +49,17 @@ export function MobileKillBar() {
             <span className="truncate text-[13px] font-semibold">
               {primary.agent_name}
             </span>
-            <span className="text-[12px] font-medium text-red-200">
+            <span className="text-[12px] font-medium text-danger">
               {formatDuration(primary.started_at)}
             </span>
             {runs.length > 1 && (
-              <span className="rounded-full bg-red-900/50 px-1.5 py-0.5 text-[10px] font-bold text-red-200">
+              <span className="rounded-full bg-danger/50 px-1.5 py-0.5 text-[10px] font-bold text-danger">
                 +{runs.length - 1}
               </span>
             )}
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5 rounded-lg bg-red-900/60 px-3 py-1.5 text-[12px] font-bold uppercase tracking-wide">
+          <div className="flex shrink-0 items-center gap-1.5 rounded-lg bg-danger/60 px-3 py-1.5 text-[12px] font-bold uppercase tracking-wide">
             <OctagonX className="h-4 w-4" />
             Stop
           </div>

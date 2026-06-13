@@ -45,7 +45,7 @@ function getSessionRole(): string {
 const ROLE_COLOURS: Record<string, string> = {
   owner: "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]",
   admin: "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]",
-  agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
+  agent: "bg-[rgba(var(--info-rgb),0.15)] text-info",
   viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
 };
 
@@ -126,7 +126,7 @@ function Btn({ children, variant = "primary", disabled, onClick, type = "button"
   const base = "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed";
   const styles = {
     primary: "bg-[var(--accent)] text-[var(--accent-foreground)] hover:opacity-90",
-    danger: "bg-[rgba(var(--danger-rgb),0.15)] text-red-400 border border-red-500/30 hover:bg-[rgba(var(--danger-rgb),0.25)]",
+    danger: "bg-[rgba(var(--danger-rgb),0.15)] text-danger border border-danger/30 hover:bg-[rgba(var(--danger-rgb),0.25)]",
     ghost: "border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)]",
   };
   return (
@@ -140,8 +140,8 @@ function Btn({ children, variant = "primary", disabled, onClick, type = "button"
 function TokenReveal({ token, onDismiss }: { token: string; onDismiss: () => void }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="relative card-hover mt-4 rounded-2xl border border-amber-500/30 bg-[rgba(var(--warning-rgb),0.08)] p-4">
-      <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-amber-400">
+    <div className="relative card-hover mt-4 rounded-2xl border border-warning/30 bg-[rgba(var(--warning-rgb),0.08)] p-4">
+      <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-warning">
         <AlertTriangle className="h-3.5 w-3.5" />
         Copy this token now. It will never be shown again.
       </p>
@@ -457,7 +457,7 @@ export function AdminPanel() {
         icon={Trash2}
         title="Purge Agent Data"
         description="Permanently deletes ALL events, tool calls, sessions, and stats for a specific agent. This CANNOT be undone. Use this to wipe an agent's history clean — for example if you're resetting a test agent, cleaning up old data, or starting fresh. The agent itself remains registered — only its history is deleted."
-        colour="border-red-500/20"
+        colour="border-danger/20"
       >
         <div className="space-y-3">
           <Select label="Agent to Purge" value={purgeAgent} onChange={(e) => { setPurgeAgent(e.target.value); setPurgeConfirm(""); }}>
@@ -506,7 +506,7 @@ export function AdminPanel() {
         icon={KeyRound}
         title="Rotate Agent Token"
         description="Generate a new token for an agent. Their old token stops working immediately — anything using the old token will be locked out. Use this if a token was compromised, shared accidentally, or needs to be refreshed. The new token is shown ONCE."
-        colour="border-amber-500/20"
+        colour="border-warning/20"
       >
         <div className="space-y-3">
           <Select label="Agent" value={rotateAgent} onChange={(e) => { setRotateAgent(e.target.value); setRotateConfirm(""); setRotatedToken(null); }}>
@@ -573,7 +573,7 @@ export function AdminPanel() {
           icon={AlertTriangle}
           title="Wipe All Data"
           description="Permanently deletes ALL data for ALL agents — every event, session, token call, stat, approval, task, document, and calendar item. This cannot be undone. Use ONLY if you are resetting Arkon completely from scratch. The agents themselves remain registered."
-          colour="border-red-500/40"
+          colour="border-danger/40"
         >
           <div className="space-y-3">
             <Input

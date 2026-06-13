@@ -89,8 +89,8 @@ function AuditLogTab() {
   }, [offset, actionFilter, resourceFilter]);
 
   if (error) {
-    return <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-6">
-      <p className="text-red-400">Failed to load audit log: {error}</p>
+    return <div className="rounded-2xl border border-danger/30 bg-danger/5 p-6">
+      <p className="text-danger">Failed to load audit log: {error}</p>
     </div>;
   }
 
@@ -112,7 +112,7 @@ function AuditLogTab() {
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
               actionFilter === f
                 ? f === "agent.kill"
-                  ? "bg-red-500/15 text-red-400"
+                  ? "bg-danger/15 text-danger"
                   : "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
             }`}
@@ -164,10 +164,10 @@ function AuditLogTab() {
                   <td className="px-4 py-2.5 text-white">{e.actor}</td>
                   <td className="px-4 py-2.5">
                     <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-                      e.action === "agent.kill" ? "bg-red-500/15 text-red-400 font-semibold" :
-                      e.action === "agent.pause" ? "bg-amber-500/15 text-amber-400" :
+                      e.action === "agent.kill" ? "bg-danger/15 text-danger font-semibold" :
+                      e.action === "agent.pause" ? "bg-warning/15 text-warning" :
                       e.action === "agent.resume" ? "bg-success/15 text-success" :
-                      e.action.includes("delete") || e.action.includes("purge") ? "bg-red-500/10 text-red-400" :
+                      e.action.includes("delete") || e.action.includes("purge") ? "bg-danger/10 text-danger" :
                       e.action.includes("create") ? "bg-[rgba(var(--quarn-rgb),0.1)] text-[var(--accent)]" :
                       "bg-[var(--bg-surface-2)] text-[var(--text-primary)]"
                     }`}>{e.action}</span>
@@ -340,10 +340,10 @@ function PurgeTab() {
 
   return (
     <div className="space-y-6">
-      <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[var(--bg-surface)] p-6 space-y-4">
+      <div className="relative card-hover rounded-2xl border border-danger/20 bg-[var(--bg-surface)] p-6 space-y-4">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-red-400" />
-          <h3 className="text-sm font-semibold text-red-400">GDPR Data Purge</h3>
+          <AlertTriangle className="h-5 w-5 text-danger" />
+          <h3 className="text-sm font-semibold text-danger">GDPR Data Purge</h3>
         </div>
         <p className="text-sm text-[var(--text-secondary)]">
           Permanently delete all data for a tenant or agent. Use dry run first to preview affected rows.
@@ -375,17 +375,17 @@ function PurgeTab() {
 
         {!dryRun && (
           <div>
-            <label className="block text-xs text-red-400 mb-1">Type PURGE to confirm</label>
+            <label className="block text-xs text-danger mb-1">Type PURGE to confirm</label>
             <input type="text" value={confirmText} onChange={(e) => setConfirmText(e.target.value)}
-              className="w-48 rounded-xl border border-red-500/30 bg-[var(--bg-primary)] px-3 py-2 text-sm text-white" />
+              className="w-48 rounded-xl border border-danger/30 bg-[var(--bg-primary)] px-3 py-2 text-sm text-white" />
           </div>
         )}
 
         <button type="button" onClick={handlePurge} disabled={loading || !scopeId}
           className={`rounded-xl px-6 py-2.5 text-sm font-semibold transition ${
             dryRun
-              ? "bg-amber-500 text-[var(--accent-foreground)] hover:brightness-110"
-              : "bg-red-500 text-white hover:brightness-110"
+              ? "bg-warning text-[var(--accent-foreground)] hover:brightness-110"
+              : "bg-danger text-white hover:brightness-110"
           } disabled:opacity-50`}
         >
           {loading ? "Processing..." : dryRun ? "Preview Purge" : "Execute Purge"}
@@ -394,10 +394,10 @@ function PurgeTab() {
         {result && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className={`rounded-xl border p-4 text-sm ${
-              result.dry_run ? "border-amber-500/30 bg-amber-500/5" : "border-red-500/30 bg-red-500/5"
+              result.dry_run ? "border-warning/30 bg-warning/5" : "border-danger/30 bg-danger/5"
             }`}
           >
-            <p className={`font-semibold ${result.dry_run ? "text-amber-400" : "text-red-400"}`}>
+            <p className={`font-semibold ${result.dry_run ? "text-warning" : "text-danger"}`}>
               {result.dry_run ? "Dry Run Preview" : "Purge Complete"}
             </p>
             <div className="mt-2 space-y-1 text-[var(--text-primary)]">

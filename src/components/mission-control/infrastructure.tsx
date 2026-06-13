@@ -660,7 +660,7 @@ export function InfrastructureTopology() {
     return (
       <div className="flex h-[70vh] items-center justify-center">
         <div className="text-center">
-          <p className="mb-2 inline-flex items-center gap-2 text-lg text-red-400">
+          <p className="mb-2 inline-flex items-center gap-2 text-lg text-danger">
             <AlertTriangle className="h-5 w-5" /> Failed to load topology
           </p>
           <p className="mb-4 text-sm text-[var(--text-tertiary)]">{error}</p>

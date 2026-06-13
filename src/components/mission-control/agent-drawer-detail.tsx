@@ -191,8 +191,8 @@ export function AgentDrawerDetail({
                   <span
                     className={`shrink-0 font-mono text-[11px] ${
                       ev.event_type === "error"
-                        ? "text-red-400"
-                        : "text-emerald-300"
+                        ? "text-danger"
+                        : "text-success"
                     }`}
                   >
                     {ev.event_type === "error" ? "err" : "ok"}
@@ -223,7 +223,7 @@ export function AgentDrawerDetail({
             if (activeRun) onKill(activeRun);
           }}
           disabled={!activeRun}
-          className="flex items-center gap-1.5 rounded-xl border border-red-500/40 bg-red-600/20 px-3 py-2 text-[12px] font-semibold text-red-200 transition hover:bg-red-600/40 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-red-600/20"
+          className="flex items-center gap-1.5 rounded-xl border border-danger/40 bg-danger/20 px-3 py-2 text-[12px] font-semibold text-danger transition hover:bg-danger/40 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-danger/20"
           title={activeRun ? "Kill active run" : "No active run"}
         >
           <OctagonX className="h-3.5 w-3.5" />

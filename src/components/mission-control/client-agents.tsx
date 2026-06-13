@@ -30,7 +30,7 @@ function StatusBadge({ lastSeen }: { lastSeen: string | null }) {
   if (!lastSeen) return <span className="rounded-full bg-[var(--bg-surface-2)] px-2 py-0.5 text-[10px] font-bold text-[var(--text-secondary)]">NEVER SEEN</span>;
   const online = Date.now() - new Date(lastSeen).getTime() < 5 * 60 * 1000;
   return online
-    ? <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">ONLINE</span>
+    ? <span className="rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold text-success">ONLINE</span>
     : <span className="rounded-full bg-[var(--bg-surface-2)]/50 px-2 py-0.5 text-[10px] font-bold text-[var(--text-secondary)]">OFFLINE</span>;
 }
 
@@ -57,7 +57,7 @@ export function ClientAgents() {
   }, []);
 
   if (loading) return <div className="text-center text-[var(--text-tertiary)] py-20"><p className="animate-pulse">Loading agents...</p></div>;
-  if (error) return <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center"><p className="text-red-400">{error}</p></div>;
+  if (error) return <div className="rounded-2xl border border-danger/30 bg-danger/10 p-6 text-center"><p className="text-danger">{error}</p></div>;
 
   return (
     <div className="space-y-4">
@@ -93,7 +93,7 @@ export function ClientAgents() {
                 </div>
                 <div className="rounded-xl bg-[var(--bg-primary)] px-3 py-2">
                   <p className="text-[10px] font-semibold uppercase text-[var(--text-tertiary)]">Tokens (30d)</p>
-                  <p className="text-sm font-bold text-amber-400">{Number(agent.tokens_30d).toLocaleString()}</p>
+                  <p className="text-sm font-bold text-warning">{Number(agent.tokens_30d).toLocaleString()}</p>
                 </div>
                 <div className="rounded-xl bg-[var(--bg-primary)] px-3 py-2">
                   <p className="text-[10px] font-semibold uppercase text-[var(--text-tertiary)]">Cost (30d)</p>

@@ -97,10 +97,10 @@ const EVENT_ICON: Record<string, string> = {
 
 const EVENT_COLOUR: Record<string, string> = {
   message_received: "border-[var(--accent)]/30 bg-[rgba(6,214,160,0.04)]",
-  message_sent: "border-[var(--accent)]/30 bg-[rgba(139,92,246,0.04)]",
+  message_sent: "border-info/30 bg-[rgba(var(--info-rgb),0.04)]",
   tool_call: "border-[var(--warning)]/30 bg-[rgba(var(--warning-rgb),0.04)]",
-  error: "border-red-500/30 bg-[rgba(var(--danger-rgb),0.04)]",
-  cron: "border-sky-500/30 bg-[rgba(14,165,233,0.04)]",
+  error: "border-danger/30 bg-[rgba(var(--danger-rgb),0.04)]",
+  cron: "border-info/30 bg-[rgba(var(--info-rgb),0.04)]",
 };
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -120,7 +120,7 @@ const SEVERITY_BG: Record<string, string> = {
 const ROLE_COLOURS: Record<string, string> = {
   owner: "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]",
   admin: "bg-[rgba(6,214,160,0.15)] text-[var(--accent)]",
-  agent: "bg-[rgba(59,130,246,0.15)] text-blue-400",
+  agent: "bg-[rgba(var(--info-rgb),0.15)] text-info",
   viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
 };
 
@@ -290,8 +290,8 @@ export default function AgentDetailPage() {
 
   if (!data?.agent) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-2xl border border-red-500/20 bg-[rgba(var(--danger-rgb),0.04)]">
-        <p className="text-sm text-red-400">Agent not found</p>
+      <div className="flex h-64 items-center justify-center rounded-2xl border border-danger/20 bg-[rgba(var(--danger-rgb),0.04)]">
+        <p className="text-sm text-danger">Agent not found</p>
       </div>
     );
   }
@@ -331,7 +331,7 @@ export default function AgentDetailPage() {
                   <button
                     type="button"
                     onClick={() => pauseRun(agentRuns[0].run_id)}
-                    className="flex h-8 items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 text-xs font-semibold text-amber-300 transition hover:bg-amber-500/20"
+                    className="flex h-8 items-center gap-1.5 rounded-xl border border-warning/30 bg-warning/10 px-3 text-xs font-semibold text-warning transition hover:bg-warning/20"
                   >
                     <Pause className="h-3.5 w-3.5" />
                     Pause
@@ -349,7 +349,7 @@ export default function AgentDetailPage() {
                 <button
                   type="button"
                   onClick={() => setKillTarget(agentRuns[0])}
-                  className="flex h-8 items-center gap-1.5 rounded-xl border border-red-500/40 bg-red-600/20 px-3 text-xs font-bold uppercase text-red-200 transition hover:bg-red-600/40"
+                  className="flex h-8 items-center gap-1.5 rounded-xl border border-danger/40 bg-danger/20 px-3 text-xs font-bold uppercase text-danger transition hover:bg-danger/40"
                 >
                   <OctagonX className="h-3.5 w-3.5" />
                   Emergency Stop
@@ -380,10 +380,10 @@ export default function AgentDetailPage() {
           <StatPill
             label="Threats (30d)"
             value={threatCount30d}
-            colour={severeCount30d > 0 ? "text-red-400" : threatCount30d > 0 ? "text-amber-400" : "text-[var(--text-secondary)]"}
+            colour={severeCount30d > 0 ? "text-danger" : threatCount30d > 0 ? "text-warning" : "text-[var(--text-secondary)]"}
             subtext={severeCount30d > 0 ? `${severeCount30d} severe` : undefined}
           />
-          <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[var(--text-secondary)]"} />
+          <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-danger" : "text-[var(--text-secondary)]"} />
           <StatPill label="Last Active" value={timeAgo(data.lastActive)} colour="text-text-dim" />
         </div>
       </CardEntranceWrapper>
@@ -524,17 +524,17 @@ function SecurityTab({ data }: { data: AgentData }) {
         <StatPill
           label="Threats (30d)"
           value={threats.threat_count_30d}
-          colour={threats.severe_count_30d > 0 ? "text-red-400" : threats.threat_count_30d > 0 ? "text-amber-400" : "text-[var(--text-secondary)]"}
+          colour={threats.severe_count_30d > 0 ? "text-danger" : threats.threat_count_30d > 0 ? "text-warning" : "text-[var(--text-secondary)]"}
         />
         <StatPill
           label="Severe (30d)"
           value={threats.severe_count_30d}
-          colour={threats.severe_count_30d > 0 ? "text-red-400" : "text-[var(--text-secondary)]"}
+          colour={threats.severe_count_30d > 0 ? "text-danger" : "text-[var(--text-secondary)]"}
         />
         <StatPill
           label="Error Rate (7d)"
           value={`${data.errorRate.total_events_7d ? Math.round((data.errorRate.errors_7d / data.errorRate.total_events_7d) * 100) : 0}%`}
-          colour={data.errorRate.errors_7d > 0 ? "text-amber-400" : "text-[var(--text-secondary)]"}
+          colour={data.errorRate.errors_7d > 0 ? "text-warning" : "text-[var(--text-secondary)]"}
         />
       </div>
 
@@ -611,7 +611,7 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
         <StatPill label="Cost (30d)" value={formatCost(data.cost.cost_30d)} colour="text-[var(--accent)]" />
         <StatPill label="Tokens (30d)" value={formatCompact(Number(data.cost.tokens_30d))} colour="text-[var(--warning)]" />
         <StatPill label="Messages (7d)" value={totalMessages} />
-        <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-red-400" : "text-[var(--text-secondary)]"} />
+        <StatPill label="Error Rate (7d)" value={`${errorRate7d}%`} colour={errorRate7d > 10 ? "text-danger" : "text-[var(--text-secondary)]"} />
       </div>
 
       {/* Cost chart */}
@@ -755,7 +755,7 @@ function ActivityTab({
                     {event.event_type.replace(/_/g, " ")}
                   </span>
                   {event.content_redacted && (
-                    <span className="shrink-0 rounded-full bg-amber-900/30 px-2 py-0.5 text-[10px] text-amber-400">REDACTED</span>
+                    <span className="shrink-0 rounded-full bg-warning/30 px-2 py-0.5 text-[10px] text-warning">REDACTED</span>
                   )}
                   {event.threat_level && event.threat_level !== "none" && (
                     <span

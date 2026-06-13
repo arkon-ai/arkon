@@ -286,9 +286,9 @@ export function TestStep({
           }}
         >
           {config.killCapability === "none" ? (
-            <ShieldAlert size={16} className="flex-shrink-0 mt-0.5 text-red-400" />
+            <ShieldAlert size={16} className="flex-shrink-0 mt-0.5 text-danger" />
           ) : (
-            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5 text-amber-400" />
+            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5 text-warning" />
           )}
           <div>
             <p className={`text-xs font-medium ${killCapabilityColor(config.killCapability)}`}>

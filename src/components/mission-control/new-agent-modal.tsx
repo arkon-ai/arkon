@@ -172,8 +172,8 @@ export function NewAgentModal({
         {phase === "form" && (
           <>
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
-                <Bot className="h-5 w-5 text-emerald-300" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/10">
+                <Bot className="h-5 w-5 text-success" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-[var(--text-primary)]">
@@ -193,7 +193,7 @@ export function NewAgentModal({
                   value={rawId}
                   onChange={(e) => setRawId(e.target.value)}
                   placeholder="e.g. lumina"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 font-mono text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-emerald-500/40"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 font-mono text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-success/40"
                 />
                 {rawId && rawId !== slugId ? (
                   <p className="mt-1 font-mono text-[10px] text-[var(--text-tertiary)]">
@@ -208,7 +208,7 @@ export function NewAgentModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Lumina"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-emerald-500/40"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-success/40"
                 />
               </Field>
 
@@ -219,13 +219,13 @@ export function NewAgentModal({
                     value={newTenantName}
                     onChange={(e) => setNewTenantName(e.target.value)}
                     placeholder="New tenant name"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-emerald-500/40"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-success/40"
                   />
                 ) : (
                   <select
                     value={tenantId}
                     onChange={(e) => setTenantId(e.target.value)}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-emerald-500/40"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-success/40"
                   >
                     {tenants.length === 0 ? (
                       <option value="">No tenants available</option>
@@ -260,7 +260,7 @@ export function NewAgentModal({
                 type="button"
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className="rounded-xl border border-emerald-500/40 bg-emerald-600/20 px-4 py-2 text-[13px] font-semibold text-emerald-200 transition hover:bg-emerald-600/40 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-xl border border-success/40 bg-success/20 px-4 py-2 text-[13px] font-semibold text-success transition hover:bg-success/40 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Provision
               </button>
@@ -270,8 +270,8 @@ export function NewAgentModal({
 
         {phase === "submitting" && (
           <div className="flex flex-col items-center gap-4 py-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10">
-              <Loader2 className="h-7 w-7 animate-spin text-emerald-300" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success/10">
+              <Loader2 className="h-7 w-7 animate-spin text-success" />
             </div>
             <div className="text-center">
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">
@@ -287,11 +287,11 @@ export function NewAgentModal({
         {phase === "success" && result && (
           <>
             <div className="mb-4 flex flex-col items-center gap-3 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10">
-                <CheckCircle2 className="h-7 w-7 text-emerald-400" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success/10">
+                <CheckCircle2 className="h-7 w-7 text-success" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-emerald-300">
+                <h3 className="text-sm font-semibold text-success">
                   Agent provisioned
                 </h3>
                 <p className="mt-1 text-[12px] text-[var(--text-secondary)]">
@@ -301,10 +301,10 @@ export function NewAgentModal({
               </div>
             </div>
 
-            <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+            <div className="mb-3 rounded-xl border border-warning/30 bg-warning/5 p-3">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
-                <div className="text-[12px] text-amber-200">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+                <div className="text-[12px] text-warning">
                   This provisioning token is shown <b>once</b>. Copy it now — it cannot be retrieved later.
                 </div>
               </div>
@@ -325,7 +325,7 @@ export function NewAgentModal({
                 >
                   {copied ? (
                     <>
-                      <Check className="h-3.5 w-3.5 text-emerald-400" /> Copied
+                      <Check className="h-3.5 w-3.5 text-success" /> Copied
                     </>
                   ) : (
                     <>
@@ -351,11 +351,11 @@ export function NewAgentModal({
         {phase === "error" && (
           <>
             <div className="mb-4 flex flex-col items-center gap-3 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10">
-                <XCircle className="h-7 w-7 text-red-400" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-danger/10">
+                <XCircle className="h-7 w-7 text-danger" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-red-300">
+                <h3 className="text-sm font-semibold text-danger">
                   Provisioning failed
                 </h3>
                 <p className="mt-1 text-[12px] text-[var(--text-tertiary)]">

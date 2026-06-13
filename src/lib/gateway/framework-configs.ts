@@ -383,9 +383,9 @@ export function resolveDashboardUrl(config: FrameworkConfig, host: string, port:
 
 export function killCapabilityColor(cap: KillCapability): string {
   switch (cap) {
-    case "full": return "text-emerald-400";
-    case "partial": return "text-amber-400";
-    case "none": return "text-red-400";
+    case "full": return "text-success";
+    case "partial": return "text-warning";
+    case "none": return "text-danger";
   }
 }
 

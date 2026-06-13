@@ -47,9 +47,9 @@ const EVENT_BORDER: Record<string, string> = {
   message_received: "border-l-[var(--quarn)]",
   message_sent: "border-l-[var(--quarn)]",
   tool_call: "border-l-[var(--warning)]",
-  error: "border-l-red-500",
-  cron: "border-l-sky-400",
-  system: "border-l-slate-400",
+  error: "border-l-danger",
+  cron: "border-l-info",
+  system: "border-l-[var(--border)]",
 };
 
 function timeAgo(iso: string): string {
@@ -75,7 +75,7 @@ function EventRow({ event, expanded, onToggle }: {
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, height: 0 }}
-      className={`relative card-hover cursor-pointer rounded-2xl border border-[var(--border)] border-l-2 bg-[var(--bg-primary)]/70 px-4 py-3 transition hover:border-[var(--border-strong)] ${EVENT_BORDER[event.event_type] ?? "border-l-slate-600"}`}
+      className={`relative card-hover cursor-pointer rounded-2xl border border-[var(--border)] border-l-2 bg-[var(--bg-primary)]/70 px-4 py-3 transition hover:border-[var(--border-strong)] ${EVENT_BORDER[event.event_type] ?? "border-l-[var(--border)]"}`}
       onClick={onToggle}
     >
       <div className="flex items-start justify-between gap-2">
@@ -96,13 +96,13 @@ function EventRow({ event, expanded, onToggle }: {
                 {event.event_type.replace(/_/g, " ")}
               </span>
               {event.content_redacted && (
-                <span className="rounded-full bg-amber-900/30 px-2 py-0.5 text-[10px] text-amber-400">REDACTED</span>
+                <span className="rounded-full bg-warning/30 px-2 py-0.5 text-[10px] text-warning">REDACTED</span>
               )}
               {event.threat_level && event.threat_level !== "none" && (
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                  event.threat_level === "critical" ? "bg-red-900/50 text-red-300 animate-pulse" :
-                  event.threat_level === "high" ? "bg-red-900/30 text-red-400" :
-                  event.threat_level === "medium" ? "bg-amber-900/30 text-amber-400" :
+                  event.threat_level === "critical" ? "bg-danger/50 text-danger animate-pulse" :
+                  event.threat_level === "high" ? "bg-danger/30 text-danger" :
+                  event.threat_level === "medium" ? "bg-warning/30 text-warning" :
                   "bg-[var(--bg-surface)] text-[var(--text-secondary)]"
                 }`}>
                   THREAT {event.threat_level.toUpperCase()}
@@ -232,7 +232,7 @@ export function ActivityFeed() {
             {paused ? (
               <button
                 onClick={handleResume}
-                className="flex items-center gap-1.5 rounded-full bg-amber-900/30 px-3 py-1.5 text-xs text-amber-400 hover:bg-amber-900/50 transition"
+                className="flex items-center gap-1.5 rounded-full bg-warning/30 px-3 py-1.5 text-xs text-warning hover:bg-warning/50 transition"
               >
                 {newCount > 0 && <span className="font-bold">{newCount} new</span>}
                 ▶ Resume
@@ -263,7 +263,7 @@ export function ActivityFeed() {
           { label: "Total Events", value: events.length, colour: "text-[var(--text-primary)]" },
           { label: "Messages In", value: typeCount("message_received"), colour: "text-[var(--accent)]" },
           { label: "Tool Calls", value: typeCount("tool_call"), colour: "text-[var(--warning)]" },
-          { label: "Errors", value: typeCount("error"), colour: typeCount("error") > 0 ? "text-red-400" : "text-[var(--text-secondary)]" },
+          { label: "Errors", value: typeCount("error"), colour: typeCount("error") > 0 ? "text-danger" : "text-[var(--text-secondary)]" },
         ].map((s) => (
           <div key={s.label} className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)]/70 px-4 py-3 text-center">
             <div className={`text-xl font-bold ${s.colour}`}>{s.value}</div>
