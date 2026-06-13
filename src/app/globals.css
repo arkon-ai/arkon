@@ -176,8 +176,13 @@ h1, h2, h3, h4, h5, h6 {
    and bare body copy 14px (the kit's bare-<p> rule is 16px). Page titles use
    .t-h2 (28px) at the component level rather than h1 (36px). Arkon-local only —
    arkon-os / arkonhelm keep the 36px / 16px kit scale. */
+:root {
+  --fs-metric: 22px; /* Arkon-local metric size — restrained from the kit's 28px */
+}
 .t-metric {
-  font-size: 22px;
+  font-size: var(--fs-metric);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 p {
   font-size: var(--fs-body-sm);

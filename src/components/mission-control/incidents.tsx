@@ -404,7 +404,7 @@ function IncidentDetail({ id, onBack }: { id: number; onBack: () => void }) {
             </span>
             <span className="text-[12px] text-[var(--text-tertiary)]">#{inc.id}</span>
           </div>
-          <h1 className="mt-1 text-xl font-semibold font-display text-[var(--text-primary)]">{inc.title}</h1>
+          <h1 className="mt-1 t-h2 text-[var(--text-primary)]">{inc.title}</h1>
         </div>
       </div>
 
