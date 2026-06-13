@@ -76,6 +76,7 @@ const pageLabels: Record<string, string> = {
   "/infrastructure": "Infrastructure",
   "/benchmarks": "Benchmarks",
   "/compliance": "Compliance",
+  "/api-keys": "Keys & tokens",
   "/client": "Client Portal",
   "/client/agents": "Client Agents",
   "/client/events": "Client Events",
@@ -129,7 +130,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     items: [
       { href: "/agents", label: "Agents", subtitle: "Roster, health, and assignment", icon: Bot },
       { href: "/integrations", label: "Integrations", subtitle: "MCP servers and provider connections", icon: Plug },
-      { href: "/client/api-keys", label: "Keys & tokens", subtitle: "API keys and access tokens", icon: KeyRound },
+      { href: "/api-keys", label: "Keys & tokens", subtitle: "API keys and access tokens", icon: KeyRound },
     ],
   },
   {
