@@ -481,7 +481,7 @@ export function ApprovalsToolScreen() {
                             className={`mt-1 h-5 w-5 rounded border flex-shrink-0 flex items-center justify-center transition ${
                               isSelected ? "border-accent bg-accent text-black" : "border-border"
                             }`}>
-                            {isSelected && <span className="text-xs">\u2713</span>}
+                            {isSelected && <span className="text-xs">{"\u2713"}</span>}
                           </button>
                         )}
                         <div>
@@ -503,7 +503,7 @@ export function ApprovalsToolScreen() {
                           </div>
                           <h2 className="mt-3 text-lg font-semibold text-text">{item.title}</h2>
                           <p className="mt-1 text-xs text-text-dim">
-                            {item.agent_name || item.agent_id} \u00b7 {timeAgo(item.created_at)}
+                            {item.agent_name || item.agent_id}{" \u00b7 "}{timeAgo(item.created_at)}
                           </p>
                         </div>
                       </div>
@@ -522,10 +522,10 @@ export function ApprovalsToolScreen() {
                         {item.content}
                       </p>
                       {!isExpanded && item.content.length > 200 && (
-                        <span className="text-xs text-accent mt-1 inline-block">Show more \u2193</span>
+                        <span className="text-xs text-accent mt-1 inline-block">{"Show more \u2193"}</span>
                       )}
                       {isExpanded && (
-                        <span className="text-xs text-text-dim mt-1 inline-block">Show less \u2191</span>
+                        <span className="text-xs text-text-dim mt-1 inline-block">{"Show less \u2191"}</span>
                       )}
                     </div>
 

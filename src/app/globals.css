@@ -26,8 +26,14 @@
    tokens.css + kit.css are byte-copies of the ArkonOS reference. They own the
    canonical token values; Arkon re-declares ONLY the thin alias layer below
    that the package lacks. Imported before @theme inline so Tailwind sees them. */
-@import "@arkon-ai/ui/tokens.css";
-@import "@arkon-ai/ui/kit.css";
+/* Imported into Tailwind's `base`/`components` layers (NOT unlayered) so the
+   package's bare-element rules (h1–h4 36/28/22/18px, p 16px) and .ak-* classes
+   sit BELOW `@layer utilities`. Unlayered, they outranked every Tailwind
+   text-* utility — so app headings authored at text-sm/text-lg rendered at the
+   kit's large sizes (WI-1033 regression, fixed 2026-06-13). Layered, utilities
+   win again; bare/unclassed elements still inherit the kit scale. */
+@import "@arkon-ai/ui/tokens.css" layer(base);
+@import "@arkon-ai/ui/kit.css" layer(components);
 
 :root {
   /* ══════════════════════════════════════
@@ -184,8 +190,12 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
-p {
-  font-size: var(--fs-body-sm);
+/* Bare body copy at 14px (kit default is 16px). Lives in the `components` layer
+   so an explicit `text-*` utility on a <p> still wins (e.g. metric values). */
+@layer components {
+  p {
+    font-size: var(--fs-body-sm);
+  }
 }
 
 /* ═══════════════════════════════════════
