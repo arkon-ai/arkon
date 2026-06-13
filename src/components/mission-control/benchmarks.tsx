@@ -9,11 +9,12 @@ import {
 import { Gauge, Scale } from "lucide-react";
 import { EmptyCard } from "./ui-cards";
 import { SectionDescription } from "./dashboard-clarity";
+import { CHART } from "@/lib/chart-colors";
 
 const C = {
   green: "var(--quarn)", accent2: "var(--quarn-light)", amber: "var(--warning)",
-  red: "var(--danger)", slate: "var(--fg-2)", teal: "#14b8a6",
-  pink: "#ec4899", blue: "#3b82f6",
+  red: "var(--danger)", slate: "var(--fg-2)", teal: CHART.teal,
+  pink: CHART.orange, blue: CHART.blue,
   grid: "var(--border)", tooltipBg: "var(--surface-1)",
 };
 const MODEL_COLORS = [C.green, C.accent2, C.amber, C.teal, C.pink, C.blue, C.red, C.slate];
@@ -181,7 +182,7 @@ function OverviewTab({ data }: { data: OverviewData }) {
               <BarChart data={data.byModel} layout="vertical" margin={{ left: 120 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
                 <XAxis type="number" stroke={C.slate} tick={{ fill: C.slate, fontSize: 11 }} />
-                <YAxis type="category" dataKey="model_id" stroke={C.grid} tick={{ fill: "#cbd5e1", fontSize: 11 }} width={110} />
+                <YAxis type="category" dataKey="model_id" stroke={C.grid} tick={{ fill: "var(--fg-2)", fontSize: 11 }} width={110} />
                 <Tooltip
                   contentStyle={{ background: C.tooltipBg, border: `1px solid ${C.grid}`, borderRadius: 12, fontSize: 12 }}
                   formatter={(v: unknown) => [fmtMs(Number(v)), "Avg Latency"]}

@@ -1,18 +1,19 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { CHART } from "@/lib/chart-colors";
 
 // Persona palette (transformate WI-392 / PR-7 visual review locked):
 //   warden=emerald, codesmith=slate (deeper than fallback), lumina=amber, sentinel=teal.
 // Brynn rules: NO cyan, NO purple, NO pink, NO red (red reserved for kill/warning).
 const PERSONA_COLORS: Record<string, { bg: string; fg: string }> = {
-  warden: { bg: "rgba(var(--success-rgb), 0.16)", fg: "#6ee7b7" },
-  codesmith: { bg: "rgba(100, 116, 139, 0.18)", fg: "#94a3b8" },
-  lumina: { bg: "rgba(251, 191, 36, 0.16)", fg: "#fcd34d" },
-  sentinel: { bg: "rgba(20, 184, 166, 0.16)", fg: "#5eead4" },
+  warden: { bg: "rgba(var(--success-rgb), 0.16)", fg: CHART.green },
+  codesmith: { bg: "rgba(var(--chart-slate-rgb), 0.18)", fg: CHART.slate },
+  lumina: { bg: "rgba(var(--warning-rgb), 0.16)", fg: CHART.amber },
+  sentinel: { bg: "rgba(var(--chart-teal-rgb), 0.16)", fg: CHART.teal },
 };
 
-const FALLBACK_COLOR = { bg: "rgba(148, 163, 184, 0.16)", fg: "#cbd5e1" };
+const FALLBACK_COLOR = { bg: "rgba(var(--chart-slate-rgb), 0.16)", fg: CHART.slate };
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/);

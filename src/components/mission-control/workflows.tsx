@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { WorkflowBuilder, type WorkflowDefinition } from "./workflow-builder";
 import { toast } from "sonner";
+import { CHART } from "@/lib/chart-colors";
 
 // ── Workflow Templates ───────────────────────────────────────────────────────
 
@@ -90,7 +91,7 @@ const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Daily Cost Report",
     description: "Get a daily summary of agent spending sent to your preferred channel.",
     icon: BarChart3,
-    color: "#3b82f6",
+    color: CHART.blue,
     trigger_type: "cron",
     trigger_config: { cron_expression: "0 6 * * *" },
     definition: {
@@ -157,7 +158,7 @@ const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "New Threat Alert",
     description: "Send immediate notification when any HIGH+ threat is detected.",
     icon: Bell,
-    color: "#f97316",
+    color: CHART.orange,
     trigger_type: "cron",
     trigger_config: { cron_expression: "*/5 * * * *" },
     definition: {

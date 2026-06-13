@@ -11,6 +11,7 @@ import { Button, Card, PageHeader, SectionTitle, StatusPill, Tabs } from "./ui-c
 import { Sparkline } from "./charts";
 import { Avatar } from "./agents-kit";
 import { cn } from "@/lib/utils";
+import { CHART } from "@/lib/chart-colors";
 
 // Brand bible §5.1: Void/S1/S2 surfaces + Quarn Emerald single brand color
 // (one job per section) + semantic locked (warning amber / danger red).
@@ -22,7 +23,7 @@ const C = {
   amber: "var(--warning)",        // semantic warning
   red: "var(--danger)",          // semantic danger (kill only)
   slate: "var(--fg-2)",        // text-secondary tone
-  teal: "#14b8a6",         // info adjunct (sparingly)
+  teal: CHART.teal,         // info adjunct (sparingly)
   grid: "var(--border)",
   tooltipBg: "var(--surface-1)",
 };

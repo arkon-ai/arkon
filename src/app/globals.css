@@ -67,6 +67,13 @@
   --fg-2-rgb:    136, 136, 160; /* #8888A0 — muted-text gray tint base */
   --fg-3-rgb:    85, 85, 102;   /* #555566 — tertiary-text gray tint base */
 
+  /* Chart categorical tint channels (WI-1159) — rgb companions for the CHART
+     palette in src/lib/chart-colors.ts, for rgba() opacity tints in CSS/style.
+     Keep in sync with chart-colors.ts (no purple/cyan/pink in the scale). */
+  --chart-blue-rgb:  59, 130, 246;  /* CHART.blue  #3B82F6 */
+  --chart-teal-rgb:  20, 184, 166;  /* CHART.teal  #14B8A6 */
+  --chart-slate-rgb: 148, 163, 184; /* CHART.slate #94A3B8 */
+
   /* Effects aliases (package has --shadow-quarn-glow / --shadow-sm) */
   --glow-accent: var(--shadow-quarn-glow);
   --shadow-card: var(--shadow-sm);

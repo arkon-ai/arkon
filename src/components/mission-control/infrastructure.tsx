@@ -33,6 +33,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { CHART } from "@/lib/chart-colors";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface InfraNode {
@@ -96,16 +97,16 @@ function getAuthHeaders(): Record<string, string> {
 const ROLE_COLORS: Record<string, { color: string; bg: string; border: string }> = {
   primary:     { color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.08)",  border: "rgba(var(--quarn-rgb), 0.25)" },
   failover:    { color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.08)", border: "rgba(var(--warning-rgb), 0.25)" },
-  static:      { color: "#737373", bg: "rgba(115, 115, 115, 0.08)",border: "rgba(115, 115, 115, 0.25)" },
+  static:      { color: CHART.slate, bg: "rgba(var(--chart-slate-rgb), 0.08)",border: "rgba(var(--chart-slate-rgb), 0.25)" },
   dfy_client:  { color: "var(--info)", bg: "rgba(var(--info-rgb), 0.08)", border: "rgba(var(--info-rgb), 0.25)" },
-  workstation: { color: "#60a5fa", bg: "rgba(96, 165, 250, 0.08)", border: "rgba(96, 165, 250, 0.25)" },
+  workstation: { color: CHART.blue, bg: "rgba(var(--chart-blue-rgb), 0.08)", border: "rgba(var(--chart-blue-rgb), 0.25)" },
 };
 
 const STATUS_COLORS: Record<string, string> = {
   online: "var(--quarn)",
   degraded: "var(--warning)",
   offline: "var(--danger)",
-  unknown: "#525252",
+  unknown: "var(--text-tertiary)",
 };
 
 const ROLE_LABELS: Record<string, string> = {

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
 import { usePollingFetch, timeAgo } from "@/components/mission-control/api";
+import { CHART } from "@/lib/chart-colors";
 
 /* ── Types ── */
 
@@ -79,16 +80,16 @@ const SEVERITY_CONFIG: Record<string, { label: string; color: string; bg: string
   P1: { label: "P1 \u2014 Critical", color: "var(--danger)", bg: "rgba(var(--danger-rgb), 0.1)" },
   P2: { label: "P2 \u2014 High", color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)" },
   P3: { label: "P3 \u2014 Medium", color: "var(--info)", bg: "rgba(var(--info-rgb), 0.1)" },
-  P4: { label: "P4 \u2014 Low", color: "#64748b", bg: "rgba(100,116,139,0.1)" },
+  P4: { label: "P4 \u2014 Low", color: "var(--text-tertiary)", bg: "rgba(var(--fg-2-rgb),0.1)" },
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  created: { label: "Created", color: "var(--fg-2)", bg: "rgba(136,136,160,0.1)" },
-  assigned: { label: "Assigned", color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
+  created: { label: "Created", color: "var(--fg-2)", bg: "rgba(var(--fg-2-rgb),0.1)" },
+  assigned: { label: "Assigned", color: "var(--info)", bg: "rgba(var(--info-rgb),0.1)" },
   investigating: { label: "Investigating", color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)" },
   resolved: { label: "Resolved", color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.1)" },
-  postmortem: { label: "Post-Mortem", color: "#a855f7", bg: "rgba(168,85,247,0.1)" },
-  closed: { label: "Closed", color: "var(--fg-3)", bg: "rgba(85,85,102,0.1)" },
+  postmortem: { label: "Post-Mortem", color: CHART.teal, bg: "rgba(var(--chart-teal-rgb),0.1)" },
+  closed: { label: "Closed", color: "var(--fg-3)", bg: "rgba(var(--fg-3-rgb),0.1)" },
 };
 
 const UPDATE_ICONS: Record<string, typeof Zap> = {

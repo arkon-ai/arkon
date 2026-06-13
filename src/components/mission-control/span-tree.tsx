@@ -3,12 +3,13 @@
 import { useMemo, useState } from "react";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import type { Span } from "@/app/traces/[traceId]/page";
+import { CHART } from "@/lib/chart-colors";
 
 // Type colors — LLM=emerald, tool=blue, retrieval=teal, chain=gray, error=red
 const TYPE_COLORS: Record<string, { color: string; bg: string; label: string }> = {
   llm:       { color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.12)",  label: "LLM" },
   tool:      { color: "var(--info)", bg: "rgba(var(--info-rgb), 0.12)",  label: "Tool" },
-  retrieval: { color: "#14B8A6", bg: "rgba(20, 184, 166, 0.12)", label: "RAG" },
+  retrieval: { color: CHART.teal, bg: "rgba(var(--chart-teal-rgb), 0.12)", label: "RAG" },
   chain:     { color: "var(--fg-2)", bg: "rgba(var(--fg-2-rgb), 0.12)", label: "Chain" },
   agent:     { color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.12)", label: "Agent" },
 };
