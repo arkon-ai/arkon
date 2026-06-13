@@ -804,7 +804,7 @@ function OverviewContent() {
             {(threatData?.severityBreakdown ?? []).map((b) => (
               <div key={b.threat_level} className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-3">
                 <p className="text-xs font-semibold capitalize text-[var(--text-primary)]">{b.threat_level}</p>
-                <p className="text-2xl font-bold text-[var(--text-primary)]">{b.count}</p>
+                <p className="t-metric text-[var(--text-primary)]">{b.count}</p>
               </div>
             ))}
           </div>

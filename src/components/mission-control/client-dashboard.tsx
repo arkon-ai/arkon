@@ -114,7 +114,7 @@ export function ClientDashboard() {
     <div className="space-y-6">
       {/* Welcome banner */}
       <div className="rounded-[16px] border border-[var(--border)] bg-[linear-gradient(135deg,rgba(var(--quarn-rgb),0.04),rgba(var(--quarn-rgb),0.04))] p-6">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Welcome back, {data.tenant.name}</h1>
+        <h1 className="t-h2 text-[var(--text-primary)]">Welcome back, {data.tenant.name}</h1>
         <p className="mt-1 text-sm text-[var(--text-secondary)]">
           {data.tenant.plan === "dfy" ? "Done-For-You" : data.tenant.plan === "owner" ? "Owner" : "Starter"} Plan
           {data.tenant.domain ? ` \u00B7 ${data.tenant.domain}` : ""}

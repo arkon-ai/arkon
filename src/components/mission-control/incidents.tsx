@@ -180,7 +180,7 @@ function IncidentList({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-extrabold text-[var(--text-primary)]">Incidents</h1>
+          <h1 className="t-h2 text-[var(--text-primary)]">Incidents</h1>
           <p className="text-sm text-[var(--text-secondary)]">Track and resolve operational incidents</p>
         </div>
         <button
@@ -204,7 +204,7 @@ function IncidentList({
           ].map((s) => (
             <div key={s.label} className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{s.label}</p>
-              <p className="mt-1 text-2xl font-extrabold font-display" style={{ color: s.color }}>{s.value}</p>
+              <p className="mt-1 t-metric" style={{ color: s.color }}>{s.value}</p>
             </div>
           ))}
         </div>
@@ -404,7 +404,7 @@ function IncidentDetail({ id, onBack }: { id: number; onBack: () => void }) {
             </span>
             <span className="text-[12px] text-[var(--text-tertiary)]">#{inc.id}</span>
           </div>
-          <h1 className="mt-1 text-xl font-extrabold font-display text-[var(--text-primary)]">{inc.title}</h1>
+          <h1 className="mt-1 text-xl font-semibold font-display text-[var(--text-primary)]">{inc.title}</h1>
         </div>
       </div>
 
@@ -550,7 +550,7 @@ function CreateIncidentDialog({ onClose }: { onClose: () => void }) {
       <div onClick={onClose} className="absolute inset-0 bg-black/60" role="button" tabIndex={-1} aria-label="Close" onKeyDown={(e) => { if (e.key === "Escape") onClose(); }} />
       <div className="relative w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-xl">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-extrabold font-display text-[var(--text-primary)]">Create Incident</h2>
+          <h2 className="text-lg font-semibold font-display text-[var(--text-primary)]">Create Incident</h2>
           <button type="button" onClick={onClose} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
             <X className="h-5 w-5" />
           </button>

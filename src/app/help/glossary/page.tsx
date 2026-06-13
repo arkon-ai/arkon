@@ -35,7 +35,7 @@ export default function GlossaryPage() {
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <BookOpen className="h-5 w-5 text-[var(--accent)]" />
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">Glossary</h1>
+          <h1 className="t-h2 text-[var(--text-primary)]">Glossary</h1>
         </div>
         <p className="text-sm text-[var(--text-secondary)]">
           Searchable reference for Arkon terminology. Click any linked term to navigate to its page.

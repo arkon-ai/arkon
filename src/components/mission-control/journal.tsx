@@ -124,7 +124,7 @@ export function Journal() {
           <div className="flex items-center gap-3">
             <BookOpen className="h-7 w-7 text-amber-500" />
             <div>
-              <h1 className="text-2xl font-semibold">Journal</h1>
+              <h1 className="t-h2">Journal</h1>
               <p className="text-sm text-slate-400">Everything your agents are working on, one feed.</p>
             </div>
           </div>

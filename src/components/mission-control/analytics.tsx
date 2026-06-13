@@ -157,7 +157,7 @@ function SummaryCards({ totals, sessionStats }: { totals: AnalyticsData["totals"
             style={{ borderTopColor: stat.color, borderTopWidth: 2 }}
           >
             <p className="text-[11px] font-semibold uppercase tracking-wide text-text-dim">{stat.label}</p>
-            <p className="mt-2 text-2xl font-bold text-text">
+            <p className="mt-2 t-metric text-text">
               {stat.format ? formatCompact(stat.value) : <StatCountUp value={stat.value} />}
             </p>
           </div>
