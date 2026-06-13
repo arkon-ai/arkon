@@ -77,7 +77,7 @@ export function TenantSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-1.5 shadow-[var(--shadow-popover)]">
           <p className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
             Switch Tenant
           </p>

@@ -104,7 +104,7 @@ export function HelpPanel() {
       {open ? (
       <div
         ref={panelRef}
-        className="fixed right-0 top-0 z-[61] h-full w-[380px] max-w-[90vw] border-l border-[var(--border)]/50 bg-[var(--bg-primary)] shadow-[0_0_60px_rgba(0,0,0,0.5)]"
+        className="fixed right-0 top-0 z-[61] h-full w-[380px] max-w-[90vw] border-l border-[var(--border)]/50 bg-[var(--bg-primary)] shadow-[var(--shadow-overlay)]"
       >
         {/* Header */}
         <div className="flex h-14 items-center justify-between border-b border-[var(--border)]/50 px-4">

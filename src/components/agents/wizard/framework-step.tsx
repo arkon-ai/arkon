@@ -108,7 +108,7 @@ function FrameworkOption({
       <div
         className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
         style={{
-          backgroundColor: isSelected ? "var(--accent-muted)" : "rgba(255,255,255,0.04)",
+          backgroundColor: isSelected ? "var(--accent-muted)" : "var(--bg-hover)",
           color: isSelected ? "var(--accent)" : "var(--text-secondary)",
         }}
       >

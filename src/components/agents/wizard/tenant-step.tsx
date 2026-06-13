@@ -77,7 +77,7 @@ export function TenantStep({ selectedId, onSelect }: TenantStepProps) {
             <div
               className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
               style={{
-                backgroundColor: selectedId === tenant.id ? "var(--accent-muted)" : "rgba(255,255,255,0.04)",
+                backgroundColor: selectedId === tenant.id ? "var(--accent-muted)" : "var(--bg-hover)",
                 color: selectedId === tenant.id ? "var(--accent)" : "var(--text-secondary)",
               }}
             >

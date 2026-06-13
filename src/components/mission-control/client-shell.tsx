@@ -183,7 +183,7 @@ export function ClientShell({ children }: { children: ReactNode }) {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
           />
-          <div className="relative h-full w-[280px] max-w-[85vw] border-r border-[var(--border)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative h-full w-[280px] max-w-[85vw] border-r border-[var(--border)] shadow-[var(--shadow-overlay)]" onClick={(e) => e.stopPropagation()}>
             {sidebar}
           </div>
         </div>

@@ -78,6 +78,17 @@
   --glow-accent: var(--shadow-quarn-glow);
   --shadow-card: var(--shadow-sm);
 
+  /* Overlay elevation (WI-1165) — floating surfaces above the page. Arkon-local;
+     the package ships card depth (--depth-*) but no overlay tier. Replaces the
+     scattered shadow-[0_..._rgba(0,0,0,0.4–0.7)] one-offs. Theme-aware (light
+     values in the [data-theme="light"] block):
+       overlay    → modals, drawers, side panels, mobile sheets, tour cards
+       popover    → dropdowns, popovers, tooltips, floating toolbars (lighter)
+       overlay-up → bottom sheets (shadow cast upward) */
+  --shadow-overlay:    0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-popover:    0 10px 36px rgba(0, 0, 0, 0.45);
+  --shadow-overlay-up: 0 -16px 48px rgba(0, 0, 0, 0.5);
+
   /* Radius aliases (package: --radius-md/lg/pill) */
   --radius-card: var(--radius-lg);
   --radius-button: var(--radius-md);
@@ -219,7 +230,7 @@ h1, h2, h3, h4, h5, h6 {
   padding-bottom: 0.5rem;
   font-size: 2rem;
   font-family: var(--font-display);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .markdown-body h2 {
@@ -494,6 +505,20 @@ h1, h2, h3, h4, h5, h6 {
   --glow-accent: 0 0 40px rgba(0, 184, 110, 0.1);
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
 
+  /* Overlay elevation — light (WI-1165): softer, lower-alpha on white */
+  --shadow-overlay:    0 16px 48px rgba(0, 0, 0, 0.14);
+  --shadow-popover:    0 8px 28px rgba(0, 0, 0, 0.10);
+  --shadow-overlay-up: 0 -12px 36px rgba(0, 0, 0, 0.12);
+
+  /* Tint channels + danger-hover — light (WI-1165): the dark :root declares
+     --fg-2-rgb / --fg-3-rgb / --danger-hover, but without light values the
+     rgba() text tints and the kill-bar press-darken kept dark-mode colours on
+     a white bg. Mirror the light --text-secondary / --text-tertiary / a darker
+     danger so beta light mode reads correctly. */
+  --fg-2-rgb:    82, 82, 91;    /* light --text-secondary #52525B */
+  --fg-3-rgb:    161, 161, 170; /* light --text-tertiary  #A1A1AA */
+  --danger-hover: #B91C1C;      /* darker red for press feedback on light bg */
+
   /* ── Brand channel — AAA-on-white (light is export/beta only, law #6) ── */
   --quarn:     #00B86E;
   --quarn-rgb: 0, 184, 110;
@@ -533,7 +558,5 @@ h1, h2, h3, h4, h5, h6 {
   background-clip: text;
 }
 
-[data-theme="light"] .markdown-body h1 {
-  color: #18181B;
-  border-bottom-color: #D4D4D8;
-}
+/* .markdown-body h1 light override removed (WI-1165) — the base rule now uses
+   var(--text-primary) + var(--border), both theme-aware, so it self-corrects. */
