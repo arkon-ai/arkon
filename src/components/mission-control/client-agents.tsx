@@ -62,7 +62,7 @@ export function ClientAgents() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">My Agents</h1>
+        <h1 className="t-h2 text-white">My Agents</h1>
         <span className="rounded-full bg-[var(--bg-surface-2)] px-3 py-1 text-xs text-[var(--text-secondary)]">{agents.length} total</span>
       </div>
 

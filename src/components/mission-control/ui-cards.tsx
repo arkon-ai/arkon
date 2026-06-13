@@ -180,7 +180,7 @@ export function PageHeader({
       ) : null}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="inline-flex items-baseline gap-2 text-[28px] font-semibold leading-tight tracking-normal text-[var(--text-primary)] sm:text-4xl">
+          <h1 className="t-h2 inline-flex items-baseline gap-2 text-[var(--text-primary)]">
             {title}
           </h1>
           {subtitle ? (

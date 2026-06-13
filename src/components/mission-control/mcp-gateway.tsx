@@ -96,7 +96,7 @@ export function McpGateway() {
       </SectionDescription>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">MCP Gateway</h1>
+          <h1 className="t-h2 text-white">MCP Gateway</h1>
           <p className="text-sm text-[var(--text-tertiary)]">Proxy traffic between AI clients and MCP servers</p>
         </div>
         <div className="flex gap-2">

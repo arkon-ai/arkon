@@ -462,7 +462,7 @@ function SeverityCards({ data }: { data: SeverityCount[] }) {
               <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: config.color }}>
                 {config.label}
               </p>
-              <p className="mt-2 text-2xl font-bold text-text">
+              <p className="mt-2 t-metric text-text">
                 <StatCountUp value={counts[level]} />
               </p>
             </div>

@@ -47,7 +47,7 @@ export function ClientCosts() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">Costs</h1>
+        <h1 className="t-h2 text-white">Costs</h1>
         <div className="flex gap-1 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] p-1">
           {ranges.map((r) => (
             <button
@@ -67,15 +67,15 @@ export function ClientCosts() {
       <div className="grid grid-cols-3 gap-4">
         <div className="relative card-hover rounded-2xl border border-amber-500/20 bg-[var(--bg-primary)] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Total Cost</p>
-          <p className="mt-1 text-2xl font-bold text-amber-400">${data.summary.total_cost_usd.toFixed(4)}</p>
+          <p className="mt-1 t-metric text-amber-400">${data.summary.total_cost_usd.toFixed(4)}</p>
         </div>
         <div className="relative card-hover rounded-2xl border border-[var(--accent)]/20 bg-[var(--bg-primary)] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Total Tokens</p>
-          <p className="mt-1 text-2xl font-bold text-[var(--accent)]">{data.summary.total_tokens.toLocaleString()}</p>
+          <p className="mt-1 t-metric text-[var(--accent)]">{data.summary.total_tokens.toLocaleString()}</p>
         </div>
         <div className="relative card-hover rounded-2xl border border-[var(--accent)]/20 bg-[var(--bg-primary)] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Active Agents</p>
-          <p className="mt-1 text-2xl font-bold text-[var(--accent)]">{data.summary.active_agents}</p>
+          <p className="mt-1 t-metric text-[var(--accent)]">{data.summary.active_agents}</p>
         </div>
       </div>
 

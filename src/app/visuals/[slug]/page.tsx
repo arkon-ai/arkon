@@ -33,7 +33,7 @@ export default async function VisualDetailPage({
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-text-dim">
           Visual Detail
         </p>
-        <h1 className="text-2xl font-bold tracking-tight text-text">{slug.replaceAll("-", " ")}</h1>
+        <h1 className="t-h2 text-text">{slug.replaceAll("-", " ")}</h1>
         <p className="mt-2 text-sm text-text-dim">
           Reference canvas rendered inside the PWA route.
         </p>

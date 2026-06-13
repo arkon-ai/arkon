@@ -76,7 +76,7 @@ export default function AddAgentPage() {
           Back to Agents
         </Link>
         <h1
-          className="text-2xl font-extrabold"
+          className="t-h2"
           style={{ color: "var(--text-primary)", fontFamily: "var(--font-display)" }}
         >
           Connect Agent

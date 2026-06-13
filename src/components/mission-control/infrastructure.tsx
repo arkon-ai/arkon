@@ -686,7 +686,7 @@ export function InfrastructureTopology() {
       {/* Header */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Infrastructure</h1>
+          <h1 className="t-h2 text-white">Infrastructure</h1>
           <p className="mt-1 text-sm text-[var(--text-tertiary)]">
             {onlineCount}/{totalCount} nodes online
             {degradedCount > 0 && <span className="text-[var(--warning)]"> {"\u00B7"} {degradedCount} degraded</span>}

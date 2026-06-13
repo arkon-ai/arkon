@@ -161,11 +161,26 @@ pre {
 }
 
 /* ═══════════════════════════════════════
-   Headings — Urbanist ExtraBold
+   Headings — the semantic type layer (h1–h4, .t-*, .t-metric) is owned by
+   @arkon-ai/ui (imported above). Arkon keeps the family fallback for h5/h6
+   (the kit styles only h1–h4) plus the restrained local scale override below.
 ═══════════════════════════════════════ */
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
+}
+
+/* ── Arkon restrained type scale (Brynn 2026-06-13) ──
+   Arkon runs a tighter scale than the shared-kit defaults, which read too
+   large in this dense command-center: metric values 22px (kit default 28px)
+   and bare body copy 14px (the kit's bare-<p> rule is 16px). Page titles use
+   .t-h2 (28px) at the component level rather than h1 (36px). Arkon-local only —
+   arkon-os / arkonhelm keep the 36px / 16px kit scale. */
+.t-metric {
+  font-size: 22px;
+}
+p {
+  font-size: var(--fs-body-sm);
 }
 
 /* ═══════════════════════════════════════

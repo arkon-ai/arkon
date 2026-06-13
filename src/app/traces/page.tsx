@@ -149,7 +149,7 @@ export default function TracesPage() {
             className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-5"
           >
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">{s.label}</p>
-            <p className="mt-1.5 font-mono text-2xl font-bold" style={{ color: s.color }}>{s.value}</p>
+            <p className="mt-1.5 t-metric" style={{ color: s.color }}>{s.value}</p>
           </motion.div>
         ))}
       </div>

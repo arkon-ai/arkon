@@ -80,7 +80,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
       className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-5"
     >
       <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-white">{value}</p>
+      <p className="mt-1 t-metric text-white">{value}</p>
       {sub && <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{sub}</p>}
     </motion.div>
   );
