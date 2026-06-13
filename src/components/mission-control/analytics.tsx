@@ -19,6 +19,7 @@ import { formatCompact, timeAgo, usePollingFetch } from "@/components/mission-co
 import { SectionDescription } from "@/components/mission-control/dashboard-clarity";
 import { formatDay } from "@/lib/time-format";
 import { Wrench } from "lucide-react";
+import { CHART, BRAND } from "@/lib/chart-colors";
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -98,9 +99,9 @@ interface AnalyticsData {
 /* ─── Helpers ───────────────────────────────────────────── */
 
 const CHANNEL_COLORS: Record<string, string> = {
-  discord: "#5865F2",
-  telegram: "#0088cc",
-  whatsapp: "#25D366",
+  discord: BRAND.discord,
+  telegram: BRAND.telegram,
+  whatsapp: BRAND.whatsapp,
   unknown: "var(--fg-2)",
 };
 
@@ -109,7 +110,7 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
   message_sent: "var(--quarn)",
   tool_call: "var(--warning)",
   error: "var(--danger)",
-  cron: "#3b82f6",
+  cron: CHART.blue,
   system: "var(--fg-2)",
   note: "var(--fg-2)",
 };
@@ -144,7 +145,7 @@ function SummaryCards({ totals, sessionStats }: { totals: AnalyticsData["totals"
   const stats = [
     { label: "Total Events", value: totals.total_events, color: "var(--quarn)" },
     { label: "Active Agents", value: totals.active_agents, color: "var(--quarn)" },
-    { label: "Sessions", value: totals.unique_sessions, color: "#3b82f6" },
+    { label: "Sessions", value: totals.unique_sessions, color: CHART.blue },
     { label: "Tokens Used", value: Number(totals.total_tokens), color: "var(--warning)", format: true },
   ];
 

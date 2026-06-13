@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, Filter, Plus, Search, X } from "lucide-react";
+import { CHART } from "@/lib/chart-colors";
 
 type AgentSlug = string;
 
@@ -27,23 +28,23 @@ interface JournalEntry {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  task: "#3b82f6",
-  log: "#64748b",
-  decision: "#a855f7",
+  task: CHART.blue,
+  log: CHART.slate,
+  decision: CHART.teal,
   insight: "var(--success)",
-  question: "#eab308",
+  question: CHART.amber,
   blocker: "var(--danger)",
   ship: "var(--quarn)",
-  note: "#94a3b8",
+  note: CHART.slate,
 };
 
 const STATUS_STYLES: Record<string, { bg: string; color: string }> = {
-  todo: { bg: "#1e293b", color: "#93c5fd" },
-  in_progress: { bg: "#422006", color: "#fbbf24" },
-  done: { bg: "#052e16", color: "#4ade80" },
-  blocked: { bg: "#3f0d0d", color: "#fca5a5" },
-  cancelled: { bg: "#1f2937", color: "#9ca3af" },
-  log: { bg: "#0f172a", color: "#64748b" },
+  todo: { bg: "rgba(var(--info-rgb),0.12)", color: "var(--info)" },
+  in_progress: { bg: "rgba(var(--warning-rgb),0.12)", color: "var(--warning)" },
+  done: { bg: "rgba(var(--success-rgb),0.12)", color: "var(--success)" },
+  blocked: { bg: "rgba(var(--danger-rgb),0.12)", color: "var(--danger)" },
+  cancelled: { bg: "rgba(var(--fg-2-rgb),0.12)", color: "var(--text-tertiary)" },
+  log: { bg: "rgba(var(--fg-2-rgb),0.12)", color: "var(--text-tertiary)" },
 };
 
 async function fetchEntries(params: Record<string, string | undefined>): Promise<JournalEntry[]> {
@@ -281,7 +282,7 @@ function FeedView({ entries }: { entries: JournalEntry[] }) {
 }
 
 function EntryRow({ entry }: { entry: JournalEntry }) {
-  const catColor = CATEGORY_COLORS[entry.category] ?? "#64748b";
+  const catColor = CATEGORY_COLORS[entry.category] ?? CHART.slate;
   const statusStyle = STATUS_STYLES[entry.status] ?? STATUS_STYLES.log;
   return (
     <div className="flex items-start gap-3 rounded-md border border-[var(--border)] bg-[var(--bg-surface)]/40 px-4 py-3 hover:border-[var(--border-hover)]">
