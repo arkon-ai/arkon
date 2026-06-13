@@ -313,7 +313,7 @@ export function MetricCard({
       </div>
       <p
         className={cn(
-          "mt-2 font-mono text-[length:var(--fs-metric)] font-medium leading-none tracking-normal text-[var(--text-primary)]",
+          "mt-2 font-mono text-[length:var(--fs-metric)] font-medium leading-none tracking-normal tabular-nums text-[var(--text-primary)]",
           variant === "warn" && "text-[var(--warning)]",
           variant === "bad" && "text-[var(--danger)]",
         )}
@@ -376,7 +376,7 @@ export function PulseStrip({
             <div className="mt-2 flex items-baseline gap-2">
               <span
                 className={cn(
-                  "font-mono text-[length:var(--fs-metric)] font-medium leading-none tracking-normal text-[var(--text-primary)]",
+                  "font-mono text-[length:var(--fs-metric)] font-medium leading-none tracking-normal tabular-nums text-[var(--text-primary)]",
                   cell.tint === "warn" && "text-[var(--warning)]",
                   cell.tint === "bad" && "text-[var(--danger)]",
                 )}
