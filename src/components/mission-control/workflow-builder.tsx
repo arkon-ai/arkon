@@ -87,7 +87,7 @@ function ManualTriggerNode({ data, selected }: NodeProps) {
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Trigger</span>
       </div>
-      <div className="text-sm text-white font-medium">{d.label || "Manual Trigger"}</div>
+      <div className="text-sm text-[var(--text-primary)] font-medium">{d.label || "Manual Trigger"}</div>
       <Handle type="source" position={Position.Bottom} className="!bg-[var(--accent)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
     </div>
   );
@@ -109,7 +109,7 @@ function CronTriggerNode({ data, selected }: NodeProps) {
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Cron Trigger</span>
       </div>
-      <div className="text-sm text-white font-medium">{d.label || "Cron Trigger"}</div>
+      <div className="text-sm text-[var(--text-primary)] font-medium">{d.label || "Cron Trigger"}</div>
       {d.cron_expression && (
         <div className="text-[11px] text-[var(--text-secondary)] mt-1 font-mono">{d.cron_expression}</div>
       )}
@@ -140,7 +140,7 @@ function HttpRequestNode({ data, selected }: NodeProps) {
           </span>
         )}
       </div>
-      <div className="text-sm text-white font-medium">{d.label || "HTTP Request"}</div>
+      <div className="text-sm text-[var(--text-primary)] font-medium">{d.label || "HTTP Request"}</div>
       {d.url && <div className="text-[11px] text-[var(--text-secondary)] mt-1 truncate max-w-[220px]">{d.url}</div>}
       <Handle type="source" position={Position.Bottom} className="!bg-[var(--info)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
     </div>
@@ -164,7 +164,7 @@ function ConditionNode({ data, selected }: NodeProps) {
         <span style={{ color: s.accent }}>{s.icon}</span>
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: s.accent }}>Condition</span>
       </div>
-      <div className="text-sm text-white font-medium">{d.label || "If / Else"}</div>
+      <div className="text-sm text-[var(--text-primary)] font-medium">{d.label || "If / Else"}</div>
       {d.field && (
         <div className="text-[11px] text-[var(--text-secondary)] mt-1">
           {d.field} {d.operator} {d.value}
@@ -202,7 +202,7 @@ function NotifyNode({ data, selected }: NodeProps) {
           </span>
         )}
       </div>
-      <div className="text-sm text-white font-medium">{d.label || "Notify"}</div>
+      <div className="text-sm text-[var(--text-primary)] font-medium">{d.label || "Notify"}</div>
       {d.message && <div className="text-[11px] text-[var(--text-secondary)] mt-1 truncate max-w-[200px]">{d.message}</div>}
       <Handle type="source" position={Position.Bottom} className="!bg-[var(--accent)] !w-3 !h-3 !border-2 !border-[var(--border)]" />
     </div>
