@@ -119,7 +119,7 @@ export function ClientShell({ children }: { children: ReactNode }) {
         <button
           type="button"
           onClick={handleLogout}
-          className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[var(--text-secondary)] transition hover:bg-red-500/[0.06] hover:text-red-400"
+          className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[var(--text-secondary)] transition hover:bg-danger/[0.06] hover:text-danger"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           <span>Sign Out</span>

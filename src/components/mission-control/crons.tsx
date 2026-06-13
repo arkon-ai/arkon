@@ -57,9 +57,9 @@ function fmtRelative(iso: string | null): string {
 }
 
 function statusColour(status: string | null, errors: number): string {
-  if (errors >= 3) return "text-red-400";
+  if (errors >= 3) return "text-danger";
   if (status === "ok" || status === "success") return "text-[var(--accent)]";
-  if (status === "error") return "text-red-400";
+  if (status === "error") return "text-danger";
   if (status === "running") return "text-[var(--warning)] animate-pulse";
   return "text-[var(--text-secondary)]";
 }
@@ -169,7 +169,7 @@ function CronCard({ job, onMessage, onAction }: {
               {job.enabled ? "● ACTIVE" : "○ DISABLED"}
             </span>
             {job.consecutive_errors >= 3 && (
-              <span className="rounded-full bg-red-900/30 px-2 py-0.5 text-[10px] font-bold text-red-400">
+              <span className="rounded-full bg-danger/30 px-2 py-0.5 text-[10px] font-bold text-danger">
                 {job.consecutive_errors} ERRORS
               </span>
             )}
@@ -216,7 +216,7 @@ function CronCard({ job, onMessage, onAction }: {
 
       {/* Error */}
       {job.last_error && (
-        <div className="mt-2 rounded-xl border border-red-500/20 bg-[rgba(var(--danger-rgb),0.05)] px-3 py-2 text-xs text-red-400">
+        <div className="mt-2 rounded-xl border border-danger/20 bg-[rgba(var(--danger-rgb),0.05)] px-3 py-2 text-xs text-danger">
           Warning: {job.last_error}
         </div>
       )}
@@ -247,7 +247,7 @@ function CronCard({ job, onMessage, onAction }: {
               {job.enabled ? (
                 <button
                   onClick={() => onAction("disable")}
-                  className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-amber-400 hover:border-amber-500/30 transition"
+                  className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-warning hover:border-warning/30 transition"
                 >
                   Disable
                 </button>
@@ -261,7 +261,7 @@ function CronCard({ job, onMessage, onAction }: {
               )}
               <button
                 onClick={() => onAction("delete")}
-                className="rounded-xl border border-red-500/20 px-3 py-1.5 text-xs text-red-400 hover:bg-[rgba(var(--danger-rgb),0.08)] transition"
+                className="rounded-xl border border-danger/20 px-3 py-1.5 text-xs text-danger hover:bg-[rgba(var(--danger-rgb),0.08)] transition"
               >
                 Delete
               </button>
@@ -364,7 +364,7 @@ export function CronManager() {
                 onClick={() => setFilter(key as typeof filter)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   filter === key
-                    ? danger ? "bg-red-500/20 text-red-400" : "bg-[var(--accent)] text-[var(--accent-foreground)]"
+                    ? danger ? "bg-danger/20 text-danger" : "bg-[var(--accent)] text-[var(--accent-foreground)]"
                     : "border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >

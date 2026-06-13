@@ -103,8 +103,8 @@ export function BenchmarksDashboard() {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-6">
-        <p className="text-red-400">Failed to load benchmarks: {error}</p>
+      <div className="rounded-2xl border border-danger/30 bg-danger/5 p-6">
+        <p className="text-danger">Failed to load benchmarks: {error}</p>
       </div>
     );
   }
@@ -272,7 +272,7 @@ function OverviewTab({ data }: { data: OverviewData }) {
                   <span>{fmtK(r.total_tokens)} tok</span>
                   <span>{fmt$(Number(r.cost_usd))}</span>
                   {r.quality_score != null && (
-                    <span className={Number(r.quality_score) >= 7 ? "text-[var(--accent)]" : Number(r.quality_score) >= 4 ? "text-amber-400" : "text-red-400"}>
+                    <span className={Number(r.quality_score) >= 7 ? "text-[var(--accent)]" : Number(r.quality_score) >= 4 ? "text-warning" : "text-danger"}>
                       Q{Number(r.quality_score).toFixed(1)}
                     </span>
                   )}
@@ -336,7 +336,7 @@ function CompareTab({ models }: { models: ModelBreakdown[] }) {
               <MetricBar label="Avg Tokens" value={m.avg_tokens} max={maxTokens} format={fmtK} color={C.teal} />
               <div className="flex justify-between pt-2 border-t border-[var(--border)]">
                 <span className="text-[var(--text-tertiary)]">Quality</span>
-                <span className={Number(m.avg_quality) >= 7 ? "text-[var(--accent)]" : Number(m.avg_quality) >= 4 ? "text-amber-400" : "text-red-400"}>
+                <span className={Number(m.avg_quality) >= 7 ? "text-[var(--accent)]" : Number(m.avg_quality) >= 4 ? "text-warning" : "text-danger"}>
                   {Number(m.avg_quality).toFixed(1)}/10
                 </span>
               </div>

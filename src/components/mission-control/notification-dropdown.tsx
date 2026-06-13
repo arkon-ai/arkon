@@ -178,7 +178,7 @@ export function NotificationDropdown() {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 ? (
-          <span className="absolute right-1 top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+          <span className="absolute right-1 top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         ) : null}
@@ -191,7 +191,7 @@ export function NotificationDropdown() {
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
               Notifications
               {unreadCount > 0 ? (
-                <span className="ml-2 rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] font-bold text-red-400">
+                <span className="ml-2 rounded-full bg-danger/20 px-1.5 py-0.5 text-[10px] font-bold text-danger">
                   {unreadCount}
                 </span>
               ) : null}

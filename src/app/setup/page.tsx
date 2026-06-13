@@ -271,7 +271,7 @@ export default function SetupPage() {
         {/* Step content */}
         <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6">
           {error && (
-            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+            <div className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
               {error}
             </div>
           )}

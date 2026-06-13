@@ -570,7 +570,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setQuickKillOpen(true)}
             title="Kill switch"
-            className="flex min-h-9 w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] transition hover:bg-red-500/[0.06] hover:text-[var(--text-primary)]"
+            className="flex min-h-9 w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] transition hover:bg-danger/[0.06] hover:text-[var(--text-primary)]"
           >
             <OctagonX className="h-4 w-4 shrink-0 text-[var(--danger)]" />
             {!sidebarCollapsed ? (
@@ -613,7 +613,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
           <button
             type="button"
             onClick={handleLogout}
-            className="flex min-h-9 w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] transition hover:bg-red-500/[0.06] hover:text-red-400"
+            className="flex min-h-9 w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] transition hover:bg-danger/[0.06] hover:text-danger"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             {!sidebarCollapsed && <span>Sign Out</span>}

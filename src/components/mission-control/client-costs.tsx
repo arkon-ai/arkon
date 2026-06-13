@@ -39,7 +39,7 @@ export function ClientCosts() {
   }, [range]);
 
   if (loading && !data) return <div className="text-center text-[var(--text-tertiary)] py-20"><p className="animate-pulse">Loading costs...</p></div>;
-  if (error) return <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center"><p className="text-red-400">{error}</p></div>;
+  if (error) return <div className="rounded-2xl border border-danger/30 bg-danger/10 p-6 text-center"><p className="text-danger">{error}</p></div>;
   if (!data) return null;
 
   const maxCost = Math.max(...data.daily_trend.map((d) => d.cost), 0.001);
@@ -65,9 +65,9 @@ export function ClientCosts() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="relative card-hover rounded-2xl border border-amber-500/20 bg-[var(--bg-primary)] p-4">
+        <div className="relative card-hover rounded-2xl border border-warning/20 bg-[var(--bg-primary)] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Total Cost</p>
-          <p className="mt-1 t-metric text-amber-400">${data.summary.total_cost_usd.toFixed(4)}</p>
+          <p className="mt-1 t-metric text-warning">${data.summary.total_cost_usd.toFixed(4)}</p>
         </div>
         <div className="relative card-hover rounded-2xl border border-[var(--accent)]/20 bg-[var(--bg-primary)] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Total Tokens</p>
@@ -122,7 +122,7 @@ export function ClientCosts() {
                   <p className="text-sm font-medium text-white">{a.agent_name || a.agent_id}</p>
                   <p className="text-xs text-[var(--text-tertiary)]">{a.tokens.toLocaleString()} tokens</p>
                 </div>
-                <p className="text-sm font-bold text-amber-400">${a.cost.toFixed(4)}</p>
+                <p className="text-sm font-bold text-warning">${a.cost.toFixed(4)}</p>
               </div>
             ))}
           </div>
@@ -147,7 +147,7 @@ export function ClientCosts() {
                         <span>{dailyPct.toFixed(0)}%</span>
                       </div>
                       <div className="mt-1 h-1.5 rounded-full bg-[var(--bg-surface-2)]">
-                        <div className={`h-full rounded-full transition-all ${dailyPct > 80 ? "bg-red-500" : dailyPct > 50 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${Math.min(dailyPct, 100)}%` }} />
+                        <div className={`h-full rounded-full transition-all ${dailyPct > 80 ? "bg-danger" : dailyPct > 50 ? "bg-warning" : "bg-success"}`} style={{ width: `${Math.min(dailyPct, 100)}%` }} />
                       </div>
                     </div>
                   ) : null}
@@ -158,7 +158,7 @@ export function ClientCosts() {
                         <span>{monthPct.toFixed(0)}%</span>
                       </div>
                       <div className="mt-1 h-1.5 rounded-full bg-[var(--bg-surface-2)]">
-                        <div className={`h-full rounded-full transition-all ${monthPct > 80 ? "bg-red-500" : monthPct > 50 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${Math.min(monthPct, 100)}%` }} />
+                        <div className={`h-full rounded-full transition-all ${monthPct > 80 ? "bg-danger" : monthPct > 50 ? "bg-warning" : "bg-success"}`} style={{ width: `${Math.min(monthPct, 100)}%` }} />
                       </div>
                     </div>
                   ) : null}

@@ -171,16 +171,16 @@ export function McpGateway() {
 
       {/* Recent errors */}
       {stats && stats.recent_errors.length > 0 ? (
-        <div className="relative card-hover rounded-2xl border border-red-500/20 bg-[var(--bg-primary)] p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-red-400">Recent Errors</h2>
+        <div className="relative card-hover rounded-2xl border border-danger/20 bg-[var(--bg-primary)] p-5">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-danger">Recent Errors</h2>
           <div className="space-y-2">
             {stats.recent_errors.map((e, i) => (
-              <div key={i} className="rounded-xl bg-red-500/5 border border-red-500/10 px-4 py-3">
+              <div key={i} className="rounded-xl bg-danger/5 border border-danger/10 px-4 py-3">
                 <div className="flex justify-between">
-                  <p className="text-sm text-white">{e.server_name} &middot; <span className="text-red-400">{e.status}</span></p>
+                  <p className="text-sm text-white">{e.server_name} &middot; <span className="text-danger">{e.status}</span></p>
                   <p className="text-xs text-[var(--text-tertiary)]">{new Date(e.created_at).toLocaleString()}</p>
                 </div>
-                {e.error ? <p className="mt-1 text-xs text-red-300/70 truncate">{e.error}</p> : null}
+                {e.error ? <p className="mt-1 text-xs text-danger/70 truncate">{e.error}</p> : null}
               </div>
             ))}
           </div>
@@ -238,8 +238,8 @@ export function McpGateway() {
 
 function StatCard({ label, value, accent }: { label: string; value: string | number; accent: string }) {
   const colors: Record<string, string> = {
-    emerald: "text-[var(--accent)]", amber: "text-amber-400",
-    red: "text-red-400", slate: "text-[var(--text-secondary)]",
+    emerald: "text-[var(--accent)]", amber: "text-warning",
+    red: "text-danger", slate: "text-[var(--text-secondary)]",
   };
   return (
     <div className="relative card-hover rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">

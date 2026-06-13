@@ -55,9 +55,9 @@ function timeAgo(dateStr: string | null): string {
 
 function StatusDot({ status }: { status: string }) {
   const color = status === "active" || status === "online"
-    ? "bg-emerald-400"
+    ? "bg-success"
     : status === "idle"
-    ? "bg-amber-400"
+    ? "bg-warning"
     : "bg-[var(--text-tertiary)]";
   return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />;
 }
@@ -99,8 +99,8 @@ export function ClientDashboard() {
 
   if (error || !data) {
     return (
-      <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center">
-        <p className="text-red-400">{error || "Unable to load dashboard"}</p>
+      <div className="rounded-2xl border border-danger/30 bg-danger/10 p-6 text-center">
+        <p className="text-danger">{error || "Unable to load dashboard"}</p>
       </div>
     );
   }

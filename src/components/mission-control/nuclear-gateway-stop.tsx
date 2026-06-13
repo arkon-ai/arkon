@@ -121,15 +121,15 @@ export function NuclearGatewayStopModal({
         tabIndex={-1}
         onKeyDown={(e) => { if (e.key === "Escape" && phase !== "executing") onClose(); }}
       />
-      <div className="relative w-full max-w-lg rounded-2xl border-2 border-amber-500/50 bg-[var(--bg-surface)] shadow-[0_20px_80px_rgba(var(--warning-rgb),0.2)]">
+      <div className="relative w-full max-w-lg rounded-2xl border-2 border-warning/50 bg-[var(--bg-surface)] shadow-[0_20px_80px_rgba(var(--warning-rgb),0.2)]">
         {/* Hazard header */}
-        <div className="flex items-center gap-3 border-b border-amber-500/30 bg-amber-500/5 px-6 py-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/15 ring-2 ring-amber-500/30">
-            <Power className="h-5 w-5 text-amber-400" />
+        <div className="flex items-center gap-3 border-b border-warning/30 bg-warning/5 px-6 py-4">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-warning/15 ring-2 ring-warning/30">
+            <Power className="h-5 w-5 text-warning" />
           </div>
           <div>
-            <h3 className="text-[15px] font-bold text-amber-200">Nuclear Gateway Stop</h3>
-            <p className="text-[12px] text-amber-400/70">OpenCLAW Emergency Shutdown</p>
+            <h3 className="text-[15px] font-bold text-warning">Nuclear Gateway Stop</h3>
+            <p className="text-[12px] text-warning/70">OpenCLAW Emergency Shutdown</p>
           </div>
         </div>
 
@@ -137,15 +137,15 @@ export function NuclearGatewayStopModal({
           {/* Preflight loading */}
           {phase === "preflight" && !error && (
             <div className="flex items-center justify-center gap-3 py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
+              <Loader2 className="h-5 w-5 animate-spin text-warning" />
               <span className="text-[13px] text-[var(--text-secondary)]">Probing gateway status...</span>
             </div>
           )}
 
           {/* Error state */}
           {error && phase !== "result" && (
-            <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/5 p-3">
-              <p className="text-[13px] text-red-300">{error}</p>
+            <div className="mb-4 rounded-xl border border-danger/30 bg-danger/5 p-3">
+              <p className="text-[13px] text-danger">{error}</p>
             </div>
           )}
 
@@ -153,10 +153,10 @@ export function NuclearGatewayStopModal({
           {phase === "confirm" && status && (
             <>
               {/* Gateway info card */}
-              <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+              <div className="mb-4 rounded-xl border border-warning/20 bg-warning/5 p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Shield className="h-4 w-4 text-amber-400" />
-                  <span className="text-[13px] font-semibold text-amber-200">Target Gateway</span>
+                  <Shield className="h-4 w-4 text-warning" />
+                  <span className="text-[13px] font-semibold text-warning">Target Gateway</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[12px]">
                   <div>
@@ -165,7 +165,7 @@ export function NuclearGatewayStopModal({
                   </div>
                   <div>
                     <span className="text-[var(--text-tertiary)]">Status:</span>{" "}
-                    <span className={status.gateway_status === "online" ? "text-emerald-400" : "text-red-400"}>
+                    <span className={status.gateway_status === "online" ? "text-success" : "text-danger"}>
                       {status.gateway_status}
                     </span>
                   </div>
@@ -175,7 +175,7 @@ export function NuclearGatewayStopModal({
                   </div>
                   <div>
                     <span className="text-[var(--text-tertiary)]">Running:</span>{" "}
-                    <span className="font-semibold text-red-300">{status.running_sessions ?? "?"}</span>
+                    <span className="font-semibold text-danger">{status.running_sessions ?? "?"}</span>
                   </div>
                   <div>
                     <span className="text-[var(--text-tertiary)]">Agents:</span>{" "}
@@ -189,7 +189,7 @@ export function NuclearGatewayStopModal({
                         key={a.id}
                         className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
                           a.is_default
-                            ? "bg-amber-500/15 text-amber-300"
+                            ? "bg-warning/15 text-warning"
                             : "bg-white/5 text-[var(--text-tertiary)]"
                         }`}
                       >
@@ -201,10 +201,10 @@ export function NuclearGatewayStopModal({
               </div>
 
               {/* Warning box */}
-              <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/5 p-3">
+              <div className="mb-4 rounded-xl border border-danger/30 bg-danger/5 p-3">
                 <div className="flex gap-2">
-                  <AlertTriangle className="h-4 w-4 shrink-0 text-red-400 mt-0.5" />
-                  <div className="text-[12px] text-red-300/90 space-y-1">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-danger mt-0.5" />
+                  <div className="text-[12px] text-danger/90 space-y-1">
                     <p className="font-semibold">This will IMMEDIATELY:</p>
                     <ul className="list-disc pl-4 space-y-0.5">
                       <li>Stop the entire OpenCLAW gateway service</li>
@@ -212,7 +212,7 @@ export function NuclearGatewayStopModal({
                       <li>Take ALL agents offline ({status.agent_count ?? "?"} registered)</li>
                       <li>Disconnect all channels (Telegram, Discord, Slack)</li>
                     </ul>
-                    <p className="mt-2 font-semibold text-amber-300">Manual restart required after this action.</p>
+                    <p className="mt-2 font-semibold text-warning">Manual restart required after this action.</p>
                   </div>
                 </div>
               </div>
@@ -228,13 +228,13 @@ export function NuclearGatewayStopModal({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="e.g. Agent downloading unauthorized content"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-amber-500/40"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)] focus:border-warning/40"
                 />
               </div>
 
               {/* Double-confirmation */}
               <div className="mb-4">
-                <label htmlFor="nuclear-confirm" className="mb-1.5 block text-[11px] font-bold text-amber-300">
+                <label htmlFor="nuclear-confirm" className="mb-1.5 block text-[11px] font-bold text-warning">
                   Type STOP to confirm nuclear shutdown
                 </label>
                 <input
@@ -245,7 +245,7 @@ export function NuclearGatewayStopModal({
                   onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
                   onKeyDown={(e) => { if (e.key === "Enter" && confirmText === "STOP") handleExecute(); }}
                   placeholder="STOP"
-                  className="w-full rounded-xl border-2 border-amber-500/30 bg-[var(--bg-primary)] px-3 py-2.5 font-mono text-[15px] font-bold tracking-[0.3em] text-amber-200 outline-none placeholder:text-[var(--text-tertiary)] placeholder:tracking-[0.3em] focus:border-amber-500/60"
+                  className="w-full rounded-xl border-2 border-warning/30 bg-[var(--bg-primary)] px-3 py-2.5 font-mono text-[15px] font-bold tracking-[0.3em] text-warning outline-none placeholder:text-[var(--text-tertiary)] placeholder:tracking-[0.3em] focus:border-warning/60"
                   autoComplete="off"
                   spellCheck={false}
                 />
@@ -264,7 +264,7 @@ export function NuclearGatewayStopModal({
                   type="button"
                   onClick={handleExecute}
                   disabled={confirmText !== "STOP"}
-                  className="flex items-center gap-2 rounded-xl border-2 border-amber-500/50 bg-amber-600/20 px-5 py-2.5 text-[13px] font-bold text-amber-200 transition hover:bg-amber-600/35 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 rounded-xl border-2 border-warning/50 bg-warning/20 px-5 py-2.5 text-[13px] font-bold text-warning transition hover:bg-warning/35 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <Power className="h-4 w-4" />
                   Nuclear Stop
@@ -277,11 +277,11 @@ export function NuclearGatewayStopModal({
           {phase === "executing" && (
             <div className="flex flex-col items-center justify-center gap-4 py-10">
               <div className="relative">
-                <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
-                <span className="absolute inset-0 animate-ping rounded-full border-2 border-amber-500/30" />
+                <Loader2 className="h-8 w-8 animate-spin text-warning" />
+                <span className="absolute inset-0 animate-ping rounded-full border-2 border-warning/30" />
               </div>
               <div className="text-center">
-                <p className="text-[14px] font-semibold text-amber-200">Executing Nuclear Stop...</p>
+                <p className="text-[14px] font-semibold text-warning">Executing Nuclear Stop...</p>
                 <p className="mt-1 text-[12px] text-[var(--text-tertiary)]">Stopping gateway and verifying shutdown</p>
               </div>
             </div>
@@ -292,18 +292,18 @@ export function NuclearGatewayStopModal({
             <>
               <div className={`mb-4 rounded-xl border p-4 ${
                 result.ok && result.verified_down
-                  ? "border-emerald-500/30 bg-emerald-500/5"
+                  ? "border-success/30 bg-success/5"
                   : result.ok
-                  ? "border-amber-500/30 bg-amber-500/5"
-                  : "border-red-500/30 bg-red-500/5"
+                  ? "border-warning/30 bg-warning/5"
+                  : "border-danger/30 bg-danger/5"
               }`}>
                 <div className="flex items-center gap-2 mb-2">
                   {result.ok && result.verified_down ? (
-                    <span className="text-[14px] font-bold text-emerald-300">Gateway Stopped & Verified Down</span>
+                    <span className="text-[14px] font-bold text-success">Gateway Stopped & Verified Down</span>
                   ) : result.ok ? (
-                    <span className="text-[14px] font-bold text-amber-300">Stop Sent — Verification Inconclusive</span>
+                    <span className="text-[14px] font-bold text-warning">Stop Sent — Verification Inconclusive</span>
                   ) : (
-                    <span className="text-[14px] font-bold text-red-300">Nuclear Stop Failed</span>
+                    <span className="text-[14px] font-bold text-danger">Nuclear Stop Failed</span>
                   )}
                 </div>
                 <div className="space-y-1 text-[12px] text-[var(--text-secondary)]">
@@ -374,16 +374,16 @@ export function RestartGatewayButton({ gatewayHost }: { gatewayHost?: string }) 
   }, []);
 
   return (
-    <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+    <div className="mb-4 rounded-xl border border-success/20 bg-success/5 p-3">
       {state === "idle" && (
         <>
           <p className="mb-2 text-[12px] text-[var(--text-secondary)]">
-            Gateway {gatewayHost ? <code className="font-mono text-amber-300">{gatewayHost}</code> : ""} is stopped.
+            Gateway {gatewayHost ? <code className="font-mono text-warning">{gatewayHost}</code> : ""} is stopped.
           </p>
           <button
             type="button"
             onClick={handleRestart}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-600/15 py-2.5 text-[13px] font-semibold text-emerald-200 transition hover:bg-emerald-600/25"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-success/40 bg-success/15 py-2.5 text-[13px] font-semibold text-success transition hover:bg-success/25"
           >
             <RotateCcw className="h-4 w-4" />
             Restart Gateway
@@ -393,28 +393,28 @@ export function RestartGatewayButton({ gatewayHost }: { gatewayHost?: string }) 
 
       {state === "restarting" && (
         <div className="flex items-center justify-center gap-3 py-2">
-          <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
-          <span className="text-[13px] text-emerald-300">Restarting gateway...</span>
+          <Loader2 className="h-4 w-4 animate-spin text-success" />
+          <span className="text-[13px] text-success">Restarting gateway...</span>
         </div>
       )}
 
       {state === "success" && (
         <div className="flex items-center gap-2 py-1">
           <div className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
           </div>
-          <span className="text-[13px] font-semibold text-emerald-300">{detail}</span>
+          <span className="text-[13px] font-semibold text-success">{detail}</span>
         </div>
       )}
 
       {state === "error" && (
         <>
-          <p className="mb-2 text-[12px] text-red-300">{detail}</p>
+          <p className="mb-2 text-[12px] text-danger">{detail}</p>
           <button
             type="button"
             onClick={handleRestart}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-600/10 py-2 text-[12px] font-semibold text-red-200 transition hover:bg-red-600/20"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-danger/30 bg-danger/10 py-2 text-[12px] font-semibold text-danger transition hover:bg-danger/20"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             Retry
