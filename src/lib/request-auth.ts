@@ -1,5 +1,6 @@
-import { createHash, timingSafeEqual } from "crypto";
+import { timingSafeEqual } from "crypto";
 import { type NextRequest } from "next/server";
+import { hashToken } from "@/lib/auth-utils";
 import { query } from "@/lib/db";
 
 export type RequestCredentialType = "user_session" | "owner_token" | "api_key" | "agent_token";
@@ -22,10 +23,6 @@ function constantTimeEqual(a: string, b: string): boolean {
   } catch {
     return false;
   }
-}
-
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
 }
 
 export function extractBearerToken(req: NextRequest): string | null {

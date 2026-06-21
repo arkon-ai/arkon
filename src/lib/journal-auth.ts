@@ -8,7 +8,7 @@
  * Each token grants the bearer authority to act AS that agent slug. The DB
  * table `agent_identities` determines their role (governor | agent).
  */
-import { createHash } from "crypto";
+import { hashToken } from "@/lib/auth-utils";
 import { query } from "@/lib/db";
 
 export type AgentRole = "governor" | "agent";
@@ -17,10 +17,6 @@ export interface JournalActor {
   slug: string;
   role: AgentRole;
   tenantId: string;
-}
-
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
 }
 
 function parseJournalTokens(): Map<string, string> {
