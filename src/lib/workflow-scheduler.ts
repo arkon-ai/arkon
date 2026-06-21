@@ -179,6 +179,20 @@ async function schedulerTick(): Promise<void> {
 
       if (!cronMatchesNow(parsed, now)) continue;
 
+      // Atomically claim this minute's fire. The UPDATE only succeeds for the
+      // instance that wins the race; others (a multi-instance deployment, or a
+      // startup tick + boundary tick landing in the same minute) get rowCount 0
+      // and skip — so each workflow fires at most once per minute without any
+      // external lock. (WI-1352 finding #7.)
+      const claim = await query(
+        `UPDATE workflows SET last_run_at = NOW()
+         WHERE id = $1 AND status = 'active'
+           AND (last_run_at IS NULL OR last_run_at < date_trunc('minute', NOW()))
+         RETURNING id`,
+        [wf.id]
+      );
+      if (claim.rowCount === 0) continue; // already claimed this minute
+
       // Fire this workflow
       activeRuns++;
       console.log(`[workflow-scheduler] Executing workflow ${wf.id} "${wf.name}" (cron: ${config.cron_expression})`);

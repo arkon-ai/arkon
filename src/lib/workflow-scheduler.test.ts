@@ -191,3 +191,55 @@ describe("startScheduler / stopScheduler", () => {
     expect(getSchedulerStatus().running).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// schedulerTick — per-minute claim dedup (WI-1352 finding #7)
+// ---------------------------------------------------------------------------
+
+describe("schedulerTick per-minute claim", () => {
+  const activeCronWorkflow = {
+    id: "wf-1",
+    name: "nightly",
+    definition: {},
+    status: "active",
+    trigger_type: "cron",
+    trigger_config: { cron_expression: "* * * * *" }, // matches every minute
+    tenant_id: "t1",
+  };
+
+  it("does NOT fire when the claim UPDATE affects 0 rows (minute already claimed)", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-26T10:00:30.000Z"));
+    const { runWorkflow } = await import("./workflow-engine");
+    vi.mocked(runWorkflow).mockClear();
+    vi.mocked(query).mockImplementation(async (sql: string) => {
+      if (String(sql).includes("FROM workflows")) return { rows: [activeCronWorkflow], rowCount: 1 } as never;
+      if (String(sql).includes("UPDATE workflows SET last_run_at")) return { rows: [], rowCount: 0 } as never;
+      return { rows: [], rowCount: 0 } as never;
+    });
+
+    startScheduler(); // first tick runs synchronously
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(vi.mocked(runWorkflow)).not.toHaveBeenCalled();
+    stopScheduler();
+  });
+
+  it("fires exactly once when the claim UPDATE affects 1 row", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-26T10:00:30.000Z"));
+    const { runWorkflow } = await import("./workflow-engine");
+    vi.mocked(runWorkflow).mockClear();
+    vi.mocked(query).mockImplementation(async (sql: string) => {
+      if (String(sql).includes("FROM workflows")) return { rows: [activeCronWorkflow], rowCount: 1 } as never;
+      if (String(sql).includes("UPDATE workflows SET last_run_at")) return { rows: [{ id: "wf-1" }], rowCount: 1 } as never;
+      return { rows: [], rowCount: 0 } as never;
+    });
+
+    startScheduler();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(vi.mocked(runWorkflow)).toHaveBeenCalledTimes(1);
+    stopScheduler();
+  });
+});

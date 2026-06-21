@@ -1,6 +1,6 @@
 // src/app/api/compliance/purge/route.ts — GDPR data purge
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import pool, { query } from "@/lib/db";
 import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
 
 export async function POST(req: NextRequest) {
@@ -69,22 +69,34 @@ export async function POST(req: NextRequest) {
         results.agents = ids.length;
 
         if (!dryRun) {
-          // Delete in dependency order
-          await query(`DELETE FROM events WHERE agent_id IN (${placeholders})`, ids);
-          await query(`DELETE FROM sessions WHERE agent_id IN (${placeholders})`, ids);
-          await query(`DELETE FROM daily_stats WHERE agent_id IN (${placeholders})`, ids);
-          await query(`DELETE FROM benchmark_runs WHERE tenant_id = $1`, [body.scope_id]);
-          await query(`DELETE FROM audit_log WHERE tenant_id = $1`, [body.scope_id]);
-          await query(`DELETE FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]);
-          await query(`DELETE FROM workflows WHERE tenant_id = $1`, [body.scope_id]);
-          await query(`DELETE FROM agents WHERE tenant_id = $1`, [body.scope_id]);
-
-          // Log the purge itself
-          await query(
-            `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)
-             VALUES ('system', 'gdpr_purge', 'tenant', $1, $2, 'transformate')`,
-            [body.scope_id, JSON.stringify({ rows_deleted: results })]
-          );
+          // Single transaction so a mid-chain failure cannot leave a tenant
+          // partially purged (e.g. events gone but agents remaining) or with no
+          // audit record. All-or-nothing. (WI-1352 finding #8.)
+          const client = await pool.connect();
+          try {
+            await client.query("BEGIN");
+            // Delete in dependency order
+            await client.query(`DELETE FROM events WHERE agent_id IN (${placeholders})`, ids);
+            await client.query(`DELETE FROM sessions WHERE agent_id IN (${placeholders})`, ids);
+            await client.query(`DELETE FROM daily_stats WHERE agent_id IN (${placeholders})`, ids);
+            await client.query(`DELETE FROM benchmark_runs WHERE tenant_id = $1`, [body.scope_id]);
+            await client.query(`DELETE FROM audit_log WHERE tenant_id = $1`, [body.scope_id]);
+            await client.query(`DELETE FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]);
+            await client.query(`DELETE FROM workflows WHERE tenant_id = $1`, [body.scope_id]);
+            await client.query(`DELETE FROM agents WHERE tenant_id = $1`, [body.scope_id]);
+            // Log the purge itself (inside the txn — the audit row lands iff the purge commits)
+            await client.query(
+              `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)
+               VALUES ('system', 'gdpr_purge', 'tenant', $1, $2, 'transformate')`,
+              [body.scope_id, JSON.stringify({ rows_deleted: results })]
+            );
+            await client.query("COMMIT");
+          } catch (err) {
+            await client.query("ROLLBACK");
+            throw err;
+          } finally {
+            client.release();
+          }
         }
       }
     } else if (body.scope === "agent") {
@@ -109,17 +121,27 @@ export async function POST(req: NextRequest) {
       results.benchmark_runs = benchCount.rows[0]?.c ?? 0;
 
       if (!dryRun) {
-        await query(`DELETE FROM events WHERE agent_id = $1`, [body.scope_id]);
-        await query(`DELETE FROM sessions WHERE agent_id = $1`, [body.scope_id]);
-        await query(`DELETE FROM daily_stats WHERE agent_id = $1`, [body.scope_id]);
-        await query(`DELETE FROM benchmark_runs WHERE agent_id = $1`, [body.scope_id]);
-        await query(`DELETE FROM agents WHERE id = $1`, [body.scope_id]);
-
-        await query(
-          `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)
-           VALUES ('system', 'gdpr_purge', 'agent', $1, $2, 'transformate')`,
-          [body.scope_id, JSON.stringify({ rows_deleted: results })]
-        );
+        // Single transaction — atomic purge + consistent audit (WI-1352 finding #8).
+        const client = await pool.connect();
+        try {
+          await client.query("BEGIN");
+          await client.query(`DELETE FROM events WHERE agent_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM sessions WHERE agent_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM daily_stats WHERE agent_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM benchmark_runs WHERE agent_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM agents WHERE id = $1`, [body.scope_id]);
+          await client.query(
+            `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)
+             VALUES ('system', 'gdpr_purge', 'agent', $1, $2, 'transformate')`,
+            [body.scope_id, JSON.stringify({ rows_deleted: results })]
+          );
+          await client.query("COMMIT");
+        } catch (err) {
+          await client.query("ROLLBACK");
+          throw err;
+        } finally {
+          client.release();
+        }
       }
     }
 
