@@ -14,7 +14,24 @@ interface PricingEntry {
 
 let cache: Map<string, PricingEntry> = new Map();
 let lastRefresh = 0;
+let degraded = false; // true when the last refresh failed (serving a stale/empty cache)
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const FAILURE_BACKOFF_MS = 30 * 1000; // retry a failed/empty refresh after 30s, not every call
+
+/** True when the last refresh failed — cost estimates may be stale or fall back. */
+export function isPricingDegraded(): boolean {
+  return degraded;
+}
+
+/**
+ * Refresh is due when the cache is empty (cold or last refresh failed — retry on
+ * the short backoff, not on every call) or a populated cache has aged past TTL.
+ * (WI-1357 #19 — avoids hammering a failing query and serves the previous cache.)
+ */
+function shouldRefresh(): boolean {
+  const age = Date.now() - lastRefresh;
+  return cache.size === 0 ? age > FAILURE_BACKOFF_MS : age > CACHE_TTL_MS;
+}
 
 function cacheKey(provider: string, modelId: string): string {
   return `${provider}::${modelId}`;
@@ -48,21 +65,27 @@ async function refreshCache(): Promise<void> {
       }
     }
     cache = fresh;
-    lastRefresh = Date.now();
+    degraded = false;
   } catch (err) {
-    console.error("[pricing-cache] refresh failed:", err);
+    // Keep the previously-loaded cache (better than nothing) and mark degraded.
+    // lastRefresh still advances (finally) so we back off instead of re-hitting
+    // the failing query on every estimateCost call. (WI-1357 #19.)
+    console.error("[pricing-cache] refresh failed (serving previous cache):", err);
+    degraded = true;
+  } finally {
+    lastRefresh = Date.now();
   }
 }
 
 export async function getPricing(provider: string, modelId: string): Promise<PricingEntry | null> {
-  if (Date.now() - lastRefresh > CACHE_TTL_MS || cache.size === 0) {
+  if (shouldRefresh()) {
     await refreshCache();
   }
   return cache.get(cacheKey(provider, modelId)) || null;
 }
 
 export async function getAllPricing(): Promise<PricingEntry[]> {
-  if (Date.now() - lastRefresh > CACHE_TTL_MS || cache.size === 0) {
+  if (shouldRefresh()) {
     await refreshCache();
   }
   return Array.from(cache.values());
@@ -114,8 +137,14 @@ export async function estimateCost(
   }
 
   if (!pricing) {
-    // Fallback: assume Anthropic Sonnet rates
-    return (inTok / 1000) * 0.003 + (outTok / 1000) * 0.015;
+    // No pricing row (cold/degraded cache or unknown model). Only fall back to
+    // hardcoded Anthropic Sonnet rates for Anthropic — for other providers we do
+    // NOT fabricate a per-token charge (many are free/subscription and would be
+    // wrongly billed at Sonnet rates). (WI-1357 #19.)
+    if (provider === "anthropic") {
+      return (inTok / 1000) * 0.003 + (outTok / 1000) * 0.015;
+    }
+    return 0;
   }
 
   // Apply caching discount: cached input tokens cost less

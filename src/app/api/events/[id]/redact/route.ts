@@ -33,6 +33,11 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
   try {
     const { id } = await context.params;
+    // events.id is an integer column — reject a non-numeric id with 400 rather
+    // than letting Postgres throw "invalid input syntax for integer" → 500. (WI-1357 #18.)
+    if (!Number.isInteger(Number(id))) {
+      return NextResponse.json({ error: "Invalid event id" }, { status: 400 });
+    }
 
     // Fetch the event
     const eventResult = await query(
