@@ -180,7 +180,7 @@ async function collectServices(node: NodeConfig): Promise<Array<{ name: string; 
   // SSH-based port check — for services on remote nodes (checks locally on the remote host)
   const checkPortSSH = async (n: NodeConfig, port: number): Promise<boolean> => {
     if (!n.sshUser || !isValidPort(port)) return false;
-    const result = await runOnNode(n, `ss -tlnp 2>/dev/null | grep -q :${port} && echo UP || echo DOWN`);
+    const result = await runOnNode(n, `ss -tlnp 2>/dev/null | grep -q ":${port} " && echo UP || echo DOWN`);
     return result.trim() === "UP";
   };
 
