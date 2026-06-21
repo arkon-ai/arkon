@@ -118,7 +118,11 @@ export async function POST(req: NextRequest) {
       if (agentRow.rows.length === 0) {
         return NextResponse.json({ error: "Agent not found" }, { status: 404 });
       }
-      const agentTenantId = (agentRow.rows[0] as { tenant_id: string | null }).tenant_id ?? "transformate";
+      const agentTenantId = (agentRow.rows[0] as { tenant_id: string | null }).tenant_id ?? null;
+      // Keep the TRUE attribution (incl. orphan flag) in the audit detail; the
+      // audit tenant_id column falls back to the platform tenant only to stay
+      // FK-safe for an orphaned (NULL-tenant) agent. (CR #67.)
+      const auditTenant = agentTenantId ?? "transformate";
 
       const eventCount = await query(
         `SELECT COUNT(*)::int as c FROM events WHERE agent_id = $1`, [body.scope_id]
@@ -153,7 +157,7 @@ export async function POST(req: NextRequest) {
           await client.query(
             `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)
              VALUES ('system', 'gdpr_purge', 'agent', $1, $2, $3)`,
-            [body.scope_id, JSON.stringify({ scope: 'agent', scope_id: body.scope_id, tenant_id: agentTenantId, rows_deleted: results }), agentTenantId]
+            [body.scope_id, JSON.stringify({ scope: 'agent', scope_id: body.scope_id, agent_tenant_id: agentTenantId, orphan: agentTenantId === null, rows_deleted: results }), auditTenant]
           );
           await client.query("COMMIT");
         } catch (err) {
