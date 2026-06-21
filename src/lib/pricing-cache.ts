@@ -15,6 +15,7 @@ interface PricingEntry {
 let cache: Map<string, PricingEntry> = new Map();
 let lastRefresh = 0;
 let degraded = false; // true when the last refresh failed (serving a stale/empty cache)
+let refreshPromise: Promise<void> | null = null; // single-flight guard for concurrent refreshes
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const FAILURE_BACKOFF_MS = 30 * 1000; // retry a failed/empty refresh after 30s, not every call
 
@@ -31,6 +32,16 @@ export function isPricingDegraded(): boolean {
 function shouldRefresh(): boolean {
   const age = Date.now() - lastRefresh;
   return cache.size === 0 ? age > FAILURE_BACKOFF_MS : age > CACHE_TTL_MS;
+}
+
+// Single-flight: concurrent callers during expiry/cold-start share ONE refresh
+// instead of each firing a DB query. (CR #68 nitpick.)
+async function refreshIfDue(): Promise<void> {
+  if (!shouldRefresh()) return;
+  if (!refreshPromise) {
+    refreshPromise = refreshCache().finally(() => { refreshPromise = null; });
+  }
+  await refreshPromise;
 }
 
 function cacheKey(provider: string, modelId: string): string {
@@ -78,16 +89,12 @@ async function refreshCache(): Promise<void> {
 }
 
 export async function getPricing(provider: string, modelId: string): Promise<PricingEntry | null> {
-  if (shouldRefresh()) {
-    await refreshCache();
-  }
+  await refreshIfDue();
   return cache.get(cacheKey(provider, modelId)) || null;
 }
 
 export async function getAllPricing(): Promise<PricingEntry[]> {
-  if (shouldRefresh()) {
-    await refreshCache();
-  }
+  await refreshIfDue();
   return Array.from(cache.values());
 }
 
