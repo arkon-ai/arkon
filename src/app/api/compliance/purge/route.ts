@@ -66,6 +66,16 @@ export async function POST(req: NextRequest) {
         );
         results.audit_log = auditCount.rows[0]?.c ?? 0;
 
+        const wfRunsCount = await query(
+          `SELECT COUNT(*)::int as c FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]
+        );
+        results.workflow_runs = wfRunsCount.rows[0]?.c ?? 0;
+
+        const wfCount = await query(
+          `SELECT COUNT(*)::int as c FROM workflows WHERE tenant_id = $1`, [body.scope_id]
+        );
+        results.workflows = wfCount.rows[0]?.c ?? 0;
+
         results.agents = ids.length;
 
         if (!dryRun) {
@@ -87,8 +97,8 @@ export async function POST(req: NextRequest) {
             // Log the purge itself (inside the txn — the audit row lands iff the purge commits)
             await client.query(
               `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)
-               VALUES ('system', 'gdpr_purge', 'tenant', $1, $2, 'transformate')`,
-              [body.scope_id, JSON.stringify({ rows_deleted: results })]
+               VALUES ('system', 'gdpr_purge', 'tenant', $1, $2, $1)`,
+              [body.scope_id, JSON.stringify({ scope: 'tenant', scope_id: body.scope_id, rows_deleted: results })]
             );
             await client.query("COMMIT");
           } catch (err) {
@@ -100,6 +110,16 @@ export async function POST(req: NextRequest) {
         }
       }
     } else if (body.scope === "agent") {
+      // Capture the agent's tenant before any purge: existence check (404) + GDPR
+      // audit attribution (the audit row records the purged agent's tenant).
+      const agentRow = await query(
+        `SELECT tenant_id FROM agents WHERE id = $1`, [body.scope_id]
+      );
+      if (agentRow.rows.length === 0) {
+        return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+      }
+      const agentTenantId = (agentRow.rows[0] as { tenant_id: string | null }).tenant_id ?? "transformate";
+
       const eventCount = await query(
         `SELECT COUNT(*)::int as c FROM events WHERE agent_id = $1`, [body.scope_id]
       );
@@ -132,8 +152,8 @@ export async function POST(req: NextRequest) {
           await client.query(`DELETE FROM agents WHERE id = $1`, [body.scope_id]);
           await client.query(
             `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)
-             VALUES ('system', 'gdpr_purge', 'agent', $1, $2, 'transformate')`,
-            [body.scope_id, JSON.stringify({ rows_deleted: results })]
+             VALUES ('system', 'gdpr_purge', 'agent', $1, $2, $3)`,
+            [body.scope_id, JSON.stringify({ scope: 'agent', scope_id: body.scope_id, tenant_id: agentTenantId, rows_deleted: results }), agentTenantId]
           );
           await client.query("COMMIT");
         } catch (err) {
