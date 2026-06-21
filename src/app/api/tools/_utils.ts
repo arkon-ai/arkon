@@ -1,7 +1,8 @@
-import { createHash, timingSafeEqual } from "crypto";
+import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import type { UserRole } from "@/lib/rbac";
+import { constantTimeEqual } from "@/lib/auth-utils";
 import {
   extractRequestToken,
   resolveRequestCredential,
@@ -19,16 +20,6 @@ const ROLE_RANK: Record<string, number> = {
 
 export function roleAtLeast(actual: string, required: string): boolean {
   return (ROLE_RANK[actual] ?? 0) >= (ROLE_RANK[required] ?? 99);
-}
-
-function constantTimeEqual(a: string, b: string): boolean {
-  try {
-    const aBuf = Buffer.from(a.padEnd(64));
-    const bBuf = Buffer.from(b.padEnd(64));
-    return timingSafeEqual(aBuf.slice(0, 64), bBuf.slice(0, 64)) && a.length === b.length;
-  } catch {
-    return false;
-  }
 }
 
 export async function resolveRole(req: NextRequest): Promise<Role | null> {
