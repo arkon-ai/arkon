@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resolveRole } from "@/app/api/tools/_utils";
+import { resolveRequestCredential } from "@/lib/request-auth";
 import { query } from "@/lib/db";
 import { broadcast } from "@/lib/event-bus";
 import { createHash, randomBytes, randomUUID } from "crypto";
@@ -37,7 +37,8 @@ interface RegisterBody {
 }
 
 export async function POST(req: NextRequest) {
-  const role = await resolveRole(req);
+  const credential = await resolveRequestCredential(req);
+  const role = credential?.role ?? null;
   if (!role || (role !== "owner" && role !== "admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -59,6 +60,18 @@ export async function POST(req: NextRequest) {
       { error: "Missing required fields: frameworkId, tenantId, address, port, agents" },
       { status: 400 },
     );
+  }
+
+  // Non-owners may only register agents (and mint their tokens) into their OWN
+  // tenant — ignore a body-supplied tenantId for them. Only an owner may target
+  // an arbitrary tenant. (WI-1346 finding #2: a tenant 'admin' could otherwise
+  // create token-bearing agents bound to a victim tenant.)
+  let effectiveTenantId = tenantId;
+  if (role !== "owner") {
+    if (!credential?.tenant_id || credential.tenant_id === "*") {
+      return NextResponse.json({ error: "Forbidden: no tenant scope" }, { status: 403 });
+    }
+    effectiveTenantId = credential.tenant_id;
   }
 
   const registeredIds: string[] = [];
@@ -111,7 +124,7 @@ export async function POST(req: NextRequest) {
           agent.name,
           tokenHash,
           "agent",
-          tenantId,
+          effectiveTenantId,
           JSON.stringify(metadata),
         ],
       );
@@ -133,7 +146,7 @@ export async function POST(req: NextRequest) {
       `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, ip_address, tenant_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
-        "admin",
+        credential?.email ?? "admin",
         "agent.register",
         "agent",
         registeredIds[0] ?? "batch",
@@ -145,7 +158,7 @@ export async function POST(req: NextRequest) {
           port,
         }),
         req.headers.get("x-forwarded-for") ?? null,
-        tenantId,
+        effectiveTenantId,
       ],
     );
   } catch (err) {
@@ -159,7 +172,7 @@ export async function POST(req: NextRequest) {
       framework: frameworkId,
       count: registeredIds.length,
       ids: registeredIds,
-      tenant_id: tenantId,
+      tenant_id: effectiveTenantId,
     },
   });
 

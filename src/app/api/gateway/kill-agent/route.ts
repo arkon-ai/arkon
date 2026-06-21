@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { execFile } from "child_process";
-import { resolveRole } from "@/app/api/tools/_utils";
+import { resolveRequestCredential } from "@/lib/request-auth";
 import { query } from "@/lib/db";
 import { broadcast } from "@/lib/event-bus";
 
@@ -37,6 +37,11 @@ interface VerificationResult {
   detail: string;
 }
 
+// Session keys come from `sessions.list` (the lower-trust agent runtime) and are
+// interpolated into a remote-shell command below. Restrict to a safe charset so a
+// crafted key cannot break out of the JSON/shell context. (WI-1347 finding #3.)
+const SESSION_KEY_RE = /^[A-Za-z0-9_:-]+$/;
+
 function sshExec(host: string, user: string, command: string, timeoutMs = 15000): Promise<string> {
   return new Promise((resolve, reject) => {
     const proc = execFile(
@@ -63,7 +68,8 @@ function sshExec(host: string, user: string, command: string, timeoutMs = 15000)
 }
 
 export async function POST(req: NextRequest) {
-  const role = await resolveRole(req);
+  const credential = await resolveRequestCredential(req);
+  const role = credential?.role ?? null;
   if (!role || (role !== "owner" && role !== "admin")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -89,6 +95,18 @@ export async function POST(req: NextRequest) {
     [agent_id]
   );
   const agent = agentResult.rows[0] as Record<string, unknown> | undefined;
+
+  // Enforce resource tenant-scope for non-owners: a tenant-scoped admin/operator
+  // may only kill agents in their OWN tenant. Fleet-wide kill is owner-only.
+  // Respond 404 (not 403) on missing/cross-tenant so agent existence isn't leaked.
+  // (WI-1346 finding #1 — the route previously looked the agent up by id alone.)
+  if (role !== "owner") {
+    const callerTenant = credential?.tenant_id ?? null;
+    if (!agent || !callerTenant || callerTenant === "*" || String(agent.tenant_id ?? "") !== callerTenant) {
+      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    }
+  }
+
   const agentName = agent ? String(agent.name ?? agent_id) : agent_id;
   const tenantId = agent ? String(agent.tenant_id ?? "default") : "default";
 
@@ -127,11 +145,21 @@ export async function POST(req: NextRequest) {
         // Step 3: Abort each running session
         killMethod = "gateway-ssh";
         for (const session of targets) {
+          if (!SESSION_KEY_RE.test(session.key)) {
+            abortResults.push({
+              session_key: session.key,
+              label: session.displayName ?? session.label ?? session.key,
+              ok: false,
+              detail: "Rejected: session key failed safe-charset validation",
+            });
+            continue;
+          }
           try {
+            const params = JSON.stringify({ key: session.key });
             const abortOutput = await sshExec(
               sshHost,
               sshUser,
-              `openclaw gateway call sessions.abort --params '{"key": "${session.key}"}' --json`
+              `openclaw gateway call sessions.abort --params '${params}' --json`
             );
             const abortData = JSON.parse(abortOutput) as { ok?: boolean; status?: string; abortedRunId?: string | null };
             abortResults.push({
@@ -246,7 +274,7 @@ export async function POST(req: NextRequest) {
       `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, ip_address, tenant_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
-        "admin",
+        credential?.email ?? "admin",
         "agent.kill",
         "agent",
         agent_id,

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateRole, unauthorized, forbidden } from "@/app/api/tools/_utils";
+import { unauthorized, forbidden } from "@/app/api/tools/_utils";
+import { resolveRequestCredential } from "@/lib/request-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,8 +10,8 @@ export const dynamic = "force-dynamic";
  * Query params: action, actor_type, actor_id, target_type, target_id, tenant_id, from, to, limit, offset
  */
 export async function GET(req: NextRequest) {
-  const role = await validateRole(req, "admin");
-  if (!role) return unauthorized();
+  const credential = await resolveRequestCredential(req);
+  if (!credential || (credential.role !== "owner" && credential.role !== "admin")) return unauthorized();
 
   const params = req.nextUrl.searchParams;
   const conditions: string[] = [];
@@ -31,7 +32,23 @@ export async function GET(req: NextRequest) {
   addFilter("actor_id", "actor_id");
   addFilter("target_type", "target_type");
   addFilter("target_id", "target_id");
-  addFilter("tenant_id", "tenant_id");
+
+  // Tenant scope (WI-1346 finding #1): the audit log is fleet-wide data. Owners
+  // see all tenants and may narrow with ?tenant_id; a non-owner 'admin' is
+  // hard-scoped to their own tenant and cannot widen via the query param.
+  if (credential.role === "owner") {
+    const tenantHint = params.get("tenant_id");
+    if (tenantHint) {
+      paramIdx++;
+      conditions.push(`tenant_id = $${paramIdx}`);
+      values.push(tenantHint);
+    }
+  } else {
+    if (!credential.tenant_id || credential.tenant_id === "*") return forbidden("No tenant scope");
+    paramIdx++;
+    conditions.push(`tenant_id = $${paramIdx}`);
+    values.push(credential.tenant_id);
+  }
 
   const from = params.get("from");
   if (from) {

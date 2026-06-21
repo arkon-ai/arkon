@@ -4,6 +4,7 @@ import { promisify } from "util";
 import { query } from "@/lib/db";
 import { unauthorized, validateAdmin } from "@/app/api/tools/_utils";
 import { broadcast } from "@/lib/event-bus";
+import { sshRun, isValidIp, isValidUnixUser, isValidPort } from "@/lib/ssh-exec";
 
 const execAsync = promisify(exec);
 
@@ -25,16 +26,27 @@ async function loadNodes(): Promise<NodeConfig[]> {
   const result = await query(
     `SELECT id, ip, ssh_user, metadata FROM infra_nodes ORDER BY id`
   );
-  return result.rows.map((row: Record<string, unknown>) => {
+  const nodes: NodeConfig[] = [];
+  for (const row of result.rows as Array<Record<string, unknown>>) {
     const meta = (row.metadata ?? {}) as Record<string, unknown>;
-    return {
-      id: row.id as string,
-      ip: row.ip as string,
-      sshUser: (row.ssh_user as string) ?? null,
-      isLocal: meta.is_local === true,
-      selfReport: meta.self_report === true,
-    };
-  });
+    const isLocal = meta.is_local === true;
+    const ip = row.ip as string;
+    const sshUser = (row.ssh_user as string) ?? null;
+    // Skip nodes whose DB-sourced exec inputs fail validation — ip/ssh_user reach
+    // the ssh exec boundary, so a tampered/malformed row must not run. (WI-1347 #4.)
+    if (!isLocal) {
+      if (!isValidIp(ip)) {
+        console.warn(`[infra/collect] skipping node ${String(row.id)}: invalid ip`);
+        continue;
+      }
+      if (sshUser !== null && !isValidUnixUser(sshUser)) {
+        console.warn(`[infra/collect] skipping node ${String(row.id)}: invalid ssh_user`);
+        continue;
+      }
+    }
+    nodes.push({ id: row.id as string, ip, sshUser, isLocal, selfReport: meta.self_report === true });
+  }
+  return nodes;
 }
 
 async function runCmd(cmd: string, timeoutMs = 10000): Promise<string> {
@@ -46,15 +58,22 @@ async function runCmd(cmd: string, timeoutMs = 10000): Promise<string> {
   }
 }
 
-function sshCmd(node: NodeConfig, remoteCmd: string): string {
-  if (node.isLocal) return remoteCmd;
-  return `ssh -i ${SSH_KEY} -o ConnectTimeout=5 -o StrictHostKeyChecking=no -o BatchMode=yes ${node.sshUser}@${node.ip} '${remoteCmd}'`;
+/**
+ * Run a command for a node: locally if it is the local node, else over SSH via
+ * execFile (no local shell — the remote command is a single argv element).
+ * Returns stdout, "" on error. (WI-1347 finding #4.)
+ */
+async function runOnNode(node: NodeConfig, remoteCmd: string, timeoutMs = 10000): Promise<string> {
+  if (node.isLocal) return runCmd(remoteCmd, timeoutMs);
+  if (!node.sshUser) return "";
+  const res = await sshRun({ user: node.sshUser, host: node.ip, command: remoteCmd, keyPath: SSH_KEY, timeoutMs });
+  return res.stdout;
 }
 
 async function collectNode(node: NodeConfig) {
   // Self-reporting nodes: only collect latency + service ports, stats come from /api/infra/report
   if (node.selfReport) {
-    const pingStr = await runCmd(`ping -c 1 -W 3 ${node.ip} 2>/dev/null | grep time=`);
+    const pingStr = isValidIp(node.ip) ? await runCmd(`ping -c 1 -W 3 ${node.ip} 2>/dev/null | grep time=`) : "";
     const m = (pingStr || "").match(/time[=<]([\d.]+)/);
     const latencyMs = m ? parseFloat(m[1]) : null;
 
@@ -93,13 +112,13 @@ async function collectNode(node: NodeConfig) {
 
   // SSH-collected nodes: run simple commands in parallel
   const [loadavg, nprocStr, memLine, diskLine, dockerStr, gpuStr, pingStr] = await Promise.all([
-    runCmd(sshCmd(node, "cat /proc/loadavg")),
-    runCmd(sshCmd(node, "nproc")),
-    runCmd(sshCmd(node, "free -m | grep Mem")),
-    runCmd(sshCmd(node, "df -BG / | tail -1")),
-    runCmd(sshCmd(node, "docker ps -q 2>/dev/null | wc -l")),
-    runCmd(sshCmd(node, "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo -1")),
-    !node.isLocal
+    runOnNode(node, "cat /proc/loadavg"),
+    runOnNode(node, "nproc"),
+    runOnNode(node, "free -m | grep Mem"),
+    runOnNode(node, "df -BG / | tail -1"),
+    runOnNode(node, "docker ps -q 2>/dev/null | wc -l"),
+    runOnNode(node, "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo -1"),
+    !node.isLocal && isValidIp(node.ip)
       ? runCmd(`ping -c 1 -W 3 ${node.ip} 2>/dev/null | grep time=`)
       : Promise.resolve("time=0"),
   ]);
@@ -146,6 +165,7 @@ async function collectServices(node: NodeConfig): Promise<Array<{ name: string; 
 
   // Local port check — checks if any process is listening on the port (works for all bindings)
   const checkPortLocal = async (port: number): Promise<boolean> => {
+    if (!isValidPort(port)) return false;
     try {
       const { stdout } = await execAsync(
         `ss -tlnp 2>/dev/null | grep -q ':${port} ' && echo UP || echo DOWN`,
@@ -159,8 +179,8 @@ async function collectServices(node: NodeConfig): Promise<Array<{ name: string; 
 
   // SSH-based port check — for services on remote nodes (checks locally on the remote host)
   const checkPortSSH = async (n: NodeConfig, port: number): Promise<boolean> => {
-    if (!n.sshUser) return false;
-    const result = await runCmd(sshCmd(n, `ss -tlnp 2>/dev/null | grep -q :${port} && echo UP || echo DOWN`));
+    if (!n.sshUser || !isValidPort(port)) return false;
+    const result = await runOnNode(n, `ss -tlnp 2>/dev/null | grep -q :${port} && echo UP || echo DOWN`);
     return result.trim() === "UP";
   };
 

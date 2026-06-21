@@ -1,6 +1,5 @@
-import { timingSafeEqual } from "crypto";
 import { type NextRequest } from "next/server";
-import { hashToken } from "@/lib/auth-utils";
+import { constantTimeEqual, hashToken } from "@/lib/auth-utils";
 import { query } from "@/lib/db";
 
 export type RequestCredentialType = "user_session" | "owner_token" | "api_key" | "agent_token";
@@ -13,16 +12,6 @@ export interface RequestCredential {
   email?: string;
   api_key_id?: number;
   agent_id?: string;
-}
-
-function constantTimeEqual(a: string, b: string): boolean {
-  try {
-    const aBuf = Buffer.from(a.padEnd(64));
-    const bBuf = Buffer.from(b.padEnd(64));
-    return timingSafeEqual(aBuf.slice(0, 64), bBuf.slice(0, 64)) && a.length === b.length;
-  } catch {
-    return false;
-  }
 }
 
 export function extractBearerToken(req: NextRequest): string | null {
@@ -95,7 +84,12 @@ export async function resolveRequestCredential(req: NextRequest): Promise<Reques
     );
     if (agentResult.rows.length > 0) {
       const row = agentResult.rows[0] as { id: string; role: RequestCredential["role"]; tenant_id: string | null };
-      return { type: "agent_token", role: row.role, tenant_id: row.tenant_id, agent_id: row.id };
+      // An agent token must NEVER resolve to the fleet-owner role. A row with
+      // role 'owner' (mis-config / alt-insert) is downgraded to 'agent'. Tenant-
+      // scoped roles the owner deliberately assigns via /api/admin/agents
+      // (admin/operator/viewer/agent) pass through and stay contained by the
+      // per-tenant route gates (WI-1346 #1). WI-1346 finding #6.
+      return { type: "agent_token", role: row.role === "owner" ? "agent" : row.role, tenant_id: row.tenant_id, agent_id: row.id };
     }
   } catch {
     // Fall through.

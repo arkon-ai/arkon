@@ -24,7 +24,14 @@ export function parseAgentTokens(): Map<string, string> {
   return map;
 }
 
-function constantTimeEqual(a: string, b: string): boolean {
+/**
+ * Constant-time string comparison. Hashes both inputs to a fixed-width sha256
+ * digest before comparing, so it is safe for inputs of differing length and
+ * never leaks length via early return. Canonical implementation — import this
+ * rather than re-rolling it (a prior padEnd(64)/slice(0,64) copy truncated
+ * tokens to 64 bytes and matched on shared prefixes; WI-1346 finding #5).
+ */
+export function constantTimeEqual(a: string, b: string): boolean {
   const aDigest = createHash("sha256").update(a).digest();
   const bDigest = createHash("sha256").update(b).digest();
   return timingSafeEqual(aDigest, bDigest);

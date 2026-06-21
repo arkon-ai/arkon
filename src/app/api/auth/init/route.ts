@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { randomBytes, timingSafeEqual, createHash } from "crypto";
+import { randomBytes, createHash } from "crypto";
 import { resolveRole } from "@/app/api/tools/_utils";
+import { constantTimeEqual } from "@/lib/auth-utils";
 import { query } from "@/lib/db";
 
 /**
@@ -25,15 +26,11 @@ export async function POST(req: NextRequest) {
   let role: string | null = null;
   let tenantId: string = "*";
 
-  if (adminToken) {
-    try {
-      const a = Buffer.from(providedToken.padEnd(64));
-      const b = Buffer.from(adminToken.padEnd(64));
-      const match = timingSafeEqual(a.slice(0, 64), b.slice(0, 64)) && providedToken.length === adminToken.length;
-      if (match) role = "owner";
-    } catch {
-      // fall through
-    }
+  // Constant-time, full-token compare via the canonical helper — no 64-byte
+  // truncation (the prior padEnd(64)/slice(0,64) form let a token sharing the
+  // admin token's first 64 chars authenticate as owner). WI-1346 finding #5.
+  if (adminToken && constantTimeEqual(providedToken, adminToken)) {
+    role = "owner";
   }
 
   // If not owner, check DB for admin/viewer/agent tokens

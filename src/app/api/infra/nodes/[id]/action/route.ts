@@ -4,6 +4,7 @@ import { promisify } from "util";
 import { query } from "@/lib/db";
 import { unauthorized, validateAdmin } from "@/app/api/tools/_utils";
 import { broadcast } from "@/lib/event-bus";
+import { sshRun, isValidIp, isValidUnixUser } from "@/lib/ssh-exec";
 
 const execAsync = promisify(exec);
 
@@ -15,19 +16,6 @@ const ALLOWED_ACTIONS: ActionType[] = [
   "health_check", "restart_gateway", "view_logs",
   "docker_status", "nginx_status", "force_sync",
 ];
-
-async function sshRun(sshUser: string, ip: string, command: string, timeoutMs = 15000): Promise<{ stdout: string; error?: string }> {
-  try {
-    const { stdout, stderr } = await execAsync(
-      `ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no ${sshUser}@${ip} '${command}'`,
-      { timeout: timeoutMs }
-    );
-    return { stdout: stdout.trim(), error: stderr.trim() || undefined };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return { stdout: "", error: message };
-  }
-}
 
 async function localRun(command: string, timeoutMs = 15000): Promise<{ stdout: string; error?: string }> {
   try {
@@ -46,7 +34,7 @@ async function runOnNode(sshUser: string | null, ip: string, command: string, is
   if (!sshUser) {
     return { stdout: "", error: "No SSH user configured for this node" };
   }
-  return sshRun(sshUser, ip, command);
+  return sshRun({ user: sshUser, host: ip, command });
 }
 
 export async function POST(
@@ -78,6 +66,22 @@ export async function POST(
   const ocUser = (meta.openclaw_user as string) ?? sshUser ?? "root";
   const action = body.action as ActionType;
 
+  // Validate DB-sourced exec inputs before they reach any ssh/exec boundary.
+  // infra_nodes fields (ip / ssh_user / openclaw_user) are untrusted here:
+  // ocUser is interpolated into remote commands and ip/sshUser into the ssh
+  // target. (WI-1347 finding #4 — fail closed on a tampered/malformed row.)
+  if (!isLocal) {
+    if (!isValidIp(ip)) {
+      return NextResponse.json({ error: "Node has an invalid IP address" }, { status: 400 });
+    }
+    if (sshUser !== null && !isValidUnixUser(sshUser)) {
+      return NextResponse.json({ error: "Node has an invalid SSH user" }, { status: 400 });
+    }
+    if (!isValidUnixUser(ocUser)) {
+      return NextResponse.json({ error: "Node has an invalid OpenClaw user" }, { status: 400 });
+    }
+  }
+
   let result: { stdout: string; error?: string };
 
   switch (action) {
@@ -94,14 +98,14 @@ export async function POST(
         );
       } else if (sshUser === "root" && ocUser !== "root") {
         // Use nsenter for non-root user services when connected as root
-        const pidCmd = await sshRun("root", ip, `ps -eo pid,user,comm | grep '${ocUser}.*systemd$' | head -1 | awk '{print $1}'`);
+        const pidCmd = await sshRun({ user: "root", host: ip, command: `ps -eo pid,user,comm | grep '${ocUser}.*systemd$' | head -1 | awk '{print $1}'` });
         const pid = pidCmd.stdout.trim();
-        if (!pid) {
+        if (!pid || !/^\d+$/.test(pid)) {
           result = { stdout: "", error: `Could not find ${ocUser}'s systemd PID` };
         } else {
-          result = await sshRun("root", ip,
+          result = await sshRun({ user: "root", host: ip, command:
             `nsenter -t ${pid} -m -p --setuid $(id -u ${ocUser}) --setgid $(id -g ${ocUser}) -- sh -c 'export XDG_RUNTIME_DIR=/run/user/$(id -u ${ocUser}) DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u ${ocUser})/bus && systemctl --user restart openclaw-gateway.service && sleep 2 && systemctl --user status openclaw-gateway.service'`
-          );
+          });
         }
       } else {
         result = await runOnNode(sshUser, ip,
