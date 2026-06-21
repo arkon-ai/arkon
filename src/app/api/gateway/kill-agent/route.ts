@@ -70,8 +70,13 @@ function sshExec(host: string, user: string, command: string, timeoutMs = 15000)
 export async function POST(req: NextRequest) {
   const credential = await resolveRequestCredential(req);
   const role = credential?.role ?? null;
-  if (!role || (role !== "owner" && role !== "admin")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // kill-agent aborts the gateway's running sessions — a FLEET-level operation the
+  // gateway cannot currently scope to a single agent/tenant (sessions.list does not
+  // map sessions to agents, and the abort hits all running sessions). Restrict to
+  // owner so a tenant-scoped admin cannot impact fleet-wide sessions via an
+  // in-tenant agent_id. (WI-1346 #1; CR #66.)
+  if (role !== "owner") {
+    return NextResponse.json({ error: "Owner access required" }, { status: 403 });
   }
 
   let body: { agent_id?: string; reason?: string; kill_all?: boolean };
@@ -96,19 +101,14 @@ export async function POST(req: NextRequest) {
   );
   const agent = agentResult.rows[0] as Record<string, unknown> | undefined;
 
-  // Enforce resource tenant-scope for non-owners: a tenant-scoped admin/operator
-  // may only kill agents in their OWN tenant. Fleet-wide kill is owner-only.
-  // Respond 404 (not 403) on missing/cross-tenant so agent existence isn't leaked.
-  // (WI-1346 finding #1 — the route previously looked the agent up by id alone.)
-  if (role !== "owner") {
-    const callerTenant = credential?.tenant_id ?? null;
-    if (!agent || !callerTenant || callerTenant === "*" || String(agent.tenant_id ?? "") !== callerTenant) {
-      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
-    }
+  // Fail closed: the kill aborts the gateway's running sessions, so a missing or
+  // typo'd agent_id must NOT silently proceed into the abort flow. (CR #66.)
+  if (!agent) {
+    return NextResponse.json({ error: "Agent not found" }, { status: 404 });
   }
 
-  const agentName = agent ? String(agent.name ?? agent_id) : agent_id;
-  const tenantId = agent ? String(agent.tenant_id ?? "default") : "default";
+  const agentName = String(agent.name ?? agent_id);
+  const tenantId = String(agent.tenant_id ?? "default");
 
   let killMethod = "none";
   let killOk = false;
