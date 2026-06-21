@@ -31,7 +31,9 @@ export function isPricingDegraded(): boolean {
  */
 function shouldRefresh(): boolean {
   const age = Date.now() - lastRefresh;
-  return cache.size === 0 ? age > FAILURE_BACKOFF_MS : age > CACHE_TTL_MS;
+  // While degraded (last refresh failed or returned empty) or cold, retry on the
+  // short backoff even with a populated stale cache. (CR #68.)
+  return (cache.size === 0 || degraded) ? age > FAILURE_BACKOFF_MS : age > CACHE_TTL_MS;
 }
 
 // Single-flight: concurrent callers during expiry/cold-start share ONE refresh
@@ -75,8 +77,14 @@ async function refreshCache(): Promise<void> {
         });
       }
     }
-    cache = fresh;
-    degraded = false;
+    if (fresh.size > 0) {
+      cache = fresh;
+      degraded = false;
+    } else {
+      // A successful-but-empty result must not wipe a usable cache; treat it as
+      // degraded so we back off and keep serving the previous prices. (CR #68.)
+      degraded = true;
+    }
   } catch (err) {
     // Keep the previously-loaded cache (better than nothing) and mark degraded.
     // lastRefresh still advances (finally) so we back off instead of re-hitting
