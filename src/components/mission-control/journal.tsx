@@ -121,7 +121,15 @@ export function Journal() {
         if (evt.type === "journal.entry.created") {
           setEntries((prev) => prependJournalEntry(prev, evt.payload.entry, filtersRef.current));
         } else if (evt.type === "journal.entry.updated") {
-          setEntries((prev) => prev.map((x) => (x.id === evt.payload.entry.id ? evt.payload.entry : x)));
+          const entry = evt.payload.entry as JournalEntry;
+          setEntries((prev) => {
+            if (!entryMatchesFilters(entry, filtersRef.current)) {
+              return prev.filter((x) => x.id !== entry.id);
+            }
+            return prev.some((x) => x.id === entry.id)
+              ? prev.map((x) => (x.id === entry.id ? entry : x))
+              : prependJournalEntry(prev, entry, filtersRef.current);
+          });
         } else if (evt.type === "journal.entry.deleted") {
           setEntries((prev) => prev.filter((x) => x.id !== evt.payload.entry_id));
         }
