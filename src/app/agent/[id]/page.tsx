@@ -225,6 +225,10 @@ export default function AgentDetailPage() {
 
   useEffect(() => {
     let cancelled = false;
+    // Clear the previous agent's data on navigation so a failed fetch for the
+    // new agent can't leave stale content on screen. Done once per agentId
+    // change (not inside fetchData) to avoid flicker on each interval poll.
+    setData(null);
     setLoading(true);
 
     const fetchData = async () => {
