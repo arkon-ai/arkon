@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -223,27 +223,39 @@ export default function AgentDetailPage() {
   const { runs: agentRuns, killRun, pauseRun, resumeRun } = useActiveRuns(agentId);
   const [killTarget, setKillTarget] = useState<typeof agentRuns[0] | null>(null);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const token = getToken();
-      const res = await fetch(`/api/dashboard/agent/${agentId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        credentials: "include",
-      });
-      const json = await res.json() as AgentData;
-      setData(json);
-    } catch (err) {
-      console.error("Agent detail fetch failed:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [agentId]);
-
   useEffect(() => {
+    let cancelled = false;
+    // Clear the previous agent's data on navigation so a failed fetch for the
+    // new agent can't leave stale content on screen. Done once per agentId
+    // change (not inside fetchData) to avoid flicker on each interval poll.
+    setData(null);
+    setLoading(true);
+
+    const fetchData = async () => {
+      try {
+        const token = getToken();
+        const res = await fetch(`/api/dashboard/agent/${agentId}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: "include",
+        });
+        const json = await res.json() as AgentData;
+        if (cancelled) return;
+        setData(json);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Agent detail fetch failed:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
     void fetchData();
     const iv = setInterval(() => void fetchData(), 15000);
-    return () => clearInterval(iv);
-  }, [fetchData]);
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+    };
+  }, [agentId]);
 
   /* ── Derived ── */
   const totalMessages = data?.stats.reduce((s, d) => s + d.messages_received + d.messages_sent, 0) ?? 0;
