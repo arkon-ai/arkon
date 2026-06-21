@@ -226,12 +226,17 @@ export function useLivePollingFetch<T>(url: string, intervalMs = 15000): State<T
   const [connected, setConnected] = useState(false);
   const urlRef = useRef(url);
   urlRef.current = url;
+  const latestReqIdRef = useRef(0);
+  const mountedRef = useRef(true);
 
   const refresh = useCallback(async () => {
+    const reqId = ++latestReqIdRef.current;
     try {
       const data = await fetchJson<T>(urlRef.current);
+      if (!mountedRef.current || reqId !== latestReqIdRef.current) return;
       setState({ data, error: null, loading: false });
     } catch (error) {
+      if (!mountedRef.current || reqId !== latestReqIdRef.current) return;
       setState((current) => ({
         data: current.data,
         error: error instanceof Error ? error.message : "Request failed",
@@ -266,9 +271,13 @@ export function useLivePollingFetch<T>(url: string, intervalMs = 15000): State<T
   // Regular polling as fallback
   useEffect(() => {
     if (typeof window === "undefined") return;
+    mountedRef.current = true;
     void refresh();
     const timer = window.setInterval(refresh, intervalMs);
-    return () => window.clearInterval(timer);
+    return () => {
+      mountedRef.current = false;
+      window.clearInterval(timer);
+    };
   }, [intervalMs, refresh]);
 
   return { ...state, connected };

@@ -6,7 +6,7 @@ import { CHART } from "@/lib/chart-colors";
 
 type AgentSlug = string;
 
-interface JournalEntry {
+export interface JournalEntry {
   id: number;
   owner_agent: AgentSlug;
   owner_display_name?: string;
@@ -25,6 +25,40 @@ interface JournalEntry {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export type JournalFilters = {
+  status?: string;
+  category?: string;
+  owner?: string;
+  q?: string;
+  project?: string;
+};
+
+export function entryMatchesFilters(entry: JournalEntry, filters: JournalFilters): boolean {
+  if (filters.status && entry.status !== filters.status) return false;
+  if (filters.category && entry.category !== filters.category) return false;
+  if (filters.owner && entry.owner_agent !== filters.owner) return false;
+  if (filters.project && entry.related_project !== filters.project) return false;
+  if (filters.q) {
+    const q = filters.q.toLowerCase();
+    const matches =
+      entry.title.toLowerCase().includes(q) ||
+      (entry.body_md ?? "").toLowerCase().includes(q) ||
+      (entry.tags ?? []).some((t) => t.toLowerCase().includes(q));
+    if (!matches) return false;
+  }
+  return true;
+}
+
+export function prependJournalEntry(
+  prev: JournalEntry[],
+  entry: JournalEntry,
+  filters: JournalFilters
+): JournalEntry[] {
+  if (prev.some((x) => x.id === entry.id)) return prev;
+  if (!entryMatchesFilters(entry, filters)) return prev;
+  return [entry, ...prev];
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -61,9 +95,11 @@ async function fetchEntries(params: Record<string, string | undefined>): Promise
 export function Journal() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<{ status?: string; category?: string; owner?: string; q?: string; project?: string }>({});
+  const [filters, setFilters] = useState<JournalFilters>({});
   const [view, setView] = useState<"feed" | "kanban">("feed");
   const [showCapture, setShowCapture] = useState(false);
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -83,9 +119,17 @@ export function Journal() {
       try {
         const evt = JSON.parse(e.data);
         if (evt.type === "journal.entry.created") {
-          setEntries((prev) => [evt.payload.entry, ...prev]);
+          setEntries((prev) => prependJournalEntry(prev, evt.payload.entry, filtersRef.current));
         } else if (evt.type === "journal.entry.updated") {
-          setEntries((prev) => prev.map((x) => (x.id === evt.payload.entry.id ? evt.payload.entry : x)));
+          const entry = evt.payload.entry as JournalEntry;
+          setEntries((prev) => {
+            if (!entryMatchesFilters(entry, filtersRef.current)) {
+              return prev.filter((x) => x.id !== entry.id);
+            }
+            return prev.some((x) => x.id === entry.id)
+              ? prev.map((x) => (x.id === entry.id ? entry : x))
+              : prependJournalEntry(prev, entry, filtersRef.current);
+          });
         } else if (evt.type === "journal.entry.deleted") {
           setEntries((prev) => prev.filter((x) => x.id !== evt.payload.entry_id));
         }
@@ -168,8 +212,8 @@ function FilterBar({
   owners,
   projects,
 }: {
-  filters: { status?: string; category?: string; owner?: string; q?: string; project?: string };
-  setFilters: (f: typeof filters) => void;
+  filters: JournalFilters;
+  setFilters: (f: JournalFilters) => void;
   owners: string[];
   projects: string[];
 }) {
