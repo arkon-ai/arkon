@@ -1,7 +1,8 @@
-# CodeRabbit config — arkon-ai / Heritage-Of-Faith org standard
-# Deploy as `.coderabbit.yaml` in each repo root.
-# Replaces the dual claude-review.yml + claude-security.yml @claude workflows.
-# Security + code review come in ONE consolidated pass (no second API call).
+# CodeRabbit config — arkon-ai / Heritage-Of-Faith FLEET BASELINE (Pro+, cost-scoped)
+# Strict superset upgrade of the prior org-standard config: preserves the OWASP
+# tone_instructions, tenant-scoping path_instructions, and SAST tools, and ADDS the
+# cost knobs that stop the hourly-quota burn. Safe on any repo class.
+# Source-of-truth: warden-memory/agents/warden/skills/code-build/ (code-build doctrine).
 # Docs: https://docs.coderabbit.ai/reference/configuration
 
 language: "en-US"
@@ -14,46 +15,69 @@ tone_instructions: >-
   nits unless they cause real risk.
 
 reviews:
-  # 'chill' = fewer nitpicks (you were drowning in re-review noise on @claude).
-  profile: "chill"
-  request_changes_workflow: false
-  high_level_summary: true
+  profile: "chill"                 # fewer nitpicks per pass
+  request_changes_workflow: false  # human/agent LGTM stays the gate
+  high_level_summary: false        # was true — drop the noise
+  high_level_summary_in_walkthrough: true
   poem: false
-  review_status: true
+  review_status: false             # was true — drop the noise
+  abort_on_close: true             # NEW: stop in-flight review when PR closes/merges
+
   auto_review:
     enabled: true
-    drafts: false              # don't burn reviews on draft PRs
+    drafts: false                  # don't burn reviews on draft PRs
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 1   # NEW — THE quota fix: pause incremental re-review after the first reviewed commit
     base_branches:
       - "main"
       - "master"
+    ignore_title_keywords:         # NEW: don't review WIP/dep-bump PRs
+      - "WIP"
+      - "DRAFT"
+      - "DO NOT MERGE"
+      - "DNM"
+      - "chore: deps"
+    ignore_usernames:              # NEW: don't review bot PRs
+      - "dependabot[bot]"
+      - "renovate[bot]"
+      - "github-actions[bot]"
 
-  # Keep CodeRabbit out of internal planning + generated noise.
-  # (.planning/ stays off review per no-internal-docs-github doctrine.)
+  # Keep CodeRabbit out of internal planning + generated/vendored/lock noise.
   path_filters:
     - "!**/.planning/**"
     - "!**/*.lock"
     - "!**/dist/**"
     - "!**/build/**"
+    - "!**/.next/**"
+    - "!**/coverage/**"
     - "!**/node_modules/**"
     - "!**/*.min.*"
     - "!**/pnpm-lock.yaml"
     - "!**/package-lock.json"
+    - "!**/yarn.lock"
+    - "!**/*.pb.go"
+    - "!**/zz_generated*.go"
+    - "!**/__generated__/**"
+    - "!**/generated/**"
+    - "!**/testdata/**"
+    - "!**/__snapshots__/**"
 
   path_instructions:
     - path: "**/*.{ts,tsx,js,mjs,py,go}"
       instructions: >-
         Prioritise tenant-scoping / authz checks, secret handling, and
         injection-safe queries. Multi-tenant code: verify tenantId is
-        enforced on every data path.
+        enforced on every data path. Do NOT flag theoretical risks without a
+        concrete trigger, or defense-in-depth where the primary defense is adequate.
     - path: "**/*.{yml,yaml,tf,Dockerfile}"
       instructions: >-
         Review for insecure defaults, exposed ports, plaintext secrets,
-        and over-broad IAM / permissions.
+        and over-broad IAM / permissions. Skip cosmetic/formatting comments.
 
-  # Security/SAST tools (all enabled by default; listed for visibility).
+  # Security/SAST tools (don't double-pay scanners CI already runs; keep secret scan ON).
   tools:
     gitleaks:
-      enabled: true            # secret scanning
+      enabled: true            # secret scanning — CRITICAL fleet failure mode
     checkov:
       enabled: true            # IaC SAST
     semgrep:
