@@ -6,6 +6,28 @@ ALTER TABLE agents ADD COLUMN IF NOT EXISTS default_model_id varchar(255);
 CREATE INDEX IF NOT EXISTS idx_agents_default_model
   ON agents(default_provider, default_model_id);
 
+-- pricing_type, monthly_cost_usd, and notes were added to model_pricing out-of-band
+-- on prod and never captured in a migration, so a from-scratch DB (CI) fails the
+-- INSERT below. Add them here idempotently — a no-op on prod, where the columns
+-- and constraint already exist.
+ALTER TABLE model_pricing
+  ADD COLUMN IF NOT EXISTS pricing_type character varying(20) DEFAULT 'per_token'::character varying;
+ALTER TABLE model_pricing
+  ADD COLUMN IF NOT EXISTS monthly_cost_usd numeric(10,2);
+ALTER TABLE model_pricing
+  ADD COLUMN IF NOT EXISTS notes text;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'model_pricing_pricing_type_check'
+  ) THEN
+    ALTER TABLE model_pricing
+      ADD CONSTRAINT model_pricing_pricing_type_check
+      CHECK (pricing_type::text = ANY (ARRAY['per_token','subscription','free']::text[]));
+  END IF;
+END $$;
+
 -- Seed new agent-runtime subscriptions (distinct from the Codex build-tool sub)
 INSERT INTO model_pricing (provider, model_id, display_name, pricing_type, monthly_cost_usd, is_free, notes)
 VALUES
