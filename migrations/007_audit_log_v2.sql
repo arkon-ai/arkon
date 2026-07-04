@@ -23,4 +23,12 @@ CREATE INDEX idx_audit_v2_target ON audit_log_v2(target_type, target_id);
 CREATE INDEX idx_audit_v2_tenant ON audit_log_v2(tenant_id, created_at DESC);
 
 -- Append-only: revoke UPDATE/DELETE from non-superusers
-REVOKE UPDATE, DELETE ON audit_log_v2 FROM mcadmin;
+-- Guarded: mcadmin only exists on prod/staging (TimescaleDB superuser role);
+-- a clean CI postgres has no such role, so REVOKE...FROM mcadmin would fail
+-- with "role does not exist" (42704) before ever reaching this line.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'mcadmin') THEN
+    EXECUTE 'REVOKE UPDATE, DELETE ON audit_log_v2 FROM mcadmin';
+  END IF;
+END $$;
