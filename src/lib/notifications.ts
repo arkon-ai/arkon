@@ -34,6 +34,48 @@ export interface SendNotificationParams {
 }
 
 /**
+ * Legacy single-tenant sentinel. Migration 001 seeded a tenant with id
+ * 'default', but the setup wizard renames that row to the real owner tenant,
+ * so 'default' is not a valid tenants row in deployed databases. Callers that
+ * lack a real tenant context still pass this value; it is resolved to the
+ * system tenant before any write so it never reaches the FK.
+ */
+export const LEGACY_TENANT_SENTINEL = "default";
+
+/**
+ * Resolve the tenant that owns system-level (non-tenant-scoped) notifications:
+ * ARKON_SYSTEM_TENANT_ID if configured, else the owner-plan tenant, else the
+ * oldest tenant. Returns null when no tenant exists so callers can skip the
+ * write instead of emitting an FK-violating insert.
+ */
+export async function getSystemTenantId(): Promise<string | null> {
+  const override = process.env.ARKON_SYSTEM_TENANT_ID?.trim();
+  if (override) return override;
+
+  try {
+    const res = await query(
+      `SELECT id FROM tenants ORDER BY (plan = 'owner') DESC, created_at ASC LIMIT 1`,
+    );
+    return (res.rows[0] as { id?: string } | undefined)?.id ?? null;
+  } catch (err) {
+    console.error("[notifications] Failed to resolve system tenant:", err);
+    return null;
+  }
+}
+
+/**
+ * Resolve the tenant a notification should be stored/read under. A real tenant
+ * id supplied by the caller is used as-is; the legacy 'default' sentinel and
+ * empty values fall back to the system tenant. Returns null if nothing resolves.
+ */
+export async function resolveNotificationTenantId(
+  requested?: string | null,
+): Promise<string | null> {
+  if (requested && requested !== LEGACY_TENANT_SENTINEL) return requested;
+  return getSystemTenantId();
+}
+
+/**
  * Map notification type + severity to preference type keys.
  * Used to check if a channel has this notification type enabled.
  */
@@ -49,12 +91,23 @@ function getPreferenceKey(type: NotificationType, severity: NotificationSeverity
  */
 export async function sendNotification(params: SendNotificationParams): Promise<void> {
   try {
+    // Resolve the tenant before any write. The legacy 'default' sentinel is not
+    // a real tenants row, so inserting it verbatim violates the FK. If nothing
+    // resolves, skip the write rather than emit a failing insert.
+    const tenantId = await resolveNotificationTenantId(params.tenantId);
+    if (!tenantId) {
+      console.warn(
+        `[notifications] No tenant resolved for "${params.type}" notification — skipping`,
+      );
+      return;
+    }
+
     // 1. Always create in-app notification
     await query(
       `INSERT INTO notifications (tenant_id, type, severity, title, body, link, metadata)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
-        params.tenantId,
+        tenantId,
         params.type,
         params.severity,
         params.title,
@@ -67,7 +120,7 @@ export async function sendNotification(params: SendNotificationParams): Promise<
     // 2. Look up notification preferences for this tenant
     const prefs = await query(
       `SELECT channel, enabled, config FROM notification_preferences WHERE tenant_id = $1 AND enabled = TRUE`,
-      [params.tenantId],
+      [tenantId],
     );
 
     if (prefs.rows.length === 0) return;
@@ -95,7 +148,7 @@ export async function sendNotification(params: SendNotificationParams): Promise<
 
     // 4. Web Push — send to all registered push subscriptions for critical/high severity
     if (params.severity === "critical" || params.severity === "warning") {
-      await sendWebPushNotifications(params).catch((err) => {
+      await sendWebPushNotifications({ ...params, tenantId }).catch((err) => {
         console.error("[notifications] Web push dispatch failed:", err);
       });
     }
