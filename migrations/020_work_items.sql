@@ -160,8 +160,9 @@ COMMENT ON TABLE work_item_postmortems IS
 -- ============================================================
 -- 5. Record migration
 -- ============================================================
-INSERT INTO _migrations (name, applied_at) VALUES ('020_work_items.sql', NOW())
-  ON CONFLICT (name) DO NOTHING;
+-- (Self-record removed: scripts/migrate.ts is the single recorder and its
+--  unguarded INSERT collided with this row on a from-scratch DB. No-op on
+--  prod, where this file is already recorded.)
 
 COMMIT;
 
