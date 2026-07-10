@@ -267,30 +267,40 @@ export async function POST(req: NextRequest) {
   });
 
   // Notify on nodes that went offline — deduplicate (max 1 alert per node per 30 min)
-  for (const r of results) {
-    if (r.status === "offline" || r.status === "error") {
-      const node = NODES.find(n => n.id === r.nodeId);
-      // Check if we already alerted for this node recently
-      const recentAlert = await query(
-        `SELECT id FROM notifications
-         WHERE tenant_id = 'default' AND type = 'infra_offline'
-           AND metadata->>'nodeId' = $1
-           AND created_at > NOW() - INTERVAL '30 minutes'
-         LIMIT 1`,
-        [r.nodeId]
-      );
-      if (recentAlert.rows.length === 0) {
-        const { sendNotification } = await import("@/lib/notifications");
-        void sendNotification({
-          tenantId: "default",
-          type: "infra_offline",
-          severity: "critical",
-          title: `Infrastructure node offline: ${node?.id ?? r.nodeId}`,
-          body: `Node ${r.nodeId} is unreachable. Status: ${r.status}`,
-          link: "/infrastructure",
-          metadata: { nodeId: r.nodeId, status: r.status },
-        });
+  const offlineNodes = results.filter((r) => r.status === "offline" || r.status === "error");
+  if (offlineNodes.length > 0) {
+    const { sendNotification, resolveNotificationTenantId } = await import("@/lib/notifications");
+    const notifTenantId = await resolveNotificationTenantId();
+    if (notifTenantId) {
+      for (const r of offlineNodes) {
+        const node = NODES.find(n => n.id === r.nodeId);
+        // Check if we already alerted for this node recently. Query the same
+        // tenant the notification is stored under so dedup actually matches —
+        // otherwise every cycle re-fires (this was the FK-failure amplifier).
+        const recentAlert = await query(
+          `SELECT id FROM notifications
+           WHERE tenant_id = $1 AND type = 'infra_offline'
+             AND metadata->>'nodeId' = $2
+             AND created_at > NOW() - INTERVAL '30 minutes'
+           LIMIT 1`,
+          [notifTenantId, r.nodeId]
+        );
+        if (recentAlert.rows.length === 0) {
+          // Awaited (not fire-and-forget) so the insert completes before the
+          // route returns; sendNotification swallows its own errors.
+          await sendNotification({
+            tenantId: notifTenantId,
+            type: "infra_offline",
+            severity: "critical",
+            title: `Infrastructure node offline: ${node?.id ?? r.nodeId}`,
+            body: `Node ${r.nodeId} is unreachable. Status: ${r.status}`,
+            link: "/infrastructure",
+            metadata: { nodeId: r.nodeId, status: r.status },
+          });
+        }
       }
+    } else {
+      console.warn("[infra/collect] No tenant resolved — skipping offline-node alerts");
     }
   }
 
