@@ -16,6 +16,13 @@ ALTER TABLE model_pricing
   ADD COLUMN IF NOT EXISTS monthly_cost_usd numeric(10,2);
 ALTER TABLE model_pricing
   ADD COLUMN IF NOT EXISTS notes text;
+-- Same out-of-band drift, surfaced by the first real E2E run (WI-1626): app queries
+-- (src/lib/pricing-cache.ts) select these two discount columns; app parses with
+-- parseFloat(...) || 0, so DEFAULT 0 matches behavior. No-op on prod.
+ALTER TABLE model_pricing
+  ADD COLUMN IF NOT EXISTS cached_input_discount_pct numeric(5,2) DEFAULT 0;
+ALTER TABLE model_pricing
+  ADD COLUMN IF NOT EXISTS batch_discount_pct numeric(5,2) DEFAULT 0;
 
 DO $$
 BEGIN
