@@ -275,9 +275,9 @@ CREATE POLICY solomon_bridge_wael_insert ON worker_activity_events
 --    No DDL action required here.
 -- =====================================================================
 
-INSERT INTO _migrations (name, applied_at)
-  VALUES ('021_solomon_peer_data_layer.sql', NOW())
-  ON CONFLICT (name) DO NOTHING;
+-- (Self-record removed: scripts/migrate.ts is the single recorder and its
+--  unguarded INSERT collided with this row on a from-scratch DB. No-op on
+--  prod, where this file is already recorded.)
 
 COMMIT;
 
