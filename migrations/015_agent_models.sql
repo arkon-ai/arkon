@@ -20,7 +20,9 @@ ALTER TABLE model_pricing
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'model_pricing_pricing_type_check'
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'model_pricing_pricing_type_check'
+      AND conrelid = 'model_pricing'::regclass
   ) THEN
     ALTER TABLE model_pricing
       ADD CONSTRAINT model_pricing_pricing_type_check
