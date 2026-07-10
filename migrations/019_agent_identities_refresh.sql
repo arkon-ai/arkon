@@ -28,13 +28,17 @@ COMMENT ON COLUMN agent_identities.harness IS
 -- ============================================================
 -- 2. Refresh the 4 live agents — UPSERT by slug
 -- ============================================================
+-- Gated on tenant existence (same as 017): the prod 'transformate' tenant is provisioned
+-- out-of-band and no migration creates it. No-op on a from-scratch DB (CI); unchanged on prod.
 INSERT INTO agent_identities
   (slug,        tenant_id,      display_name, role,        emoji, model,               home_server,     description,                                                                            harness,      active)
-VALUES
+SELECT * FROM (VALUES
   ('warden',    'transformate', 'Warden',     'governor',  '🛡️',  'claude-opus-4-7',    'HOFMI-TEAM-1',  'Governing agent — architecture, code, ops, orchestration across the fleet',           'agent-sdk',  TRUE),
   ('codesmith', 'transformate', 'Codesmith',  'agent',     '⚒️',  'claude-sonnet-4-6',  'HOFMI-TEAM-1',  'Focused code work — Agent SDK subagent inside warden-chat-bridge',                     'agent-sdk',  TRUE),
   ('lumina',    'transformate', 'Lumina',     'agent',     '🦊',  'gpt-5.4',            'HOFMI-EU-OPEN', 'Personal + customer-facing assistant on OpenClaw (WhatsApp, Telegram, Discord, Slack)', 'openclaw',   TRUE),
   ('sentinel',  'transformate', 'Sentinel',   'agent',     '🔒',  'gpt-5.4-codex',      'HOFMI-EU-OPEN', 'Security review + ecosystem-watch + ops (Hermes runtime)',                             'hermes',     TRUE)
+) AS v(slug, tenant_id, display_name, role, emoji, model, home_server, description, harness, active)
+WHERE EXISTS (SELECT 1 FROM tenants WHERE id = v.tenant_id)
 ON CONFLICT (slug) DO UPDATE SET
   display_name = EXCLUDED.display_name,
   emoji        = EXCLUDED.emoji,
