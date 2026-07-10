@@ -24,8 +24,11 @@ CREATE TABLE IF NOT EXISTS agent_identities (
 CREATE INDEX IF NOT EXISTS idx_agent_identities_tenant ON agent_identities(tenant_id);
 
 -- Seed the known agents for default tenant (Brynn)
+-- Gated on tenant existence: this seed targets the prod 'transformate' tenant, which
+-- isn't created by any migration (it's provisioned out-of-band on prod). No-op on a
+-- from-scratch DB (CI); unaffected on prod, where the tenant already exists.
 INSERT INTO agent_identities (slug, tenant_id, display_name, role, emoji, model, home_server, description)
-VALUES
+SELECT * FROM (VALUES
   ('warden',       'transformate', 'Warden',       'governor', '🛡️', 'claude-opus-4-6',  'warden-eu',     'Governing agent — architecture, code, ops, orchestration'),
   ('brynn',        'transformate', 'Brynn',        'governor', '👤', NULL,               NULL,            'Human operator'),
   ('lumina',       'transformate', 'Lumina',       'agent',    '🦊', 'claude-sonnet-4-6','HOFMI-EU-OPEN', 'Personal + customer-facing assistant on OpenClaw'),
@@ -34,6 +37,8 @@ VALUES
   ('codesmith',    'transformate', 'Codesmith',    'agent',    '⚒️', 'claude-opus-4-6',  'warden-eu',     'Focused code work (planned)'),
   ('hermes',       'transformate', 'Hermes',       'agent',    '⚡', 'claude-haiku-4-5', 'warden-eu',     'Ops + cron + deploy monitoring (planned)'),
   ('opus-desktop', 'transformate', 'Opus Desktop', 'agent',    '💭', 'claude-opus-4-6',  'laptop',        'Desktop Claude app thinking surface (read-only in tracker)')
+) AS v(slug, tenant_id, display_name, role, emoji, model, home_server, description)
+WHERE EXISTS (SELECT 1 FROM tenants WHERE id = v.tenant_id)
 ON CONFLICT (slug) DO UPDATE SET
   display_name = EXCLUDED.display_name,
   emoji        = EXCLUDED.emoji,
