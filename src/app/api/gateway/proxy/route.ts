@@ -35,23 +35,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "path is required" }, { status: 400 });
   }
 
-  // Only allow known gateway paths. Reject traversal first (fetch normalizes `..`
-  // segments, so a prefix check alone lets /api/system-event/../admin/secrets
-  // resolve to an un-allowlisted endpoint), then require an exact match or a
-  // true path-segment child — never a bare startsWith (which passes
-  // /api/system-event-backdoor). This allowlist is the load-bearing control on
+  // Only allow known gateway paths. Validate the pathname that fetch will ACTUALLY
+  // request — parse the full target URL and check its normalized `.pathname` —
+  // rather than string-matching the raw input. The WHATWG URL parser decodes+collapses
+  // `..` and its percent-encoded forms (`%2e%2e`, `.%2e`, …), so any raw-string guess
+  // misses a variant (this is why the literal-`..` check alone was insufficient).
+  // Concatenating onto the gateway base (with the path forced to a leading `/`) also
+  // keeps a `path` like "http://evil/x" on the gateway origin. Match an exact
+  // allowlisted path or a true path-segment child — never a bare startsWith (which
+  // passes /api/system-event-backdoor). This allowlist is the load-bearing control on
   // which gateway APIs receive the server GATEWAY_TOKEN.
   const allowedPaths = ["/api/system-event", "/hooks/agent"];
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const isAllowed =
-    !normalizedPath.includes("..") &&
-    allowedPaths.some((p) => normalizedPath === p || normalizedPath.startsWith(`${p}/`));
+  const rawPath = path.startsWith("/") ? path : `/${path}`;
+  let targetUrl: URL;
+  try {
+    targetUrl = new URL(`${gatewayUrl.replace(/\/$/, "")}${rawPath}`);
+  } catch {
+    return NextResponse.json({ error: "Invalid path" }, { status: 400 });
+  }
+  const resolvedPath = targetUrl.pathname;
+  const isAllowed = allowedPaths.some(
+    (p) => resolvedPath === p || resolvedPath.startsWith(`${p}/`),
+  );
   if (!isAllowed) {
     return NextResponse.json({ error: "Path not allowed" }, { status: 403 });
   }
 
   try {
-    const targetUrl = `${gatewayUrl.replace(/\/$/, "")}${normalizedPath}`;
     const res = await fetch(targetUrl, {
       method,
       headers: {
