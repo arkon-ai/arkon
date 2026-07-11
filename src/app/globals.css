@@ -63,9 +63,16 @@
   --accent-foreground: var(--void);
   --text-link: var(--quarn);
 
+  /* Tertiary text — a11y override (WI-1687). The @arkon-ai/ui package ships
+     dark --text-tertiary #555566, which is only 2.71:1 on Void (#0a0a0c) —
+     fails WCAG AA (4.5:1) for the small uppercase labels/chips that use it.
+     #8A8A9A is 5.82:1 on Void / 5.41:1 on --surface-1. TODO: fold this into the
+     canonical @arkon-ai/ui token so ArkonOS + ArkonHelm inherit it (one DS). */
+  --text-tertiary: #8A8A9A;
+
   /* Gray-tint channels (Arkon-local, WI-999 — package has no fg-2/3 rgb) */
   --fg-2-rgb:    136, 136, 160; /* #8888A0 — muted-text gray tint base */
-  --fg-3-rgb:    85, 85, 102;   /* #555566 — tertiary-text gray tint base */
+  --fg-3-rgb:    138, 138, 154; /* #8A8A9A — tertiary-text gray tint base (a11y, WI-1687) */
 
   /* Chart categorical tint channels (WI-1159) — rgb companions for the CHART
      palette in src/lib/chart-colors.ts, for rgba() opacity tints in CSS/style.
