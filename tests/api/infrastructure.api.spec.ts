@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { MC_URL, authHeaders, authenticate, csrfHeaders } from "../helpers/auth";
 
+// API specs authenticate explicitly per-request — run without the ambient
+// admin storageState so negative-auth tests are genuinely unauthenticated.
+test.use({ storageState: { cookies: [], origins: [] } });
+
 /* ══════════════════════════════════════════════════════════════
    Phase 2: Infrastructure Routes — Comprehensive API Regression
    Routes: infra/nodes, infra/nodes/[id], infra/nodes/[id]/action,
