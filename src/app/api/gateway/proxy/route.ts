@@ -35,10 +35,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "path is required" }, { status: 400 });
   }
 
-  // Only allow known gateway paths
+  // Only allow known gateway paths. Reject traversal first (fetch normalizes `..`
+  // segments, so a prefix check alone lets /api/system-event/../admin/secrets
+  // resolve to an un-allowlisted endpoint), then require an exact match or a
+  // true path-segment child — never a bare startsWith (which passes
+  // /api/system-event-backdoor). This allowlist is the load-bearing control on
+  // which gateway APIs receive the server GATEWAY_TOKEN.
   const allowedPaths = ["/api/system-event", "/hooks/agent"];
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  if (!allowedPaths.some((p) => normalizedPath.startsWith(p))) {
+  const isAllowed =
+    !normalizedPath.includes("..") &&
+    allowedPaths.some((p) => normalizedPath === p || normalizedPath.startsWith(`${p}/`));
+  if (!isAllowed) {
     return NextResponse.json({ error: "Path not allowed" }, { status: 403 });
   }
 

@@ -46,4 +46,12 @@ describe("restart-gateway GET authorization (owner-only, ARKON-01 / WI-1699)", (
 
     expect(res.status).toBe(403);
   });
+
+  it("lets the owner past the authz gate (reaches config check, 503 without GATEWAY_SSH_HOST)", async () => {
+    delete process.env.GATEWAY_SSH_HOST;
+    const res = await GET(request("owner-secret"));
+
+    // Not 401/403 — the owner passes authz and reaches the missing-config branch.
+    expect(res.status).toBe(503);
+  });
 });

@@ -3,7 +3,7 @@ import { execFile } from "child_process";
 import { lookup } from "dns/promises";
 import net from "net";
 import { FRAMEWORK_CONFIGS } from "@/lib/gateway/framework-configs";
-import { forbidden, resolveRole } from "@/app/api/tools/_utils";
+import { forbidden, resolveRole, unauthorized } from "@/app/api/tools/_utils";
 
 /**
  * Multi-framework gateway probe.
@@ -125,6 +125,9 @@ export async function POST(req: NextRequest) {
   const role = await resolveRole(req);
   // ARKON-01 (WI-1699): gateway/* is owner-only — a tenant-scoped admin must not
   // retain the server-side probe surface (compounds ARKON-17 DNS-rebinding).
+  // Split authn/authz to match the sibling gateway/* routes: 401 for no
+  // credential, 403 for an authenticated non-owner.
+  if (!role) return unauthorized();
   if (role !== "owner") return forbidden("Owner access required");
 
   let body: ProbeBody;
