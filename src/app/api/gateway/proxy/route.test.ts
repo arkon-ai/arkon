@@ -60,10 +60,9 @@ describe("gateway proxy authorization (owner-only, ARKON-01 / WI-1699)", () => {
     const res = await POST(request({ path: "/api/system-event", body: { text: "hi" } }, "owner-secret"));
 
     expect(res.status).toBe(200);
-    expect(fetch).toHaveBeenCalledWith(
-      "https://gateway.test/api/system-event",
-      expect.objectContaining({ method: "POST" })
-    );
+    // fetch receives a URL object; assert on the resolved href.
+    const [calledUrl] = vi.mocked(fetch).mock.calls[0];
+    expect(String(calledUrl)).toBe("https://gateway.test/api/system-event");
   });
 
   it("rejects non-allowlisted paths even for the owner", async () => {
@@ -80,8 +79,27 @@ describe("gateway proxy authorization (owner-only, ARKON-01 / WI-1699)", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("rejects path traversal that fetch would normalize out of the allowlist", async () => {
+  it("rejects literal path traversal that fetch would normalize out of the allowlist", async () => {
     const res = await POST(request({ path: "/api/system-event/../admin/secrets" }, "owner-secret"));
+
+    expect(res.status).toBe(403);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["/api/system-event/%2e%2e/admin/secrets"],
+    ["/api/system-event/%2E%2E/admin/secrets"],
+    ["/api/system-event/.%2e/admin/secrets"],
+    ["/hooks/agent/%2e%2e/%2e%2e/admin"],
+  ])("rejects percent-encoded traversal %s (fetch decodes it out of the allowlist)", async (p) => {
+    const res = await POST(request({ path: p }, "owner-secret"));
+
+    expect(res.status).toBe(403);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects a path that repoints the request off the gateway origin", async () => {
+    const res = await POST(request({ path: "http://evil.example/api/system-event" }, "owner-secret"));
 
     expect(res.status).toBe(403);
     expect(fetch).not.toHaveBeenCalled();
@@ -91,9 +109,7 @@ describe("gateway proxy authorization (owner-only, ARKON-01 / WI-1699)", () => {
     const res = await POST(request({ path: "/hooks/agent/ping" }, "owner-secret"));
 
     expect(res.status).toBe(200);
-    expect(fetch).toHaveBeenCalledWith(
-      "https://gateway.test/hooks/agent/ping",
-      expect.objectContaining({ method: "POST" })
-    );
+    const [calledUrl] = vi.mocked(fetch).mock.calls[0];
+    expect(String(calledUrl)).toBe("https://gateway.test/hooks/agent/ping");
   });
 });

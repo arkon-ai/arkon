@@ -55,3 +55,30 @@ Local state after fixes: gateway unit tests 12/12, `tsc --noEmit` clean.
 
 ## Round-2 verdict
 All 3 confirmed and fixed. Local: gateway unit tests 16/16, `tsc --noEmit` clean. Re-panel (R3).
+
+---
+
+# ADJUDICATION — round 3 (2026-07-11)
+
+1. **Percent-encoded traversal bypasses the R2 literal-`..` guard** (opus Major, grok Major,
+   sol Major — convergent, all with Node repro)
+   — **CONFIRMED (real, empirically reproduced).** The R2 fix rejected literal `..` then
+   prefix-checked the RAW string; but `fetch`/WHATWG-URL decodes+collapses `%2e%2e`, `%2E%2E`,
+   `.%2e` before the request leaves the process, so `/api/system-event/%2e%2e/admin/secrets`
+   passed the raw-string allowlist while the actual request hit `/api/admin/secrets`. Same bypass
+   class as R2, surviving via encoding.
+   — **ROOT-CAUSE FIX (not whack-a-mole):** stop guessing raw-string forms — parse the full target
+   URL once (`new URL(base + rawPath)`) and allowlist its normalized `.pathname` (what fetch will
+   ACTUALLY request), then forward THAT SAME URL object. Check == use, so no encoding variant
+   (`%2e%2e`, double-encode `%252e%252e`, `.%2e`) can diverge the checked path from the sent path.
+   Concatenating onto the gateway base with a forced leading `/` also pins the origin (an
+   `http://evil/...` or `//evil/...` path stays on the gateway origin AND fails the allowlist).
+   Empirically verified via Node repro (every reviewer payload → allowed:false, checked path ==
+   forwarded path). +5 regression cases (4 percent-encoded variants + origin-repoint).
+
+## Round-3 verdict
+The R3 Major is a confirmed real security bypass, not a nitpick — root-caused and fixed. Local:
+gateway unit tests 21/21, `tsc --noEmit` clean, Node repro confirms closure. Per the converge
+2-adversarial-round cap this fix is NOT re-adversaried locally (would be R4/grinding); it is
+verified by the empirical repro + regression tests, and the CodeRabbit App review on the PR is the
+external verifier. PR body carries a "not re-adversaried (converge cap)" note for this commit.
