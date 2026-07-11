@@ -756,17 +756,12 @@ export function DocsToolScreen() {
             data.items.map((doc) => (
               <div
                 key={doc.id}
-                role="button"
-                tabIndex={0}
                 onClick={() => void openDoc(doc.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    void openDoc(doc.id);
-                  }
-                }}
                 className="w-full text-left"
               >
+                {/* The card itself is a mouse-only affordance (not exposed as interactive to
+                    the a11y tree) — the title button below is the single focusable control,
+                    avoiding nesting it with the Pin button that also lives in this card. */}
                 <Card className="space-y-3 transition hover:border-accent/40">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -774,7 +769,16 @@ export function DocsToolScreen() {
                         <Badge tone="accent">{doc.category}</Badge>
                         {doc.pinned ? <Badge tone="amber">Pinned</Badge> : null}
                       </div>
-                      <h2 className="mt-3 text-lg font-semibold text-text">{doc.title}</h2>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void openDoc(doc.id);
+                        }}
+                        className="mt-3 block w-full text-left"
+                      >
+                        <h2 className="text-lg font-semibold text-text">{doc.title}</h2>
+                      </button>
                       <p className="mt-1 text-xs text-text-dim">
                         {formatShortDate(doc.updated_at)} · {doc.word_count ?? 0} words
                       </p>

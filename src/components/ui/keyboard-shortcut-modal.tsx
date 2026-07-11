@@ -75,6 +75,7 @@ export function KeyboardShortcutModal({ open, onClose }: KeyboardShortcutModalPr
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close"
             className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-tertiary)] transition hover:bg-white/[0.04] hover:text-[var(--text-primary)]"
           >
             <X className="h-4 w-4" />

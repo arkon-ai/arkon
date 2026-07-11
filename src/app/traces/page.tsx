@@ -197,6 +197,7 @@ export default function TracesPage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => { setStatusFilter(e.target.value); setOffset(0); }}
+                  aria-label="Status"
                   className="rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)]"
                 >
                   <option value="all">All</option>
@@ -211,6 +212,7 @@ export default function TracesPage() {
                 <select
                   value={agentFilter}
                   onChange={(e) => { setAgentFilter(e.target.value); setOffset(0); }}
+                  aria-label="Agent"
                   className="rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)]"
                 >
                   <option value="">All Agents</option>

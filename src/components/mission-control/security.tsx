@@ -1144,6 +1144,7 @@ export function SecurityScreen() {
         <select
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value)}
+          aria-label="Filter by severity"
           className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-text"
         >
           <option value="">All Severities</option>
@@ -1155,6 +1156,7 @@ export function SecurityScreen() {
         <select
           value={classFilter}
           onChange={(e) => setClassFilter(e.target.value)}
+          aria-label="Filter by threat class"
           className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-text"
         >
           <option value="">All Classes</option>

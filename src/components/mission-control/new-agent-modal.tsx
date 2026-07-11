@@ -225,6 +225,7 @@ export function NewAgentModal({
                   <select
                     value={tenantId}
                     onChange={(e) => setTenantId(e.target.value)}
+                    aria-label="Tenant"
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-success/40"
                   >
                     {tenants.length === 0 ? (

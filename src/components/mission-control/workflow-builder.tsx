@@ -299,6 +299,7 @@ function NodeConfigPanel({
                 <select
                   value={String(d.method ?? "GET")}
                   onChange={(e) => updateField("method", e.target.value)}
+                  aria-label="Method"
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-accent focus:outline-none"
                 >
                   <option>GET</option>
@@ -359,6 +360,7 @@ function NodeConfigPanel({
                 <select
                   value={String(d.operator ?? "eq")}
                   onChange={(e) => updateField("operator", e.target.value)}
+                  aria-label="Operator"
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-accent focus:outline-none"
                 >
                   <option value="eq">equals</option>
@@ -392,6 +394,7 @@ function NodeConfigPanel({
               <select
                 value={String(d.channel ?? "telegram")}
                 onChange={(e) => updateField("channel", e.target.value)}
+                aria-label="Channel"
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-2 text-sm text-white focus:border-accent focus:outline-none"
               >
                 <option value="telegram">Telegram</option>
