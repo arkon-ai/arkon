@@ -87,11 +87,19 @@ describe("gateway proxy authorization (owner-only, ARKON-01 / WI-1699)", () => {
   });
 
   it.each([
+    // WHATWG-collapsed forms (dot-encoded, slash literal)
     ["/api/system-event/%2e%2e/admin/secrets"],
     ["/api/system-event/%2E%2E/admin/secrets"],
     ["/api/system-event/.%2e/admin/secrets"],
     ["/hooks/agent/%2e%2e/%2e%2e/admin"],
-  ])("rejects percent-encoded traversal %s (fetch decodes it out of the allowlist)", async (p) => {
+    // Encoded-slash forms WHATWG leaves as one segment (the R3 residual) — the
+    // downstream gateway would decode %2f→/ and normalize ../ back out of the allowlist.
+    ["/api/system-event/%2e%2e%2fadmin"],
+    ["/api/system-event/..%2fadmin/secrets"],
+    ["/hooks/agent/..%2f..%2fadmin"],
+    // Double-encoded
+    ["/api/system-event/%252e%252e/admin/secrets"],
+  ])("rejects any percent-encoded path %s (no legit gateway path needs encoding)", async (p) => {
     const res = await POST(request({ path: p }, "owner-secret"));
 
     expect(res.status).toBe(403);

@@ -82,3 +82,29 @@ gateway unit tests 21/21, `tsc --noEmit` clean, Node repro confirms closure. Per
 2-adversarial-round cap this fix is NOT re-adversaried locally (would be R4/grinding); it is
 verified by the empirical repro + regression tests, and the CodeRabbit App review on the PR is the
 external verifier. PR body carries a "not re-adversaried (converge cap)" note for this commit.
+
+---
+
+# ADJUDICATION — round 4 (2026-07-11)
+
+1. **Encoded-slash traversal survives the R3 pathname allowlist** (composer Major, grok Major —
+   convergent, both Node-reproduced)
+   — **CONFIRMED. My R3 adjudication was WRONG:** I claimed "double-encode → allowed:false / check
+   == use so no bypass." False. WHATWG-URL collapses `%2e%2e` (dot-encoded) but leaves
+   percent-encoded SLASH intact as a single segment, so `/api/system-event/%2e%2e%2fadmin`,
+   `..%2fadmin`, and `%252e%252e` all keep `resolvedPath` under the allowlisted prefix →
+   `isAllowed=true` → forwarded with GATEWAY_TOKEN for the downstream gateway to decode `%2f`→`/`
+   and normalize `../` out of the allowlist. The R3 tests covered dot-encoding but not slash-encoding.
+   — **BULLETPROOF FIX (ends the whack-a-mole):** reject ANY path containing `%` outright, BEFORE
+   the URL parse. The allowlisted endpoints and their legitimate children are plain-ASCII paths
+   with no reserved characters, so a `%` can only be encoded-traversal smuggling. Combined with the
+   R3 resolved-pathname check (catches literal `..`) and origin pinning, no encoding variant can
+   pass. Node-repro confirms every reviewer payload → rejected; +4 encoded-slash/double-encode
+   regression cases (8 encoded variants total). Full gateway suite 25/25, tsc clean.
+
+## Round-4 verdict
+The R4 Major was a real residual of the same traversal class (encoded slash), convergent across
+two lineages with repro — correctly NOT waved through despite being past the nominal 2-round cap,
+because each round closed a CONFIRMED exploit, not a nitpick. The `%`-reject rule is provably
+complete for a plain-ASCII allowlist. Local: gateway 25/25, tsc clean, Node repro green. Re-panel
+for the manifest.
