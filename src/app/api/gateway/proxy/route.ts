@@ -35,17 +35,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "path is required" }, { status: 400 });
   }
 
-  // Only allow known gateway paths. Validate the pathname that fetch will ACTUALLY
-  // request — parse the full target URL and check its normalized `.pathname` —
-  // rather than string-matching the raw input. The WHATWG URL parser decodes+collapses
-  // `..` and its percent-encoded forms (`%2e%2e`, `.%2e`, …), so any raw-string guess
-  // misses a variant (this is why the literal-`..` check alone was insufficient).
-  // Concatenating onto the gateway base (with the path forced to a leading `/`) also
-  // keeps a `path` like "http://evil/x" on the gateway origin. Match an exact
-  // allowlisted path or a true path-segment child — never a bare startsWith (which
-  // passes /api/system-event-backdoor). This allowlist is the load-bearing control on
-  // which gateway APIs receive the server GATEWAY_TOKEN.
+  // Only allow known gateway paths. This allowlist is the load-bearing control on
+  // which gateway APIs receive the server GATEWAY_TOKEN, so it must be airtight
+  // against traversal smuggling.
+  //
+  // (1) Reject ANY percent-encoding outright. The allowlisted endpoints
+  //     (/api/system-event, /hooks/agent) and their legitimate children are plain
+  //     ASCII paths with no reserved characters — none ever needs a `%`. A `%` can
+  //     only be an attempt to smuggle an encoded traversal that the WHATWG URL parser
+  //     leaves intact (`%2e%2e%2f`, `..%2f`, double-encoded `%252e`) so the DOWNSTREAM
+  //     gateway decodes it back into `../`. Rejecting `%` ends the encoding-variant
+  //     whack-a-mole in one rule instead of chasing each form.
+  // (2) Then validate the pathname fetch will ACTUALLY request — parse the full target
+  //     URL and check its normalized `.pathname` — so literal `..` (which WHATWG
+  //     collapses) escapes the prefix and is rejected. Concatenating onto the gateway
+  //     base (with a forced leading `/`) also pins the origin (a `path` like
+  //     "http://evil/x" stays on the gateway origin). Match an exact allowlisted path
+  //     or a true path-segment child — never a bare startsWith (which passes
+  //     /api/system-event-backdoor).
   const allowedPaths = ["/api/system-event", "/hooks/agent"];
+  if (path.includes("%")) {
+    return NextResponse.json({ error: "Path not allowed" }, { status: 403 });
+  }
   const rawPath = path.startsWith("/") ? path : `/${path}`;
   let targetUrl: URL;
   try {
