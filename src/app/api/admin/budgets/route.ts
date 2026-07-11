@@ -113,6 +113,10 @@ export async function DELETE(req: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: "id required" }, { status: 400 });
     }
+    // budget_limits.id is an integer — a non-numeric id can never exist
+    if (!/^\d+$/.test(id)) {
+      return NextResponse.json({ error: "budget not found" }, { status: 404 });
+    }
 
     await query("DELETE FROM budget_limits WHERE id = $1", [id]);
     return NextResponse.json({ ok: true });
