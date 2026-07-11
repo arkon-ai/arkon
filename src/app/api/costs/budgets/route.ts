@@ -51,8 +51,10 @@ export async function DELETE(req: NextRequest) {
   const id = url.searchParams.get("id");
 
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
-  // budget_limits.id is an integer — a non-numeric id can never exist
-  if (!/^\d+$/.test(id)) return NextResponse.json({ error: "budget not found" }, { status: 404 });
+  // budget_limits.id is a SERIAL (int4) — a non-decimal OR out-of-range id can
+  // never exist, so 404 rather than letting Postgres 22003/22P02 bubble to a 500.
+  if (!/^\d+$/.test(id) || Number(id) > 2147483647)
+    return NextResponse.json({ error: "budget not found" }, { status: 404 });
 
   await query(`DELETE FROM budget_limits WHERE id = $1`, [id]);
   return NextResponse.json({ success: true });
