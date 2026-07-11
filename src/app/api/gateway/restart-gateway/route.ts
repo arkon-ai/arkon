@@ -41,7 +41,8 @@ function sshExec(host: string, user: string, command: string, timeoutMs = 20000)
 /** GET: Check current gateway status */
 export async function GET(req: NextRequest) {
   const role = await resolveRole(req);
-  if (role !== "owner" && role !== "admin") {
+  // ARKON-01 (WI-1699): gateway/* is owner-only, reads included.
+  if (role !== "owner") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
