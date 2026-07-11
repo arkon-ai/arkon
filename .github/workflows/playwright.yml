@@ -57,6 +57,11 @@ jobs:
       - name: Run database migrations
         run: npx tsx scripts/migrate.ts
 
+      - name: Seed E2E fixture data
+        run: npx tsx scripts/seed-e2e.ts
+        env:
+          ARKON_SEED_E2E: '1'
+
       - name: Build Arkon
         run: npm run build
 
