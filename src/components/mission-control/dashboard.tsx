@@ -55,7 +55,7 @@ import { Avatar, Kbd, bucketHourly } from "./agents-kit";
 import { AgentsFilterPopover } from "./agents-filter-popover";
 import { NewAgentModal } from "./new-agent-modal";
 import { AgentDrawerDetail } from "./agent-drawer-detail";
-import { Filter, Plus, Pause, MoreVertical, Download } from "lucide-react";
+import { Filter, Plus, Pause, MoreVertical, Download, PanelRightOpen } from "lucide-react";
 import { LiveFeed, type LiveFeedItem } from "./kit-extras";
 
 interface ThreatSummary {
@@ -1435,10 +1435,12 @@ function AgentsContent() {
                         className="cursor-pointer border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--bg-surface-2)] focus:bg-[var(--bg-surface-2)] focus:outline-none"
                         onClick={() => setSelectedAgentId(agent.id)}
                       >
-                        {/* Row itself is a mouse-only affordance (not exposed as interactive to
-                            the a11y tree) to avoid nesting it inside the Name link / action
-                            buttons below — those already provide keyboard access to the same
-                            destinations without a nested-interactive violation. */}
+                        {/* Row click is a mouse-only shortcut to the inline detail panel; it is
+                            NOT exposed as interactive to the a11y tree, to avoid nesting it inside
+                            the Name link / action buttons (a nested-interactive violation). Keyboard
+                            parity: the "View details" button in the actions cell calls the same
+                            setSelectedAgentId(agent.id), so keyboard users can open the inline panel
+                            too (the Name link navigates to /agent/[id], a different destination). */}
                         <td className="px-3 py-2">
                           <Avatar name={agent.name} persona={agent.name.toLowerCase()} />
                         </td>
@@ -1483,6 +1485,18 @@ function AgentsContent() {
                         </td>
                         <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                           <div className="flex justify-end gap-1">
+                            <button
+                              type="button"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-2)] hover:text-[var(--text-primary)]"
+                              title="View details"
+                              aria-label={`View ${agent.name} details`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setSelectedAgentId(agent.id);
+                              }}
+                            >
+                              <PanelRightOpen className="h-3.5 w-3.5" />
+                            </button>
                             <button
                               type="button"
                               className="inline-flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-2)] hover:text-[var(--text-primary)]"
