@@ -44,10 +44,10 @@ afterEach(() => {
 });
 
 describe("gateway probe authorization and target validation", () => {
-  it("rejects unauthenticated probes", async () => {
+  it("rejects unauthenticated probes with 401", async () => {
     const res = await POST(request({ host: "example.com", port: 443 }));
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(401);
   });
 
   it("rejects non-admin credentials", async () => {

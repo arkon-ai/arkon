@@ -72,4 +72,28 @@ describe("gateway proxy authorization (owner-only, ARKON-01 / WI-1699)", () => {
     expect(res.status).toBe(403);
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  it("rejects prefix-sibling paths (startsWith bypass)", async () => {
+    const res = await POST(request({ path: "/api/system-event-backdoor" }, "owner-secret"));
+
+    expect(res.status).toBe(403);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects path traversal that fetch would normalize out of the allowlist", async () => {
+    const res = await POST(request({ path: "/api/system-event/../admin/secrets" }, "owner-secret"));
+
+    expect(res.status).toBe(403);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("allows a true path-segment child of an allowlisted prefix", async () => {
+    const res = await POST(request({ path: "/hooks/agent/ping" }, "owner-secret"));
+
+    expect(res.status).toBe(200);
+    expect(fetch).toHaveBeenCalledWith(
+      "https://gateway.test/hooks/agent/ping",
+      expect.objectContaining({ method: "POST" })
+    );
+  });
 });
