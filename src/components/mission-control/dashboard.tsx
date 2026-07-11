@@ -1434,16 +1434,11 @@ function AgentsContent() {
                         key={agent.id}
                         className="cursor-pointer border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--bg-surface-2)] focus:bg-[var(--bg-surface-2)] focus:outline-none"
                         onClick={() => setSelectedAgentId(agent.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setSelectedAgentId(agent.id);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Open ${agent.name} detail`}
                       >
+                        {/* Row itself is a mouse-only affordance (not exposed as interactive to
+                            the a11y tree) to avoid nesting it inside the Name link / action
+                            buttons below — those already provide keyboard access to the same
+                            destinations without a nested-interactive violation. */}
                         <td className="px-3 py-2">
                           <Avatar name={agent.name} persona={agent.name.toLowerCase()} />
                         </td>

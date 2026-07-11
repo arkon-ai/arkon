@@ -125,11 +125,13 @@ function AuditLogTab() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <select value={actionFilter} onChange={(e) => { setActionFilter(e.target.value); setOffset(0); }}
+          aria-label="Filter by action"
           className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-white">
           <option value="">All Actions</option>
           {data.filters.actions.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
         <select value={resourceFilter} onChange={(e) => { setResourceFilter(e.target.value); setOffset(0); }}
+          aria-label="Filter by resource type"
           className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-white">
           <option value="">All Resources</option>
           {data.filters.resourceTypes.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -255,6 +257,7 @@ function ExportTab() {
           <div>
             <label className="block text-xs text-[var(--text-tertiary)] mb-1">Data Type</label>
             <select value={dataType} onChange={(e) => setDataType(e.target.value)}
+              aria-label="Data type"
               className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white">
               <option value="events">Events</option>
               <option value="costs">Costs (daily_stats)</option>
@@ -266,6 +269,7 @@ function ExportTab() {
           <div>
             <label className="block text-xs text-[var(--text-tertiary)] mb-1">Format</label>
             <select value={format} onChange={(e) => setFormat(e.target.value)}
+              aria-label="Export format"
               className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white">
               <option value="json">JSON</option>
               <option value="csv">CSV</option>
@@ -353,6 +357,7 @@ function PurgeTab() {
           <div>
             <label className="block text-xs text-[var(--text-tertiary)] mb-1">Scope</label>
             <select value={scope} onChange={(e) => setScope(e.target.value as "tenant" | "agent")}
+              aria-label="Purge scope"
               className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-white">
               <option value="tenant">Tenant</option>
               <option value="agent">Agent</option>

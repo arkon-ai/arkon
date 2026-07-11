@@ -216,6 +216,7 @@ function IncidentList({
         <select
           value={statusFilter}
           onChange={(e) => onStatusFilter(e.target.value)}
+          aria-label="Filter by status"
           className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent)]/50 focus:outline-none"
         >
           <option value="all">All Statuses</option>
@@ -226,6 +227,7 @@ function IncidentList({
         <select
           value={severityFilter}
           onChange={(e) => onSeverityFilter(e.target.value)}
+          aria-label="Filter by severity"
           className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent)]/50 focus:outline-none"
         >
           <option value="">All Severities</option>
@@ -552,7 +554,7 @@ function CreateIncidentDialog({ onClose }: { onClose: () => void }) {
       <div className="relative w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold font-display text-[var(--text-primary)]">Create Incident</h2>
-          <button type="button" onClick={onClose} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
+          <button type="button" onClick={onClose} aria-label="Close" className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -584,6 +586,7 @@ function CreateIncidentDialog({ onClose }: { onClose: () => void }) {
               <select
                 value={severity}
                 onChange={(e) => setSeverity(e.target.value)}
+                aria-label="Severity"
                 className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent)]/50 focus:outline-none"
               >
                 {Object.entries(SEVERITY_CONFIG).map(([k, v]) => (

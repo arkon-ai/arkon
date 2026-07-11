@@ -353,6 +353,7 @@ function DetailPanel({
       <div className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--bg-primary)] px-5 py-5">
         <button
           onClick={onClose}
+          aria-label="Close"
           className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--border)] text-xs text-[var(--text-tertiary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
         >
           <X className="h-3.5 w-3.5" />
@@ -717,6 +718,7 @@ export function InfrastructureTopology() {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
+            aria-label="Refresh"
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-tertiary)] transition hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] disabled:opacity-40"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />

@@ -214,6 +214,7 @@ export function ApiKeysManager() {
               <select
                 value={newKeyExpiry}
                 onChange={(e) => setNewKeyExpiry(Number(e.target.value))}
+                aria-label="Expires in"
                 className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-2.5 text-sm text-[var(--text-primary)] focus:border-[rgba(var(--quarn-rgb),0.5)] focus:outline-none"
               >
                 <option value={30}>30 days</option>

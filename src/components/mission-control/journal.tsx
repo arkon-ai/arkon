@@ -297,6 +297,7 @@ function Select({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      aria-label={placeholder}
       className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-primary)] focus:border-accent focus:outline-none"
     >
       {options.map((o) => (
@@ -502,7 +503,7 @@ function CaptureModal({
       <div className="w-full max-w-xl rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-5 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">New entry</h2>
-          <button onClick={onClose} className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
+          <button onClick={onClose} aria-label="Close" className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -527,6 +528,7 @@ function CaptureModal({
             <select
               value={ownerAgent}
               onChange={(e) => setOwnerAgent(e.target.value)}
+              aria-label="Owner agent"
               className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-accent focus:outline-none"
             >
               {["brynn", "warden", "lumina", "sentinel", "scout", "codesmith", "hermes"].map((o) => (
@@ -538,6 +540,7 @@ function CaptureModal({
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
+              aria-label="Category"
               className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-accent focus:outline-none"
             >
               <option value="task">Task</option>

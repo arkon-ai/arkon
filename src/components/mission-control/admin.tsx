@@ -112,6 +112,7 @@ function Select({ label, children, ...props }: React.SelectHTMLAttributes<HTMLSe
       <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">{label}</label>
       <select
         {...props}
+        aria-label={label}
         className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition"
       >
         {children}

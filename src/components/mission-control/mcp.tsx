@@ -275,6 +275,7 @@ export function AddServerModal({ onClose, onAdded }: { onClose: () => void; onAd
             <select
               value={form.server_type}
               onChange={(e) => setForm(f => ({ ...f, server_type: e.target.value }))}
+              aria-label="Type"
               className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
             >
               {["mcp", "stdio", "sse", "websocket", "http"].map(t => (
@@ -391,6 +392,7 @@ export function AgentMappingPanel({ serverId, onClose }: { serverId: number; onC
           {unmapped.length > 0 && (
             <select
               onChange={(e) => { if (e.target.value) { void addAgent(e.target.value); e.target.value = ""; } }}
+              aria-label="Assign agent"
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-1.5 text-xs text-[var(--text-primary)]"
               defaultValue=""
             >

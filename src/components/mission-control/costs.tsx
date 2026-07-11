@@ -1214,7 +1214,7 @@ function BudgetDialog({ agents, existingBudgets, onClose, onSaved }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div className="relative w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition">
+        <button onClick={onClose} aria-label="Close" className="absolute right-4 top-4 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition">
           <X className="h-5 w-5" />
         </button>
 
@@ -1271,6 +1271,7 @@ function BudgetDialog({ agents, existingBudgets, onClose, onSaved }: {
               <select
                 value={scopeType}
                 onChange={e => { setScopeType(e.target.value as "agent" | "tenant"); setScopeId(""); }}
+                aria-label="Scope type"
                 className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]/40"
               >
                 <option value="agent">Agent</option>
@@ -1285,6 +1286,7 @@ function BudgetDialog({ agents, existingBudgets, onClose, onSaved }: {
                 <select
                   value={scopeId}
                   onChange={e => setScopeId(e.target.value)}
+                  aria-label="Agent"
                   className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]/40"
                 >
                   <option value="">Select agent...</option>
@@ -1341,6 +1343,7 @@ function BudgetDialog({ agents, existingBudgets, onClose, onSaved }: {
               <select
                 value={action}
                 onChange={e => setAction(e.target.value)}
+                aria-label="Action on exceed"
                 className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]/40"
               >
                 <option value="alert">Alert Only</option>
@@ -1619,6 +1622,7 @@ function PricingTab() {
                         value={currentKey}
                         onChange={(e) => setDefaultModel(a.id, e.target.value)}
                         disabled={busy === `agent:${a.id}`}
+                        aria-label={`Default model for ${a.name}`}
                         className="rounded-lg border border-[var(--border)] bg-[var(--bg-base)] px-3 py-1.5 text-xs text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none disabled:opacity-40"
                       >
                         <option value="">— none —</option>
@@ -1723,7 +1727,7 @@ function PricingTab() {
         {/* Add infra form */}
         <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-6 rounded-xl border border-[var(--border)] bg-[var(--bg-base)] p-3">
           <input placeholder="name" value={newInfra.name} onChange={(e) => setNewInfra({ ...newInfra, name: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs md:col-span-2" />
-          <select value={newInfra.category} onChange={(e) => setNewInfra({ ...newInfra, category: e.target.value })} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs">
+          <select value={newInfra.category} onChange={(e) => setNewInfra({ ...newInfra, category: e.target.value })} aria-label="Infrastructure category" className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5 text-xs">
             <option value="server">server</option>
             <option value="service">service</option>
             <option value="api_subscription">api_subscription</option>
