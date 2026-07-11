@@ -4,12 +4,16 @@ import { resolveRole } from "@/app/api/tools/_utils";
 /**
  * Server-side gateway proxy — keeps GATEWAY_TOKEN out of the client bundle.
  * Accepts { url, method, body } and forwards to the OpenClaw gateway.
- * Requires valid mc_auth cookie (any authenticated role).
+ * Owner-only (ARKON-01 / WI-1699): forwards arbitrary gateway paths with the
+ * server's GATEWAY_TOKEN, so any lower role would amplify to full gateway access.
  */
 export async function POST(req: NextRequest) {
   const role = await resolveRole(req);
   if (!role) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (role !== "owner") {
+    return NextResponse.json({ error: "Owner access required" }, { status: 403 });
   }
 
   const gatewayUrl = process.env.GATEWAY_URL ?? "";

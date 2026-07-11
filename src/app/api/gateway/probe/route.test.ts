@@ -32,6 +32,9 @@ beforeEach(() => {
     if (sql.includes("JOIN user_sessions") && params?.[0] === hash("viewer-session")) {
       return { rows: [{ id: 5, email: "viewer@example.com", role: "viewer", tenant_id: "transformate" }] } as never;
     }
+    if (sql.includes("JOIN user_sessions") && params?.[0] === hash("admin-session")) {
+      return { rows: [{ id: 6, email: "admin@example.com", role: "admin", tenant_id: "transformate" }] } as never;
+    }
     return { rows: [] } as never;
   });
 });
@@ -56,6 +59,12 @@ describe("gateway probe authorization and target validation", () => {
 
   it("rejects authenticated non-admin users", async () => {
     const res = await POST(request({ host: "example.com", port: 443 }, "viewer-session"));
+
+    expect(res.status).toBe(403);
+  });
+
+  it("rejects tenant-scoped admins — probe is owner-only (ARKON-01 / WI-1699)", async () => {
+    const res = await POST(request({ host: "example.com", port: 443 }, "admin-session"));
 
     expect(res.status).toBe(403);
   });

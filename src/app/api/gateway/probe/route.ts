@@ -123,7 +123,9 @@ async function validateProbeTarget(host: string, port: number): Promise<string |
 
 export async function POST(req: NextRequest) {
   const role = await resolveRole(req);
-  if (role !== "owner" && role !== "admin") return forbidden("Admin access required");
+  // ARKON-01 (WI-1699): gateway/* is owner-only — a tenant-scoped admin must not
+  // retain the server-side probe surface (compounds ARKON-17 DNS-rebinding).
+  if (role !== "owner") return forbidden("Owner access required");
 
   let body: ProbeBody;
   try {
