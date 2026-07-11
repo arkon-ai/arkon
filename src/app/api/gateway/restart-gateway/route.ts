@@ -42,8 +42,11 @@ function sshExec(host: string, user: string, command: string, timeoutMs = 20000)
 export async function GET(req: NextRequest) {
   const role = await resolveRole(req);
   // ARKON-01 (WI-1699): gateway/* is owner-only, reads included.
-  if (role !== "owner") {
+  if (!role) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (role !== "owner") {
+    return NextResponse.json({ error: "Owner access required" }, { status: 403 });
   }
 
   const sshHost = process.env.GATEWAY_SSH_HOST ?? "";

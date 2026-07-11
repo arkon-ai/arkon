@@ -4,8 +4,8 @@ import { resolveRole } from "@/app/api/tools/_utils";
 /**
  * Server-side gateway proxy — keeps GATEWAY_TOKEN out of the client bundle.
  * Accepts { url, method, body } and forwards to the OpenClaw gateway.
- * Owner-only (ARKON-01 / WI-1699): forwards arbitrary gateway paths with the
- * server's GATEWAY_TOKEN, so any lower role would amplify to full gateway access.
+ * Owner-only (ARKON-01 / WI-1699): forwards allowlisted gateway paths with the
+ * server's GATEWAY_TOKEN, so any lower role would amplify to gateway access.
  */
 export async function POST(req: NextRequest) {
   const role = await resolveRole(req);
