@@ -3,7 +3,7 @@ import { resolveRole } from "@/app/api/tools/_utils";
 
 /**
  * Server-side gateway proxy — keeps GATEWAY_TOKEN out of the client bundle.
- * Accepts { url, method, body } and forwards to the OpenClaw gateway.
+ * Accepts { path, method, body } and forwards to the OpenClaw gateway.
  * Owner-only (ARKON-01 / WI-1699): forwards allowlisted gateway paths with the
  * server's GATEWAY_TOKEN, so any lower role would amplify to gateway access.
  */
@@ -81,7 +81,20 @@ export async function POST(req: NextRequest) {
       },
       body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(8000),
+      // The allowlist is checked on the INITIAL URL only. Following a redirect
+      // would re-send GATEWAY_TOKEN to wherever the gateway points — a same-origin
+      // 302 to a non-allowlisted path re-attaches the Authorization header and
+      // bypasses the allowlist (probe already pins redirect: "manual" for the
+      // same reason). Surface any 3xx as a blocked forward instead.
+      redirect: "manual",
     });
+
+    if (res.status >= 300 && res.status < 400) {
+      return NextResponse.json(
+        { error: "Gateway redirect blocked", status: res.status },
+        { status: 502 },
+      );
+    }
 
     const responseText = await res.text();
     let responseData: unknown;

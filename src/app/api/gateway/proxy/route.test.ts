@@ -56,13 +56,37 @@ describe("gateway proxy authorization (owner-only, ARKON-01 / WI-1699)", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("forwards an allowlisted path for the owner", async () => {
+  it("forwards an allowlisted path for the owner with the server GATEWAY_TOKEN", async () => {
     const res = await POST(request({ path: "/api/system-event", body: { text: "hi" } }, "owner-secret"));
 
     expect(res.status).toBe(200);
-    // fetch receives a URL object; assert on the resolved href.
-    const [calledUrl] = vi.mocked(fetch).mock.calls[0];
+    // fetch receives a URL object; assert on the resolved href AND the token —
+    // attaching the server GATEWAY_TOKEN is the amplification property the
+    // owner-only gate exists to contain, so the happy path must lock it.
+    const [calledUrl, init] = vi.mocked(fetch).mock.calls[0];
     expect(String(calledUrl)).toBe("https://gateway.test/api/system-event");
+    expect(init).toEqual(
+      expect.objectContaining({
+        redirect: "manual",
+        headers: expect.objectContaining({
+          Authorization: "Bearer gateway-secret",
+        }),
+      }),
+    );
+  });
+
+  it("does not follow a gateway redirect (would re-send GATEWAY_TOKEN past the allowlist)", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(null, { status: 302, headers: { location: "https://gateway.test/api/admin/secrets" } }),
+    );
+
+    const res = await POST(request({ path: "/api/system-event", body: { text: "hi" } }, "owner-secret"));
+
+    expect(res.status).toBe(502);
+    // Exactly one hop: the allowlisted URL. No second fetch to the redirect target.
+    expect(vi.mocked(fetch).mock.calls).toHaveLength(1);
+    const body = await res.json();
+    expect(body.error).toBe("Gateway redirect blocked");
   });
 
   it("rejects non-allowlisted paths even for the owner", async () => {
@@ -117,7 +141,15 @@ describe("gateway proxy authorization (owner-only, ARKON-01 / WI-1699)", () => {
     const res = await POST(request({ path: "/hooks/agent/ping" }, "owner-secret"));
 
     expect(res.status).toBe(200);
-    const [calledUrl] = vi.mocked(fetch).mock.calls[0];
+    const [calledUrl, init] = vi.mocked(fetch).mock.calls[0];
     expect(String(calledUrl)).toBe("https://gateway.test/hooks/agent/ping");
+    expect(init).toEqual(
+      expect.objectContaining({
+        redirect: "manual",
+        headers: expect.objectContaining({
+          Authorization: "Bearer gateway-secret",
+        }),
+      }),
+    );
   });
 });

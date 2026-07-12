@@ -23,10 +23,22 @@ function hash(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
+const envSnapshot = {
+  MC_ADMIN_TOKEN: process.env.MC_ADMIN_TOKEN,
+  MC_AGENT_TOKENS: process.env.MC_AGENT_TOKENS,
+  MC_GATEWAY_PROBE_ALLOWLIST: process.env.MC_GATEWAY_PROBE_ALLOWLIST,
+};
+
+function restoreEnv(key: keyof typeof envSnapshot) {
+  if (envSnapshot[key] === undefined) delete process.env[key];
+  else process.env[key] = envSnapshot[key];
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ version: "ok" })));
   process.env.MC_ADMIN_TOKEN = "owner-secret";
+  delete process.env.MC_AGENT_TOKENS;
   delete process.env.MC_GATEWAY_PROBE_ALLOWLIST;
   mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
     if (sql.includes("JOIN user_sessions") && params?.[0] === hash("viewer-session")) {
@@ -41,6 +53,9 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  restoreEnv("MC_ADMIN_TOKEN");
+  restoreEnv("MC_AGENT_TOKENS");
+  restoreEnv("MC_GATEWAY_PROBE_ALLOWLIST");
 });
 
 describe("gateway probe authorization and target validation", () => {
@@ -50,7 +65,7 @@ describe("gateway probe authorization and target validation", () => {
     expect(res.status).toBe(401);
   });
 
-  it("rejects non-admin credentials", async () => {
+  it("rejects agent tokens — probe is owner-only", async () => {
     process.env.MC_AGENT_TOKENS = "agent-1:agent-secret";
     const res = await POST(request({ host: "example.com", port: 443 }, "agent-secret"));
 

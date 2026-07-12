@@ -92,6 +92,11 @@ export async function GET(req: NextRequest) {
 /** POST: Start/restart the gateway */
 export async function POST(req: NextRequest) {
   const role = await resolveRole(req);
+  // ARKON-01 (WI-1699): same authn/authz split as GET and the sibling
+  // gateway/* routes — 401 for no credential, 403 for authenticated non-owner.
+  if (!role) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   if (role !== "owner") {
     return NextResponse.json({ error: "Owner access required" }, { status: 403 });
   }
