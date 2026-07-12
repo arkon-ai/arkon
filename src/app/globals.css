@@ -64,7 +64,7 @@
   --text-link: var(--quarn);
 
   /* Gray-tint channels (Arkon-local, WI-999 — package has no fg-2/3 rgb) */
-  --fg-2-rgb:    136, 136, 160; /* #8888A0 — muted-text gray tint base */
+  --fg-2-rgb:    162, 162, 184; /* #A2A2B8 (WI-1878) — muted-text gray tint base */
   --fg-3-rgb:    138, 138, 154; /* #8A8A9A — tertiary-text gray tint base (matches canonical --text-tertiary, WI-1852) */
 
   /* Chart categorical tint channels (WI-1159) — rgb companions for the CHART
