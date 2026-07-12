@@ -47,10 +47,11 @@ async function tableExists(name: string): Promise<boolean> {
 }
 
 async function seedTenants() {
-  // Most routes (workflows, incidents, mcp) fall back to tenant_id
+  // Most routes (workflows, incidents) fall back to tenant_id
   // 'transformate' when no tenant is specified — only 'default' is created
   // by migrations/001_create_tenants.sql, so that fallback tenant doesn't
-  // otherwise exist on a from-scratch DB.
+  // otherwise exist on a from-scratch DB. (mcp_servers seeds under 'default';
+  // the mcp-registry listing route is not tenant-scoped at all.)
   await pool.query(
     `INSERT INTO tenants (id, name, plan) VALUES ('transformate', 'Transformate', 'owner')
      ON CONFLICT (id) DO NOTHING`
@@ -194,7 +195,13 @@ async function seedTraces() {
 }
 
 async function seedWorkflows() {
-  const existing = await pool.query(`SELECT id FROM workflows WHERE name = $1 LIMIT 1`, ["Daily Digest"]);
+  // Scope to this seed's own tenant + creator: a same-named workflow owned by
+  // another tenant must neither satisfy nor receive this fixture (the runs
+  // below insert against workflowId as tenant 'transformate').
+  const existing = await pool.query(
+    `SELECT id FROM workflows WHERE name = $1 AND tenant_id = 'transformate' AND created_by = 'seed-e2e' LIMIT 1`,
+    ["Daily Digest"]
+  );
   let workflowId: number;
 
   if ((existing.rowCount ?? 0) > 0) {
@@ -216,7 +223,10 @@ async function seedWorkflows() {
     console.log(`[seed-e2e] workflows: created 'Daily Digest' (id=${workflowId})`);
   }
 
-  const existing2 = await pool.query(`SELECT 1 FROM workflows WHERE name = $1 LIMIT 1`, ["Lead Intake Router"]);
+  const existing2 = await pool.query(
+    `SELECT 1 FROM workflows WHERE name = $1 AND tenant_id = 'transformate' AND created_by = 'seed-e2e' LIMIT 1`,
+    ["Lead Intake Router"]
+  );
   if ((existing2.rowCount ?? 0) === 0) {
     await pool.query(
       `INSERT INTO workflows (name, description, definition, status, trigger_type, created_by, tenant_id)
