@@ -298,12 +298,20 @@ describe("P6/ION canonical values + one-hop alias resolution (iii, transformate 
 });
 
 describe("light-mode (P6 §3) values resolve through the real cascade (iv, transformate WI-1904)", () => {
-  it("--bg-primary (dark alias --void/--hull, un-themed by the package) is pinned locally to --bg so light renders #F6F8FA, not Hull black", () => {
-    // Regression guard for the defect this WI found: --bg-primary aliases the
-    // deprecated --void, and neither the package nor this file re-declares
-    // --void for light, so without a local light-scoped --bg-primary pin the
-    // page background would stay pinned to dark Hull under [data-theme=light].
+  it("--bg-primary (dark alias of --void in :root) is re-pinned to the light literal so light renders #F6F8FA, not Hull black", () => {
+    // Regression guard for the defect this WI found: in :root, --bg-primary
+    // aliases the deprecated --void, and neither the package nor this file
+    // re-declares --void for light — without the light-scoped literal pin the
+    // page background would stay dark Hull under [data-theme=light].
     expect(resolveVar(lightResolved, "--bg-primary")?.toUpperCase()).toBe("#F6F8FA");
+  });
+  it("--bg-deep / --background (also --void aliases in :root, and what <body> actually consumes) are pinned for light too", () => {
+    // Panel binding-round finding (2026-07-14): the --bg-primary assertion
+    // above does NOT cover these two — deleting their light-block pins leaves
+    // every test green while <body className="bg-bg-deep"> re-renders Hull
+    // black under light theme. Guard each consumed token, not just the source.
+    expect(resolveVar(lightResolved, "--bg-deep")?.toUpperCase()).toBe("#F6F8FA");
+    expect(resolveVar(lightResolved, "--background")?.toUpperCase()).toBe("#F6F8FA");
   });
   it("--text-primary = #0B1220 (light)", () => {
     expect(resolveVar(lightResolved, "--text-primary")?.toUpperCase()).toBe("#0B1220");
