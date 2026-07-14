@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import { createHash } from "crypto";
 import { query } from "@/lib/db";
-import { proxy } from "./proxy";
+import { proxy, isPublicAsset } from "./proxy";
 
 vi.mock("@/lib/db", () => ({ query: vi.fn() }));
 
@@ -82,4 +82,41 @@ describe("proxy auth and csrf gates", () => {
 
     expect(res.status).toBe(200);
   });
+});
+
+describe("isPublicAsset — static brand-asset extension bypass (transformate WI-1925)", () => {
+  it.each([
+    "/icon.svg",
+    "/wordmark.svg",
+    "/arkon-glyph.svg",
+    "/og-image.png",
+    "/site.webmanifest",
+    "/favicon.ico",
+  ])("%s is a public asset", (pathname) => {
+    expect(isPublicAsset(pathname)).toBe(true);
+  });
+
+  it.each([
+    "/api/anything",
+    "/dashboard",
+    "/icon.svg.html",
+  ])("%s is not a public asset", (pathname) => {
+    expect(isPublicAsset(pathname)).toBe(false);
+  });
+  // Note: a raw "/foo/../icon.svg"-style string still matches (suffix-only check) —
+  // not asserted false here because NextRequest.nextUrl.pathname is already
+  // normalized before proxy() sees it, so this string never reaches isPublicAsset
+  // as-is, and the match only skips the auth *check*, not filesystem resolution.
+});
+
+describe("proxy — static brand assets bypass auth without redirecting to /login (transformate WI-1925)", () => {
+  it.each(["/icon.svg", "/wordmark.svg", "/arkon-glyph.svg", "/og-image.png", "/site.webmanifest"])(
+    "unauthenticated GET %s does not 307-redirect to /login",
+    async (pathname) => {
+      const res = await proxy(request(pathname));
+      expect(res.status).not.toBe(307);
+      const location = res.headers.get("location");
+      expect(location).toBeNull();
+    },
+  );
 });

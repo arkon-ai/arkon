@@ -11,6 +11,9 @@ import {
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/docs/"];
+// Root-relative static brand assets (public/*) — always safe to serve unauthenticated;
+// covers favicon/icon/manifest variants the old prefix list missed (transformate WI-1925).
+const PUBLIC_ASSET_EXT_RE = /\.(?:svg|png|ico|webmanifest)$/;
 
 function isDashboardApiRoute(pathname: string): boolean {
   return pathname.startsWith("/api/");
@@ -22,6 +25,11 @@ function isAgentRoute(pathname: string): boolean {
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
+}
+
+/** True for a root-relative public static asset (public/*.svg|png|ico|webmanifest). */
+export function isPublicAsset(pathname: string): boolean {
+  return PUBLIC_ASSET_EXT_RE.test(pathname);
 }
 
 function applySecurityHeaders(response: NextResponse) {
@@ -85,9 +93,7 @@ export async function proxy(request: NextRequest) {
     !reviewMode &&
     !isPublicPath(pathname) &&
     !pathname.startsWith("/_next/") &&
-    !pathname.startsWith("/favicon") &&
-    !pathname.startsWith("/icon-") &&
-    !pathname.startsWith("/manifest") &&
+    !isPublicAsset(pathname) &&
     !pathname.startsWith("/sw.js")
   ) {
     credential = await resolveRequestCredential(request);
