@@ -127,8 +127,8 @@ export function LocationStep({ selected, onSelect, config, onAutoConfigLocal }: 
         <div
           className="rounded-xl p-4 mt-4"
           style={{
-            backgroundColor: "rgba(6, 182, 212, 0.08)",
-            border: "1px solid rgba(6, 182, 212, 0.2)",
+            backgroundColor: "rgba(var(--info-rgb), 0.08)",
+            border: "1px solid rgba(var(--info-rgb), 0.2)",
           }}
         >
           <p className="text-sm font-medium mb-2" style={{ color: "var(--info)" }}>
@@ -174,7 +174,7 @@ export function LocationStep({ selected, onSelect, config, onAutoConfigLocal }: 
           className="rounded-xl p-4 mt-4"
           style={{
             backgroundColor: "var(--accent-subtle)",
-            border: "1px solid rgba(0, 212, 126, 0.2)",
+            border: "1px solid rgba(var(--ion-rgb), 0.2)",
           }}
         >
           <p className="text-sm" style={{ color: "var(--accent)" }}>

@@ -131,7 +131,7 @@ export function TestStep({
         className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl text-base font-semibold transition-all"
         style={{
           backgroundColor: testStatus === "success"
-            ? "rgba(0, 212, 126, 0.15)"
+            ? "rgba(var(--ion-rgb), 0.15)"
             : testStatus === "error"
               ? "rgba(239, 68, 68, 0.15)"
               : "var(--accent)",
@@ -142,7 +142,7 @@ export function TestStep({
               : "var(--accent-foreground)",
           border: `1px solid ${
             testStatus === "success"
-              ? "rgba(0, 212, 126, 0.3)"
+              ? "rgba(var(--ion-rgb), 0.3)"
               : testStatus === "error"
                 ? "rgba(239, 68, 68, 0.3)"
                 : "transparent"
@@ -175,7 +175,7 @@ export function TestStep({
       {devicePaired && (
         <div
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
-          style={{ backgroundColor: "rgba(0, 212, 126, 0.08)", border: "1px solid rgba(0, 212, 126, 0.15)" }}
+          style={{ backgroundColor: "rgba(var(--ion-rgb), 0.08)", border: "1px solid rgba(var(--ion-rgb), 0.15)" }}
         >
           <CheckCircle2 size={14} style={{ color: "var(--accent)" }} />
           <span className="text-xs" style={{ color: "var(--accent)" }}>
@@ -253,7 +253,7 @@ export function TestStep({
                       {agent.isDefault && (
                         <span
                           className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
-                          style={{ backgroundColor: "rgba(0, 212, 126, 0.12)", color: "var(--accent)" }}
+                          style={{ backgroundColor: "rgba(var(--ion-rgb), 0.12)", color: "var(--accent)" }}
                         >
                           Default
                         </span>

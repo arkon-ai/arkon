@@ -110,7 +110,7 @@ export function NamingStep({
                 {agent.isDefault && (
                   <span
                     className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
-                    style={{ backgroundColor: "rgba(0, 212, 126, 0.12)", color: "var(--accent)" }}
+                    style={{ backgroundColor: "rgba(var(--ion-rgb), 0.12)", color: "var(--accent)" }}
                   >
                     Default
                   </span>

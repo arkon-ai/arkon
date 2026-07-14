@@ -152,7 +152,7 @@ export function SummaryStep({ data, config, onSave }: SummaryStepProps) {
                   <span
                     key={tag}
                     className="text-[10px] px-1.5 py-0.5 rounded"
-                    style={{ backgroundColor: "rgba(0, 212, 126, 0.1)", color: "var(--accent)" }}
+                    style={{ backgroundColor: "rgba(var(--ion-rgb), 0.1)", color: "var(--accent)" }}
                   >
                     {tag}
                   </span>

@@ -31,8 +31,8 @@ export function TlsStep({ tlsFingerprint, onUpdate, config }: TlsStepProps) {
       <div
         className="flex gap-3 p-4 rounded-xl"
         style={{
-          backgroundColor: "rgba(6, 182, 212, 0.08)",
-          border: "1px solid rgba(6, 182, 212, 0.15)",
+          backgroundColor: "rgba(var(--info-rgb), 0.08)",
+          border: "1px solid rgba(var(--info-rgb), 0.15)",
         }}
       >
         <ShieldCheck size={20} className="flex-shrink-0 mt-0.5" style={{ color: "var(--info)" }} />
