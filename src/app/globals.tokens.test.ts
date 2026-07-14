@@ -297,6 +297,21 @@ describe("P6/ION canonical values + one-hop alias resolution (iii, transformate 
   });
 });
 
+describe("--success-rgb / --success parity — installed package, dark (minor carried from WI-1904 panel R4, done in transformate WI-1925)", () => {
+  it("--success-rgb channels equal --success hex parsed to decimal in the package's own :root", () => {
+    const successHex = resolveHex(pkgRootProps, "success");
+    expect(successHex, "--success missing/unparseable in package :root").toBeTruthy();
+    const rgb = hexToRgb(successHex!)!;
+    const expected = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+
+    const successRgb = resolveVar(pkgRootProps, "--success-rgb");
+    expect(successRgb, "--success-rgb missing in package :root").toBeDefined();
+
+    const norm = (s: string) => s.replace(/\s+/g, "");
+    expect(norm(successRgb!)).toBe(norm(expected));
+  });
+});
+
 describe("light-mode (P6 §3) values resolve through the real cascade (iv, transformate WI-1904)", () => {
   it("--bg-primary (dark alias of --void in :root) is re-pinned to the light literal so light renders #F6F8FA, not Hull black", () => {
     // Regression guard for the defect this WI found: in :root, --bg-primary

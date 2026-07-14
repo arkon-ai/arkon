@@ -11,6 +11,20 @@ import {
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/docs/"];
+// Root-relative static brand assets (public/*) — always safe to serve unauthenticated;
+// covers favicon/icon/manifest variants the old prefix list missed (transformate WI-1925).
+// Root-anchored to exactly one path segment (^/[^/]+\.ext$) — matches the
+// public/ brand set (all root-level) without also bypassing a nested pathname
+// that happens to end the same way (e.g. /api/export.svg, /tenants/x/logo.png).
+// NOTE: deliberately no "json" here — that would auth-bypass every *.json pathname
+// app-wide, not just the one static file. /manifest.json is exact-matched in
+// isPublicPath below instead (config.matcher also excludes it upstream, but the
+// invariant needs a code-level pin here too, not just the out-of-diff matcher).
+// Root-route invariant this bypass rests on (panel R2, verified 2026-07-14):
+// src/app has NO root-level dynamic segment ([slug] page or route). If one is
+// ever added, any single-segment "*.svg|png|ico|webmanifest" string would
+// resolve to it UNAUTHENTICATED — re-verify before adding such a route.
+const PUBLIC_ASSET_EXT_RE = /^\/[^/]+\.(?:svg|png|ico|webmanifest)$/;
 
 function isDashboardApiRoute(pathname: string): boolean {
   return pathname.startsWith("/api/");
@@ -21,7 +35,15 @@ function isAgentRoute(pathname: string): boolean {
 }
 
 function isPublicPath(pathname: string): boolean {
+  // Exact-only pin — NOT in PUBLIC_PATHS, whose startsWith() would also bless
+  // /manifest.json.bak, /manifest.json/x etc. (panel R2 minor).
+  if (pathname === "/manifest.json") return true;
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
+}
+
+/** True for a root-relative public static asset (public/*.svg|png|ico|webmanifest). */
+export function isPublicAsset(pathname: string): boolean {
+  return PUBLIC_ASSET_EXT_RE.test(pathname);
 }
 
 function applySecurityHeaders(response: NextResponse) {
@@ -85,9 +107,7 @@ export async function proxy(request: NextRequest) {
     !reviewMode &&
     !isPublicPath(pathname) &&
     !pathname.startsWith("/_next/") &&
-    !pathname.startsWith("/favicon") &&
-    !pathname.startsWith("/icon-") &&
-    !pathname.startsWith("/manifest") &&
+    !isPublicAsset(pathname) &&
     !pathname.startsWith("/sw.js")
   ) {
     credential = await resolveRequestCredential(request);
