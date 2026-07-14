@@ -44,8 +44,8 @@ const EVENT_ICON: Record<string, string> = {
 };
 
 const EVENT_BORDER: Record<string, string> = {
-  message_received: "border-l-[var(--quarn)]",
-  message_sent: "border-l-[var(--quarn)]",
+  message_received: "border-l-[var(--ion)]",
+  message_sent: "border-l-[var(--ion)]",
   tool_call: "border-l-[var(--warning)]",
   error: "border-l-danger",
   cron: "border-l-info",

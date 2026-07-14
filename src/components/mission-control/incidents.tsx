@@ -87,7 +87,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   created: { label: "Created", color: "var(--fg-2)", bg: "rgba(var(--fg-2-rgb),0.1)" },
   assigned: { label: "Assigned", color: "var(--info)", bg: "rgba(var(--info-rgb),0.1)" },
   investigating: { label: "Investigating", color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)" },
-  resolved: { label: "Resolved", color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.1)" },
+  resolved: { label: "Resolved", color: "var(--ion)", bg: "rgba(var(--ion-rgb), 0.1)" },
   postmortem: { label: "Post-Mortem", color: CHART.teal, bg: "rgba(var(--chart-teal-rgb),0.1)" },
   closed: { label: "Closed", color: "var(--fg-3)", bg: "rgba(var(--fg-3-rgb),0.1)" },
 };
@@ -121,7 +121,7 @@ function formatSla(ms: number | null, breached: boolean): { text: string; color:
   const hrs = ms / 3600000;
   if (hrs < 0.25) return { text: `${Math.floor(ms / 60000)}m left`, color: "var(--danger)" };
   if (hrs < 1) return { text: `${Math.floor(ms / 60000)}m left`, color: "var(--warning)" };
-  return { text: `${Math.floor(hrs)}h ${Math.floor((hrs % 1) * 60)}m left`, color: "var(--quarn)" };
+  return { text: `${Math.floor(hrs)}h ${Math.floor((hrs % 1) * 60)}m left`, color: "var(--ion)" };
 }
 
 /* ── Main Screen ── */
@@ -201,7 +201,7 @@ function IncidentList({
             { label: "Open", value: stats.open_count, color: "var(--warning)" },
             { label: "P1/P2 Active", value: stats.critical_count, color: "var(--danger)" },
             { label: "SLA Breaches", value: stats.sla_breaches, color: "var(--danger)" },
-            { label: "Avg Resolution", value: stats.avg_resolution_hours ? `${stats.avg_resolution_hours}h` : "\u2014", color: "var(--quarn)" },
+            { label: "Avg Resolution", value: stats.avg_resolution_hours ? `${stats.avg_resolution_hours}h` : "\u2014", color: "var(--ion)" },
           ].map((s) => (
             <div key={s.label} className="relative rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{s.label}</p>

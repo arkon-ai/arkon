@@ -95,7 +95,7 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 const ROLE_COLORS: Record<string, { color: string; bg: string; border: string }> = {
-  primary:     { color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.08)",  border: "rgba(var(--quarn-rgb), 0.25)" },
+  primary:     { color: "var(--ion)", bg: "rgba(var(--ion-rgb), 0.08)",  border: "rgba(var(--ion-rgb), 0.25)" },
   failover:    { color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.08)", border: "rgba(var(--warning-rgb), 0.25)" },
   static:      { color: CHART.slate, bg: "rgba(var(--chart-slate-rgb), 0.08)",border: "rgba(var(--chart-slate-rgb), 0.25)" },
   dfy_client:  { color: "var(--info)", bg: "rgba(var(--info-rgb), 0.08)", border: "rgba(var(--info-rgb), 0.25)" },
@@ -103,7 +103,7 @@ const ROLE_COLORS: Record<string, { color: string; bg: string; border: string }>
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  online: "var(--quarn)",
+  online: "var(--ion)",
   degraded: "var(--warning)",
   offline: "var(--danger)",
   unknown: "var(--text-tertiary)",
@@ -128,7 +128,7 @@ const ROLE_ICONS: Record<string, LucideIcon> = {
 function pctBar(value: number | null, total: number | null, thresholds = { warn: 65, danger: 85 }) {
   if (value == null || total == null || total === 0) return null;
   const pct = Math.round((value / total) * 100);
-  const color = pct > thresholds.danger ? "var(--danger)" : pct > thresholds.warn ? "var(--warning)" : "var(--quarn)";
+  const color = pct > thresholds.danger ? "var(--danger)" : pct > thresholds.warn ? "var(--warning)" : "var(--ion)";
   return { pct, color };
 }
 
@@ -162,7 +162,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
       <div
         className="rounded-[var(--radius-card)] border p-4 transition-all duration-200"
         style={{
-          background: selected ? "var(--surface-1)" : "var(--void)",
+          background: selected ? "var(--surface-1)" : "var(--hull)",
           borderColor: selected ? roleStyle.border : "var(--border)",
           boxShadow: selected
             ? `0 0 30px -10px ${roleStyle.color}40, var(--depth-lg)`
@@ -215,7 +215,7 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
         {d.metrics && (
           <div className={`mt-1 grid gap-2 ${isCompact ? "grid-cols-1" : "grid-cols-2"}`}>
             {cpuPct != null && (
-              <StatBar label="CPU" value={cpuPct} color={cpuPct > 85 ? "var(--danger)" : cpuPct > 65 ? "var(--warning)" : "var(--quarn)"} />
+              <StatBar label="CPU" value={cpuPct} color={cpuPct > 85 ? "var(--danger)" : cpuPct > 65 ? "var(--warning)" : "var(--ion)"} />
             )}
             {memBar && (
               <StatBar label="RAM" value={memBar.pct} color={memBar.color}
@@ -241,9 +241,9 @@ function InfraNodeComponent({ data, selected }: NodeProps) {
                 key={svc.name}
                 className="rounded-md border px-1.5 py-0.5 text-[10px] font-medium"
                 style={{
-                  background: svc.active ? "rgba(var(--quarn-rgb), 0.06)" : "var(--bg-hover)",
-                  color: svc.active ? "var(--quarn)" : "var(--text-tertiary)",
-                  borderColor: svc.active ? "rgba(var(--quarn-rgb), 0.12)" : "var(--border)",
+                  background: svc.active ? "rgba(var(--ion-rgb), 0.06)" : "var(--bg-hover)",
+                  color: svc.active ? "var(--ion)" : "var(--text-tertiary)",
+                  borderColor: svc.active ? "rgba(var(--ion-rgb), 0.12)" : "var(--border)",
                 }}
               >
                 {svc.name}
@@ -415,7 +415,7 @@ function DetailPanel({
           node.agents.map((agent) => (
             <div key={agent.id} className="mb-2 flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2.5">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(var(--quarn-rgb),0.08)] text-xs font-semibold text-[var(--quarn)]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(var(--ion-rgb),0.08)] text-xs font-semibold text-[var(--ion)]">
                   {agent.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -423,7 +423,7 @@ function DetailPanel({
                   <p className="font-mono text-[10px] text-[var(--text-tertiary)]">{agent.role}</p>
                 </div>
               </div>
-              <span className="rounded-full bg-[rgba(var(--quarn-rgb),0.06)] px-2.5 py-0.5 text-[10px] font-semibold text-[var(--quarn)]">
+              <span className="rounded-full bg-[rgba(var(--ion-rgb),0.06)] px-2.5 py-0.5 text-[10px] font-semibold text-[var(--ion)]">
                 {agent.role}
               </span>
             </div>
@@ -437,7 +437,7 @@ function DetailPanel({
           <div className="grid grid-cols-2 gap-2">
             {(node.services as Array<{ name: string; active: boolean }>).map((svc) => (
               <div key={svc.name} className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2">
-                <div className="h-1.5 w-1.5 rounded-full" style={{ background: svc.active ? "var(--quarn)" : "var(--text-tertiary)" }} />
+                <div className="h-1.5 w-1.5 rounded-full" style={{ background: svc.active ? "var(--ion)" : "var(--text-tertiary)" }} />
                 <span className="text-[11px] font-medium text-[var(--text-secondary)]">{svc.name}</span>
               </div>
             ))}
@@ -457,7 +457,7 @@ function DetailPanel({
                 disabled={loading !== null}
                 className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium transition
                   ${action.style === "primary"
-                    ? "border-[rgba(var(--quarn-rgb),0.15)] bg-[rgba(var(--quarn-rgb),0.05)] text-[var(--quarn)] hover:bg-[rgba(var(--quarn-rgb),0.1)]"
+                    ? "border-[rgba(var(--ion-rgb),0.15)] bg-[rgba(var(--ion-rgb),0.05)] text-[var(--ion)] hover:bg-[rgba(var(--ion-rgb),0.1)]"
                     : action.style === "danger"
                       ? "border-[rgba(var(--danger-rgb),0.12)] text-[var(--danger)] hover:bg-[rgba(var(--danger-rgb),0.05)]"
                       : "border-[var(--border)] text-[var(--text-tertiary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
@@ -510,7 +510,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function ResourceRow({ label, value, total, display }: { label: string; value: number; total: number; display: string }) {
   const pct = Math.round((value / total) * 100);
-  const color = pct > 85 ? "var(--danger)" : pct > 65 ? "var(--warning)" : "var(--quarn)";
+  const color = pct > 85 ? "var(--danger)" : pct > 65 ? "var(--warning)" : "var(--ion)";
   return (
     <div className="mb-2.5 flex items-center gap-3">
       <span className="w-9 text-xs font-medium text-[var(--text-tertiary)]">{label}</span>
@@ -577,14 +577,14 @@ export function InfrastructureTopology() {
         type: "default",
         animated: true,
         style: {
-          stroke: "rgba(var(--quarn-rgb), 0.12)",
+          stroke: "rgba(var(--ion-rgb), 0.12)",
           strokeWidth: 1.5,
           strokeDasharray: "6 4",
         },
-        markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(var(--quarn-rgb), 0.18)", width: 12, height: 12 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(var(--ion-rgb), 0.18)", width: 12, height: 12 },
         label: e.latencyMs != null ? `${e.latencyMs.toFixed(0)}ms` : undefined,
         labelStyle: { fill: "var(--text-tertiary)", fontSize: 10, fontFamily: "monospace" },
-        labelBgStyle: { fill: "var(--void)", fillOpacity: 0.95 },
+        labelBgStyle: { fill: "var(--hull)", fillOpacity: 0.95 },
         labelBgPadding: [4, 2] as [number, number],
         labelBgBorderRadius: 4,
       }));
@@ -704,7 +704,7 @@ export function InfrastructureTopology() {
                 onClick={() => setFilter(f)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition
                   ${filter === f
-                    ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--quarn)] ring-1 ring-[rgba(var(--quarn-rgb),0.2)]"
+                    ? "bg-[rgba(var(--ion-rgb),0.08)] text-[var(--ion)] ring-1 ring-[rgba(var(--ion-rgb),0.2)]"
                     : "text-[var(--text-tertiary)] hover:bg-white/5 hover:text-[var(--text-secondary)]"
                   }`}
               >
@@ -743,7 +743,7 @@ export function InfrastructureTopology() {
           defaultEdgeOptions={{ animated: true }}
           style={{ background: "transparent" }}
         >
-          <Background color="rgba(var(--quarn-rgb), 0.06)" gap={24} size={1} />
+          <Background color="rgba(var(--ion-rgb), 0.06)" gap={24} size={1} />
           <MiniMap
             nodeColor={(node) => {
               const d = node.data as unknown as InfraNode;
@@ -752,7 +752,7 @@ export function InfrastructureTopology() {
             }}
             maskColor="rgba(5, 5, 5, 0.85)"
             style={{
-              background: "var(--void)",
+              background: "var(--hull)",
               border: "1px solid var(--border)",
               borderRadius: 12,
             }}

@@ -106,19 +106,19 @@ const EVENT_COLOUR: Record<string, string> = {
 const SEVERITY_COLORS: Record<string, string> = {
   critical: "var(--danger)",
   high: "var(--warning)",
-  medium: "var(--quarn)",
+  medium: "var(--ion)",
   low: "var(--fg-2)",
 };
 
 const SEVERITY_BG: Record<string, string> = {
   critical: "rgba(var(--danger-rgb), 0.08)",
   high: "rgba(var(--warning-rgb), 0.08)",
-  medium: "rgba(var(--quarn-rgb), 0.08)",
+  medium: "rgba(var(--ion-rgb), 0.08)",
   low: "rgba(136, 136, 160, 0.08)",
 };
 
 const ROLE_COLOURS: Record<string, string> = {
-  owner: "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]",
+  owner: "bg-[rgba(var(--ion-rgb),0.15)] text-[var(--accent)]",
   admin: "bg-[rgba(6,214,160,0.15)] text-[var(--accent)]",
   agent: "bg-[rgba(var(--info-rgb),0.15)] text-info",
   viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
@@ -181,7 +181,7 @@ function ChartTip({ active, payload, label }: { active?: boolean; payload?: Arra
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-xs">
       <p className="mb-1 font-semibold text-[var(--text-secondary)]">{label}</p>
       {payload.map((p) => (
-        <p key={p.name} style={{ color: p.fill ?? p.stroke ?? "var(--quarn)" }}>{p.name}: {p.value}</p>
+        <p key={p.name} style={{ color: p.fill ?? p.stroke ?? "var(--ion)" }}>{p.name}: {p.value}</p>
       ))}
     </div>
   );
@@ -479,20 +479,20 @@ function OverviewTab({ data, chartData, model, framework }: {
             <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradRecv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--ion)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--ion)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradSent" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--ion)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--ion)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
-              <Area type="monotone" dataKey="received" name="Received" stroke="var(--quarn)" strokeWidth={2} fill="url(#gradRecv)" dot={false} />
-              <Area type="monotone" dataKey="sent" name="Sent" stroke="var(--quarn)" strokeWidth={2} fill="url(#gradSent)" dot={false} />
+              <Area type="monotone" dataKey="received" name="Received" stroke="var(--ion)" strokeWidth={2} fill="url(#gradRecv)" dot={false} />
+              <Area type="monotone" dataKey="sent" name="Sent" stroke="var(--ion)" strokeWidth={2} fill="url(#gradSent)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </Card>
@@ -636,7 +636,7 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
               <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
               <Tooltip content={<ChartTip />} />
-              <Bar dataKey="cost" name="Cost ($)" fill="var(--quarn)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar dataKey="cost" name="Cost ($)" fill="var(--ion)" radius={[4, 4, 0, 0]} maxBarSize={28} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -674,7 +674,7 @@ function PerformanceTab({ data, chartData, totalMessages, totalToolCalls, totalT
               <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "var(--fg-2)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
-              <Bar dataKey="tools" name="Tool Calls" fill="var(--quarn)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+              <Bar dataKey="tools" name="Tool Calls" fill="var(--ion)" radius={[4, 4, 0, 0]} maxBarSize={28} />
             </BarChart>
           </ResponsiveContainer>
         </Card>

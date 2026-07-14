@@ -125,12 +125,12 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="msgGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--quarn)" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="var(--quarn)" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--ion)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="var(--ion)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="toolGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--quarn)" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="var(--quarn)" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--ion)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="var(--ion)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -140,18 +140,18 @@ export function TrendCharts({ tenantId }: { tenantId?: string }) {
                 <Area
                   type="monotone"
                   dataKey="Messages"
-                  stroke="var(--quarn)"
+                  stroke="var(--ion)"
                   fill="url(#msgGrad)"
                   strokeWidth={2}
-                  activeDot={{ r: 4, fill: "var(--quarn)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--quarn-rgb),0.5))" } }}
+                  activeDot={{ r: 4, fill: "var(--ion)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--ion-rgb),0.5))" } }}
                 />
                 <Area
                   type="monotone"
                   dataKey="Tool Calls"
-                  stroke="var(--quarn)"
+                  stroke="var(--ion)"
                   fill="url(#toolGrad)"
                   strokeWidth={2}
-                  activeDot={{ r: 4, fill: "var(--quarn)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--quarn-rgb),0.5))" } }}
+                  activeDot={{ r: 4, fill: "var(--ion)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--ion-rgb),0.5))" } }}
                 />
               </AreaChart>
             </ResponsiveContainer>

@@ -12,7 +12,7 @@ import { SectionDescription } from "./dashboard-clarity";
 import { CHART } from "@/lib/chart-colors";
 
 const C = {
-  green: "var(--quarn)", accent2: "var(--quarn-light)", amber: "var(--warning)",
+  green: "var(--ion)", accent2: "var(--ion-light)", amber: "var(--warning)",
   red: "var(--danger)", slate: "var(--fg-2)", teal: CHART.teal,
   pink: CHART.orange, blue: CHART.blue,
   grid: "var(--border)", tooltipBg: "var(--surface-1)",
@@ -135,7 +135,7 @@ export function BenchmarksDashboard() {
           {(["overview", "compare"] as const).map((t) => (
             <button key={t} type="button" onClick={() => setTab(t)}
               className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                tab === t ? "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                tab === t ? "bg-[rgba(var(--ion-rgb),0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >{t === "overview" ? "Overview" : "Compare Models"}</button>
           ))}

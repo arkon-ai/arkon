@@ -118,7 +118,7 @@ export function HealthGauge({
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
             Score Breakdown
           </p>
-          <BreakdownRow label="Agent Uptime" value={breakdown.agents} max={25} color="var(--quarn)" />
+          <BreakdownRow label="Agent Uptime" value={breakdown.agents} max={25} color="var(--ion)" />
           <BreakdownRow label="Threat Level" value={breakdown.threats} max={25} color="var(--danger)" />
           <BreakdownRow label="Budget Status" value={breakdown.budget} max={25} color="var(--warning)" />
           <BreakdownRow label="Infrastructure" value={breakdown.infra} max={25} color={CHART.blue} />

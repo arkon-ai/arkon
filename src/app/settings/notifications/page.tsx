@@ -387,7 +387,7 @@ export default function NotificationPreferencesPage() {
                           type="checkbox"
                           checked={isTypeEnabled(ch.key, nt.key)}
                           onChange={() => toggleNotificationType(ch.key, nt.key)}
-                          className="h-3.5 w-3.5 rounded border-[var(--border)] bg-[var(--bg-primary)] text-[var(--accent)] focus:ring-[var(--quarn)]/50"
+                          className="h-3.5 w-3.5 rounded border-[var(--border)] bg-[var(--bg-primary)] text-[var(--accent)] focus:ring-[var(--ion)]/50"
                         />
                         <span>{nt.label}</span>
                       </label>

@@ -49,7 +49,7 @@ export function StatCountUp({
    PulsingDot — animated status indicator
 ───────────────────────────────────────── */
 const dotColors: Record<string, string> = {
-  live: "var(--quarn)",
+  live: "var(--ion)",
   warm: "var(--warning)",
   idle: "var(--fg-2)",
   error: "var(--danger)",
@@ -79,7 +79,7 @@ export function PulsingDot({ status }: { status: "live" | "warm" | "idle" | "err
    StatusRing — SVG ring status indicator
 ───────────────────────────────────────── */
 const ringColors: Record<string, string> = {
-  live: "var(--quarn)",
+  live: "var(--ion)",
   warm: "var(--warning)",
   idle: "var(--fg-2)",
   error: "var(--danger)",
@@ -156,7 +156,7 @@ export function StatusRing({
 export function Sparkline({
   data,
   dataKey = "value",
-  color = "var(--quarn)",
+  color = "var(--ion)",
   width = "100%",
   height = 28,
 }: {
@@ -223,7 +223,7 @@ export function Sparkline({
 ───────────────────────────────────────── */
 export function LiveBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(var(--quarn-rgb),0.1)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)]">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[rgba(var(--ion-rgb),0.1)] px-2 py-0.5 text-xs font-semibold text-[var(--accent)]">
       <PulsingDot status="live" />
       LIVE
     </span>
@@ -252,8 +252,8 @@ export function EventsAreaChart({ data }: { data: Array<{ day: string; events: n
       <AreaChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
         <defs>
           <linearGradient id="eventsGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
+            <stop offset="5%" stopColor="var(--ion)" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="var(--ion)" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -263,11 +263,11 @@ export function EventsAreaChart({ data }: { data: Array<{ day: string; events: n
         <Area
           type="monotone"
           dataKey="events"
-          stroke="var(--quarn)"
+          stroke="var(--ion)"
           strokeWidth={2}
           fill="url(#eventsGrad)"
           dot={false}
-          activeDot={{ r: 4, fill: "var(--quarn)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--quarn-rgb),0.5))" } }}
+          activeDot={{ r: 4, fill: "var(--ion)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--ion-rgb),0.5))" } }}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -283,8 +283,8 @@ export function TokensAreaChart({ data }: { data: Array<{ day: string; tokens: n
       <AreaChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
         <defs>
           <linearGradient id="tokensGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
+            <stop offset="5%" stopColor="var(--ion)" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="var(--ion)" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -294,11 +294,11 @@ export function TokensAreaChart({ data }: { data: Array<{ day: string; tokens: n
         <Area
           type="monotone"
           dataKey="tokens"
-          stroke="var(--quarn)"
+          stroke="var(--ion)"
           strokeWidth={2}
           fill="url(#tokensGrad)"
           dot={false}
-          activeDot={{ r: 4, fill: "var(--quarn)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--quarn-rgb),0.5))" } }}
+          activeDot={{ r: 4, fill: "var(--ion)", strokeWidth: 0, style: { filter: "drop-shadow(0 0 6px rgba(var(--ion-rgb),0.5))" } }}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -323,12 +323,12 @@ export function AgentBarChart({ agents }: { agents: Array<{ name: string; events
           tickLine={false}
           width={72}
         />
-        <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(var(--quarn-rgb),0.05)" }} />
+        <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(var(--ion-rgb),0.05)" }} />
         <Bar dataKey="events" radius={[0, 6, 6, 0]}>
           {sorted.map((_, i) => (
             <Cell
               key={i}
-              fill={`rgba(var(--quarn-rgb),${0.9 - i * 0.1})`}
+              fill={`rgba(var(--ion-rgb),${0.9 - i * 0.1})`}
             />
           ))}
         </Bar>

@@ -43,8 +43,8 @@ function getSessionRole(): string {
 
 /* ─── Role badge ─────────────────────────────────────────── */
 const ROLE_COLOURS: Record<string, string> = {
-  owner: "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]",
-  admin: "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]",
+  owner: "bg-[rgba(var(--ion-rgb),0.15)] text-[var(--accent)]",
+  admin: "bg-[rgba(var(--ion-rgb),0.15)] text-[var(--accent)]",
   agent: "bg-[rgba(var(--info-rgb),0.15)] text-info",
   viewer: "bg-[rgba(100,116,139,0.15)] text-[var(--text-secondary)]",
 };
@@ -87,7 +87,7 @@ function Input({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> 
       <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">{label}</label>
       <input
         {...props}
-        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(var(--quarn-rgb),0.12)] transition"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(var(--ion-rgb),0.12)] transition"
       />
     </div>
   );
@@ -100,7 +100,7 @@ function Textarea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextArea
       <textarea
         {...props}
         rows={3}
-        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(var(--quarn-rgb),0.12)] transition resize-y"
+        className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(var(--ion-rgb),0.12)] transition resize-y"
       />
     </div>
   );

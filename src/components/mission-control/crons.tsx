@@ -183,7 +183,7 @@ function CronCard({ job, onMessage, onAction }: {
         <div className="flex shrink-0 gap-1.5">
           <button
             onClick={onMessage}
-            className="rounded-xl border border-[var(--accent)]/30 px-3 py-1.5 text-xs font-semibold text-[var(--accent)] hover:bg-[rgba(var(--quarn-rgb),0.08)] transition"
+            className="rounded-xl border border-[var(--accent)]/30 px-3 py-1.5 text-xs font-semibold text-[var(--accent)] hover:bg-[rgba(var(--ion-rgb),0.08)] transition"
           >
             Message Agent
           </button>

@@ -100,7 +100,7 @@ export function SpanDetail({ span }: { span: Span }) {
               {[
                 { label: "Duration", value: fmtDuration(span.duration_ms), icon: Clock, color: "var(--fg-1)" },
                 { label: "Tokens", value: fmtTokens(span.token_count), icon: Zap, color: "var(--warning)" },
-                { label: "Cost", value: fmtCost(Number(span.cost)), icon: Coins, color: "var(--quarn)" },
+                { label: "Cost", value: fmtCost(Number(span.cost)), icon: Coins, color: "var(--ion)" },
                 { label: "Status", value: span.status.toUpperCase(), icon: Hash, color: isError ? "var(--danger)" : "var(--success)" },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-3">

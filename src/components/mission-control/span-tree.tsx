@@ -5,9 +5,9 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import type { Span } from "@/app/traces/[traceId]/page";
 import { CHART } from "@/lib/chart-colors";
 
-// Type colors — LLM=emerald, tool=blue, retrieval=teal, chain=gray, error=red
+// Type colors — LLM=Ion, tool=blue, retrieval=teal, chain=gray, error=red
 const TYPE_COLORS: Record<string, { color: string; bg: string; label: string }> = {
-  llm:       { color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.12)",  label: "LLM" },
+  llm:       { color: "var(--ion)", bg: "rgba(var(--ion-rgb), 0.12)",  label: "LLM" },
   tool:      { color: "var(--info)", bg: "rgba(var(--info-rgb), 0.12)",  label: "Tool" },
   retrieval: { color: CHART.teal, bg: "rgba(var(--chart-teal-rgb), 0.12)", label: "RAG" },
   chain:     { color: "var(--fg-2)", bg: "rgba(var(--fg-2-rgb), 0.12)", label: "Chain" },
@@ -108,7 +108,7 @@ function SpanTreeNode({
         onClick={() => onSelectSpan(node.span)}
         className={`group flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-left transition-colors ${
           isSelected
-            ? "bg-[rgba(var(--quarn-rgb),0.08)] border border-[rgba(var(--quarn-rgb),0.2)]"
+            ? "bg-[rgba(var(--ion-rgb),0.08)] border border-[rgba(var(--ion-rgb),0.2)]"
             : "hover:bg-[var(--bg-surface-2)] border border-transparent"
         }`}
         style={{ paddingLeft: `${8 + node.depth * 20}px` }}

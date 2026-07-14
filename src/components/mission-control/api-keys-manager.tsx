@@ -185,7 +185,7 @@ export function ApiKeysManager() {
                 value={newKeyName}
                 onChange={(e) => setNewKeyName(e.target.value)}
                 placeholder="e.g., Production Agent Key"
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[rgba(var(--quarn-rgb),0.5)] focus:outline-none"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[rgba(var(--ion-rgb),0.5)] focus:outline-none"
               />
             </div>
 
@@ -199,7 +199,7 @@ export function ApiKeysManager() {
                     onClick={() => toggleScope(scope)}
                     className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                       newKeyScopes.includes(scope)
-                        ? "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)] border border-[rgba(var(--quarn-rgb),0.3)]"
+                        ? "bg-[rgba(var(--ion-rgb),0.15)] text-[var(--accent)] border border-[rgba(var(--ion-rgb),0.3)]"
                         : "bg-[var(--bg-primary)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--border-strong)]"
                     }`}
                   >
@@ -215,7 +215,7 @@ export function ApiKeysManager() {
                 value={newKeyExpiry}
                 onChange={(e) => setNewKeyExpiry(Number(e.target.value))}
                 aria-label="Expires in"
-                className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-2.5 text-sm text-[var(--text-primary)] focus:border-[rgba(var(--quarn-rgb),0.5)] focus:outline-none"
+                className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-2.5 text-sm text-[var(--text-primary)] focus:border-[rgba(var(--ion-rgb),0.5)] focus:outline-none"
               >
                 <option value={30}>30 days</option>
                 <option value={90}>90 days</option>
@@ -283,7 +283,7 @@ export function ApiKeysManager() {
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {k.scopes.map((s) => (
-                      <span key={s} className="rounded-md bg-[rgba(var(--quarn-rgb),0.08)] px-2 py-0.5 text-[10px] font-medium text-[var(--accent)]">
+                      <span key={s} className="rounded-md bg-[rgba(var(--ion-rgb),0.08)] px-2 py-0.5 text-[10px] font-medium text-[var(--accent)]">
                         {SCOPE_LABELS[s] ?? s}
                       </span>
                     ))}

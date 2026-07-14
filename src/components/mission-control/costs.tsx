@@ -17,9 +17,9 @@ import { CHART } from "@/lib/chart-colors";
 // (one job per section) + semantic locked (warning amber / danger red).
 // No cyan/pink/blue/purple — they are reserved for non-Arkon palettes.
 const C = {
-  emerald: "var(--quarn)",      // Ion — brand (kept name; --quarn re-derives through --ion-rgb, P6)
-  emeraldLight: "var(--quarn-light)", // Ion Light — secondary brand series, healthy
-  emeraldDeep: "var(--quarn-deep)",  // Ion Deep — gradient anchor
+  emerald: "var(--ion)",      // Ion — brand
+  emeraldLight: "var(--ion-light)", // Ion Light — secondary brand series, healthy
+  emeraldDeep: "var(--ion-deep)",  // Ion Deep — gradient anchor
   amber: "var(--warning)",        // semantic warning
   red: "var(--danger)",          // semantic danger (kill only)
   slate: "var(--fg-2)",        // text-secondary tone

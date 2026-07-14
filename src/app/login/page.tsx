@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(var(--quarn-rgb), 0.06) 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(circle, rgba(var(--ion-rgb), 0.06) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
       />
@@ -59,7 +59,7 @@ export default function LoginPage() {
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background: "radial-gradient(ellipse at 50% 30%, rgba(var(--quarn-rgb), 0.04), transparent 60%)",
+          background: "radial-gradient(ellipse at 50% 30%, rgba(var(--ion-rgb), 0.04), transparent 60%)",
         }}
       />
 
@@ -82,7 +82,7 @@ export default function LoginPage() {
               placeholder="Passphrase"
               autoFocus
               autoComplete="current-password"
-              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--quarn)]/50 transition"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--ion)]/50 transition"
             />
           </div>
 

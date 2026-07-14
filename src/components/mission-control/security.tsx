@@ -82,7 +82,7 @@ interface SecurityData {
 const SEVERITY_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
   critical: { color: "var(--danger)", bg: "rgba(var(--danger-rgb), 0.1)", label: "CRITICAL" },
   high: { color: "var(--warning)", bg: "rgba(var(--warning-rgb), 0.1)", label: "HIGH" },
-  medium: { color: "var(--quarn)", bg: "rgba(var(--quarn-rgb), 0.1)", label: "MEDIUM" },
+  medium: { color: "var(--ion)", bg: "rgba(var(--ion-rgb), 0.1)", label: "MEDIUM" },
   low: { color: "var(--fg-2)", bg: "rgba(100,116,139,0.1)", label: "LOW" },
 };
 
@@ -95,7 +95,7 @@ const CLASS_LABELS: Record<string, string> = {
 const CLASS_COLORS: Record<string, string> = {
   prompt_injection: "var(--danger)",
   shell_command: "var(--warning)",
-  credential_leak: "var(--quarn)",
+  credential_leak: "var(--ion)",
 };
 
 /* ── Threat Class Explainers (Step 6.1) ── */
@@ -494,8 +494,8 @@ function ThreatTimeline({ data }: { data: TimelineDay[] }) {
               <stop offset="95%" stopColor="var(--warning)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="medGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--ion)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--ion)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -504,7 +504,7 @@ function ThreatTimeline({ data }: { data: TimelineDay[] }) {
           <Tooltip content={<SecurityTooltip />} />
           <Area type="monotone" dataKey="critical" stackId="1" stroke="var(--danger)" fill="url(#critGrad)" strokeWidth={2} dot={false} />
           <Area type="monotone" dataKey="high" stackId="1" stroke="var(--warning)" fill="url(#highGrad)" strokeWidth={1.5} dot={false} />
-          <Area type="monotone" dataKey="medium" stackId="1" stroke="var(--quarn)" fill="url(#medGrad)" strokeWidth={1.5} dot={false} />
+          <Area type="monotone" dataKey="medium" stackId="1" stroke="var(--ion)" fill="url(#medGrad)" strokeWidth={1.5} dot={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -583,7 +583,7 @@ function ThreatHealthBar({ total, threats }: { total: number; threats: number })
           </div>
           <div className="text-right">
             <p className="text-sm text-text-dim">{formatCompact(total)} total events</p>
-            <p className="text-sm" style={{ color: threats > 0 ? "var(--danger)" : "var(--quarn)" }}>
+            <p className="text-sm" style={{ color: threats > 0 ? "var(--danger)" : "var(--ion)" }}>
               {formatCompact(threats)} flagged
             </p>
           </div>

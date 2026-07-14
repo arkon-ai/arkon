@@ -43,7 +43,7 @@ const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Health Check",
     description: "Monitor your servers every 5 minutes. Get alerted if anything goes down.",
     icon: HeartPulse,
-    color: "var(--quarn)",
+    color: "var(--ion)",
     trigger_type: "cron",
     trigger_config: { cron_expression: "*/5 * * * *" },
     definition: {
@@ -135,7 +135,7 @@ const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: "Budget Alert",
     description: "Notify you when spending hits 80% of your budget limit.",
     icon: Wallet,
-    color: "var(--quarn)",
+    color: "var(--ion)",
     trigger_type: "cron",
     trigger_config: { cron_expression: "0 * * * *" },
     definition: {
@@ -243,7 +243,7 @@ function timeAgo(dateStr: string): string {
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   draft: { bg: "rgba(var(--fg-2-rgb), 0.15)", text: "var(--fg-2)" },
-  active: { bg: "rgba(var(--quarn-rgb), 0.15)", text: "var(--quarn)" },
+  active: { bg: "rgba(var(--ion-rgb), 0.15)", text: "var(--ion)" },
   paused: { bg: "rgba(var(--warning-rgb), 0.15)", text: "var(--warning)" },
   archived: { bg: "rgba(var(--fg-2-rgb), 0.1)", text: "var(--fg-2)" },
   running: { bg: "rgba(var(--info-rgb), 0.15)", text: "var(--info)" },

@@ -470,7 +470,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     onClick={handleNavSelect}
                     className={`flex min-h-9 items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium transition ${
                       active
-                        ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--accent)]"
+                        ? "bg-[rgba(var(--ion-rgb),0.08)] text-[var(--accent)]"
                         : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                     }`}
                   >
@@ -534,7 +534,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                         title={sidebarCollapsed ? item.label : undefined}
                         className={`flex min-h-9 items-center gap-2.5 rounded-xl px-3 py-1.5 text-[13px] font-medium transition ${
                           active
-                            ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--accent)]"
+                            ? "bg-[rgba(var(--ion-rgb),0.08)] text-[var(--accent)]"
                             : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                         }`}
                       >
@@ -669,7 +669,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     })}
                   </nav>
                     {reviewMode ? (
-                      <span className="rounded-full border border-[rgba(var(--quarn-rgb),0.25)] bg-[rgba(var(--quarn-rgb),0.08)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
+                      <span className="rounded-full border border-[rgba(var(--ion-rgb),0.25)] bg-[rgba(var(--ion-rgb),0.08)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
                         Review mode
                       </span>
                     ) : null}
@@ -753,7 +753,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
                     onClick={() => setMoreOpen(false)}
                     className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${
                       active
-                        ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--accent)]"
+                        ? "bg-[rgba(var(--ion-rgb),0.08)] text-[var(--accent)]"
                         : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                     }`}
                   >

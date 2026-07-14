@@ -15,7 +15,7 @@ export default function ClientShell({ children }: { children: ReactNode }) {
   );
 
   if (!hydrated) {
-    return <div className="min-h-screen" style={{ background: "var(--void)" }} />;
+    return <div className="min-h-screen" style={{ background: "var(--hull)" }} />;
   }
 
   return <NotionShell>{children}</NotionShell>;
