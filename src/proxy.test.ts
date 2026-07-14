@@ -109,14 +109,40 @@ describe("isPublicAsset — static brand-asset extension bypass (transformate WI
   // as-is, and the match only skips the auth *check*, not filesystem resolution.
 });
 
-describe("proxy — static brand assets bypass auth without redirecting to /login (transformate WI-1925)", () => {
+describe("proxy — static brand assets bypass auth and fall through to 200 (transformate WI-1925)", () => {
+  // Asserting the actual success shape (200, no Location) rather than just
+  // "not 307" — a regression to 401/403/302 would stay green under a bare
+  // not-307 check (panel R1 minor).
   it.each(["/icon.svg", "/wordmark.svg", "/arkon-glyph.svg", "/og-image.png", "/site.webmanifest"])(
-    "unauthenticated GET %s does not 307-redirect to /login",
+    "unauthenticated GET %s falls through to 200 with no redirect",
     async (pathname) => {
       const res = await proxy(request(pathname));
-      expect(res.status).not.toBe(307);
-      const location = res.headers.get("location");
-      expect(location).toBeNull();
+      expect(res.status).toBe(200);
+      expect(res.headers.get("location")).toBeNull();
     },
   );
+
+  // /manifest.json is exact-listed in PUBLIC_PATHS, not isPublicAsset (no "json"
+  // in the extension regex — that would auth-bypass every *.json pathname
+  // app-wide). Regression guard: removing the enumerated "/manifest" prefix
+  // check in e497c19 dropped this path's bypass entirely until it was re-added
+  // here as an exact PUBLIC_PATHS entry. (config.matcher also excludes
+  // /manifest.json upstream, but that's out-of-diff config this suite can't
+  // see — this pin is the code-level invariant.)
+  it("unauthenticated GET /manifest.json falls through to 200 with no redirect", async () => {
+    const res = await proxy(request("/manifest.json"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
+});
+
+describe("isPublicAsset — root-anchored, does not bypass nested pathnames (panel R1 major, transformate WI-1925)", () => {
+  it.each([
+    "/dashboard/report.png",
+    "/api/export.svg",
+    "/settings/avatar.png",
+    "/tenants/acme/logo.svg",
+  ])("%s is NOT a public asset (nested path, extension alone is not enough)", (pathname) => {
+    expect(isPublicAsset(pathname)).toBe(false);
+  });
 });

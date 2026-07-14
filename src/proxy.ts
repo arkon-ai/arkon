@@ -10,10 +10,17 @@ import {
 
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
-const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/docs/"];
+const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/docs/", "/manifest.json"];
 // Root-relative static brand assets (public/*) — always safe to serve unauthenticated;
 // covers favicon/icon/manifest variants the old prefix list missed (transformate WI-1925).
-const PUBLIC_ASSET_EXT_RE = /\.(?:svg|png|ico|webmanifest)$/;
+// Root-anchored to exactly one path segment (^/[^/]+\.ext$) — matches the
+// public/ brand set (all root-level) without also bypassing a nested pathname
+// that happens to end the same way (e.g. /api/export.svg, /tenants/x/logo.png).
+// NOTE: deliberately no "json" here — that would auth-bypass every *.json pathname
+// app-wide, not just the one static file. /manifest.json is exact-listed in
+// PUBLIC_PATHS below instead (config.matcher also excludes it upstream, but the
+// invariant needs a code-level pin here too, not just the out-of-diff matcher).
+const PUBLIC_ASSET_EXT_RE = /^\/[^/]+\.(?:svg|png|ico|webmanifest)$/;
 
 function isDashboardApiRoute(pathname: string): boolean {
   return pathname.startsWith("/api/");
