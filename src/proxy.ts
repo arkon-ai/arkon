@@ -35,9 +35,9 @@ function applySecurityHeaders(response: NextResponse) {
     [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
-      "font-src 'self' https://fonts.gstatic.com data:",
+      "font-src 'self'",
       `connect-src 'self' wss: ws: https://cloudflareinsights.com ${process.env.ARKON_BASE_URL ?? ""}`.trim(),
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",
