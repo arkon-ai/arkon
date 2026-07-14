@@ -8,19 +8,22 @@
  * (success / warning / danger / info) stay as CSS tokens (var(--*)) — they
  * render in className / style contexts where var() works.  (transformate WI-1159)
  *
- * Design law (arkon-design-system): no purple. Ion-anchored 6-colour
- * categorical scale — no cyan, no pink/rose (Brynn, 2026-06-13). Add a new
- * series colour here rather than hardcoding a hex in a component.
+ * Design law (arkon-design-system): no purple, no pink/rose (Brynn,
+ * 2026-06-13). Ion-anchored 6-colour categorical scale — the anchor slot IS
+ * Ion cyan (#2BD9FF, P6/transformate WI-1904) by deliberate design, not a
+ * leftover; recharts applies it as an SVG presentation attribute so it stays
+ * a literal here rather than a var(--ion). Add a new series colour here
+ * rather than hardcoding a hex in a component.
  */
 
 /**
  * 6-colour categorical scale. Order = default series-assignment order.
  * For rgba() opacity tints in CSS/style contexts use the matching
  * --chart-*-rgb companion tokens in src/app/globals.css (blue / teal / slate),
- * or --warning-rgb / --quarn-rgb for amber / green. Keep both in sync.
+ * or --warning-rgb / --ion-rgb for amber / accent. Keep both in sync.
  */
 export const CHART = {
-  green: "#2BD9FF", // Ion anchor (P6, transformate WI-1904)
+  accent: "#2BD9FF", // Ion anchor (P6, transformate WI-1904)
   amber: "#F59E0B",
   blue: "#3B82F6",
   teal: "#14B8A6",
@@ -30,7 +33,7 @@ export const CHART = {
 
 /** Default series order for charts that map index → colour. */
 export const CHART_SERIES: readonly string[] = [
-  CHART.green,
+  CHART.accent,
   CHART.amber,
   CHART.blue,
   CHART.teal,
@@ -43,7 +46,7 @@ export const CHART_SERIES: readonly string[] = [
  * Falls back to slate for unknown agents.
  */
 export const AGENT_COLORS: Record<string, { fg: string }> = {
-  warden: { fg: CHART.green }, // the governor → Ion anchor
+  warden: { fg: CHART.accent }, // the governor → Ion anchor
   codesmith: { fg: CHART.slate },
   lumina: { fg: CHART.amber },
   sentinel: { fg: CHART.teal },

@@ -7,7 +7,7 @@ import { CHART } from "@/lib/chart-colors";
 //   warden=emerald, codesmith=slate (deeper than fallback), lumina=amber, sentinel=teal.
 // Brynn rules: NO cyan, NO purple, NO pink, NO red (red reserved for kill/warning).
 const PERSONA_COLORS: Record<string, { bg: string; fg: string }> = {
-  warden: { bg: "rgba(var(--success-rgb), 0.16)", fg: CHART.green },
+  warden: { bg: "rgba(var(--success-rgb), 0.16)", fg: CHART.accent },
   codesmith: { bg: "rgba(var(--chart-slate-rgb), 0.18)", fg: CHART.slate },
   lumina: { bg: "rgba(var(--warning-rgb), 0.16)", fg: CHART.amber },
   sentinel: { bg: "rgba(var(--chart-teal-rgb), 0.16)", fg: CHART.teal },
