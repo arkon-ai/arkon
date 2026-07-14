@@ -1,18 +1,18 @@
 /* ═══════════════════════════════════════════════════════════════
-   Arkon — Design Token System v2 (Phase 1)
+   Arkon — Design Token System v4 (ION)
    ═══════════════════════════════════════════════════════════════
    Brand:
-     Quarn Emerald (#00D47E) — SOLE brand accent. No purple.
-     Void (#0A0A0C) — primary background.
+     Ion (#2BD9FF) — SOLE brand accent. No purple.
+     Hull (#070A0E) — primary background.
 
    Typography:
-     Display/UI: Geist
-     Code/mono:  Geist Mono
-     Wordmark:   Urbanist 800 only
+     Display: Archivo   UI: General Sans
+     Code/mono: JetBrains Mono
+     Wordmark:  Archivo 780/125% only
 
    Status Colors:
      Success: #10B981   Warning: #F59E0B
-     Danger:  #EF4444   Info:    #06B6D4
+     Danger:  #EF4444   Info:    #4D8DFF
 
    Borders & Radii:
      Card:   1px solid var(--border), border-radius 10px
@@ -25,26 +25,35 @@
 /* ── Arkon design system — shared package (WI-1033) ──
    tokens.css + kit.css are byte-copies of the ArkonOS reference. They own the
    canonical token values; Arkon re-declares ONLY the thin alias layer below
-   that the package lacks. Imported before @theme inline so Tailwind sees them. */
-/* Imported into Tailwind's `base`/`components` layers (NOT unlayered) so the
-   package's bare-element rules (h1–h4 36/28/22/18px, p 16px) and .ak-* classes
-   sit BELOW `@layer utilities`. Unlayered, they outranked every Tailwind
-   text-* utility — so app headings authored at text-sm/text-lg rendered at the
-   kit's large sizes (WI-1033 regression, fixed 2026-06-13). Layered, utilities
-   win again; bare/unclassed elements still inherit the kit scale. */
+   that the package lacks. fonts.css ships @font-face rules only (no selectors
+   to reorder against Tailwind layers) and is imported unlayered, before the
+   layered token/kit imports, per package contract (transformate WI-1901).
+   tokens.css/kit.css stay imported before @theme inline so Tailwind sees them. */
+/* tokens.css/kit.css imported into Tailwind's `base`/`components` layers (NOT
+   unlayered) so the package's bare-element rules (h1–h4 36/28/22/18px, p 16px)
+   and .ak-* classes sit BELOW `@layer utilities`. Unlayered, they outranked
+   every Tailwind text-* utility — so app headings authored at text-sm/text-lg
+   rendered at the kit's large sizes (WI-1033 regression, fixed 2026-06-13).
+   Layered, utilities win again; bare/unclassed elements still inherit the kit
+   scale. */
+@import "@arkon-ai/ui/fonts.css";
 @import "@arkon-ai/ui/tokens.css" layer(base);
 @import "@arkon-ai/ui/kit.css" layer(components);
 
 :root {
   /* ══════════════════════════════════════
      Aliases over @arkon-ai/ui — do not redefine values.
-     Package owns: --void --quarn --quarn-light --quarn-deep --surface-1/2
-     --border --border-hover --text-primary/secondary/tertiary --fg-1/2/3
-     --success --warning --danger --danger-hover --info --*-rgb --accent
-     --accent-hover --accent-pressed --font-* --fs-* --tracking-* --lh-*
-     --space-* --radius-xs/sm/md/lg/xl/pill --border-width --border-default
-     --shadow-sm/md/lg --shadow-quarn-glow --lift-surface --edge-top(-strong)
-     --depth-md/lg --quarn-glow --dur-* --ease-* --container-max --sidebar-w.
+     Package owns: --hull --ion --ion-light --ion-deep --ion-rgb --hull-rgb
+     --tracer --tracer-hi --tracer-rgb --void --quarn --quarn-light
+     --quarn-deep --quarn-rgb (DEPRECATED one-hop aliases of the above,
+     transformate WI-1901) --surface-1/2 --border --border-hover
+     --text-primary/secondary/tertiary --fg-1/2/3 --success --warning
+     --danger --danger-hover --info --info-light --info-deep --*-rgb --accent
+     --accent-hover --accent-pressed --link --link-hover --font-* --fs-*
+     --tracking-* --lh-* --space-* --radius-xs/sm/md/lg/xl/pill
+     --border-width --border-default --shadow-sm/md/lg --shadow-quarn-glow
+     --lift-surface --edge-top(-strong) --depth-md/lg --quarn-glow
+     --quarn-bar-glow --dur-* --ease-* --container-max --sidebar-w.
      The names below are Arkon-local aliases the package does not define. ══ */
 
   /* Surface aliases (package: --surface-1/2, --bg/--void) */
@@ -64,8 +73,8 @@
   --text-link: var(--quarn);
 
   /* Gray-tint channels (Arkon-local, WI-999 — package has no fg-2/3 rgb) */
-  --fg-2-rgb:    162, 162, 184; /* #A2A2B8 (WI-1878) — muted-text gray tint base */
-  --fg-3-rgb:    138, 138, 154; /* #8A8A9A — tertiary-text gray tint base (matches canonical --text-tertiary, WI-1852) */
+  --fg-2-rgb:    141, 160, 181; /* #8DA0B5 (P6, WI-1901) — muted-text gray tint base, matches canonical --text-secondary */
+  --fg-3-rgb:    112, 133, 161; /* #7085A1 (P6, WI-1901) — tertiary-text gray tint base, matches canonical --text-tertiary */
 
   /* Chart categorical tint channels (WI-1159) — rgb companions for the CHART
      palette in src/lib/chart-colors.ts, for rgba() opacity tints in CSS/style.
@@ -180,7 +189,7 @@ pre {
 }
 
 ::selection {
-  background: rgba(0, 212, 126, 0.28);
+  background: rgba(var(--ion-rgb), 0.28);
   color: var(--text-primary);
 }
 
@@ -325,7 +334,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Legacy decorative glow utilities (.glow-*, .chart-glow-*) retired — WI-994/999
    never-resurrect glow law. The only sanctioned glow is the --quarn-glow token
-   (ONE hover/active job per card, carried by .ak-card). */
+   (kept name, re-derives through Ion via --ion-rgb, P6) — ONE hover/active
+   job per card, carried by .ak-card. */
 
 /* Gradient text */
 .gradient-text {
@@ -351,7 +361,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Dot-grid background */
 .grid-bg {
-  background-image: radial-gradient(circle, rgba(0, 212, 126, 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(var(--ion-rgb), 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -459,8 +469,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes tour-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 126, 0.4); }
-  50%      { box-shadow: 0 0 0 8px rgba(0, 212, 126, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--ion-rgb), 0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(var(--ion-rgb), 0); }
 }
 
 /* ═══════════════════════════════════════
@@ -471,38 +481,52 @@ h1, h2, h3, h4, h5, h6 {
 
 [data-theme="light"] {
   /* ── Surfaces ── */
-  --bg-primary: #F5F5F7;
+  --bg-primary: #F6F8FA;   /* cool paper (P6 §3, bible v4) */
   --bg-surface: #FFFFFF;
-  --bg-surface-2: #EEEEF0;
+  --bg-surface-2: #EDF1F6; /* derived (P6 §3) */
   --bg-hover: rgba(0, 0, 0, 0.03);
+  /* --bg-deep / --background alias var(--void) in :root, and neither the
+     package nor this block re-declares --void for light (P6 §2.2 keeps it a
+     one-hop alias of --hull, which also isn't re-themed) — so left alone
+     those chains would stay pinned to the dark Hull value under light theme.
+     Re-declared here so subtree/root stamping both resolve correctly
+     (mirrors the package's own re-declaration rationale, tokens.css §"Light
+     mode" comment). */
+  --bg-deep: var(--bg-primary);
+  --background: var(--bg-primary);
 
   /* ── Borders ── */
-  --border: #D4D4D8;
-  --border-hover: rgba(0, 180, 100, 0.35);
+  --border: #DFE5EC;       /* bible (P6 §3) */
+  --border-hover: #C8D2DE; /* derived (P6 §3, D3) — was a Quarn-tinted rgba() */
   --border-strong: #A1A1AA;
 
-  /* ── Brand stays consistent ── */
-  --accent: #00B86E;
-  --accent-hover: #00A060;
-  --accent-dim: #009058;
-  --accent-muted: rgba(0, 184, 110, 0.12);
-  --accent-subtle: rgba(0, 184, 110, 0.06);
+  /* ── Brand — points at canonical --ion, not a literal (P6 §2.3 D-migration) ── */
+  --accent: var(--ion);
+  --accent-hover: var(--ion-light);
+  --accent-dim: var(--ion-deep);
+  --accent-muted: rgba(var(--ion-rgb), 0.12);
+  --accent-subtle: rgba(var(--ion-rgb), 0.06);
   --accent-foreground: #FFFFFF;
-  --text-link: #00916A;
+  --text-link: var(--link); /* package's AA-safe body-link literal (5.72:1 on white) —
+                                light --ion (0794BD) is UI/large-text only (D4), 3.51:1,
+                                and would fail the 4.5:1 body-text floor here */
 
-  /* ── Status — slightly adjusted for light bg contrast ── */
+  /* ── Status — slightly adjusted for light bg contrast (unchanged by P6 —
+     the token map's dark-mode "carried unchanged" values do not apply to this
+     product-local light fork; light status/info values remain the pre-P6
+     open question, same status as today) ── */
   --success: #059669;
   --warning: #D97706;
   --danger: #DC2626;
   --info: #0891B2;
 
   /* ── Text ── */
-  --text-primary: #18181B;
-  --text-secondary: #52525B;
-  --text-tertiary: #A1A1AA;
+  --text-primary: #0B1220;   /* bible (P6 §3) */
+  --text-secondary: #44546C; /* derived (P6 §3, D3) */
+  --text-tertiary: #5A6C84;  /* derived (P6 §3, D3) */
 
   /* ── Effects ── */
-  --glow-accent: 0 0 40px rgba(0, 184, 110, 0.1);
+  --glow-accent: 0 0 40px rgba(var(--ion-rgb), 0.1);
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
 
   /* Overlay elevation — light (WI-1165): softer, lower-alpha on white */
@@ -515,15 +539,18 @@ h1, h2, h3, h4, h5, h6 {
      rgba() text tints and the kill-bar press-darken kept dark-mode colours on
      a white bg. Mirror the light --text-secondary / --text-tertiary / a darker
      danger so beta light mode reads correctly. */
-  --fg-2-rgb:    82, 82, 91;    /* light --text-secondary #52525B */
-  --fg-3-rgb:    161, 161, 170; /* light --text-tertiary  #A1A1AA */
+  --fg-2-rgb:    68, 84, 108;   /* light --text-secondary #44546C (P6) */
+  --fg-3-rgb:    90, 108, 132;  /* light --text-tertiary  #5A6C84 (P6) */
   --danger-hover: #B91C1C;      /* darker red for press feedback on light bg */
 
-  /* ── Brand channel — AAA-on-white (light is export/beta only, law #6) ── */
-  --quarn:     #00B86E;
-  --quarn-rgb: 0, 184, 110;
+  /* --quarn / --quarn-rgb deliberately NOT re-declared here (P6 §3): the
+     package's :root aliases (--quarn: var(--ion), etc.) resolve dynamically
+     against THIS scope's --ion — no local re-declaration needed once no
+     literal override shadows them. */
 
-  /* ── Premium card primitives — light (no dark gradient on white) ── */
+  /* ── Premium card primitives — light (no dark gradient on white) ──
+     Carried unchanged — verified identical to the package's own .theme-light
+     block (P6 §8.3 audit, transformate WI-1904). */
   --lift-surface:    #FFFFFF;
   --edge-top:        inset 0 1px 0 rgba(255, 255, 255, 0.9);
   --edge-top-strong: inset 0 1px 0 rgba(255, 255, 255, 1);
@@ -539,8 +566,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-theme="light"] ::selection {
-  background: rgba(0, 184, 110, 0.2);
-  color: #18181B;
+  background: rgba(var(--ion-rgb), 0.2);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .skeleton {
@@ -549,11 +576,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-theme="light"] .grid-bg {
-  background-image: radial-gradient(circle, rgba(0, 184, 110, 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(var(--ion-rgb), 0.06) 1px, transparent 1px);
 }
 
 [data-theme="light"] .gradient-text {
-  background: linear-gradient(135deg, #00B86E, #009058);
+  background: linear-gradient(135deg, var(--ion), var(--ion-deep));
   -webkit-background-clip: text;
   background-clip: text;
 }
