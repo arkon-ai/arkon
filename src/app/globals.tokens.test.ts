@@ -297,7 +297,7 @@ describe("P6/ION canonical values + one-hop alias resolution (iii, transformate 
   });
 });
 
-describe("--success-rgb / --success parity — installed package, dark (R4 carried minor, transformate WI-1925)", () => {
+describe("--success-rgb / --success parity — installed package, dark (minor carried from WI-1904 panel R4, done in transformate WI-1925)", () => {
   it("--success-rgb channels equal --success hex parsed to decimal in the package's own :root", () => {
     const successHex = resolveHex(pkgRootProps, "success");
     expect(successHex, "--success missing/unparseable in package :root").toBeTruthy();

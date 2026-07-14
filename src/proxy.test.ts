@@ -103,8 +103,6 @@ describe("isPublicAsset — static brand-asset extension bypass (transformate WI
   ])("%s is not a public asset", (pathname) => {
     expect(isPublicAsset(pathname)).toBe(false);
   });
-  // Note: a raw "/foo/../icon.svg"-style string still matches (suffix-only check) —
-  // not asserted false here because NextRequest.nextUrl.pathname is already
   // Note: root-anchored (^/[^/]+\.ext$) so a multi-segment string like
   // "/foo/../icon.svg" does NOT match — the internal slashes fall outside
   // [^/]+. NextRequest.nextUrl.pathname is also normalized before proxy()

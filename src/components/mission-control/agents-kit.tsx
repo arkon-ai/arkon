@@ -3,9 +3,10 @@
 import type { ReactNode } from "react";
 import { CHART } from "@/lib/chart-colors";
 
-// Persona palette (transformate WI-392 / PR-7 visual review locked):
-//   warden=emerald, codesmith=slate (deeper than fallback), lumina=amber, sentinel=teal.
-// Brynn rules: NO cyan, NO purple, NO pink, NO red (red reserved for kill/warning).
+// Persona palette (transformate WI-392 / PR-7 visual review locked; fg values v4 since WI-1904):
+//   warden=Ion anchor, codesmith=slate (deeper than fallback), lumina=amber, sentinel=teal.
+// Brynn rules: NO purple, NO pink, NO red (red reserved for kill/warning); the Ion-cyan
+// anchor (#2BD9FF, CHART.accent) is the sanctioned brand accent (P6/WI-1904), not a stray cyan.
 const PERSONA_COLORS: Record<string, { bg: string; fg: string }> = {
   warden: { bg: "rgba(var(--success-rgb), 0.16)", fg: CHART.accent },
   codesmith: { bg: "rgba(var(--chart-slate-rgb), 0.18)", fg: CHART.slate },
