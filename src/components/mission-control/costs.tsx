@@ -13,13 +13,13 @@ import { Avatar } from "./agents-kit";
 import { cn } from "@/lib/utils";
 import { CHART } from "@/lib/chart-colors";
 
-// Brand bible §5.1: Void/S1/S2 surfaces + Quarn Emerald single brand color
+// Brand bible v4 §6.1: Hull/S1/S2 surfaces + Ion single brand color
 // (one job per section) + semantic locked (warning amber / danger red).
 // No cyan/pink/blue/purple — they are reserved for non-Arkon palettes.
 const C = {
-  emerald: "var(--quarn)",      // Quarn Emerald — brand
-  emeraldLight: "var(--quarn-light)", // Quarn Light — secondary brand series, healthy
-  emeraldDeep: "var(--quarn-deep)",  // Quarn Deep — gradient anchor
+  emerald: "var(--quarn)",      // Ion — brand (kept name; --quarn re-derives through --ion-rgb, P6)
+  emeraldLight: "var(--quarn-light)", // Ion Light — secondary brand series, healthy
+  emeraldDeep: "var(--quarn-deep)",  // Ion Deep — gradient anchor
   amber: "var(--warning)",        // semantic warning
   red: "var(--danger)",          // semantic danger (kill only)
   slate: "var(--fg-2)",        // text-secondary tone
