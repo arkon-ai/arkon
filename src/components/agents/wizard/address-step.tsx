@@ -133,13 +133,13 @@ export function AddressStep({ address, port, onUpdate, config }: AddressStepProp
         className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
         style={{
           backgroundColor: probeStatus === "success"
-            ? "rgba(var(--ion-rgb), 0.08)"
+            ? "rgba(var(--success-rgb), 0.08)"
             : probeStatus === "error"
               ? "rgba(239, 68, 68, 0.08)"
               : "var(--bg-surface-2)",
           border: `1px solid ${
             probeStatus === "success"
-              ? "rgba(var(--ion-rgb), 0.2)"
+              ? "rgba(var(--success-rgb), 0.2)"
               : probeStatus === "error"
                 ? "rgba(239, 68, 68, 0.2)"
                 : "var(--border)"
@@ -150,7 +150,7 @@ export function AddressStep({ address, port, onUpdate, config }: AddressStepProp
           <Loader2 size={16} className="animate-spin" style={{ color: "var(--accent)" }} />
         )}
         {probeStatus === "success" && (
-          <CheckCircle2 size={16} style={{ color: "var(--accent)" }} />
+          <CheckCircle2 size={16} style={{ color: "var(--success)" }} />
         )}
         {probeStatus === "error" && (
           <XCircle size={16} style={{ color: "var(--danger)" }} />
@@ -163,7 +163,7 @@ export function AddressStep({ address, port, onUpdate, config }: AddressStepProp
           className="text-sm flex-1"
           style={{
             color: probeStatus === "success"
-              ? "var(--accent)"
+              ? "var(--success)"
               : probeStatus === "error"
                 ? "var(--danger)"
                 : "var(--text-tertiary)",

@@ -131,18 +131,18 @@ export function TestStep({
         className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl text-base font-semibold transition-all"
         style={{
           backgroundColor: testStatus === "success"
-            ? "rgba(var(--ion-rgb), 0.15)"
+            ? "rgba(var(--success-rgb), 0.15)"
             : testStatus === "error"
               ? "rgba(239, 68, 68, 0.15)"
               : "var(--accent)",
           color: testStatus === "success"
-            ? "var(--accent)"
+            ? "var(--success)"
             : testStatus === "error"
               ? "var(--danger)"
               : "var(--accent-foreground)",
           border: `1px solid ${
             testStatus === "success"
-              ? "rgba(var(--ion-rgb), 0.3)"
+              ? "rgba(var(--success-rgb), 0.3)"
               : testStatus === "error"
                 ? "rgba(239, 68, 68, 0.3)"
                 : "transparent"
@@ -165,7 +165,7 @@ export function TestStep({
       {testMessage && (
         <p
           className="text-sm text-center"
-          style={{ color: testStatus === "success" ? "var(--accent)" : "var(--danger)" }}
+          style={{ color: testStatus === "success" ? "var(--success)" : "var(--danger)" }}
         >
           {testMessage}
         </p>
@@ -175,10 +175,10 @@ export function TestStep({
       {devicePaired && (
         <div
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
-          style={{ backgroundColor: "rgba(var(--ion-rgb), 0.08)", border: "1px solid rgba(var(--ion-rgb), 0.15)" }}
+          style={{ backgroundColor: "rgba(var(--success-rgb), 0.08)", border: "1px solid rgba(var(--success-rgb), 0.15)" }}
         >
-          <CheckCircle2 size={14} style={{ color: "var(--accent)" }} />
-          <span className="text-xs" style={{ color: "var(--accent)" }}>
+          <CheckCircle2 size={14} style={{ color: "var(--success)" }} />
+          <span className="text-xs" style={{ color: "var(--success)" }}>
             Device paired — Arkon is recognized by this gateway
           </span>
         </div>
