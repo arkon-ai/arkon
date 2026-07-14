@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   title: "Arkon — AI Workforce Platform",
   description: "Build, govern, and run your AI workforce.",
   manifest: "/manifest.json",
+  openGraph: {
+    title: "Arkon — AI Workforce Platform",
+    description: "Build, govern, and run your AI workforce.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
