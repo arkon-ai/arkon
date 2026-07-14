@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" role="img" aria-label="Arkon A mark">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Arkon A mark">
   <rect width="64" height="64" fill="#070A0E"/>
   <path d="M32 12 L52 52 L43.5 52 L32 27.5 L20.5 52 L12 52" fill="none" stroke="#2BD9FF" stroke-width="3.4" stroke-linejoin="miter"/>
   <rect x="26" y="40" width="12" height="3.4" fill="#2BD9FF"/>

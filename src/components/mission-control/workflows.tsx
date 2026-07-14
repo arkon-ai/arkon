@@ -247,9 +247,9 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   paused: { bg: "rgba(var(--warning-rgb), 0.15)", text: "var(--warning)" },
   archived: { bg: "rgba(var(--fg-2-rgb), 0.1)", text: "var(--fg-2)" },
   running: { bg: "rgba(var(--info-rgb), 0.15)", text: "var(--info)" },
-  completed: { bg: "rgba(var(--quarn-rgb), 0.15)", text: "var(--quarn)" },
+  completed: { bg: "rgba(var(--success-rgb), 0.15)", text: "var(--success)" },
   failed: { bg: "rgba(var(--danger-rgb), 0.15)", text: "var(--danger)" },
-  success: { bg: "rgba(var(--quarn-rgb), 0.15)", text: "var(--quarn)" },
+  success: { bg: "rgba(var(--success-rgb), 0.15)", text: "var(--success)" },
   skipped: { bg: "rgba(var(--fg-2-rgb), 0.1)", text: "var(--fg-2)" },
 };
 
@@ -1146,7 +1146,7 @@ function RunCard({ run }: { run: WorkflowRun }) {
               style={{
                 background:
                   step.status === "success"
-                    ? "rgba(var(--quarn-rgb), 0.05)"
+                    ? "rgba(var(--success-rgb), 0.05)"
                     : step.status === "failed"
                     ? "rgba(var(--danger-rgb), 0.05)"
                     : "rgba(100,116,139,0.05)",

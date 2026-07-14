@@ -144,7 +144,7 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]" style={{ fontFamily: "var(--font-wordmark)" }}>
             {trace.name || "Unnamed Trace"}
           </h1>
           <p className="mt-0.5 font-mono text-xs text-[var(--text-tertiary)]">{trace.trace_id}</p>

@@ -166,18 +166,18 @@ export function EmergencyStep({ sshHost, sshUser, sshKey, onUpdate, config, addr
         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-40"
         style={{
           backgroundColor: testStatus === "success"
-            ? "rgba(0, 212, 126, 0.15)"
+            ? "rgba(var(--success-rgb), 0.15)"
             : testStatus === "error"
               ? "rgba(239, 68, 68, 0.15)"
               : "var(--bg-surface-2)",
           color: testStatus === "success"
-            ? "var(--accent)"
+            ? "var(--success)"
             : testStatus === "error"
               ? "var(--danger)"
               : "var(--text-primary)",
           border: `1px solid ${
             testStatus === "success"
-              ? "rgba(0, 212, 126, 0.2)"
+              ? "rgba(var(--success-rgb), 0.2)"
               : testStatus === "error"
                 ? "rgba(239, 68, 68, 0.2)"
                 : "var(--border)"
@@ -198,7 +198,7 @@ export function EmergencyStep({ sshHost, sshUser, sshKey, onUpdate, config, addr
       {testMessage && (
         <p
           className="text-xs"
-          style={{ color: testStatus === "success" ? "var(--accent)" : "var(--danger)" }}
+          style={{ color: testStatus === "success" ? "var(--success)" : "var(--danger)" }}
         >
           {testMessage}
         </p>

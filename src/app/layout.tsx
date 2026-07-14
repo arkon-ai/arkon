@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
@@ -11,7 +10,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0A0A0C", // --void; <meta theme-color> needs a literal color, not a CSS var (WI-999)
+  themeColor: "#070A0E", // --hull; <meta theme-color> needs a literal color, not a CSS var (WI-999)
 };
 
 export const metadata: Metadata = {
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      // Modern SVG favicon — canonical Quarn A glyph (WI-1033)
+      // Modern SVG favicon — canonical Ion A glyph (P6, transformate WI-1904)
       { url: "/arkon-glyph.svg", type: "image/svg+xml" },
       // .ico fallback for browsers without SVG-favicon support
       { url: "/favicon.ico", sizes: "any" },
@@ -47,15 +46,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <head>
-        {/* Geist — display/UI, Geist Mono — numerals/code, Urbanist — wordmark only */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Urbanist:wght@800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body className="bg-bg-deep text-text antialiased" suppressHydrationWarning>
         <ThemeProvider>
         <ServiceWorkerRegistration />

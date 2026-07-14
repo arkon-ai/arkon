@@ -2,8 +2,8 @@
   "name": "Arkon — AI Workforce Platform",
   "short_name": "Arkon",
   "description": "Monitor, govern, and manage your AI agent infrastructure. Best with OpenClaw/NemoClaw. Works with anything.",
-  "theme_color": "#0A0A0C",
-  "background_color": "#0A0A0C",
+  "theme_color": "#070A0E",
+  "background_color": "#070A0E",
   "display": "standalone",
   "orientation": "any",
   "start_url": "/",
@@ -33,6 +33,12 @@
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }

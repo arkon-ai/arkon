@@ -71,7 +71,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.classList.toggle("theme-light", theme === "light");
     // Update theme-color meta tag
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", theme === "light" ? "#F5F5F7" : "#0A0A0C"); // literal --void; <meta> rejects CSS vars (WI-999)
+    if (meta) meta.setAttribute("content", theme === "light" ? "#F6F8FA" : "#070A0E"); // literal --bg/--hull; <meta> rejects CSS vars (WI-999)
   }, []);
 
   const setMode = useCallback((newMode: ThemeMode) => {

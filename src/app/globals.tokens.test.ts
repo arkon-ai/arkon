@@ -4,13 +4,25 @@ import { readFileSync } from "node:fs";
 /**
  * Token-parity contract for globals.css against @arkon-ai/ui.
  *
- * (i)  floors + order + >=1.15x adjacent-step separation on the installed
- *      package's dark text ramp (the assertion WI-1852 lacked).
- * (ii) --fg-2-rgb / --fg-3-rgb triplets in globals.css == the RGB channels
- *      of the installed package's --text-secondary / --text-tertiary
- *      (kills the rgb-companion drift class).
+ * (i)   floors + order + >=1.15x adjacent-step separation on the installed
+ *       package's dark text ramp (the assertion WI-1852 lacked).
+ * (ii)  --fg-2-rgb / --fg-3-rgb triplets in globals.css == the RGB channels
+ *       of the installed package's --text-secondary / --text-tertiary
+ *       (kills the rgb-companion drift class).
+ * (iii) P6/ION canonical values + one-hop alias resolution (--void → --hull,
+ *       --quarn → --ion) against the INSTALLED 0.3.0 package, using the same
+ *       resolveVar idiom arkonhelm's globals.test.ts proved for WI-1903 —
+ *       the package's legacy names are now var() aliases, not literals, so a
+ *       literal-only resolver silently breaks (or vacuously passes) here.
+ * (iv)  light-mode (P6 §3) values resolve correctly through the ACTUAL
+ *       cascade this app renders: package :root (dark, layered) <
+ *       package .theme-light (layered) < this file's :root (unlayered) <
+ *       this file's [data-theme="light"] (unlayered) — unlayered always
+ *       outranks layered regardless of source order (CSS cascade layers),
+ *       so a merged map modeling that precedence is required, not a flat
+ *       parse of either file alone.
  *
- * transformate WI-1878 — 2026-07-13
+ * transformate WI-1878 (i, ii) / WI-1904 (iii, iv) — 2026-07-14
  * Panel R1 fix-forward (2026-07-13, see arkon-ui's ADJUDICATION.md): strip
  * comments before parsing (a commented-out token was reading as live —
  * vacuous pass); require exactly one top-level occurrence of each matched
@@ -142,17 +154,52 @@ function resolveHex(props: Map<string, string>, name: string): string | null {
   return /^#?[0-9a-fA-F]{6}$/.test(trimmed) ? trimmed : null;
 }
 
-// Package :root is used by both describe blocks below — parse it once here
-// rather than duplicating the extraction.
+/** Follow var(--x) references in a props map to a concrete value — the
+ * installed package aliases legacy names since 0.3.0 (e.g.
+ * --void: var(--hull)). Cycle-safe; mirrors arkonhelm's globals.test.ts
+ * idiom proved for the same P6 rollout (transformate WI-1903/1904). */
+function resolveVar(
+  props: Map<string, string>,
+  name: string,
+  seen = new Set<string>(),
+): string | undefined {
+  if (seen.has(name)) return undefined;
+  seen.add(name);
+  const val = props.get(name)?.trim();
+  if (!val) return undefined;
+  const m = /^var\(\s*(--[a-z][a-z0-9-]*)\s*\)$/i.exec(val);
+  return m ? resolveVar(props, m[1], seen) : val;
+}
+
+// Package :root (dark) and .theme-light are used by several describe blocks
+// below — parse once here rather than duplicating the extraction.
 const pkgRootBlock = extractExactlyOneBlock(tokensCss, /^:root\s*\{/m, ":root in @arkon-ai/ui tokens.css");
 const pkgRootProps = parseProps(pkgRootBlock);
+const pkgLightBlock = extractExactlyOneBlock(tokensCss, /^\.theme-light\s*\{/m, ".theme-light in @arkon-ai/ui tokens.css");
+const pkgLightProps = parseProps(pkgLightBlock);
+
+const localDarkTrackedProps = ["--fg-2-rgb", "--fg-3-rgb"];
+const { merged: localDarkProps, duplicates: localDarkDuplicates } = mergeRootBlocks(
+  globalsCss,
+  /^:root\s*\{/m,
+  localDarkTrackedProps,
+);
+const localLightBlock = extractExactlyOneBlock(globalsCss, /^\[data-theme="light"\]\s*\{/m, '[data-theme="light"] in globals.css');
+const localLightProps = parseProps(localLightBlock);
+
+// Merged cascade maps modeling what the BROWSER actually resolves — this
+// app's :root/[data-theme] rules are unlayered, so they outrank the
+// package's layered rules regardless of source order (CSS cascade layers),
+// and [data-theme="light"] outranks plain :root once the theme is active.
+const darkResolved = new Map([...pkgRootProps, ...localDarkProps]);
+const lightResolved = new Map([...pkgRootProps, ...pkgLightProps, ...localDarkProps, ...localLightProps]);
 
 describe("contrast function calibration (self-test — must pass before trusting AA math below)", () => {
   it("white/black = 21 +/- 0.01", () => {
     expect(Math.abs(contrastHex("#FFFFFF", "#000000") - 21)).toBeLessThanOrEqual(0.01);
   });
 
-  it("#8A8A9A / #0A0A0C = 5.82 +/- 0.02 (WI-1852 live-verified pair)", () => {
+  it("#8A8A9A / #0A0A0C = 5.82 +/- 0.02 (WI-1852 live-verified pair — historical calibration reference, not a live token)", () => {
     expect(Math.abs(contrastHex("#8A8A9A", "#0A0A0C") - 5.82)).toBeLessThanOrEqual(0.02);
   });
 });
@@ -160,7 +207,7 @@ describe("contrast function calibration (self-test — must pass before trusting
 describe("installed package dark text ramp — floors + order + separation (i)", () => {
   const AA_FLOOR = 4.5;
   const SEPARATION_FLOOR = 1.15;
-  const backgrounds = ["void", "surface-1", "surface-2"];
+  const backgrounds = ["hull", "surface-1", "surface-2"];
   const textTokens = ["text-primary", "text-secondary", "text-tertiary"];
 
   for (const text of textTokens) {
@@ -194,21 +241,19 @@ describe("rgb-companion integrity (ii) — globals.css --fg-2-rgb/--fg-3-rgb vs 
     ["--fg-3-rgb", "text-tertiary"],
   ];
 
-  const { merged: rootProps, duplicates } = mergeRootBlocks(globalsCss, /^:root\s*\{/m, pairs.map(([rgbProp]) => rgbProp));
-
   it("does not declare --fg-2-rgb/--fg-3-rgb in more than one top-level :root block", () => {
-    expect(duplicates, `duplicated across multiple :root blocks: ${duplicates.join(", ")}`).toEqual([]);
+    expect(localDarkDuplicates, `duplicated across multiple :root blocks: ${localDarkDuplicates.join(", ")}`).toEqual([]);
   });
 
   it("requires --fg-2-rgb and --fg-3-rgb present in globals.css :root (not just equal-if-present)", () => {
     for (const [rgbProp] of pairs) {
-      expect(rootProps.has(rgbProp), `${rgbProp} missing from globals.css :root`).toBe(true);
+      expect(localDarkProps.has(rgbProp), `${rgbProp} missing from globals.css :root`).toBe(true);
     }
   });
 
   for (const [rgbProp, pkgToken] of pairs) {
     it(`${rgbProp} matches the RGB channels of the installed package's --${pkgToken}`, () => {
-      const rgbVal = rootProps.get(rgbProp);
+      const rgbVal = localDarkProps.get(rgbProp);
       expect(rgbVal, `${rgbProp} not found in globals.css :root`).toBeDefined();
 
       const pkgHex = resolveHex(pkgRootProps, pkgToken);
@@ -220,4 +265,81 @@ describe("rgb-companion integrity (ii) — globals.css --fg-2-rgb/--fg-3-rgb vs 
       expect(norm(rgbVal!)).toBe(norm(expected));
     });
   }
+});
+
+describe("P6/ION canonical values + one-hop alias resolution (iii, transformate WI-1904)", () => {
+  it("--ion = #2BD9FF (dark)", () => {
+    expect(resolveVar(pkgRootProps, "--ion")?.toUpperCase()).toBe("#2BD9FF");
+  });
+  it("--hull = #070A0E (dark)", () => {
+    expect(resolveVar(pkgRootProps, "--hull")?.toUpperCase()).toBe("#070A0E");
+  });
+  it("--text-tertiary = #7085A1 (dark)", () => {
+    expect(resolveVar(pkgRootProps, "--text-tertiary")?.toUpperCase()).toBe("#7085A1");
+  });
+  it("--info = #4D8DFF (dark)", () => {
+    expect(resolveVar(pkgRootProps, "--info")?.toUpperCase()).toBe("#4D8DFF");
+  });
+  it("--void one-hop resolves to --hull's literal (#070A0E)", () => {
+    expect(resolveVar(pkgRootProps, "--void")?.toUpperCase()).toBe("#070A0E");
+  });
+  it("--quarn one-hop resolves to --ion's literal (#2BD9FF)", () => {
+    expect(resolveVar(pkgRootProps, "--quarn")?.toUpperCase()).toBe("#2BD9FF");
+  });
+  it("--quarn-rgb resolves to --ion-rgb's literal channels", () => {
+    const norm = (s: string) => s.replace(/\s+/g, "");
+    expect(norm(resolveVar(pkgRootProps, "--quarn-rgb")!)).toBe(norm("43, 217, 255"));
+  });
+  it("this app's --accent (dark) resolves through the package chain to #2BD9FF", () => {
+    // --accent is package-owned (var(--ion)); confirms the local alias block
+    // did not fork it back to a literal (P6 §8.3 audit requirement).
+    expect(resolveVar(darkResolved, "--accent")?.toUpperCase()).toBe("#2BD9FF");
+  });
+});
+
+describe("light-mode (P6 §3) values resolve through the real cascade (iv, transformate WI-1904)", () => {
+  it("--bg-primary (dark alias of --void in :root) is re-pinned to the light literal so light renders #F6F8FA, not Hull black", () => {
+    // Regression guard for the defect this WI found: in :root, --bg-primary
+    // aliases the deprecated --void, and neither the package nor this file
+    // re-declares --void for light — without the light-scoped literal pin the
+    // page background would stay dark Hull under [data-theme=light].
+    expect(resolveVar(lightResolved, "--bg-primary")?.toUpperCase()).toBe("#F6F8FA");
+  });
+  it("--bg-deep / --background (also --void aliases in :root, and what <body> actually consumes) are pinned for light too", () => {
+    // Panel binding-round finding (2026-07-14): the --bg-primary assertion
+    // above does NOT cover these two — deleting their light-block pins leaves
+    // every test green while <body className="bg-bg-deep"> re-renders Hull
+    // black under light theme. Guard each consumed token, not just the source.
+    expect(resolveVar(lightResolved, "--bg-deep")?.toUpperCase()).toBe("#F6F8FA");
+    expect(resolveVar(lightResolved, "--background")?.toUpperCase()).toBe("#F6F8FA");
+  });
+  it("--text-primary = #0B1220 (light)", () => {
+    expect(resolveVar(lightResolved, "--text-primary")?.toUpperCase()).toBe("#0B1220");
+  });
+  it("--text-secondary = #44546C (light)", () => {
+    expect(resolveVar(lightResolved, "--text-secondary")?.toUpperCase()).toBe("#44546C");
+  });
+  it("--text-tertiary = #5A6C84 (light)", () => {
+    expect(resolveVar(lightResolved, "--text-tertiary")?.toUpperCase()).toBe("#5A6C84");
+  });
+  it("--border-hover = #C8D2DE (light, derived — was a Quarn-tinted rgba())", () => {
+    expect(resolveVar(lightResolved, "--border-hover")?.toUpperCase()).toBe("#C8D2DE");
+  });
+  it("--ion = #0794BD (light, D4 restriction — large-text/UI-component accent only)", () => {
+    expect(resolveVar(lightResolved, "--ion")?.toUpperCase()).toBe("#0794BD");
+  });
+  it("--accent (light) resolves through --ion to #0794BD, not a frozen literal", () => {
+    expect(resolveVar(lightResolved, "--accent")?.toUpperCase()).toBe("#0794BD");
+  });
+  it("--quarn (light) one-hop resolves to --ion's light literal (#0794BD) — not re-declared as a literal locally", () => {
+    expect(localLightProps.has("--quarn"), "--quarn should not be re-declared in this app's light block (P6 §3)").toBe(false);
+    expect(resolveVar(lightResolved, "--quarn")?.toUpperCase()).toBe("#0794BD");
+  });
+  it("light luminance ramp stays strictly ascending (text-primary darkest, tertiary lightest)", () => {
+    const [L1, L2, L3] = ["--text-primary", "--text-secondary", "--text-tertiary"].map(
+      (t) => relativeLuminance(hexToRgb(resolveVar(lightResolved, t)!)!),
+    );
+    expect(L1).toBeLessThan(L2);
+    expect(L2).toBeLessThan(L3);
+  });
 });

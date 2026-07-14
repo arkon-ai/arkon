@@ -8,7 +8,7 @@
  * (success / warning / danger / info) stay as CSS tokens (var(--*)) — they
  * render in className / style contexts where var() works.  (transformate WI-1159)
  *
- * Design law (arkon-design-system): no purple. Quarn-anchored 6-colour
+ * Design law (arkon-design-system): no purple. Ion-anchored 6-colour
  * categorical scale — no cyan, no pink/rose (Brynn, 2026-06-13). Add a new
  * series colour here rather than hardcoding a hex in a component.
  */
@@ -20,7 +20,7 @@
  * or --warning-rgb / --quarn-rgb for amber / green. Keep both in sync.
  */
 export const CHART = {
-  green: "#00D47E", // Quarn anchor
+  green: "#2BD9FF", // Ion anchor (P6, transformate WI-1904)
   amber: "#F59E0B",
   blue: "#3B82F6",
   teal: "#14B8A6",
@@ -43,7 +43,7 @@ export const CHART_SERIES: readonly string[] = [
  * Falls back to slate for unknown agents.
  */
 export const AGENT_COLORS: Record<string, { fg: string }> = {
-  warden: { fg: CHART.green }, // the governor → Quarn anchor
+  warden: { fg: CHART.green }, // the governor → Ion anchor
   codesmith: { fg: CHART.slate },
   lumina: { fg: CHART.amber },
   sentinel: { fg: CHART.teal },

@@ -16,7 +16,7 @@ export default function AppearancePage() {
   return (
     <div className="space-y-6">
       <SectionDescription id="appearance">
-        Choose your preferred theme. The accent color (Quarn Emerald) stays
+        Choose your preferred theme. The accent color (Ion) stays
         consistent across all modes.
       </SectionDescription>
 
