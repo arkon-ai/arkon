@@ -19,8 +19,12 @@
 /**
  * 6-colour categorical scale. Order = default series-assignment order.
  * For rgba() opacity tints in CSS/style contexts use the matching
- * --chart-*-rgb companion tokens in src/app/globals.css (blue / teal / slate),
- * or --warning-rgb / --ion-rgb for amber / accent. Keep both in sync.
+ * --chart-*-rgb companion tokens in src/app/globals.css (blue / teal / slate)
+ * or --warning-rgb for amber. --ion-rgb is the exact companion for accent
+ * (43, 217, 255 == #2BD9FF), but the one accent-tint consumer today
+ * (agents-kit.tsx's warden chip) tints via rgba(var(--success-rgb), 0.16)
+ * instead — a pre-existing, out-of-scope choice, not this file's guidance.
+ * Keep any new accent-tint consumer in sync with whichever companion it picks.
  */
 export const CHART = {
   accent: "#2BD9FF", // Ion anchor (P6, transformate WI-1904)
