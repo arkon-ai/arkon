@@ -68,7 +68,7 @@ function walkTs(dir: string): string[] {
 describe("no terminal-success semantic key maps to var(--accent)/var(--quarn) anywhere in src/ (flat object-literal form)", () => {
   it("source sweep", () => {
     const offenders: string[] = [];
-    const re = new RegExp(`\\b(${TERMINAL_KEYS.join("|")})\\s*:\\s*["'\`]var\\(--(accent|quarn)\\)["'\`]`, "g");
+    const re = new RegExp(`\\b(${TERMINAL_KEYS.join("|")})\\s*:\\s*["'\`](?:var\\(--(?:accent|quarn|ion)\\)|rgba?\\(var\\(--(?:accent|quarn|ion)-rgb\\)[^)]*\\))["'\`]`, "g");
     for (const f of walkTs(srcRoot)) {
       const src = readFileSync(f, "utf8");
       let m: RegExpExecArray | null;
@@ -99,7 +99,7 @@ describe("no terminal-success semantic key maps to var(--accent)/var(--quarn) an
       const src = readFileSync(f, "utf8");
       let m: RegExpExecArray | null;
       while ((m = re.exec(src)) !== null) {
-        if (/var\(--quarn\)|var\(--accent\)|--quarn-rgb|--ion-rgb/.test(m[2])) {
+        if (/var\(--quarn\)|var\(--accent\)|var\(--ion\)|--quarn-rgb|--accent-rgb|--ion-rgb/.test(m[2])) {
           offenders.push(`${f}: ${m[1]} -> ${m[2].replace(/\s+/g, " ").trim()}`);
         }
       }
@@ -125,7 +125,7 @@ describe("no terminal-success ternary branch resolves to Ion/accent anywhere in 
       let m: RegExpExecArray | null;
       while ((m = re.exec(src)) !== null) {
         const branch = m[1];
-        if (/--ion-rgb|--quarn-rgb|var\(--accent\)/.test(branch)) {
+        if (/--ion-rgb|--quarn-rgb|--accent-rgb|var\(--accent\)|var\(--quarn\)|var\(--ion\)/.test(branch)) {
           offenders.push(`${f}: "success"-keyed ternary resolves to ${branch}`);
         }
       }
