@@ -68,7 +68,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   insight: "var(--success)",
   question: CHART.amber,
   blocker: "var(--danger)",
-  ship: "var(--quarn)",
+  ship: "var(--ion)",
   note: CHART.slate,
 };
 
@@ -163,7 +163,7 @@ export function Journal() {
   }, [entries]);
 
   return (
-    <div className="min-h-screen text-[var(--text-primary)]" style={{ background: "var(--void)" }}>
+    <div className="min-h-screen text-[var(--text-primary)]" style={{ background: "var(--hull)" }}>
       <div className="mx-auto max-w-screen-xl px-6 py-8">
         <header className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">

@@ -139,7 +139,7 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
       <div className="flex items-center gap-4">
         <Link
           href="/traces"
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[rgba(var(--quarn-rgb),0.25)] hover:text-[var(--text-primary)]"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[rgba(var(--ion-rgb),0.25)] hover:text-[var(--text-primary)]"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
@@ -161,7 +161,7 @@ export default function TraceDetailPage({ params }: { params: Promise<{ traceId:
           { label: "Duration", value: fmtDuration(trace.duration_ms), icon: Clock, color: "var(--fg-1)" },
           { label: "Spans", value: String(spans.length), icon: Hash, color: "var(--info)" },
           { label: "Tokens", value: fmtTokens(trace.token_count), icon: Zap, color: "var(--warning)" },
-          { label: "Cost", value: fmtCost(Number(trace.cost)), icon: Coins, color: "var(--quarn)" },
+          { label: "Cost", value: fmtCost(Number(trace.cost)), icon: Coins, color: "var(--ion)" },
           { label: "Agent", value: trace.agent_id || "—", icon: Bot, color: "var(--fg-2)" },
         ].map((s) => (
           <motion.div

@@ -88,32 +88,48 @@ ArkonHelm) inherit it wholesale; the only per-product variation is identity
 switcher** (Arkon `Cmd` · ArkonOS `Chat` · ArkonHelm `Tasks`) and the four-pillar
 sidebar IA (Provision · Govern · Observe · Kill).
 
+Brand v4 (ION, P6, transformate WI-1901/1904): **Hull** `#070A0E` (background) +
+**Ion** `#2BD9FF` (sole accent; light `#8FECFF` / deep `#0F7E9E`) + **info**
+`#4D8DFF`. Type: **Archivo** (display/wordmark) + **General Sans** (UI) +
+**JetBrains Mono** (code/numerals), all self-hosted — no CDN/Google Fonts —
+via `@arkon-ai/ui/fonts.css`. Identity is the stroked A-letterform mark.
+
 - **Canonical contract:** `warden-memory/docs/arkon-design-system.md`. Identity
-  authority: `ARKON-BRAND-IDENTITY-v3.md`. Invoke the **`arkon-ui`** skill on any
-  UI / styling / component / redesign task — it loads the contract and runs the
-  build→verify loop before `pr-review-loop`.
-- **Build to the kit:** compose from the 5 primitives (MetricCard / StatusPill /
-  PageHeader / EmptyState / KillModal); reference `var(--*)` tokens — never
-  hardcode hex/px. This repo has **no component kit yet** (each component
-  hand-rolls token usage) — extract an `.ak-*`/kit layer from
-  `arkon-os/client/src/styles/arkon-kit.css` rather than perpetuating one-offs.
-- **Design laws:** numerals in Geist Mono (`tabular-nums`); Quarn does ONE job
-  per region (H1 never emerald; active-nav = emerald-text-on-quiet-fill, not
-  emerald-fill); depth + borders carry state, plus ONE sanctioned `--quarn-glow`
-  per card on hover/active (WI-994 amendment, 2026-06-08 — was "no glows"); no
-  *legacy decorative* glows, no purple; status
-  colour semantic only; sentence case headings/buttons; dark-first / Void;
-  kill = `octagon-x` in Danger + a 350ms deliberate confirm modal; no emoji
-  (Lucide only).
+  authority: `ARKON-BRAND-IDENTITY-v4.md` (arkon-rebrand/battle, off-repo).
+  Invoke the **`arkon-ui`** skill on any UI / styling / component / redesign
+  task — it loads the contract and runs the build→verify loop before
+  `pr-review-loop`.
+- **Build to the kit:** the `.ak-*` component kit now ships from the package —
+  `@arkon-ai/ui/kit.css` (published as `css/arkon-kit.css`), imported in
+  `src/app/globals.css` alongside `tokens.css`/`fonts.css`. Compose from it
+  (MetricCard / StatusPill / PageHeader / EmptyState / KillModal live as
+  `.ak-*` primitives); reference `var(--*)` tokens — never hardcode hex/px.
+  Older components that still hand-roll token usage should migrate onto the
+  `.ak-*` classes as they're touched, not perpetuate new one-offs.
+- **Design laws:** numerals in JetBrains Mono (`tabular-nums`); Ion does ONE job
+  per region (H1 never Ion; active-nav = Ion-text-on-quiet-fill, not
+  Ion-fill); depth + borders carry state, plus ONE sanctioned `--quarn-glow`
+  per card on hover/active (WI-994 amendment, 2026-06-08 — was "no glows");
+  `--quarn-glow` / `--shadow-quarn-glow` / `--quarn-bar-glow` are the ONE
+  deliberately-kept legacy name — the package ships no `--ion-glow`
+  equivalent, so these three re-derive Ion's rgb through `--quarn-rgb` one hop
+  down and must NOT be renamed (P6, transformate WI-1901); no *legacy
+  decorative* glows, no purple; status colour semantic only; sentence case
+  headings/buttons; dark-first / Hull; kill = `octagon-x` in Danger + a 350ms
+  deliberate confirm modal; no emoji (Lucide only).
 - **NEVER resurrect** old/redundant/historic styles — retired language ("Arkon
   Workspace" / "AI Control Plane" / "AI Governance Platform" → "Arkon" / "AI
-  Workforce Platform"), the stale `Inter` fallback (Geist is primary), *legacy
-  decorative* glows (`.glow-*`, `glowing-effect` — NOT the sanctioned premium
-  `--quarn-glow`/`--depth-*` primitives), purple,
-  `--cyan/--purple/--green/--amber` aliases. Migrate off them (backlog
-  in the canonical doc §9), don't copy them.
-- **Identity gaps to fix when chrome is touched:** the sidebar brand is
-  text-only ("Arkon / Workspace") — wire the master `arkon-glyph.svg` and drop
-  "Workspace"; `public/icon-192.svg` is a stale pre-rebrand favicon — regenerate
-  from the canonical A mark (details in the canonical doc §6).
+  Workforce Platform"), the stale `Inter` fallback (Archivo/General Sans are
+  primary now, not Geist either), *legacy decorative* glows (`.glow-*`,
+  `glowing-effect` — NOT the sanctioned premium `--quarn-glow`/`--depth-*`
+  primitives), purple, `--cyan/--purple/--green/--amber` aliases, and the
+  killed **Quarn**/**Void** brand names — `--quarn*`/`--void` now resolve as
+  one-hop `var()` aliases of `--ion*`/`--hull` for back-compat only (P6,
+  transformate WI-1901); new code references `--ion`/`--hull` directly except
+  for the three glow tokens above. Migrate off legacy names as files are
+  touched (backlog in the canonical doc §9), don't copy them into new code.
+- **Identity:** shipped (transformate WI-1904) — `arkon-glyph.svg` is wired
+  into the sidebar brand mark (`src/components/mission-control/app-shell.tsx`)
+  and page metadata (`src/app/layout.tsx`), alongside the A-letterform icon
+  set (`icon-192.svg`, `icon-maskable.svg`), wordmark, and `og-image.png`.
 - **Verify** UI visually (headless screenshot) before opening the PR.

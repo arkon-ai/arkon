@@ -17,9 +17,9 @@ import { CHART } from "@/lib/chart-colors";
 // (one job per section) + semantic locked (warning amber / danger red).
 // No cyan/pink/blue/purple — they are reserved for non-Arkon palettes.
 const C = {
-  emerald: "var(--quarn)",      // Ion — brand (kept name; --quarn re-derives through --ion-rgb, P6)
-  emeraldLight: "var(--quarn-light)", // Ion Light — secondary brand series, healthy
-  emeraldDeep: "var(--quarn-deep)",  // Ion Deep — gradient anchor
+  emerald: "var(--ion)",      // Ion — brand
+  emeraldLight: "var(--ion-light)", // Ion Light — secondary brand series, healthy
+  emeraldDeep: "var(--ion-deep)",  // Ion Deep — gradient anchor
   amber: "var(--warning)",        // semantic warning
   red: "var(--danger)",          // semantic danger (kill only)
   slate: "var(--fg-2)",        // text-secondary tone
@@ -180,7 +180,9 @@ function CeilingCard({
   // Map: over → err, near-limit → warm, healthy → ok, no-limit → idle.
   const pillTone: "ok" | "warm" | "err" | "idle" = !hasLimit ? "idle" : isOver ? "err" : isWarn ? "warm" : "ok";
   const pillLabel = !hasLimit ? "No ceiling" : isOver ? "Over" : isWarn ? "Near limit" : "On track";
-  const accent = isOver ? C.red : isWarn ? C.amber : C.emerald;
+  // Terminal-success semantics (WI-1904 class, caught in the WI-1937 sweep):
+  // the healthy/"On track" state is a success verdict, not brand accent.
+  const accent = isOver ? C.red : isWarn ? C.amber : "var(--success)";
 
   // Breach forecast text. If projected exceeds limit, surface the date; otherwise
   // "never at this rate" (canonical line 52).
@@ -632,7 +634,7 @@ function OverviewTab({
                   style={{
                     color: monthDeltaPct == null
                       ? "var(--text-tertiary)"
-                      : monthDeltaPct < 0 ? C.emerald : monthDeltaPct > 20 ? C.amber : "var(--text-secondary)",
+                      : monthDeltaPct < 0 ? "var(--success)" : monthDeltaPct > 20 ? C.amber : "var(--text-secondary)",
                   }}
                 >
                   {monthDeltaPct == null

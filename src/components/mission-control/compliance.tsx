@@ -7,7 +7,7 @@ import { EmptyCard } from "./ui-cards";
 import { SectionDescription } from "./dashboard-clarity";
 
 const C = {
-  green: "var(--quarn)", amber: "var(--warning)",
+  green: "var(--ion)", amber: "var(--warning)",
   red: "var(--danger)", slate: "var(--fg-2)",
 };
 
@@ -53,7 +53,7 @@ export function ComplianceDashboard() {
         ] as const).map(([t, label]) => (
           <button key={t} type="button" onClick={() => setTab(t)}
             className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-              tab === t ? "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              tab === t ? "bg-[rgba(var(--ion-rgb),0.15)] text-[var(--accent)]" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >{label}</button>
         ))}
@@ -113,7 +113,7 @@ function AuditLogTab() {
               actionFilter === f
                 ? f === "agent.kill"
                   ? "bg-danger/15 text-danger"
-                  : "bg-[rgba(var(--quarn-rgb),0.15)] text-[var(--accent)]"
+                  : "bg-[rgba(var(--ion-rgb),0.15)] text-[var(--accent)]"
                 : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
             }`}
           >
@@ -170,7 +170,7 @@ function AuditLogTab() {
                       e.action === "agent.pause" ? "bg-warning/15 text-warning" :
                       e.action === "agent.resume" ? "bg-success/15 text-success" :
                       e.action.includes("delete") || e.action.includes("purge") ? "bg-danger/10 text-danger" :
-                      e.action.includes("create") ? "bg-[rgba(var(--quarn-rgb),0.1)] text-[var(--accent)]" :
+                      e.action.includes("create") ? "bg-[rgba(var(--ion-rgb),0.1)] text-[var(--accent)]" :
                       "bg-[var(--bg-surface-2)] text-[var(--text-primary)]"
                     }`}>{e.action}</span>
                   </td>

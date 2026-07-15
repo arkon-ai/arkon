@@ -13,7 +13,7 @@ interface Tenant {
 
 const PLAN_COLORS: Record<string, string> = {
   starter: "var(--info)",
-  growth: "var(--quarn)",
+  growth: "var(--ion)",
   enterprise: "var(--warning)",
 };
 
@@ -56,14 +56,14 @@ export function TenantSwitcher() {
 
   const currentTenant = tenants.find((t) => t.id === activeTenant);
   const label = currentTenant?.name ?? "All Tenants";
-  const planColor = currentTenant ? (PLAN_COLORS[currentTenant.plan] ?? "var(--fg-2)") : "var(--quarn)";
+  const planColor = currentTenant ? (PLAN_COLORS[currentTenant.plan] ?? "var(--fg-2)") : "var(--ion)";
 
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex h-9 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-primary)] transition hover:border-[rgba(var(--quarn-rgb),0.25)]"
+        className="flex h-9 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-primary)] transition hover:border-[rgba(var(--ion-rgb),0.25)]"
       >
         <div className="flex h-5 w-5 items-center justify-center rounded-md" style={{ backgroundColor: `color-mix(in srgb, ${planColor} 8%, transparent)` }}>
           {currentTenant ? (
@@ -87,7 +87,7 @@ export function TenantSwitcher() {
             onClick={() => { setActiveTenant(null); setOpen(false); }}
             className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs transition ${
               !activeTenant
-                ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--accent)]"
+                ? "bg-[rgba(var(--ion-rgb),0.08)] text-[var(--accent)]"
                 : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
             }`}
           >
@@ -108,7 +108,7 @@ export function TenantSwitcher() {
                 onClick={() => { setActiveTenant(t.id); setOpen(false); }}
                 className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs transition ${
                   active
-                    ? "bg-[rgba(var(--quarn-rgb),0.08)] text-[var(--accent)]"
+                    ? "bg-[rgba(var(--ion-rgb),0.08)] text-[var(--accent)]"
                     : "text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-[var(--text-primary)]"
                 }`}
               >

@@ -106,8 +106,8 @@ const CHANNEL_COLORS: Record<string, string> = {
 };
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
-  message_received: "var(--quarn)",
-  message_sent: "var(--quarn)",
+  message_received: "var(--ion)",
+  message_sent: "var(--ion)",
   tool_call: "var(--warning)",
   error: "var(--danger)",
   cron: CHART.blue,
@@ -143,8 +143,8 @@ function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payloa
 
 function SummaryCards({ totals, sessionStats }: { totals: AnalyticsData["totals"]; sessionStats: SessionStats }) {
   const stats = [
-    { label: "Total Events", value: totals.total_events, color: "var(--quarn)" },
-    { label: "Active Agents", value: totals.active_agents, color: "var(--quarn)" },
+    { label: "Total Events", value: totals.total_events, color: "var(--ion)" },
+    { label: "Active Agents", value: totals.active_agents, color: "var(--ion)" },
     { label: "Sessions", value: totals.unique_sessions, color: CHART.blue },
     { label: "Tokens Used", value: Number(totals.total_tokens), color: "var(--warning)", format: true },
   ];
@@ -180,20 +180,20 @@ function DailyVolumeChart({ data }: { data: DailyVolume[] }) {
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
           <defs>
             <linearGradient id="recvGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--ion)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--ion)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="sentGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--quarn)" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="var(--quarn)" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--ion)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="var(--ion)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
           <XAxis dataKey="day" tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fill: "var(--fg-2)", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
           <Tooltip content={<AnalyticsTooltip />} />
-          <Area type="monotone" dataKey="received" name="Received" stroke="var(--quarn)" fill="url(#recvGrad)" strokeWidth={2} dot={false} />
-          <Area type="monotone" dataKey="sent" name="Sent" stroke="var(--quarn)" fill="url(#sentGrad)" strokeWidth={2} dot={false} />
+          <Area type="monotone" dataKey="received" name="Received" stroke="var(--ion)" fill="url(#recvGrad)" strokeWidth={2} dot={false} />
+          <Area type="monotone" dataKey="sent" name="Sent" stroke="var(--ion)" fill="url(#sentGrad)" strokeWidth={2} dot={false} />
         </AreaChart>
       </ResponsiveContainer>
       <div className="mt-2 flex justify-center gap-4 text-xs">
@@ -227,7 +227,7 @@ function HourlyHeatmap({ data }: { data: HourlyPoint[] }) {
                 className="absolute bottom-0 w-full rounded-t transition-all"
                 style={{
                   height: `${Math.max(heightPct, 2)}%`,
-                  backgroundColor: `rgba(var(--quarn-rgb), ${opacity})`,
+                  backgroundColor: `rgba(var(--ion-rgb), ${opacity})`,
                 }}
               />
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 rounded bg-[var(--bg-surface)] px-1.5 py-0.5 text-[9px] text-text opacity-0 transition group-hover:opacity-100 whitespace-nowrap border border-[var(--border)]">

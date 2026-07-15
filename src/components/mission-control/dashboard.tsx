@@ -182,7 +182,7 @@ export function StatCard({
         sparkData && sparkData.length > 0 ? (
           <Sparkline
             data={sparkData}
-            color={sparkColor ?? "var(--quarn)"}
+            color={sparkColor ?? "var(--ion)"}
             width={hero ? 120 : 80}
             height={hero ? 40 : 28}
           />
@@ -320,7 +320,7 @@ function AlertsBanner() {
   if (anomalies.length === 0) {
     return (
       <div className="flex items-center gap-3 rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(var(--quarn-rgb),0.08)]">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(var(--ion-rgb),0.08)]">
           <ShieldCheckIcon className="h-4 w-4 text-[var(--accent)]" />
         </div>
         <span className="text-sm text-[var(--accent)]">All systems nominal</span>
@@ -534,8 +534,8 @@ function MessageVolumeChart({ trend }: { trend: Array<{ day: string; received: n
       <AreaChart data={chartData} margin={{ top: 12, right: 10, bottom: 0, left: -10 }}>
         <defs>
           <linearGradient id="dashboardMessageVolume" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--quarn)" stopOpacity={0.28} />
-            <stop offset="100%" stopColor="var(--quarn)" stopOpacity={0.02} />
+            <stop offset="0%" stopColor="var(--ion)" stopOpacity={0.28} />
+            <stop offset="100%" stopColor="var(--ion)" stopOpacity={0.02} />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} stroke="rgba(136,136,160,0.16)" strokeDasharray="2 3" />
@@ -549,7 +549,7 @@ function MessageVolumeChart({ trend }: { trend: Array<{ day: string; received: n
             color: "var(--text-primary)",
           }}
         />
-        <Area type="monotone" dataKey="Messages" stroke="var(--quarn)" strokeWidth={2} fill="url(#dashboardMessageVolume)" activeDot={{ r: 4 }} />
+        <Area type="monotone" dataKey="Messages" stroke="var(--ion)" strokeWidth={2} fill="url(#dashboardMessageVolume)" activeDot={{ r: 4 }} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -969,7 +969,7 @@ function HealthContent() {
               </div>
               <div className="h-3 rounded-full bg-border">
                 <div
-                  className="relative h-full rounded-full bg-[linear-gradient(90deg,var(--quarn),var(--quarn))]"
+                  className="relative h-full rounded-full bg-[linear-gradient(90deg,var(--ion),var(--ion))]"
                   style={{ width: `${progress}%` }}
                 >
                   <span className="absolute right-0 top-1/2 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border-2 border-bg-deep bg-accent text-[10px]">
@@ -1029,8 +1029,8 @@ function ProgressRing({ progress }: { progress: number }) {
       <svg viewBox="0 0 220 220" className="-rotate-90">
         <defs>
           <linearGradient id="healthRing" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="var(--quarn)" />
-            <stop offset="100%" stopColor="var(--quarn)" />
+            <stop offset="0%" stopColor="var(--ion)" />
+            <stop offset="100%" stopColor="var(--ion)" />
           </linearGradient>
         </defs>
         <circle cx="110" cy="110" r={radius} stroke="var(--border)" strokeWidth="14" fill="none" />

@@ -16,7 +16,7 @@ function cn(...parts: Array<string | false | null | undefined>) {
 function toneClasses(tone: Tone) {
   switch (tone) {
     case "live":
-      return "border-[rgba(var(--quarn-rgb),0.35)] text-[var(--accent)]";
+      return "border-[rgba(var(--ion-rgb),0.35)] text-[var(--accent)]";
     case "warm":
       return "border-[rgba(var(--warning-rgb),0.35)] text-[var(--warning)]";
     case "err":
@@ -49,7 +49,7 @@ export function StatusPill({
       className={cn(
         "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 font-mono text-[11px] font-medium uppercase tracking-[0.08em]",
         toneClasses(status),
-        solid && "border-transparent bg-[rgba(var(--quarn-rgb),0.12)] text-[var(--accent)]",
+        solid && "border-transparent bg-[rgba(var(--ion-rgb),0.12)] text-[var(--accent)]",
         className,
       )}
     >

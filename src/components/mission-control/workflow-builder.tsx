@@ -62,11 +62,11 @@ interface NodeConfig {
 // ── Node type colors ──────────────────────────────────────────────────────────
 
 const NODE_STYLES: Record<string, { bg: string; border: string; icon: string; accent: string }> = {
-  "manual-trigger": { bg: "var(--bg-surface-2)", border: "var(--quarn)", icon: "\u25B6", accent: "var(--quarn)" },
+  "manual-trigger": { bg: "var(--bg-surface-2)", border: "var(--ion)", icon: "\u25B6", accent: "var(--ion)" },
   "cron-trigger":   { bg: "var(--bg-surface-2)", border: "var(--info)", icon: "\u23F0", accent: "var(--info)" },
   "http-request":   { bg: "var(--bg-surface-2)", border: "var(--info)", icon: "\u21C5", accent: "var(--info)" },
   "condition":      { bg: "var(--bg-surface-2)", border: "var(--warning)", icon: "\u2747", accent: "var(--warning)" },
-  "notify":         { bg: "var(--bg-surface-2)", border: "var(--quarn)", icon: "\u2709", accent: "var(--quarn)" },
+  "notify":         { bg: "var(--bg-surface-2)", border: "var(--ion)", icon: "\u2709", accent: "var(--ion)" },
 };
 
 // ── Custom Node Components ────────────────────────────────────────────────────
@@ -423,11 +423,11 @@ function NodeConfigPanel({
 // ── Add Node Palette ──────────────────────────────────────────────────────────
 
 const PALETTE_ITEMS = [
-  { type: "manual-trigger", label: "Manual Trigger", icon: "\u25B6", color: "var(--quarn)", description: "Start this workflow by clicking Run Now" },
+  { type: "manual-trigger", label: "Manual Trigger", icon: "\u25B6", color: "var(--ion)", description: "Start this workflow by clicking Run Now" },
   { type: "cron-trigger", label: "Cron Trigger", icon: "\u23F0", color: "var(--info)", description: "Run this workflow on a schedule (e.g. every 5 minutes)" },
   { type: "http-request", label: "HTTP Request", icon: "\u21C5", color: "var(--info)", description: "Make an API call to any URL" },
   { type: "condition", label: "Condition", icon: "\u2747", color: "var(--warning)", description: "Branch the workflow based on a condition (if/else)" },
-  { type: "notify", label: "Notify", icon: "\u2709", color: "var(--quarn)", description: "Send a notification via Telegram or log" },
+  { type: "notify", label: "Notify", icon: "\u2709", color: "var(--ion)", description: "Send a notification via Telegram or log" },
 ];
 
 function NodePalette({ onAdd }: { onAdd: (type: string) => void }) {

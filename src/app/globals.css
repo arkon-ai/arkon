@@ -57,7 +57,7 @@
      The names below are Arkon-local aliases the package does not define. ══ */
 
   /* Surface aliases (package: --surface-1/2, --bg/--void) */
-  --bg-primary: var(--void);
+  --bg-primary: var(--hull);
   --bg-surface: var(--surface-1);
   --bg-surface-2: var(--surface-2);
   --bg-hover: rgba(255, 255, 255, 0.03);
@@ -66,11 +66,11 @@
   --border-strong: #4A4A5A;
 
   /* Accent tint aliases (package lacks these named tints) */
-  --accent-dim: var(--quarn-deep);
-  --accent-muted: rgba(var(--quarn-rgb), 0.15);
-  --accent-subtle: rgba(var(--quarn-rgb), 0.08);
-  --accent-foreground: var(--void);
-  --text-link: var(--quarn);
+  --accent-dim: var(--ion-deep);
+  --accent-muted: rgba(var(--ion-rgb), 0.15);
+  --accent-subtle: rgba(var(--ion-rgb), 0.08);
+  --accent-foreground: var(--hull);
+  --text-link: var(--ion);
 
   /* Gray-tint channels (Arkon-local, WI-999 — package has no fg-2/3 rgb) */
   --fg-2-rgb:    141, 160, 181; /* #8DA0B5 (P6, WI-1901) — muted-text gray tint base, matches canonical --text-secondary */
@@ -109,12 +109,12 @@
   --text-muted: var(--text-tertiary);
 
   /* Surface aliases for legacy shadcn-era names */
-  --bg-deep: var(--void);
+  --bg-deep: var(--hull);
   --bg-card: var(--surface-1);
   --bg-elevated: var(--surface-2);
 
   /* Background/foreground aliases (package: --bg / --fg-1) */
-  --background: var(--void);
+  --background: var(--hull);
   --foreground: var(--text-primary);
 
   /* Font alias (package: --font-display/-ui/-mono/-wordmark — no --font-sans) */
@@ -485,9 +485,8 @@ h1, h2, h3, h4, h5, h6 {
   --bg-surface: #FFFFFF;
   --bg-surface-2: #EDF1F6; /* derived (P6 §3) */
   --bg-hover: rgba(0, 0, 0, 0.03);
-  /* --bg-deep / --background alias var(--void) in :root, and neither the
-     package nor this block re-declares --void for light (P6 §2.2 keeps it a
-     one-hop alias of --hull, which also isn't re-themed) — so left alone
+  /* --bg-deep / --background alias var(--hull) in :root, and neither the
+     package nor this block re-themes --hull for light — so left alone
      those chains would stay pinned to the dark Hull value under light theme.
      Re-declared here so subtree/root stamping both resolve correctly
      (mirrors the package's own re-declaration rationale, tokens.css §"Light
@@ -497,7 +496,7 @@ h1, h2, h3, h4, h5, h6 {
 
   /* ── Borders ── */
   --border: #DFE5EC;       /* bible (P6 §3) */
-  --border-hover: #C8D2DE; /* derived (P6 §3, D3) — was a Quarn-tinted rgba() */
+  --border-hover: #C8D2DE; /* derived (P6 §3, D3) — was an Ion-tinted rgba() */
   --border-strong: #A1A1AA;
 
   /* ── Brand — points at canonical --ion, not a literal (P6 §2.3 D-migration) ── */

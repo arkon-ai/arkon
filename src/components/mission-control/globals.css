@@ -7,9 +7,9 @@
      mission-control component hex sweep (WI-998) is incremental.
      --border is intentionally NOT redeclared here — it inherits the
      canonical --border (#2E2E3A) instead of the old #1E1E2A drift. */
-  --background: var(--void);
+  --background: var(--hull);
   --foreground: var(--fg-1);
-  --bg-deep:    var(--void);
+  --bg-deep:    var(--hull);
   --bg-card:    var(--surface-1);   /* was #111118 → canonical #1A1A22 */
   --text:     var(--fg-1);
   --text-dim: var(--fg-2);
@@ -42,8 +42,8 @@ body {
   font-size: 14px;
   min-height: 100vh;
   background-image:
-    radial-gradient(circle at top, rgba(var(--quarn-rgb), 0.12), transparent 28%),
-    radial-gradient(circle at 20% 20%, rgba(var(--quarn-rgb), 0.1), transparent 20%);
+    radial-gradient(circle at top, rgba(var(--ion-rgb), 0.12), transparent 28%),
+    radial-gradient(circle at 20% 20%, rgba(var(--ion-rgb), 0.1), transparent 20%);
 }
 
 a {
@@ -56,7 +56,7 @@ pre {
 }
 
 ::selection {
-  background: rgba(var(--quarn-rgb), 0.28);
+  background: rgba(var(--ion-rgb), 0.28);
   color: var(--text);
 }
 
@@ -186,9 +186,9 @@ pre {
 }
 
 /* Dot-grid background (WI-1165: tokenized to match the canonical .grid-bg in
-   src/app/globals.css — quarn dot grid, no hardcoded navy gridlines). */
+   src/app/globals.css — Ion dot grid, no hardcoded navy gridlines). */
 .grid-bg {
-  background-image: radial-gradient(circle, rgba(var(--quarn-rgb), 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(var(--ion-rgb), 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 

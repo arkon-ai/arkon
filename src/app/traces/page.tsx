@@ -139,7 +139,7 @@ export default function TracesPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
           { label: "Total traces", value: String(total), color: "var(--fg-1)" },
-          { label: "Avg duration", value: fmtDuration(stats.avgDuration), color: "var(--quarn)" },
+          { label: "Avg duration", value: fmtDuration(stats.avgDuration), color: "var(--ion)" },
           { label: "Tokens used", value: fmtTokens(stats.totalTokens), color: "var(--info)" },
           { label: "Errors", value: String(stats.errorCount), color: stats.errorCount > 0 ? "var(--danger)" : "var(--success)" },
         ].map((s) => (
@@ -163,13 +163,13 @@ export default function TracesPage() {
             placeholder="Search traces..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setOffset(0); }}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder-[var(--fg-3)] outline-none focus:border-[rgba(var(--quarn-rgb),0.25)]"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder-[var(--fg-3)] outline-none focus:border-[rgba(var(--ion-rgb),0.25)]"
           />
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:border-[rgba(var(--quarn-rgb),0.25)] hover:text-[var(--text-primary)]"
+            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:border-[rgba(var(--ion-rgb),0.25)] hover:text-[var(--text-primary)]"
           >
             <Filter className="h-4 w-4" />
             Filters
@@ -263,7 +263,7 @@ export default function TracesPage() {
                     <tr
                       key={trace.trace_id}
                       onClick={() => router.push(`/traces/${trace.trace_id}`)}
-                      className="cursor-pointer border-b border-[var(--border)]/50 transition-colors hover:bg-[rgba(var(--quarn-rgb),0.03)]"
+                      className="cursor-pointer border-b border-[var(--border)]/50 transition-colors hover:bg-[rgba(var(--ion-rgb),0.03)]"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -301,14 +301,14 @@ export default function TracesPage() {
               <button
                 onClick={() => setOffset(Math.max(0, offset - limit))}
                 disabled={offset === 0}
-                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(var(--quarn-rgb),0.25)] disabled:opacity-30"
+                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(var(--ion-rgb),0.25)] disabled:opacity-30"
               >
                 Previous
               </button>
               <button
                 onClick={() => setOffset(offset + limit)}
                 disabled={offset + limit >= total}
-                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(var(--quarn-rgb),0.25)] disabled:opacity-30"
+                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:border-[rgba(var(--ion-rgb),0.25)] disabled:opacity-30"
               >
                 Next
               </button>

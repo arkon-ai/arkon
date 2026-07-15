@@ -451,7 +451,7 @@ export function ApprovalsToolScreen() {
                 key={item.id}
                 className={`rounded-[24px] transition ${
                   isSelected ? "ring-2 ring-accent/40" :
-                  offset > 40 ? "shadow-[0_0_40px_rgba(var(--quarn-rgb),0.15)]" :
+                  offset > 40 ? "shadow-[0_0_40px_rgba(var(--ion-rgb),0.15)]" :
                   offset < -40 ? "shadow-[0_0_40px_rgba(var(--danger-rgb),0.18)]" : ""
                 }`}
               >
@@ -984,11 +984,11 @@ export function TasksToolScreen() {
 
 const itemTypeColors: Record<string, string> = {
   linkedin: "rgb(var(--chart-blue-rgb))",
-  email: "var(--quarn)",
-  campaign: "var(--quarn)",
+  email: "var(--ion)",
+  campaign: "var(--ion)",
   confession: "var(--warning)",
   task: "var(--fg-2)",
-  event: "var(--quarn)",
+  event: "var(--ion)",
   reminder: "var(--danger)",
 };
 

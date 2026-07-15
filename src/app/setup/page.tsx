@@ -220,7 +220,7 @@ export default function SetupPage() {
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(var(--quarn-rgb), 0.04) 1px, transparent 1px)",
+            "radial-gradient(circle, rgba(var(--ion-rgb), 0.04) 1px, transparent 1px)",
           backgroundSize: "32px 32px",
         }}
       />
@@ -228,7 +228,7 @@ export default function SetupPage() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at 50% 20%, rgba(var(--quarn-rgb),0.06), transparent 60%), radial-gradient(ellipse at 50% 80%, rgba(var(--quarn-rgb),0.04), transparent 60%)",
+            "radial-gradient(ellipse at 50% 20%, rgba(var(--ion-rgb),0.06), transparent 60%), radial-gradient(ellipse at 50% 80%, rgba(var(--ion-rgb),0.04), transparent 60%)",
         }}
       />
 
@@ -292,7 +292,7 @@ export default function SetupPage() {
                   onChange={(e) => setOrgName(e.target.value)}
                   placeholder="e.g. Acme AI Labs"
                   autoFocus
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--quarn)]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--ion)]/50 transition"
                 />
               </div>
               <div>
@@ -304,7 +304,7 @@ export default function SetupPage() {
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--quarn)]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--ion)]/50 transition"
                 />
               </div>
               <div>
@@ -316,7 +316,7 @@ export default function SetupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Choose a strong password"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--quarn)]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--ion)]/50 transition"
                 />
               </div>
               <div>
@@ -328,7 +328,7 @@ export default function SetupPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--quarn)]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--ion)]/50 transition"
                 />
               </div>
               <button
@@ -365,7 +365,7 @@ export default function SetupPage() {
                   onChange={(e) => setAgentName(e.target.value)}
                   placeholder="e.g. Lumina, Atlas, My Assistant"
                   autoFocus
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--quarn)]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--ion)]/50 transition"
                 />
               </div>
               <div>
@@ -377,7 +377,7 @@ export default function SetupPage() {
                   value={agentDescription}
                   onChange={(e) => setAgentDescription(e.target.value)}
                   placeholder="What does this agent do?"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--quarn)]/50 transition"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--ion)]/50 transition"
                 />
               </div>
               <div>
@@ -822,7 +822,7 @@ function FeatureCard({
 }
 
 function ConfettiEffect() {
-  const colors = ["var(--quarn)", "var(--quarn-light)", "var(--accent)", "var(--accent-subtle)", "var(--fg-2)"];
+  const colors = ["var(--ion)", "var(--ion-light)", "var(--accent)", "var(--accent-subtle)", "var(--fg-2)"];
   const [particles] = useState(() =>
     Array.from({ length: 30 }, (_, i) => ({
       key: i,
