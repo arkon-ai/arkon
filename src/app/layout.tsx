@@ -15,9 +15,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   // Without metadataBase, Next resolves relative openGraph/twitter image URLs
-  // against a localhost fallback in prod meta tags (panel R3) — crawlers would
-  // receive http://localhost:3000/og-image.png.
-  metadataBase: new URL("https://arkonhq.com"),
+  // against a localhost fallback in prod meta tags (WI-1925 panel R3) — crawlers
+  // would receive http://localhost:3000/og-image.png. app.arkonhq.com is the
+  // app's canonical edge (transformate WI-1944 cutover, 2026-07-15); the apex is
+  // the marketing site, which doesn't serve this app's /og-image.png.
+  metadataBase: new URL("https://app.arkonhq.com"),
   title: "Arkon — AI Workforce Platform",
   description: "Build, govern, and run your AI workforce.",
   manifest: "/manifest.json",
