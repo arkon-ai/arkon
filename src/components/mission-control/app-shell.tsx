@@ -34,6 +34,7 @@ import {
   BookOpen,
   OctagonX,
   KeyRound,
+  UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CommandPalette } from "./command-palette";
@@ -73,6 +74,7 @@ const pageLabels: Record<string, string> = {
   "/integrations/crons": "Cron jobs",
   "/integrations/intake": "Client Intake",
   "/admin": "Admin",
+  "/admin/provision": "Provision",
   "/infrastructure": "Infrastructure",
   "/benchmarks": "Benchmarks",
   "/compliance": "Compliance",
@@ -128,6 +130,7 @@ const navGroups: Array<{ label: string; key: string; items: NavItem[] }> = [
     label: "Provision",
     key: "provision",
     items: [
+      { href: "/admin/provision", label: "Provision", subtitle: "Human provisioning manifest and gate", icon: UserRound },
       { href: "/agents", label: "Agents", subtitle: "Roster, health, and assignment", icon: Bot },
       { href: "/integrations", label: "Integrations", subtitle: "MCP servers and provider connections", icon: Plug },
       { href: "/api-keys", label: "Keys & tokens", subtitle: "API keys and access tokens", icon: KeyRound },
