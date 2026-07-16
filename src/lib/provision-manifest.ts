@@ -13,7 +13,9 @@ export type ProvisionManifest = {
     identity?: { role: "governor" | "agent" };
   };
   is_grant: boolean;
-  initiator: { kind: "owner"; slug: "brynn"; surface: "command_board" };
+  // kind is the UPSTREAM zod vocabulary (human|agent — arkonos WI-1966); the owner
+  // initiates as a human. "owner" 400s the whole surface (transformate WI-1997).
+  initiator: { kind: "human"; slug: "brynn"; surface: "command_board" };
 };
 
 export type TenantRoleRow = { tenant: string; role: string };
@@ -132,7 +134,7 @@ export function buildManifest(form: ProvisionFormState): ProvisionManifest {
     mention_handle: form.mentionHandle.trim(),
     grants,
     is_grant: true,
-    initiator: { kind: "owner", slug: "brynn", surface: "command_board" },
+    initiator: { kind: "human", slug: "brynn", surface: "command_board" },
   };
 }
 
