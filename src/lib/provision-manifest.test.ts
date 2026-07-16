@@ -128,7 +128,7 @@ describe("buildManifest", () => {
     expect(manifest.mention_handle).toBe("@alex");
     expect(manifest.is_grant).toBe(true);
     expect(manifest.initiator).toEqual({
-      kind: "owner",
+      kind: "human",
       slug: "brynn",
       surface: "command_board",
     });
