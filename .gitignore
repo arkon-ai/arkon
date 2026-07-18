@@ -104,3 +104,6 @@ phase*-files/
 
 # --- Session backups ---
 *.bak-*
+
+# 4-model review panel workdir (code-build doctrine v4) — local artifacts, never committed
+.review-panel/

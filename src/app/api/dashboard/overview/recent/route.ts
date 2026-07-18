@@ -7,16 +7,18 @@ export async function GET(req: NextRequest) {
   // Same tenant scoping as the parent overview route (WI-1846) — events carry
   // no tenant_id, so they are scoped through the agents join.
   const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
-  if (!access) {
+  if (!access || access.credential.type === "agent_token") {
     return unauthorized();
   }
 
   const scoped = access.tenantId !== "*";
 
-  const limit = Math.min(
-    parseInt(req.nextUrl.searchParams.get("limit") ?? "5", 10),
-    20
-  );
+  // Clamp both ends: an unparseable or negative limit used to reach Postgres as
+  // NaN/-1 and come back a 500 (panel R1).
+  const requested = parseInt(req.nextUrl.searchParams.get("limit") ?? "5", 10);
+  const limit = Number.isFinite(requested)
+    ? Math.min(Math.max(requested, 1), 20)
+    : 5;
 
   try {
     const result = await query(
