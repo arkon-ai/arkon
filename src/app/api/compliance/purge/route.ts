@@ -38,9 +38,13 @@ export async function POST(req: NextRequest) {
       );
       const ids = agentIds.rows.map((r: Record<string, string>) => r.id);
 
-      if (ids.length > 0) {
-        const placeholders = ids.map((_: string, i: number) => `$${i + 1}`).join(",");
+      // WI-1848: agent-keyed tables need agent ids, but tenant-keyed tables
+      // must purge even when the tenant has no agents — the old ids.length
+      // guard silently skipped workflows/audit/incidents for agent-less
+      // tenants (panel finding).
+      const placeholders = ids.map((_: string, i: number) => `$${i + 1}`).join(",");
 
+      if (ids.length > 0) {
         const eventCount = await query(
           `SELECT COUNT(*)::int as c FROM events WHERE agent_id IN (${placeholders})`, ids
         );
@@ -62,71 +66,79 @@ export async function POST(req: NextRequest) {
           `SELECT COUNT(*)::int as c FROM tool_calls WHERE agent_id IN (${placeholders})`, ids
         );
         results.tool_calls = toolCallCount.rows[0]?.c ?? 0;
+      } else {
+        results.events = 0;
+        results.sessions = 0;
+        results.daily_stats = 0;
+        results.tool_calls = 0;
+      }
 
-        const benchCount = await query(
-          `SELECT COUNT(*)::int as c FROM benchmark_runs WHERE tenant_id = $1`, [body.scope_id]
-        );
-        results.benchmark_runs = benchCount.rows[0]?.c ?? 0;
+      const benchCount = await query(
+        `SELECT COUNT(*)::int as c FROM benchmark_runs WHERE tenant_id = $1`, [body.scope_id]
+      );
+      results.benchmark_runs = benchCount.rows[0]?.c ?? 0;
 
-        const auditCount = await query(
-          `SELECT COUNT(*)::int as c FROM audit_log WHERE tenant_id = $1`, [body.scope_id]
-        );
-        results.audit_log = auditCount.rows[0]?.c ?? 0;
+      const auditCount = await query(
+        `SELECT COUNT(*)::int as c FROM audit_log WHERE tenant_id = $1`, [body.scope_id]
+      );
+      results.audit_log = auditCount.rows[0]?.c ?? 0;
 
-        const wfRunsCount = await query(
-          `SELECT COUNT(*)::int as c FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]
-        );
-        results.workflow_runs = wfRunsCount.rows[0]?.c ?? 0;
+      const wfRunsCount = await query(
+        `SELECT COUNT(*)::int as c FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]
+      );
+      results.workflow_runs = wfRunsCount.rows[0]?.c ?? 0;
 
-        const wfCount = await query(
-          `SELECT COUNT(*)::int as c FROM workflows WHERE tenant_id = $1`, [body.scope_id]
-        );
-        results.workflows = wfCount.rows[0]?.c ?? 0;
+      const wfCount = await query(
+        `SELECT COUNT(*)::int as c FROM workflows WHERE tenant_id = $1`, [body.scope_id]
+      );
+      results.workflows = wfCount.rows[0]?.c ?? 0;
 
-        // WI-1848: incidents exist on every DB now (migration 025) and hold
-        // tenant data — a tenant purge must take them (updates cascade via FK).
-        const incidentCount = await query(
-          `SELECT COUNT(*)::int as c FROM incidents WHERE tenant_id = $1`, [body.scope_id]
-        );
-        results.incidents = incidentCount.rows[0]?.c ?? 0;
-        const incidentUpdateCount = await query(
-          `SELECT COUNT(*)::int as c FROM incident_updates iu JOIN incidents i ON i.id = iu.incident_id WHERE i.tenant_id = $1`, [body.scope_id]
-        );
-        results.incident_updates = incidentUpdateCount.rows[0]?.c ?? 0;
+      // WI-1848: incidents exist on every DB now (migration 025) and hold
+      // tenant data — a tenant purge must take them (updates cascade via FK).
+      const incidentCount = await query(
+        `SELECT COUNT(*)::int as c FROM incidents WHERE tenant_id = $1`, [body.scope_id]
+      );
+      results.incidents = incidentCount.rows[0]?.c ?? 0;
+      const incidentUpdateCount = await query(
+        `SELECT COUNT(*)::int as c FROM incident_updates iu JOIN incidents i ON i.id = iu.incident_id WHERE i.tenant_id = $1`, [body.scope_id]
+      );
+      results.incident_updates = incidentUpdateCount.rows[0]?.c ?? 0;
 
-        results.agents = ids.length;
+      results.agents = ids.length;
 
-        if (!dryRun) {
-          // Single transaction so a mid-chain failure cannot leave a tenant
-          // partially purged (e.g. events gone but agents remaining) or with no
-          // audit record. All-or-nothing. (WI-1352 finding #8.)
-          const client = await pool.connect();
-          try {
-            await client.query("BEGIN");
-            // Delete in dependency order
+      if (!dryRun) {
+        // Single transaction so a mid-chain failure cannot leave a tenant
+        // partially purged (e.g. events gone but agents remaining) or with no
+        // audit record. All-or-nothing. (WI-1352 finding #8.)
+        const client = await pool.connect();
+        try {
+          await client.query("BEGIN");
+          // Delete in dependency order (agent-keyed tables only when the
+          // tenant still has agents — empty IN () is invalid SQL)
+          if (ids.length > 0) {
             await client.query(`DELETE FROM events WHERE agent_id IN (${placeholders})`, ids);
             await client.query(`DELETE FROM sessions WHERE agent_id IN (${placeholders})`, ids);
             await client.query(`DELETE FROM daily_stats WHERE agent_id IN (${placeholders})`, ids);
             await client.query(`DELETE FROM tool_calls WHERE agent_id IN (${placeholders})`, ids);
-            await client.query(`DELETE FROM benchmark_runs WHERE tenant_id = $1`, [body.scope_id]);
-            await client.query(`DELETE FROM audit_log WHERE tenant_id = $1`, [body.scope_id]);
-            await client.query(`DELETE FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]);
-            await client.query(`DELETE FROM workflows WHERE tenant_id = $1`, [body.scope_id]);
-            await client.query(`DELETE FROM incidents WHERE tenant_id = $1`, [body.scope_id]);
-            await client.query(`DELETE FROM agents WHERE tenant_id = $1`, [body.scope_id]);
-            // Log the purge itself (inside the txn — the audit row lands iff the purge commits)
-            await client.query(
-              `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)
-               VALUES ('system', 'gdpr_purge', 'tenant', $1, $2, $1)`,
-              [body.scope_id, JSON.stringify({ scope: 'tenant', scope_id: body.scope_id, rows_deleted: results })]
-            );
-            await client.query("COMMIT");
-          } catch (err) {
-            await client.query("ROLLBACK");
-            throw err;
-          } finally {
-            client.release();
           }
+          await client.query(`DELETE FROM benchmark_runs WHERE tenant_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM audit_log WHERE tenant_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM workflows WHERE tenant_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM incidents WHERE tenant_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM agents WHERE tenant_id = $1`, [body.scope_id]);
+          // Log the purge itself (inside the txn — the audit row lands iff the purge commits)
+          await client.query(
+            `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)
+             VALUES ('system', 'gdpr_purge', 'tenant', $1, $2, $1)`,
+            [body.scope_id, JSON.stringify({ scope: 'tenant', scope_id: body.scope_id, rows_deleted: results })]
+          );
+          await client.query("COMMIT");
+        } catch (err) {
+          await client.query("ROLLBACK");
+          throw err;
+        } finally {
+          client.release();
         }
       }
     } else if (body.scope === "agent") {
