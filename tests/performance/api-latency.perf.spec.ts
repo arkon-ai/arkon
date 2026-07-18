@@ -27,7 +27,7 @@ const FAST_ENDPOINTS = [
 const SLOW_ENDPOINTS = [
   { method: "GET", path: "/api/costs/by-agent", name: "Costs by agent" },
   { method: "GET", path: "/api/costs/by-model", name: "Costs by model" },
-  { method: "GET", path: "/api/infra/report", name: "Infra report" },  // WI-1851: was /api/infrastructure/* (404 — path never existed)
+  { method: "GET", path: "/api/infra/nodes", name: "Infra nodes" },  // WI-1851: was /api/infrastructure/* (404); /api/infra/report is POST-only (405) — nodes is the GET surface
   { method: "GET", path: "/api/compliance/audit-log", name: "Audit log" },
   { method: "GET", path: "/api/dashboard/trends", name: "Dashboard trends" },
   { method: "GET", path: "/api/analytics/overview", name: "Analytics" },  // WI-1851: was /api/analytics (404 — real route is /overview)
