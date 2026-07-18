@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { unauthorized } from "@/app/api/tools/_utils";
-import { resolveTenantAccess } from "@/lib/tenant-access";
+import { resolveTenantAccess, DASHBOARD_CREDENTIALS } from "@/lib/tenant-access";
 
 export async function GET(req: NextRequest) {
   // Every aggregate below is scoped to the caller's tenant (WI-1846). The fleet
   // owner keeps the cross-tenant view ("*"); any other credential is pinned to
   // its own tenant_id by resolveTenantAccess, so a forged ?tenant_id or
   // mc_tenant cookie cannot widen the scope (see tenant-access.test.ts).
-  // Agent tokens stay out: they live in plaintext .env on fleet hosts and are
-  // scoped to ingest, not to reading their tenant's whole roster. They got a
-  // flat 401 here pre-WI-1846, so excluding them widens nothing (panel R1).
   const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
-  if (!access || access.credential.type === "agent_token") {
+  if (!access || !DASHBOARD_CREDENTIALS.has(access.credential.type)) {
     return unauthorized();
   }
 
@@ -20,8 +17,11 @@ export async function GET(req: NextRequest) {
   const params = scoped ? [access.tenantId] : [];
 
   try {
-    // events/daily_stats have no tenant_id of their own here — they inherit the
-    // agent's tenant via e.agent_id = a.id, so scoping `agents` scopes them too.
+    // `events` has no tenant_id — it inherits the agent's via e.agent_id = a.id,
+    // so scoping `agents` scopes the event sub-selects (and cost_30d) too.
+    // `daily_stats` DOES carry its own tenant_id (NOT NULL since migration 001,
+    // backfilled from agents) and todayStats filters it directly — same shape as
+    // /api/client/dashboard, and it keeps the idx_daily_stats_tenant index path.
     const agents = await query(`
       SELECT a.id, a.name, a.metadata, a.created_at, a.tenant_id,
         (SELECT MAX(e.created_at) FROM events e WHERE e.agent_id = a.id) as last_active,
@@ -56,12 +56,17 @@ export async function GET(req: NextRequest) {
       ORDER BY name
     `, params);
 
-    return NextResponse.json({
-      agents: agents.rows,
-      todayStats: todayStats.rows,
-      tenants: tenants.rows,
-      timestamp: new Date().toISOString(),
-    });
+    // Per-principal since WI-1846 — this body used to be identical for the only
+    // caller that could reach it.
+    return NextResponse.json(
+      {
+        agents: agents.rows,
+        todayStats: todayStats.rows,
+        tenants: tenants.rows,
+        timestamp: new Date().toISOString(),
+      },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   } catch (err) {
     console.error("[dashboard/overview] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

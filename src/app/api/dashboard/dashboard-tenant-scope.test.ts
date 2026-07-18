@@ -113,7 +113,7 @@ describe("dashboard overview tenant scoping", () => {
 
     // The roster leak is the sharpest one: without a predicate this hands every
     // tenant's id/name/domain/plan to a single tenant's user.
-    expect(String(callFor("FROM tenants")?.[0])).toContain("WHERE id = $1");
+    expect(String(callFor("FROM tenants")[0])).toContain("WHERE id = $1");
   });
 
   it("keeps the fleet owner's cross-tenant view unscoped", async () => {
@@ -123,8 +123,8 @@ describe("dashboard overview tenant scoping", () => {
 
     expect(res.status).toBe(200);
     const tenantsCall = callFor("FROM tenants");
-    expect(String(tenantsCall?.[0])).not.toContain("WHERE id = $1");
-    expect(tenantsCall?.[1]).toEqual([]);
+    expect(String(tenantsCall[0])).not.toContain("WHERE id = $1");
+    expect(tenantsCall[1]).toEqual([]);
   });
 
   it("narrows the fleet owner to one tenant when ?tenant_id= is present", async () => {
@@ -161,6 +161,32 @@ describe("dashboard overview tenant scoping", () => {
     );
 
     expect(res.status).toBe(401);
+    // Positive control: 401 is also the answer for a token the helper never
+    // recognized, so prove the agent lookup actually ran and matched — otherwise
+    // dropping the credential allowlist would still pass this test.
+    expect(
+      mockQuery.mock.calls.some(([sql]) =>
+        String(sql).includes("FROM agents WHERE token_hash")
+      )
+    ).toBe(true);
+    expect(
+      mockQuery.mock.calls.some(([sql]) => String(sql).includes("FROM tenants"))
+    ).toBe(false);
+  });
+
+  it("ignores a caller-supplied '*' sentinel from a tenant-scoped caller", async () => {
+    // "*" is the single value that flips a caller onto the unscoped owner SQL.
+    // The other forgery test uses an ordinary tenant id; this one uses the magic
+    // value itself.
+    await getOverview(
+      request("https://arkon.test/api/dashboard/overview?tenant_id=*", {
+        cookies: { mc_auth: "viewer-a-session", mc_tenant: "*" },
+      })
+    );
+
+    const call = callFor("FROM agents a");
+    expect(String(call[0])).toContain("WHERE a.tenant_id = $1");
+    expect(call[1]).toEqual(["tenant-a"]);
   });
 
   it("rejects a request carrying only a forged tenant cookie", async () => {

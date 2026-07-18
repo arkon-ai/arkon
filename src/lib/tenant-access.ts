@@ -14,6 +14,22 @@ export interface TenantAccess {
   tenantId: string;
 }
 
+/**
+ * Credential types allowed on the operator dashboard aggregates
+ * (/api/dashboard/*). An ALLOWLIST, not an agent_token denylist: a credential
+ * type added to RequestCredentialType later must have to opt in here rather
+ * than inherit read access to a tenant's whole roster (WI-1846, panel R2).
+ *
+ * agent_token is the one deliberate exclusion — those live in plaintext .env on
+ * fleet hosts and are scoped to ingest. owner_token IS included; it is the fleet
+ * admin token that was this surface's only caller before WI-1846.
+ */
+export const DASHBOARD_CREDENTIALS: ReadonlySet<RequestCredential["type"]> = new Set([
+  "user_session",
+  "owner_token",
+  "api_key",
+]);
+
 export function roleAtLeast(role: RequestCredential["role"], required: RequestCredential["role"]): boolean {
   return ROLE_RANK[role] >= ROLE_RANK[required];
 }
