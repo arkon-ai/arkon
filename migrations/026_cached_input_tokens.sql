@@ -6,3 +6,10 @@
 
 ALTER TABLE events ADD COLUMN IF NOT EXISTS cached_input_tokens integer;
 ALTER TABLE daily_stats ADD COLUMN IF NOT EXISTS cached_input_tokens integer DEFAULT 0;
+
+-- Where the column pre-exists (prod: added out-of-band, no default, NULL
+-- backfill), ingest's ON CONFLICT increment (cached_input_tokens + $n) stays
+-- NULL forever on pre-existing rows — the counter never accumulates. Converge
+-- default + backfill; idempotent, no-op where 011-style DEFAULT 0 already held.
+ALTER TABLE daily_stats ALTER COLUMN cached_input_tokens SET DEFAULT 0;
+UPDATE daily_stats SET cached_input_tokens = 0 WHERE cached_input_tokens IS NULL;
