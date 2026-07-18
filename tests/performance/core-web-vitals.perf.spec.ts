@@ -34,7 +34,10 @@ test.describe("Core Web Vitals @performance @regression", () => {
     test(`${name} LCP under ${LCP_THRESHOLD}ms`, async ({ page }) => {
       // Navigate and measure LCP
       await page.goto(`${MC_URL}${path}`);
-      await page.waitForLoadState("networkidle");
+      // WI-1851: networkidle hangs on streaming pages (Dashboard SSE, Agents
+      // polling) — bounded settle; the metric observers below have their own waits.
+      await page.waitForLoadState("load");
+      await page.waitForTimeout(1500);
 
       const lcp = await page.evaluate(() => {
         return new Promise<number>((resolve) => {

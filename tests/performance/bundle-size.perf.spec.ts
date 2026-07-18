@@ -37,7 +37,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
     });
 
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
+    // connection open) — every budget test timed out at 45s without measuring.
+    // Bounded settle: window load + a fixed tail for late-loaded chunks.
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(3000);
 
     const totalJs = jsRequests.reduce((sum, r) => sum + r.size, 0);
     expect(
@@ -62,7 +66,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
     });
 
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
+    // connection open) — every budget test timed out at 45s without measuring.
+    // Bounded settle: window load + a fixed tail for late-loaded chunks.
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(3000);
 
     expect(
       oversized,
@@ -84,7 +92,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
     });
 
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
+    // connection open) — every budget test timed out at 45s without measuring.
+    // Bounded settle: window load + a fixed tail for late-loaded chunks.
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(3000);
 
     const totalCss = cssRequests.reduce((sum, r) => sum + r.size, 0);
     expect(
@@ -110,7 +122,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
     });
 
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
+    // connection open) — every budget test timed out at 45s without measuring.
+    // Bounded settle: window load + a fixed tail for late-loaded chunks.
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(3000);
 
     expect(
       oversized,
@@ -131,7 +147,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
     });
 
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
+    // connection open) — every budget test timed out at 45s without measuring.
+    // Bounded settle: window load + a fixed tail for late-loaded chunks.
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(3000);
 
     expect(
       totalBytes,
@@ -153,7 +173,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
     });
 
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
+    // connection open) — every budget test timed out at 45s without measuring.
+    // Bounded settle: window load + a fixed tail for late-loaded chunks.
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(3000);
 
     // Allow some uncompressed (e.g., tiny inline), but flag if many
     expect(
