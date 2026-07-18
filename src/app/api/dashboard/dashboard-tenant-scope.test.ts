@@ -195,8 +195,17 @@ describe("dashboard overview tenant scoping", () => {
     // Positive control, same shape as the agent-token test: prove the key
     // actually resolved, so this is an allowlist rejection and not an
     // unrecognized-token 401 that would pass with the allowlist deleted.
+    // Assert the lookup ran with the SEEDED hash, not merely that it ran: if the
+    // fixture's hash scheme ever diverges from what resolveRequestCredential
+    // queries with, the mock returns [], the 401 becomes an unrecognized-token
+    // 401, and deleting DASHBOARD_CREDENTIALS would leave this green — exactly
+    // what the control exists to catch (panel R7: opus).
     expect(
-      mockQuery.mock.calls.some(([sql]) => String(sql).includes("FROM api_keys"))
+      mockQuery.mock.calls.some(
+        ([sql, params]) =>
+          String(sql).includes("FROM api_keys") &&
+          (params as unknown[] | undefined)?.[0] === hash("ak_live_key-a")
+      )
     ).toBe(true);
     expect(
       mockQuery.mock.calls.some(([sql]) => String(sql).includes("FROM tenants"))
@@ -328,9 +337,12 @@ describe("dashboard overview tenant scoping", () => {
     // Positive control: 401 is also the answer for a token the helper never
     // recognized, so prove the agent lookup actually ran and matched — otherwise
     // dropping the credential allowlist would still pass this test.
+    // On the seeded hash, for the reason given on the api_key control above.
     expect(
-      mockQuery.mock.calls.some(([sql]) =>
-        String(sql).includes("FROM agents WHERE token_hash")
+      mockQuery.mock.calls.some(
+        ([sql, params]) =>
+          String(sql).includes("FROM agents WHERE token_hash") &&
+          (params as unknown[] | undefined)?.[0] === hash("agent-a-token")
       )
     ).toBe(true);
     expect(
