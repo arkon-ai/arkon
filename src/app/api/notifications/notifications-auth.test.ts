@@ -65,6 +65,18 @@ describe("notification preferences auth", () => {
     expect(body.channels.slack.config.label).toBe("ops");
   });
 
+  it("rejects cookie-session preference writes without the CSRF header", async () => {
+    // WI-1849: the double-submit gate must fail closed, not just pass when fed.
+    const res = await PUT(request("/api/notifications/preferences", {
+      method: "PUT",
+      cookies: { mc_auth: "tenant-admin-session", mc_csrf: "csrf-test-token" },
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ channel: "slack", enabled: true, config: {} }),
+    }));
+
+    expect(res.status).toBe(403);
+  });
+
   it("stores preference updates under the authenticated tenant instead of a forged cookie tenant", async () => {
     const res = await PUT(request("/api/notifications/preferences", {
       method: "PUT",
