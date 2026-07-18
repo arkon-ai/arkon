@@ -88,6 +88,13 @@ export async function GET(req: NextRequest) {
     // a row whose denormalized tenant_id has drifted from agents.tenant_id can't
     // show up for the wrong tenant. Two sources of truth is the bug class this
     // WI is about; the scoped path requires both to agree (panel R3).
+    //
+    // cost_30d applies the SAME agreement rule (ds.tenant_id = a.tenant_id).
+    // Correlating on ds.agent_id alone made this the one aggregate that trusted a
+    // single source, so a drifted row still reached the agent's card — the
+    // invariant the comment above claims, contradicted two lines below it. The
+    // check is uncorrelated to $1, so it holds in the fleet view too, and it can
+    // only ever narrow (CodeRabbit Major + panel R13 grok, converging).
     const agents = await query(`
       SELECT a.id, a.name, a.metadata, a.created_at, a.tenant_id,
         (SELECT MAX(e.created_at) FROM events e WHERE e.agent_id = a.id) as last_active,
@@ -96,7 +103,7 @@ export async function GET(req: NextRequest) {
         (SELECT COUNT(*) FROM events e WHERE e.agent_id = a.id) as events_total,
         (SELECT COALESCE(SUM(e.token_estimate), 0) FROM events e WHERE e.agent_id = a.id AND e.created_at > NOW() - INTERVAL '24 hours') as tokens_24h,
         (SELECT COUNT(*) FROM events e WHERE e.agent_id = a.id AND e.threat_level IS NOT NULL AND e.threat_level != 'none' AND e.created_at > NOW() - INTERVAL '30 days') as threats_30d,
-        (SELECT COALESCE(SUM(ds.estimated_cost_usd), 0) FROM daily_stats ds WHERE ds.agent_id = a.id AND ds.day > CURRENT_DATE - INTERVAL '30 days') as cost_30d
+        (SELECT COALESCE(SUM(ds.estimated_cost_usd), 0) FROM daily_stats ds WHERE ds.agent_id = a.id AND ds.tenant_id = a.tenant_id AND ds.day > CURRENT_DATE - INTERVAL '30 days') as cost_30d
       FROM agents a
       ${scoped ? "WHERE a.tenant_id = $1" : ""}
       ORDER BY last_active DESC NULLS LAST
