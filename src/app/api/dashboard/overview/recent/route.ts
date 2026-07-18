@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { unauthorized } from "@/app/api/tools/_utils";
-import { resolveTenantAccess } from "@/lib/tenant-access";
+import { resolveTenantAccess, DASHBOARD_CREDENTIALS } from "@/lib/tenant-access";
 
 export async function GET(req: NextRequest) {
   // Same tenant scoping as the parent overview route (WI-1846) — events carry
   // no tenant_id, so they are scoped through the agents join.
   const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
-  if (!access || access.credential.type === "agent_token") {
+  if (!access || !DASHBOARD_CREDENTIALS.has(access.credential.type)) {
     return unauthorized();
   }
 
@@ -32,7 +32,11 @@ export async function GET(req: NextRequest) {
       scoped ? [limit, access.tenantId] : [limit]
     );
 
-    return NextResponse.json({ events: result.rows });
+    // Per-principal since WI-1846 — see the parent overview route.
+    return NextResponse.json(
+      { events: result.rows },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   } catch (err) {
     console.error("[dashboard/overview/recent] Error:", err);
     return NextResponse.json({ events: [] });
