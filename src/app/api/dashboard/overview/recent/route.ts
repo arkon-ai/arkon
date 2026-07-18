@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { unauthorized } from "@/app/api/tools/_utils";
+import { resolveTenantAccess } from "@/lib/tenant-access";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  // Same tenant scoping as the parent overview route (WI-1846) — events carry
+  // no tenant_id, so they are scoped through the agents join.
+  const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
+  if (!access) {
     return unauthorized();
   }
+
+  const scoped = access.tenantId !== "*";
 
   const limit = Math.min(
     parseInt(req.nextUrl.searchParams.get("limit") ?? "5", 10),
@@ -18,9 +24,10 @@ export async function GET(req: NextRequest) {
               LEFT(e.content, 120) as content, e.created_at
        FROM events e
        JOIN agents a ON a.id = e.agent_id
+       ${scoped ? "WHERE a.tenant_id = $2" : ""}
        ORDER BY e.created_at DESC
        LIMIT $1`,
-      [limit]
+      scoped ? [limit, access.tenantId] : [limit]
     );
 
     return NextResponse.json({ events: result.rows });
