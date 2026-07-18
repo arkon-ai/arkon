@@ -30,12 +30,32 @@ const TENANT_VISIBLE_METADATA = ["model", "provider", "instance", "role"] as con
  * thought of, and the audience is now every tenant-bound admin (panel R11: grok
  * Major, opus concurring).
  */
-function projectAgentMetadata(metadata: unknown): Record<string, unknown> | null {
+/**
+ * Enforce the scalar half of the contract. Allowlisting the KEY is not enough:
+ * a writer that puts an object under an allowlisted name — `instance: {ssh:
+ * {...}}` — would ship it verbatim, which is the R9 leak one key sideways
+ * (panel R12: grok Major). `OverviewAgent.metadata` is declared as a flat scalar
+ * map, so anything that is not a scalar is not part of the contract and is
+ * dropped rather than forwarded.
+ */
+function asScalar(value: unknown): string | number | boolean | null | undefined {
+  if (value === null) return null;
+  const t = typeof value;
+  return t === "string" || t === "number" || t === "boolean"
+    ? (value as string | number | boolean)
+    : undefined;
+}
+
+function projectAgentMetadata(
+  metadata: unknown
+): Record<string, string | number | boolean | null> | null {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return null;
   const src = metadata as Record<string, unknown>;
-  const out: Record<string, unknown> = {};
+  const out: Record<string, string | number | boolean | null> = {};
   for (const key of TENANT_VISIBLE_METADATA) {
-    if (key in src) out[key] = src[key];
+    if (!(key in src)) continue;
+    const scalar = asScalar(src[key]);
+    if (scalar !== undefined) out[key] = scalar;
   }
   return out;
 }
