@@ -34,6 +34,8 @@ export async function GET(
     `, [agentId]);
 
     // Active sessions
+    // WI-1848: sessions has created_at, not started_at (prod + 000 agree) —
+    // the alias keeps the API's started_at contract.
     const sessions = await query(`
       SELECT session_key, channel_id, created_at AS started_at, last_active, message_count
       FROM sessions
