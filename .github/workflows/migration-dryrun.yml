@@ -1,0 +1,67 @@
+name: Migration dry-run vs prod schema
+
+# transformate WI-2075 (under WI-1847): every PR applies the pending migration set
+# against a schema-only snapshot of the REAL prod database (db/prod-snapshot/), so a
+# migration that is green on CI's from-scratch 000 schema but fatal on prod (the
+# 2026-07-18 migration-024 class, fixed reactively in #90/#91) fails the PR instead
+# of sitting merged-but-undeployable in front of the deploy queue.
+#
+# Two jobs-in-one: the "real" step must PASS; the "selftest" step seeds a 024-shaped
+# regression (db/ci/selftest_024_shape.sql) and must see the migrator ABORT — proof in
+# every run's logs that the job still catches the incident class.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: migration-dryrun-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dryrun:
+    name: Pending migrations vs prod snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      timescaledb:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_USER: arkon
+          POSTGRES_PASSWORD: arkon
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PG_BASE_URL: postgresql://arkon:arkon@localhost:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          ARKON_NPM_TOKEN: ${{ secrets.ARKON_NPM_TOKEN }}
+
+      - name: Dry-run pending migrations against prod schema snapshot
+        run: bash scripts/ci/migration-dryrun.sh real
+
+      - name: Regression self-test — seeded 024-shaped migration must abort
+        run: bash scripts/ci/migration-dryrun.sh selftest

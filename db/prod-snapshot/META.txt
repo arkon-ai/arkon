@@ -1,0 +1,8 @@
+captured_at=2026-07-18T18:09:35Z
+source=mc-postgres/mission_control @ 100.108.57.71 (Hetzner EU)
+pg_version=PostgreSQL 16.11 on x86_64-pc-linux-musl (Alpine), 64-bit
+timescaledb_version=2.25.2
+prod_head=05051192d0e39b0c599e76c17b95c5215914b87f 2026-07-18T17:02:03+02:00
+applied_migrations=30
+capture_method=pg_dump --schema-only --no-owner --no-privileges; --data-only --column-inserts --table=public._migrations --table=public.tenants (delegated read-only seat, transformate WI-2075)
+sanitization=admin_email values redacted to NULL; metadata jsonb verified '{}' on all 4 tenant rows; INSERTs scoped to public._migrations (30) + public.tenants (4)

@@ -107,3 +107,6 @@ phase*-files/
 
 # 4-model review panel workdir (code-build doctrine v4) — local artifacts, never committed
 .review-panel/
+
+# WI-2075 migration dry-run selftest scratch
+.ci-selftest/
