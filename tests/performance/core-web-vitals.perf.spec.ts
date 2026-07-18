@@ -33,11 +33,11 @@ test.describe("Core Web Vitals @performance @regression", () => {
   for (const { path, name } of PAGES) {
     test(`${name} LCP under ${LCP_THRESHOLD}ms`, async ({ page }) => {
       // Navigate and measure LCP
-      await page.goto(`${MC_URL}${path}`);
       // WI-1851: networkidle hangs on streaming pages (Dashboard SSE, Agents
-      // polling) — bounded settle; the metric observers below have their own waits.
-      await page.waitForLoadState("load");
-      await page.waitForTimeout(1500);
+      // polling); goto already waits for window load, and the buffered LCP
+      // observer below carries its own 3s reporting window.
+      const nav = await page.goto(`${MC_URL}${path}`);
+      expect(nav?.status(), `${name} page must respond 200`).toBe(200);
 
       const lcp = await page.evaluate(() => {
         return new Promise<number>((resolve) => {
@@ -67,10 +67,10 @@ test.describe("Core Web Vitals @performance @regression", () => {
         });
       });
 
-      // If LCP was captured, assert threshold
-      if (lcp > 0) {
-        expect(lcp, `${name} LCP was ${lcp.toFixed(0)}ms`).toBeLessThan(LCP_THRESHOLD);
-      }
+      // WI-1851 (panel): a zero reading means LCP never fired and the budget
+      // was not exercised — that is a failure, not a pass.
+      expect(lcp, `${name} LCP was never observed`).toBeGreaterThan(0);
+      expect(lcp, `${name} LCP was ${lcp.toFixed(0)}ms`).toBeLessThan(LCP_THRESHOLD);
     });
   }
 
