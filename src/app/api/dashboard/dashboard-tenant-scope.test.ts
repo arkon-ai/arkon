@@ -52,10 +52,12 @@ function sessionRowsFor(tokenHash: unknown) {
   if (tokenHash === hash("viewer-a-session")) {
     return [{ id: 6, email: "ro@example.com", role: "viewer", tenant_id: "tenant-a" }];
   }
-  // A viewer whose own tenant_id is the "*" sentinel — the value domain
-  // resolveTenantAccess uses for "fleet wide".
-  if (tokenHash === hash("viewer-star-session")) {
-    return [{ id: 2, email: "star@example.com", role: "viewer", tenant_id: "*" }];
+  // A non-owner whose own tenant_id is the "*" sentinel — the value domain
+  // resolveTenantAccess uses for "fleet wide". Role `admin` on purpose: it
+  // clears the dashboard role floor, so a test using it isolates the SENTINEL
+  // rather than re-proving the floor (panel R11: grok Major).
+  if (tokenHash === hash("admin-star-session")) {
+    return [{ id: 2, email: "star@example.com", role: "admin", tenant_id: "*" }];
   }
   // role "owner" with a REAL tenant id. resolveTenantAccess keys the wildcard on
   // ROLE, not on credential type, so this row decides the scoped/unscoped branch.
@@ -117,6 +119,24 @@ const SCOPED_AGGREGATES = [
   ["tenants", "FROM tenants", "WHERE id = $1"],
 ] as const;
 
+/**
+ * Assert the predicate is present AND not disarmed.
+ *
+ * Presence alone is not isolation: `WHERE a.tenant_id = $1 OR TRUE` contains the
+ * predicate, binds the same $1, returns 200 and leaks the fleet — every
+ * substring-and-params assertion in this file stays green through it. Since
+ * these tests ARE the merge gate for the WI-1846 scope fix, the widening shapes
+ * have to be excluded explicitly (panel R11: grok Major).
+ */
+function expectTenantPredicate(sql: string, predicate: string, label: string) {
+  expect(sql, label).toContain(predicate);
+  // No boolean widening anywhere in the statement: `OR TRUE`, `OR 1=1`,
+  // `OR tenant_id IS NOT NULL`, `OR id IS NOT NULL`.
+  expect(sql, `${label}: predicate disarmed by an OR`).not.toMatch(
+    /\bOR\s+(TRUE\b|1\s*=\s*1|[a-z_.]*\btenant_id\s+IS\s+NOT\s+NULL|[a-z_.]*\bid\s+IS\s+NOT\s+NULL)/i
+  );
+}
+
 /* WI-1846 — /api/dashboard/overview aggregated agents, daily_stats and the full
    tenants roster with no tenant predicate at all. It was gated on the fleet
    MC_ADMIN_TOKEN, so it failed closed rather than leaking; the defect is that
@@ -134,7 +154,7 @@ describe("dashboard overview tenant scoping", () => {
     expect(res.status).toBe(200);
     for (const [label, fragment, predicate] of SCOPED_AGGREGATES) {
       const call = callFor(fragment);
-      expect(String(call[0]), label).toContain(predicate);
+      expectTenantPredicate(String(call[0]), predicate, label);
       expect(call[1], label).toEqual(["tenant-a"]);
     }
   });
@@ -175,7 +195,7 @@ describe("dashboard overview tenant scoping", () => {
 
     for (const [label, fragment, predicate] of SCOPED_AGGREGATES) {
       const call = callFor(fragment);
-      expect(String(call[0]), label).toContain(predicate);
+      expectTenantPredicate(String(call[0]), predicate, label);
       expect(call[1], label).toEqual(["tenant-b"]);
     }
   });
@@ -257,15 +277,37 @@ describe("dashboard overview tenant scoping", () => {
 
   it("refuses a non-owner whose own tenant_id is the '*' sentinel", async () => {
     // "*" shares a value domain with real tenant ids, so a non-owner carrying it
-    // must fail closed rather than reach the unscoped SQL shape. As above, the
-    // 401 is resolveTenantAccess's; the route-level pin guards the composition.
+    // must fail closed rather than reach the unscoped SQL shape.
+    //
+    // ABOVE the role floor deliberately. With a `viewer` fixture this test was
+    // vacuous: the floor refuses viewers anyway, so deleting the "*" handling
+    // entirely left it green and it pinned the floor, not the sentinel (panel
+    // R11: grok Major). `admin` clears the floor, which makes "*" the only
+    // variable under test.
     const res = await getOverview(
       request("https://arkon.test/api/dashboard/overview", {
-        cookies: { mc_auth: "viewer-star-session" },
+        cookies: { mc_auth: "admin-star-session" },
       })
     );
 
     expect(res.status).toBe(401);
+    // Positive control: the lookup really ran for THIS fixture, so a renamed or
+    // deleted row cannot pass as "unrecognized token" (panel R2 shape).
+    expect(
+      mockQuery.mock.calls.some(
+        ([sql, params]) =>
+          String(sql).includes("JOIN user_sessions") &&
+          (params as unknown[] | undefined)?.[0] === hash("admin-star-session")
+      )
+    ).toBe(true);
+    // And no aggregate ran — 401 before SQL, not an unscoped query whose rows
+    // were discarded late.
+    for (const [, fragment] of SCOPED_AGGREGATES) {
+      expect(
+        mockQuery.mock.calls.some(([sql]) => String(sql).includes(fragment)),
+        `${fragment} must not run`
+      ).toBe(false);
+    }
   });
 
   /* The escalation the panel converged on (grok CRITICAL / opus Major, R4):
@@ -302,7 +344,7 @@ describe("dashboard overview tenant scoping", () => {
       // roster-only assertion while leaking the high-value payload.
       for (const [label, fragment, predicate] of SCOPED_AGGREGATES) {
         const call = callFor(fragment);
-        expect(String(call[0]), label).toContain(predicate);
+        expectTenantPredicate(String(call[0]), predicate, label);
         expect(call[1], label).toEqual(["tenant-a"]);
       }
     });
@@ -433,15 +475,26 @@ describe("dashboard overview/recent tenant scoping", () => {
 
 const KEY_PATH = "/home/brynn/.ssh/id_ed25519";
 
-/** An agent row shaped like /api/agents/register writes it. */
+/**
+ * An agent row shaped like /api/agents/register writes it, plus two keys no
+ * writer produces today: a hypothetical future secret beside `ssh`, and one at
+ * the top level. A denylist that only knew about `ssh` would leak both — they
+ * are here so the ALLOWLIST is what the test proves (panel R11: grok Major).
+ */
 const AGENT_METADATA = {
   connectivity: {
     framework: "openclaw",
     host: "100.90.212.53",
     port: 18789,
     ssh: { host: "100.90.212.53", user: "brynn", keyPath: KEY_PATH },
+    password: "hunter2-connectivity",
   },
+  credentials: { apiToken: "tok-should-never-ship" },
   tags: ["prod"],
+  model: "claude-opus-4-8",
+  provider: "anthropic",
+  instance: "eu-open",
+  role: "primary",
 };
 
 /** beforeEach's mock returns no agent rows; the projection needs one to project. */
@@ -479,14 +532,18 @@ describe("dashboard overview metadata projection", () => {
 
     expect(res.status).toBe(200);
     expect(body.agents).toHaveLength(1);
-    expect(body.agents[0].metadata.connectivity).not.toHaveProperty("ssh");
-    // The rule is about the SECRET, not about one key name: assert the key path
-    // is absent from the whole serialized response, so relocating it inside
-    // metadata cannot pass this test.
-    expect(JSON.stringify(body)).not.toContain(KEY_PATH);
+    expect(body.agents[0].metadata).not.toHaveProperty("connectivity");
+    // The rule is about the SECRETS, not about the key names we happened to
+    // think of: assert each one is absent from the WHOLE serialized response, so
+    // relocating any of them inside metadata cannot pass this test. `password`
+    // and `credentials` are exactly the keys a one-key `delete ssh` would leak.
+    const serialized = JSON.stringify(body);
+    for (const secret of [KEY_PATH, "hunter2-connectivity", "tok-should-never-ship"]) {
+      expect(serialized, `leaked ${secret}`).not.toContain(secret);
+    }
   });
 
-  it("projects rather than blanks — the tenant keeps the connectivity it needs", async () => {
+  it("passes through the four keys the dashboard actually renders", async () => {
     withAgentRow();
 
     const res = await getOverview(
@@ -497,13 +554,14 @@ describe("dashboard overview metadata projection", () => {
     const body = await res.json();
 
     // Without this, returning `metadata: {}` would pass the test above while
-    // silently gutting the dashboard.
-    expect(body.agents[0].metadata.connectivity).toMatchObject({
-      framework: "openclaw",
-      host: "100.90.212.53",
-      port: 18789,
+    // silently gutting the dashboard. These four are what the UI reads and all
+    // that OverviewAgent.metadata (a flat scalar map) can represent.
+    expect(body.agents[0].metadata).toEqual({
+      model: "claude-opus-4-8",
+      provider: "anthropic",
+      instance: "eu-open",
+      role: "primary",
     });
-    expect(body.agents[0].metadata.tags).toEqual(["prod"]);
     expect(body.agents[0].name).toBe("lumina");
   });
 
@@ -535,6 +593,7 @@ describe("dashboard overview metadata projection", () => {
     // credential type, so a newly-admitted principal does not inherit the
     // operator's payload just by resolving to "*".
     expect(res.status).toBe(200);
-    expect(body.agents[0].metadata.connectivity).not.toHaveProperty("ssh");
+    expect(body.agents[0].metadata).not.toHaveProperty("connectivity");
+    expect(JSON.stringify(body)).not.toContain(KEY_PATH);
   });
 });

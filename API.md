@@ -130,13 +130,20 @@ even for a user whose role is `owner`. The fleet-wide view is reachable only by
 the fleet admin token, or by an `owner` user with no tenant binding at all.
 `?tenant_id=` narrows the fleet admin token's view; it can never widen anyone's.
 
-The row is also **projected** by principal, not only filtered: every caller
-except the fleet admin token gets `agents[].metadata.connectivity` with the
-`ssh` block (`{host, user, keyPath}`) removed. That block is the emergency-control
-path to the agent's host and defaults to the fleet operator's own login, and this
-surface was admin-token-only before WI-1846 — so the role floor decides who
-reaches it and this decides what they get. The rest of `connectivity`
-(`framework`, `host`, `port`, `tls`) is unchanged.
+The row is also **projected** by principal, not only filtered. Every caller
+except the fleet admin token gets `agents[].metadata` reduced to an allowlist —
+`model`, `provider`, `instance`, `role` — and every other key dropped, including
+the whole `connectivity` block. `connectivity.ssh` (`{host, user, keyPath}`) is
+the emergency-control path to the agent's host and defaults to the fleet
+operator's own login; this surface was admin-token-only before WI-1846, so the
+role floor decides who reaches it and the allowlist decides what they get.
+An allowlist rather than a redaction list: a key added to `metadata` later has
+to be admitted deliberately instead of shipping to every tenant admin by
+default. The four allowed keys are what the dashboard renders, and match
+`OverviewAgent.metadata`, which is typed as a flat scalar map.
+
+The fleet admin token still receives `metadata` verbatim — it is the only
+principal that could reach this endpoint before WI-1846.
 
 `GET /api/dashboard/overview/recent` carries the same auth and scoping; its
 events are scoped through the `agents` join, since `events` has no `tenant_id`.

@@ -4,24 +4,40 @@ import { unauthorized } from "@/app/api/tools/_utils";
 import { resolveTenantAccess, dashboardTenantScope } from "@/lib/tenant-access";
 
 /**
- * Strip `metadata.connectivity.ssh` — {host, user, keyPath}, the emergency-control
- * coordinates for the agent's HOST, whose user defaults to the fleet operator's
- * own login (`sshUser || "brynn"`, /api/agents/register). An owner may register
- * agents into any tenant, so that block can describe fleet infrastructure.
+ * The keys of `agents.metadata` a non-fleet principal may see. This is an
+ * ALLOWLIST: an unrecognized key is dropped, so a field added to metadata later
+ * has to be admitted deliberately rather than inherit a tenant-wide audience.
  *
- * The role floor in dashboardTenantScope decides WHO reaches this surface; this
- * decides WHAT they get. Without it, WI-1846 widened the audience from one
- * principal to every tenant-bound admin while leaving the payload untouched
- * (panel R9: opus Major). Nothing in the UI reads it — the dashboard reads
- * metadata.{model,provider,instance,role}.
+ * It is exactly what the dashboard reads (`dashboard.tsx`,
+ * `agent-drawer-detail.tsx`), and it matches the client's own declared contract
+ * — `OverviewAgent.metadata` is typed `Record<string, string|number|boolean|null>`,
+ * a flat scalar map that cannot represent the nested `connectivity` object at all.
  */
-function withoutSshBlock(metadata: unknown): unknown {
-  if (!metadata || typeof metadata !== "object") return metadata;
-  const { connectivity, ...rest } = metadata as Record<string, unknown>;
-  if (!connectivity || typeof connectivity !== "object") return metadata;
-  const safeConnectivity = { ...(connectivity as Record<string, unknown>) };
-  delete safeConnectivity.ssh;
-  return { ...rest, connectivity: safeConnectivity };
+const TENANT_VISIBLE_METADATA = ["model", "provider", "instance", "role"] as const;
+
+/**
+ * Project `agents.metadata` for principals WI-1846 newly admitted.
+ *
+ * This surface was fleet-admin-token-only before the WI, and the row it returns
+ * carries `metadata.connectivity.ssh` — {host, user, keyPath}, the
+ * emergency-control path to the agent's host, whose user defaults to the fleet
+ * operator's own login (`sshUser || "brynn"`, /api/agents/register). An owner may
+ * register agents into any tenant, so that block can describe fleet
+ * infrastructure. The role floor in dashboardTenantScope decides WHO reaches this
+ * surface; this decides WHAT they get (panel R9: opus Major).
+ *
+ * Allowlist rather than deleting `ssh`: a denylist only closes the keys we
+ * thought of, and the audience is now every tenant-bound admin (panel R11: grok
+ * Major, opus concurring).
+ */
+function projectAgentMetadata(metadata: unknown): Record<string, unknown> | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return null;
+  const src = metadata as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const key of TENANT_VISIBLE_METADATA) {
+    if (key in src) out[key] = src[key];
+  }
+  return out;
 }
 
 export async function GET(req: NextRequest) {
@@ -92,7 +108,7 @@ export async function GET(req: NextRequest) {
       {
         agents: fleetView
           ? agents.rows
-          : agents.rows.map((a) => ({ ...a, metadata: withoutSshBlock(a.metadata) })),
+          : agents.rows.map((a) => ({ ...a, metadata: projectAgentMetadata(a.metadata) })),
         todayStats: todayStats.rows,
         tenants: tenants.rows,
         timestamp: new Date().toISOString(),
