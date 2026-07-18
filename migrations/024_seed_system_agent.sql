@@ -16,13 +16,16 @@
 -- decision — tracked in the WI-1848 handback, deliberately NOT seeded here.
 -- Panel hardening: the insert uses ONLY columns present in every known agents
 -- shape (prod + 000) — the tenant guard selects the environment, the column
--- list no longer assumes it. The token_hash placeholder is deliberately
--- non-hash-shaped: no computed credential hash can ever equal it.
+-- list no longer assumes it. The token_hash placeholder is random AND
+-- non-hash-shaped ('seed:' prefix): unknowable, and no computed sha256 can
+-- ever equal it. (Auth compares sha256(presented) to this column — verified
+-- request-auth.ts:82 — so a repo-known literal was already unreachable; this
+-- removes even that debate.)
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM tenants WHERE id = 'default') THEN
     INSERT INTO agents (id, name, token_hash, role, tenant_id)
-    VALUES ('system', 'System', 'seed-placeholder-not-a-credential', 'system', 'default')
+    VALUES ('system', 'System', 'seed:' || md5(random()::text || clock_timestamp()::text), 'system', 'default')
     ON CONFLICT (id) DO NOTHING;
   END IF;
 END $$;
