@@ -44,10 +44,15 @@ function sessionRowsFor(tokenHash: unknown) {
   if (tokenHash === hash("viewer-a-session")) {
     return [{ id: 1, email: "a@example.com", role: "viewer", tenant_id: "tenant-a" }];
   }
-  // An owner-role user whose own tenant_id is the "*" sentinel — the value
-  // domain resolveTenantAccess uses for "fleet wide".
+  // A viewer whose own tenant_id is the "*" sentinel — the value domain
+  // resolveTenantAccess uses for "fleet wide".
   if (tokenHash === hash("viewer-star-session")) {
     return [{ id: 2, email: "star@example.com", role: "viewer", tenant_id: "*" }];
+  }
+  // role "owner" with a REAL tenant id. resolveTenantAccess keys the wildcard on
+  // ROLE, not on credential type, so this row decides the scoped/unscoped branch.
+  if (tokenHash === hash("owner-role-session")) {
+    return [{ id: 3, email: "own@example.com", role: "owner", tenant_id: "tenant-a" }];
   }
   return [];
 }
@@ -94,8 +99,8 @@ describe("dashboard overview tenant scoping", () => {
     // Fragment must be unique to the aggregate AND the predicate asserted —
     // params alone would not catch a dropped WHERE against a mocked driver.
     for (const [label, fragment, predicate] of [
-      ["agents", "FROM agents a", "WHERE a.tenant_id = $1"],
-      ["today stats", "WHERE day = CURRENT_DATE", "AND tenant_id = $1"],
+      ["agents", "SELECT a.id, a.name, a.metadata", "WHERE a.tenant_id = $1"],
+      ["today stats", "WHERE day = CURRENT_DATE", "AND a.tenant_id = $1)"],
       ["tenants", "FROM tenants", "WHERE id = $1"],
     ] as const) {
       const call = callFor(fragment);
@@ -152,6 +157,25 @@ describe("dashboard overview tenant scoping", () => {
     expect(res.status).toBe(401);
   });
 
+  it("pins a role:'owner' user session to its own tenant when logged in normally", async () => {
+    // allowOwnerWildcard keys off credential.role, not credential.type, so this
+    // is the branch that decides scoped vs unscoped for user sessions. /api/auth/
+    // login always sets mc_tenant to the user's own tenant_id, and that hint wins
+    // over the wildcard — so the real browser flow for a tenant-bound owner stays
+    // scoped. Only an owner with NO tenant_id (mc_tenant="*") goes fleet-wide,
+    // and only an existing owner can mint an owner (api/auth/register:14).
+    const res = await getOverview(
+      request("https://arkon.test/api/dashboard/overview", {
+        cookies: { mc_auth: "owner-role-session", mc_tenant: "tenant-a" },
+      })
+    );
+
+    expect(res.status).toBe(200);
+    const call = callFor("FROM tenants");
+    expect(String(call[0])).toContain("WHERE id = $1");
+    expect(call[1]).toEqual(["tenant-a"]);
+  });
+
   it("rejects an agent token even though it resolves to a real tenant", async () => {
     // Agent tokens sit in plaintext .env on fleet hosts; a leaked one must not
     // buy its tenant's whole roster + 30d cost. They 401'd here before WI-1846
@@ -184,7 +208,7 @@ describe("dashboard overview tenant scoping", () => {
       })
     );
 
-    const call = callFor("FROM agents a");
+    const call = callFor("SELECT a.id, a.name, a.metadata");
     expect(String(call[0])).toContain("WHERE a.tenant_id = $1");
     expect(call[1]).toEqual(["tenant-a"]);
   });
