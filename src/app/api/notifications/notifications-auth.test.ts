@@ -48,7 +48,9 @@ describe("notification preferences auth", () => {
   it("rejects unauthenticated preference reads", async () => {
     const res = await GET(request("/api/notifications/preferences"));
 
-    expect(res.status).toBe(403);
+    // WI-1849: no credential is 401 (unauthenticated), not 403 (unauthorized) —
+    // matches the E2E contract in tests/api/notifications.api.spec.ts.
+    expect(res.status).toBe(401);
   });
 
   it("uses the authenticated tenant and redacts stored secrets on read", async () => {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getClientIp, logAudit } from "@/lib/audit";
 import { resolveTenantAccess } from "@/lib/tenant-access";
+import { resolveRequestCredential } from "@/lib/request-auth";
 
 const SECRET_KEYS = new Set([
   "bot_token",
@@ -25,9 +26,14 @@ function redactSecrets(config: Record<string, unknown>): Record<string, unknown>
  * GET /api/notifications/preferences — get all notification channel preferences
  */
 export async function GET(req: NextRequest) {
+  // WI-1849: 401 for no credential, 403 for insufficient role. Owner tokens
+  // carry the wildcard tenant — notification prefs live under the platform
+  // 'default' tenant for them (matching /api/notifications).
+  const credential = await resolveRequestCredential(req);
+  if (!credential) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const access = await resolveTenantAccess(req, { minimumRole: "admin" });
-  if (!access) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  const tenantId = access.tenantId;
+  const tenantId = access?.tenantId ?? (credential.role === "owner" ? "default" : null);
+  if (!tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const result = await query(
     `SELECT channel, enabled, config FROM notification_preferences WHERE tenant_id = $1 ORDER BY channel`,
@@ -48,15 +54,18 @@ export async function GET(req: NextRequest) {
  * Body: { channel: string, enabled: boolean, config: object }
  */
 export async function PUT(req: NextRequest) {
+  // WI-1849: same 401/403 split + owner-wildcard fallback as GET above.
+  const credential = await resolveRequestCredential(req);
+  if (!credential) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const access = await resolveTenantAccess(req, { minimumRole: "admin" });
-  if (!access) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const tenantId = access?.tenantId ?? (credential.role === "owner" ? "default" : null);
+  if (!tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = (await req.json()) as {
     channel: string;
     enabled: boolean;
     config: Record<string, unknown>;
   };
-  const tenantId = access.tenantId;
 
   if (!body.channel) {
     return NextResponse.json({ error: "channel is required" }, { status: 400 });
@@ -76,8 +85,8 @@ export async function PUT(req: NextRequest) {
   );
 
   logAudit({
-    actorType: access.credential.type === "agent_token" ? "agent" : "user",
-    actorId: access.credential.user_id?.toString() ?? access.credential.agent_id ?? access.credential.type,
+    actorType: credential.type === "agent_token" ? "agent" : "user",
+    actorId: credential.user_id?.toString() ?? credential.agent_id ?? credential.type,
     action: "notification_preferences.updated",
     targetType: "notification_preferences",
     targetId: `${tenantId}:${body.channel}`,

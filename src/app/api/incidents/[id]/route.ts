@@ -20,6 +20,10 @@ export async function GET(
 
   try {
     const { id } = await params;
+    // WI-1849: incidents.id is integer — non-numeric ids must 404, not cast-error.
+    if (!/^\d+$/.test(id)) {
+      return NextResponse.json({ error: "Incident not found" }, { status: 404 });
+    }
 
     const result = await query(`SELECT * FROM incidents WHERE id = $1`, [id]);
     if (result.rowCount === 0) {
@@ -59,6 +63,10 @@ export async function PATCH(
 
   try {
     const { id } = await params;
+    // WI-1849: incidents.id is integer — non-numeric ids must 404, not cast-error.
+    if (!/^\d+$/.test(id)) {
+      return NextResponse.json({ error: "Incident not found" }, { status: 404 });
+    }
     const body = (await req.json()) as {
       status?: string;
       severity?: string;

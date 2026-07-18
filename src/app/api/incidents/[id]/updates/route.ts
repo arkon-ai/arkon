@@ -10,6 +10,10 @@ export async function POST(
 
   try {
     const { id } = await params;
+    // WI-1849: incidents.id is integer — non-numeric ids must 404, not cast-error.
+    if (!/^\d+$/.test(id)) {
+      return NextResponse.json({ error: "Incident not found" }, { status: 404 });
+    }
     const body = (await req.json()) as {
       content?: string;
       update_type?: string;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getClientIp, logAudit } from "@/lib/audit";
 import { resolveTenantAccess } from "@/lib/tenant-access";
+import { resolveRequestCredential } from "@/lib/request-auth";
 
 /**
  * POST /api/notifications/test — send a test notification to a specific channel
@@ -9,11 +10,14 @@ import { resolveTenantAccess } from "@/lib/tenant-access";
  * Tests the channel configuration by sending a test message.
  */
 export async function POST(req: NextRequest) {
+  // WI-1849: 401/403 split + owner-wildcard 'default' fallback (see preferences).
+  const credential = await resolveRequestCredential(req);
+  if (!credential) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const access = await resolveTenantAccess(req, { minimumRole: "admin" });
-  if (!access) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const tenantId = access?.tenantId ?? (credential.role === "owner" ? "default" : null);
+  if (!tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = (await req.json()) as { channel: string };
-  const tenantId = access.tenantId;
 
   if (!body.channel) {
     return NextResponse.json({ error: "channel is required" }, { status: 400 });
@@ -129,8 +133,8 @@ export async function POST(req: NextRequest) {
     }
 
     logAudit({
-      actorType: access.credential.type === "agent_token" ? "agent" : "user",
-      actorId: access.credential.user_id?.toString() ?? access.credential.agent_id ?? access.credential.type,
+      actorType: credential.type === "agent_token" ? "agent" : "user",
+      actorId: credential.user_id?.toString() ?? credential.agent_id ?? credential.type,
       action: "notification_preferences.test_sent",
       targetType: "notification_preferences",
       targetId: `${tenantId}:${body.channel}`,

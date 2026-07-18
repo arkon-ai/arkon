@@ -162,6 +162,12 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "id and action required" }, { status: 400 });
   }
 
+  // WI-1849: acting on a missing agent previously "succeeded" (0-row UPDATEs).
+  const exists = await query("SELECT 1 FROM agents WHERE id = $1", [id]);
+  if (exists.rowCount === 0) {
+    return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+  }
+
   const user = await resolveUser(req);
   const actorId = user?.email ?? "owner";
 
