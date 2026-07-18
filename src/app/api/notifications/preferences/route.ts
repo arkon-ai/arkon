@@ -7,6 +7,7 @@ import { resolveRequestCredential, csrfValidForCookieAuth } from "@/lib/request-
 const SECRET_KEYS = new Set([
   "bot_token",
   "webhook_url",
+  "url",
   "secret_value",
   "api_key",
   "token",

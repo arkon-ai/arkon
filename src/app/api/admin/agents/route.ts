@@ -102,6 +102,11 @@ export async function POST(req: NextRequest) {
   const role = await validateRole(req, "owner");
   if (!role) return unauthorized();
   if (role !== "owner") return forbidden("Owner only");
+  // WI-1849 (CR #89): same double-submit gate as PATCH — this path mints a
+  // credential; the provisioning branch above is token-in-body (no cookie auth).
+  if (!csrfValidForCookieAuth(req)) {
+    return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
+  }
 
   const { id, name, agentRole = "agent", tenant_id = "transformate" } = body;
   if (!id || !name) {
