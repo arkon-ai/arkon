@@ -56,6 +56,13 @@ export async function POST(req: NextRequest) {
         );
         results.daily_stats = statsCount.rows[0]?.c ?? 0;
 
+        // WI-1848: tool_calls.agent_id FK has no cascade (prod parity) — must
+        // be purged before agents or the delete below FK-faults.
+        const toolCallCount = await query(
+          `SELECT COUNT(*)::int as c FROM tool_calls WHERE agent_id IN (${placeholders})`, ids
+        );
+        results.tool_calls = toolCallCount.rows[0]?.c ?? 0;
+
         const benchCount = await query(
           `SELECT COUNT(*)::int as c FROM benchmark_runs WHERE tenant_id = $1`, [body.scope_id]
         );
@@ -89,6 +96,7 @@ export async function POST(req: NextRequest) {
             await client.query(`DELETE FROM events WHERE agent_id IN (${placeholders})`, ids);
             await client.query(`DELETE FROM sessions WHERE agent_id IN (${placeholders})`, ids);
             await client.query(`DELETE FROM daily_stats WHERE agent_id IN (${placeholders})`, ids);
+            await client.query(`DELETE FROM tool_calls WHERE agent_id IN (${placeholders})`, ids);
             await client.query(`DELETE FROM benchmark_runs WHERE tenant_id = $1`, [body.scope_id]);
             await client.query(`DELETE FROM audit_log WHERE tenant_id = $1`, [body.scope_id]);
             await client.query(`DELETE FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]);
@@ -144,6 +152,12 @@ export async function POST(req: NextRequest) {
       );
       results.benchmark_runs = benchCount.rows[0]?.c ?? 0;
 
+      // WI-1848: no cascade on tool_calls.agent_id (prod parity) — purge explicitly.
+      const toolCallCount = await query(
+        `SELECT COUNT(*)::int as c FROM tool_calls WHERE agent_id = $1`, [body.scope_id]
+      );
+      results.tool_calls = toolCallCount.rows[0]?.c ?? 0;
+
       if (!dryRun) {
         // Single transaction — atomic purge + consistent audit (WI-1352 finding #8).
         const client = await pool.connect();
@@ -153,6 +167,7 @@ export async function POST(req: NextRequest) {
           await client.query(`DELETE FROM sessions WHERE agent_id = $1`, [body.scope_id]);
           await client.query(`DELETE FROM daily_stats WHERE agent_id = $1`, [body.scope_id]);
           await client.query(`DELETE FROM benchmark_runs WHERE agent_id = $1`, [body.scope_id]);
+          await client.query(`DELETE FROM tool_calls WHERE agent_id = $1`, [body.scope_id]);
           await client.query(`DELETE FROM agents WHERE id = $1`, [body.scope_id]);
           await client.query(
             `INSERT INTO audit_log (actor, action, resource_type, resource_id, detail, tenant_id)

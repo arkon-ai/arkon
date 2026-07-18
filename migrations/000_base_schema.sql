@@ -202,7 +202,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE TABLE IF NOT EXISTS tool_calls (
   id BIGSERIAL PRIMARY KEY,
   event_id BIGINT,
-  agent_id TEXT NOT NULL REFERENCES agents(id),
+  agent_id TEXT NOT NULL REFERENCES agents(id),  -- deliberately NO cascade: prod parity; purge routes delete tool_calls explicitly
   tool_name TEXT NOT NULL,
   arguments_summary TEXT,
   result_summary TEXT,
