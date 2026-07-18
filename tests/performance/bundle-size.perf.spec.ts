@@ -1,5 +1,27 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+
+/** WI-1851: networkidle never settles on streaming pages (dashboard SSE holds
+ * its connection open) — every budget test used to hit the 45s timeout without
+ * measuring anything. Quiet-period settle instead: window load, then resolve
+ * once no new response has landed for `quietMs` (hard cap `capMs`), so late
+ * chunks are counted but a poller can never hang the test. */
+async function settleResponses(page: Page, quietMs = 1000, capMs = 10000) {
+  await page.waitForLoadState("load");
+  let last = Date.now();
+  const onResp = () => { last = Date.now(); };
+  page.on("response", onResp);
+  const start = Date.now();
+  try {
+    while (Date.now() - start < capMs) {
+      if (Date.now() - last >= quietMs) break;
+      await page.waitForTimeout(200);
+    }
+  } finally {
+    page.off("response", onResp);
+  }
+}
+
 
 /* ══════════════════════════════════════════════════════════════
    Phase 5: Performance — Bundle Size & Resource Loading
@@ -36,12 +58,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
       }
     });
 
-    await page.goto(`${MC_URL}/`);
-    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
-    // connection open) — every budget test timed out at 45s without measuring.
-    // Bounded settle: window load + a fixed tail for late-loaded chunks.
-    await page.waitForLoadState("load");
-    await page.waitForTimeout(3000);
+    const nav = await page.goto(`${MC_URL}/`);
+    expect(nav?.status(), "dashboard must respond 200").toBe(200);
+    // WI-1851 (panel): an error page must never benchmark green; settle is
+    // quiet-period bounded (see settleResponses above).
+    await settleResponses(page);
 
     const totalJs = jsRequests.reduce((sum, r) => sum + r.size, 0);
     expect(
@@ -65,12 +86,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
       }
     });
 
-    await page.goto(`${MC_URL}/`);
-    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
-    // connection open) — every budget test timed out at 45s without measuring.
-    // Bounded settle: window load + a fixed tail for late-loaded chunks.
-    await page.waitForLoadState("load");
-    await page.waitForTimeout(3000);
+    const nav = await page.goto(`${MC_URL}/`);
+    expect(nav?.status(), "dashboard must respond 200").toBe(200);
+    // WI-1851 (panel): an error page must never benchmark green; settle is
+    // quiet-period bounded (see settleResponses above).
+    await settleResponses(page);
 
     expect(
       oversized,
@@ -91,12 +111,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
       }
     });
 
-    await page.goto(`${MC_URL}/`);
-    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
-    // connection open) — every budget test timed out at 45s without measuring.
-    // Bounded settle: window load + a fixed tail for late-loaded chunks.
-    await page.waitForLoadState("load");
-    await page.waitForTimeout(3000);
+    const nav = await page.goto(`${MC_URL}/`);
+    expect(nav?.status(), "dashboard must respond 200").toBe(200);
+    // WI-1851 (panel): an error page must never benchmark green; settle is
+    // quiet-period bounded (see settleResponses above).
+    await settleResponses(page);
 
     const totalCss = cssRequests.reduce((sum, r) => sum + r.size, 0);
     expect(
@@ -121,12 +140,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
       }
     });
 
-    await page.goto(`${MC_URL}/`);
-    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
-    // connection open) — every budget test timed out at 45s without measuring.
-    // Bounded settle: window load + a fixed tail for late-loaded chunks.
-    await page.waitForLoadState("load");
-    await page.waitForTimeout(3000);
+    const nav = await page.goto(`${MC_URL}/`);
+    expect(nav?.status(), "dashboard must respond 200").toBe(200);
+    // WI-1851 (panel): an error page must never benchmark green; settle is
+    // quiet-period bounded (see settleResponses above).
+    await settleResponses(page);
 
     expect(
       oversized,
@@ -146,12 +164,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
       }
     });
 
-    await page.goto(`${MC_URL}/`);
-    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
-    // connection open) — every budget test timed out at 45s without measuring.
-    // Bounded settle: window load + a fixed tail for late-loaded chunks.
-    await page.waitForLoadState("load");
-    await page.waitForTimeout(3000);
+    const nav = await page.goto(`${MC_URL}/`);
+    expect(nav?.status(), "dashboard must respond 200").toBe(200);
+    // WI-1851 (panel): an error page must never benchmark green; settle is
+    // quiet-period bounded (see settleResponses above).
+    await settleResponses(page);
 
     expect(
       totalBytes,
@@ -172,12 +189,11 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
       }
     });
 
-    await page.goto(`${MC_URL}/`);
-    // WI-1851: networkidle never settles on the dashboard (SSE stream holds the
-    // connection open) — every budget test timed out at 45s without measuring.
-    // Bounded settle: window load + a fixed tail for late-loaded chunks.
-    await page.waitForLoadState("load");
-    await page.waitForTimeout(3000);
+    const nav = await page.goto(`${MC_URL}/`);
+    expect(nav?.status(), "dashboard must respond 200").toBe(200);
+    // WI-1851 (panel): an error page must never benchmark green; settle is
+    // quiet-period bounded (see settleResponses above).
+    await settleResponses(page);
 
     // Allow some uncompressed (e.g., tiny inline), but flag if many
     expect(
@@ -203,7 +219,8 @@ test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
       }
     });
 
-    await page.goto(`${MC_URL}/`);
+    const nav = await page.goto(`${MC_URL}/`);
+    expect(nav?.status(), "dashboard must respond 200").toBe(200);
     await page.waitForLoadState("domcontentloaded");
 
     // Should not have excessive third-party JS
