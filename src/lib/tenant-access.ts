@@ -16,18 +16,25 @@ export interface TenantAccess {
 
 /**
  * Credential types allowed on the operator dashboard aggregates
- * (/api/dashboard/*). An ALLOWLIST, not an agent_token denylist: a credential
- * type added to RequestCredentialType later must have to opt in here rather
- * than inherit read access to a tenant's whole roster (WI-1846, panel R2).
+ * (/api/dashboard/*). An ALLOWLIST, not a denylist: a credential type added to
+ * RequestCredentialType later must have to opt in here rather than inherit read
+ * access to a tenant's whole roster (WI-1846, panel R2).
  *
- * agent_token is the one deliberate exclusion — those live in plaintext .env on
- * fleet hosts and are scoped to ingest. owner_token IS included; it is the fleet
- * admin token that was this surface's only caller before WI-1846.
+ * Ingest-grade principals are excluded. agent_token is the obvious one — those
+ * live in plaintext .env on fleet hosts. api_key is the non-obvious one, and it
+ * was on this list until panel R6: `resolveRequestCredential` mints EVERY api_key
+ * with `role: "agent"` (request-auth.ts), so an API key is the same grade of
+ * principal as an agent token, and admitting it would have handed a tenant's
+ * ingest key the whole agent roster + metadata + threats_30d + cost_30d. This
+ * surface was admin-token-only before WI-1846, so excluding it is a restoration,
+ * not a new restriction. Re-admitting api_key needs a non-agent role first.
+ *
+ * owner_token IS included; it is the fleet admin token that was this surface's
+ * only caller before WI-1846.
  */
 export const DASHBOARD_CREDENTIALS: ReadonlySet<RequestCredential["type"]> = new Set([
   "user_session",
   "owner_token",
-  "api_key",
 ]);
 
 /**
@@ -50,20 +57,20 @@ export const DASHBOARD_CREDENTIALS: ReadonlySet<RequestCredential["type"]> = new
 export function dashboardTenantScope(access: TenantAccess): string | null {
   if (!DASHBOARD_CREDENTIALS.has(access.credential.type)) return null;
 
+  // Bind BEFORE role: a credential with a real tenant_id is pinned to it no
+  // matter its role. Reordering these two blocks reintroduces the R4 CRITICAL.
+  // Only null/undefined/"*" count as unbound — "" is a garbage row, not a
+  // licence to widen (panel R6), so it falls to the reject at the bottom.
   const bound = access.credential.tenant_id;
   if (bound && bound !== "*") return bound;
+  if (bound !== null && bound !== undefined && bound !== "*") return null;
 
   // Unbound. The fleet admin token narrows via ?tenant_id= (access.tenantId);
   // an unbound owner-role USER has no boundary to cross. Anything else has no
   // scope we can prove, so reject — an absent binding must never DEFAULT to the
   // widest one (WI-1846, panel R5: all three lanes).
-  //
-  // The type check on the second branch is not redundant with the role check: an
-  // api_key row is also on this allowlist, and a null-tenant one carrying
-  // role "owner" is exactly the misconfiguration that must not buy the fleet.
   if (access.credential.type === "owner_token") return access.tenantId;
-  if (access.credential.type === "user_session" && access.credential.role === "owner") return "*";
-  return null;
+  return access.credential.role === "owner" ? "*" : null;
 }
 
 export function roleAtLeast(role: RequestCredential["role"], required: RequestCredential["role"]): boolean {

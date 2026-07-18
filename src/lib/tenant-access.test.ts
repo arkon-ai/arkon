@@ -101,19 +101,43 @@ describe("dashboardTenantScope", () => {
     ).toBe("tenant-a");
   });
 
+  it("pins a BOUND OWNER too, whatever the hint resolved to", () => {
+    // This is the R4 CRITICAL itself, at the unit layer. The pin test above uses
+    // the default role "viewer", which shares the bind branch — so a refactor
+    // that hoisted the owner/fleet branch ABOVE the bind branch would reopen the
+    // escalation with that test still green (panel R6: grok).
+    expect(
+      dashboardTenantScope(access({ role: "owner", tenant_id: "tenant-a" }, "*"))
+    ).toBe("tenant-a");
+    expect(
+      dashboardTenantScope(access({ role: "owner", tenant_id: "tenant-a" }, "tenant-b"))
+    ).toBe("tenant-a");
+  });
+
   it("rejects an unbound non-owner rather than defaulting to the fleet", () => {
     // The whole point: an ABSENT binding must never become the WIDEST one.
     expect(dashboardTenantScope(access({ tenant_id: null }))).toBeNull();
     expect(dashboardTenantScope(access({ tenant_id: "*" }))).toBeNull();
+  });
+
+  it("rejects an empty-string tenant_id instead of reading it as unbound", () => {
+    // "" is a garbage row (bad write, partial migration), not a declaration that
+    // the principal has no tenant. Truthiness alone would drop an owner session
+    // carrying it onto the fleet branch (panel R6: grok).
+    expect(dashboardTenantScope(access({ role: "owner", tenant_id: "" }))).toBeNull();
+    expect(dashboardTenantScope(access({ tenant_id: "" }))).toBeNull();
+  });
+
+  it("rejects an api_key: every api_key is minted role 'agent', so it is ingest-grade", () => {
+    // Not on DASHBOARD_CREDENTIALS as of panel R6 — request-auth mints EVERY
+    // api_key with role "agent". Bound or unbound, owner-claiming or not, this
+    // surface is closed to it; the allowlist is what closes it.
+    expect(
+      dashboardTenantScope(access({ type: "api_key", role: "agent", tenant_id: "tenant-a" }))
+    ).toBeNull();
     expect(
       dashboardTenantScope(access({ type: "api_key", role: "agent", tenant_id: null }))
     ).toBeNull();
-  });
-
-  it("rejects an unbound api_key even when its row claims role owner", async () => {
-    // api_key is on the allowlist, so "role owner" alone must not buy the fleet —
-    // the fleet-wide branch is for a USER session with no tenant boundary to
-    // cross, not for a null-tenant key row (WI-1846, panel R5: composer).
     expect(
       dashboardTenantScope(access({ type: "api_key", role: "owner", tenant_id: null }))
     ).toBeNull();
