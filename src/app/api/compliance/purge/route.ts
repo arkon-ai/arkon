@@ -113,14 +113,17 @@ export async function POST(req: NextRequest) {
         const client = await pool.connect();
         try {
           await client.query("BEGIN");
-          // Delete in dependency order (agent-keyed tables only when the
-          // tenant still has agents — empty IN () is invalid SQL)
-          if (ids.length > 0) {
-            await client.query(`DELETE FROM events WHERE agent_id IN (${placeholders})`, ids);
-            await client.query(`DELETE FROM sessions WHERE agent_id IN (${placeholders})`, ids);
-            await client.query(`DELETE FROM daily_stats WHERE agent_id IN (${placeholders})`, ids);
-            await client.query(`DELETE FROM tool_calls WHERE agent_id IN (${placeholders})`, ids);
-          }
+          // WI-1848 (CR #87): lock the tenant's agent rows first — FK checks
+          // on tool_calls take KEY SHARE, so FOR UPDATE blocks concurrent
+          // inserts referencing these agents until commit (no TOCTOU between
+          // the tool_calls delete and the agents delete). Agent-keyed deletes
+          // re-resolve the set inside the txn instead of trusting the
+          // pre-transaction snapshot.
+          await client.query(`SELECT id FROM agents WHERE tenant_id = $1 FOR UPDATE`, [body.scope_id]);
+          await client.query(`DELETE FROM events WHERE agent_id IN (SELECT id FROM agents WHERE tenant_id = $1)`, [body.scope_id]);
+          await client.query(`DELETE FROM sessions WHERE agent_id IN (SELECT id FROM agents WHERE tenant_id = $1)`, [body.scope_id]);
+          await client.query(`DELETE FROM daily_stats WHERE agent_id IN (SELECT id FROM agents WHERE tenant_id = $1)`, [body.scope_id]);
+          await client.query(`DELETE FROM tool_calls WHERE agent_id IN (SELECT id FROM agents WHERE tenant_id = $1)`, [body.scope_id]);
           await client.query(`DELETE FROM benchmark_runs WHERE tenant_id = $1`, [body.scope_id]);
           await client.query(`DELETE FROM audit_log WHERE tenant_id = $1`, [body.scope_id]);
           await client.query(`DELETE FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]);
@@ -187,6 +190,9 @@ export async function POST(req: NextRequest) {
         const client = await pool.connect();
         try {
           await client.query("BEGIN");
+          // WI-1848 (CR #87): lock the agent row — blocks concurrent tool_calls
+          // FK references until commit (see tenant-scope note above).
+          await client.query(`SELECT id FROM agents WHERE id = $1 FOR UPDATE`, [body.scope_id]);
           await client.query(`DELETE FROM events WHERE agent_id = $1`, [body.scope_id]);
           await client.query(`DELETE FROM sessions WHERE agent_id = $1`, [body.scope_id]);
           await client.query(`DELETE FROM daily_stats WHERE agent_id = $1`, [body.scope_id]);
