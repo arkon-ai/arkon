@@ -94,7 +94,7 @@ export async function POST(
 ) {
   const { serverId } = await params;
   // WI-1849: mcp_servers.id is integer — a non-numeric id must 404, not cast-error.
-  if (!/^\d+$/.test(serverId)) {
+  if (!/^\d+$/.test(serverId) || Number(serverId) > 2147483647) {
     return NextResponse.json({ error: "MCP server not found" }, { status: 404 });
   }
   const start = Date.now();
@@ -210,7 +210,7 @@ export async function GET(
   const { serverId } = await params;
   // WI-1849: same numeric guard as POST — this lookup has no try/catch at all,
   // so a cast error here was an unhandled 500.
-  if (!/^\d+$/.test(serverId)) {
+  if (!/^\d+$/.test(serverId) || Number(serverId) > 2147483647) {
     return NextResponse.json({ error: "MCP server not found" }, { status: 404 });
   }
 

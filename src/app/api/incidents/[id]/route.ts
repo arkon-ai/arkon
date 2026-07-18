@@ -21,7 +21,7 @@ export async function GET(
   try {
     const { id } = await params;
     // WI-1849: incidents.id is integer — non-numeric ids must 404, not cast-error.
-    if (!/^\d+$/.test(id)) {
+    if (!/^\d+$/.test(id) || Number(id) > 2147483647) {
       return NextResponse.json({ error: "Incident not found" }, { status: 404 });
     }
 
@@ -64,7 +64,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     // WI-1849: incidents.id is integer — non-numeric ids must 404, not cast-error.
-    if (!/^\d+$/.test(id)) {
+    if (!/^\d+$/.test(id) || Number(id) > 2147483647) {
       return NextResponse.json({ error: "Incident not found" }, { status: 404 });
     }
     const body = (await req.json()) as {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { unauthorized, validateAdmin, forbidden, validateRole } from "@/app/api/tools/_utils";
+import { csrfValidForCookieAuth } from "@/lib/request-auth";
 
 interface CronJob {
   id: string;
@@ -203,6 +204,11 @@ export async function PATCH(req: NextRequest) {
   if (!role) return unauthorized();
   if (role !== "owner") return forbidden("Owner only");
 
+  // WI-1849: cookie-session mutations need the double-submit CSRF token.
+  if (!csrfValidForCookieAuth(req)) {
+    return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
+  }
+
   const body = await req.json() as { jobId?: string; action?: string };
   const { jobId, action } = body;
   if (!jobId || !action) return NextResponse.json({ error: "jobId and action required" }, { status: 400 });
@@ -213,8 +219,12 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: `Invalid action. Must be one of: ${VALID_ACTIONS.join(", ")}` }, { status: 400 });
   }
 
-  // Get job name for context
+  // WI-1849: acting on a phantom job previously dispatched a gateway
+  // instruction for it anyway — unknown jobId is a 404, same as agents.
   const jobRow = await query("SELECT name, schedule_expr FROM cron_jobs WHERE id = $1", [jobId]);
+  if (jobRow.rows.length === 0) {
+    return NextResponse.json({ error: "Cron job not found" }, { status: 404 });
+  }
   const jobName = jobRow.rows[0]?.name ?? jobId;
 
   const actionText = action === "disable"

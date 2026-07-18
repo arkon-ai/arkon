@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getClientIp, logAudit } from "@/lib/audit";
 import { resolveTenantAccess } from "@/lib/tenant-access";
-import { resolveRequestCredential } from "@/lib/request-auth";
+import { resolveRequestCredential, csrfValidForCookieAuth } from "@/lib/request-auth";
 
 /**
  * POST /api/notifications/test — send a test notification to a specific channel
@@ -13,6 +13,9 @@ export async function POST(req: NextRequest) {
   // WI-1849: 401/403 split + owner-wildcard 'default' fallback (see preferences).
   const credential = await resolveRequestCredential(req);
   if (!credential) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!csrfValidForCookieAuth(req)) {
+    return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
+  }
   const access = await resolveTenantAccess(req, { minimumRole: "admin" });
   const tenantId = access?.tenantId ?? (credential.role === "owner" ? "default" : null);
   if (!tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
