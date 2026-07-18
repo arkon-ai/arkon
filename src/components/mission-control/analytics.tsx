@@ -366,7 +366,10 @@ function TopSendersCard({ data }: { data: TopSender[] }) {
             <div key={`${sender.sender_name}-${sender.channel}-${i}`} className="flex items-center justify-between rounded-xl bg-white/[0.02] px-3 py-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-text">{sender.sender_name}</span>
-                <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold capitalize" style={{ background: `color-mix(in srgb, ${color} 13%, transparent)`, color }}>
+                {/* WI-1850: brand color as 10px TEXT failed AA (telegram 4.04, discord
+                    3.45 vs 4.5:1 — axe receipts on PR #92). Identity stays in the tinted
+                    background; the label reads in a token that passes on these tints. */}
+                <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold capitalize" style={{ background: `color-mix(in srgb, ${color} 13%, transparent)`, color: "var(--text-secondary)" }}>
                   {sender.channel}
                 </span>
               </div>
