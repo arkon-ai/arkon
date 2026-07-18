@@ -3,6 +3,27 @@ import { query } from "@/lib/db";
 import { unauthorized } from "@/app/api/tools/_utils";
 import { resolveTenantAccess, dashboardTenantScope } from "@/lib/tenant-access";
 
+/**
+ * Strip `metadata.connectivity.ssh` — {host, user, keyPath}, the emergency-control
+ * coordinates for the agent's HOST, whose user defaults to the fleet operator's
+ * own login (`sshUser || "brynn"`, /api/agents/register). An owner may register
+ * agents into any tenant, so that block can describe fleet infrastructure.
+ *
+ * The role floor in dashboardTenantScope decides WHO reaches this surface; this
+ * decides WHAT they get. Without it, WI-1846 widened the audience from one
+ * principal to every tenant-bound admin while leaving the payload untouched
+ * (panel R9: opus Major). Nothing in the UI reads it — the dashboard reads
+ * metadata.{model,provider,instance,role}.
+ */
+function withoutSshBlock(metadata: unknown): unknown {
+  if (!metadata || typeof metadata !== "object") return metadata;
+  const { connectivity, ...rest } = metadata as Record<string, unknown>;
+  if (!connectivity || typeof connectivity !== "object") return metadata;
+  const safeConnectivity = { ...(connectivity as Record<string, unknown>) };
+  delete safeConnectivity.ssh;
+  return { ...rest, connectivity: safeConnectivity };
+}
+
 export async function GET(req: NextRequest) {
   // Every aggregate below is scoped to the caller's tenant (WI-1846). The fleet
   // owner keeps the cross-tenant view ("*"); any other credential is pinned to
@@ -10,12 +31,17 @@ export async function GET(req: NextRequest) {
   // mc_tenant cookie cannot widen the scope (see tenant-access.test.ts).
   const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
   const tenantId = access && dashboardTenantScope(access);
-  if (!tenantId) {
+  if (!access || !tenantId) {
     return unauthorized();
   }
 
   const scoped = tenantId !== "*";
   const params = scoped ? [tenantId] : [];
+  // The fleet admin token was this surface's ONLY caller before WI-1846, so it
+  // keeps the payload it always had. Every principal the WI newly admitted —
+  // including an unbound owner SESSION, which could not reach this endpoint at
+  // all before — gets the projected row. Restoration, not a new restriction.
+  const fleetView = access.credential.type === "owner_token";
 
   try {
     // `events` has no tenant_id — it inherits the agent's via e.agent_id = a.id,
@@ -64,7 +90,9 @@ export async function GET(req: NextRequest) {
     // caller that could reach it.
     return NextResponse.json(
       {
-        agents: agents.rows,
+        agents: fleetView
+          ? agents.rows
+          : agents.rows.map((a) => ({ ...a, metadata: withoutSshBlock(a.metadata) })),
         todayStats: todayStats.rows,
         tenants: tenants.rows,
         timestamp: new Date().toISOString(),

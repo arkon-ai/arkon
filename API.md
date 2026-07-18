@@ -130,6 +130,14 @@ even for a user whose role is `owner`. The fleet-wide view is reachable only by
 the fleet admin token, or by an `owner` user with no tenant binding at all.
 `?tenant_id=` narrows the fleet admin token's view; it can never widen anyone's.
 
+The row is also **projected** by principal, not only filtered: every caller
+except the fleet admin token gets `agents[].metadata.connectivity` with the
+`ssh` block (`{host, user, keyPath}`) removed. That block is the emergency-control
+path to the agent's host and defaults to the fleet operator's own login, and this
+surface was admin-token-only before WI-1846 — so the role floor decides who
+reaches it and this decides what they get. The rest of `connectivity`
+(`framework`, `host`, `port`, `tls`) is unchanged.
+
 `GET /api/dashboard/overview/recent` carries the same auth and scoping; its
 events are scoped through the `agents` join, since `events` has no `tenant_id`.
 A database failure there returns `500 {"error": "Internal server error"}` — it

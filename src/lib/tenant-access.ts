@@ -103,6 +103,16 @@ export async function resolveTenantAccess(
   if (!credential) return null;
   if (options.minimumRole && !roleAtLeast(credential.role, options.minimumRole)) return null;
 
+  // "" is a corrupt binding (bad write, partial migration), not a declaration
+  // that the principal has no tenant. Truthiness alone would carry an
+  // owner-role row bearing it PAST the pin below and onto the hint/wildcard
+  // branches — a garbage row read as "intentionally unbound fleet owner".
+  // dashboardTenantScope already rules "" garbage; the shared choke point has
+  // to agree, or the two disagree on every route that skips the helper (panel
+  // R9: composer Major, in part — the non-owner half of that finding is
+  // already closed by the role gate on the hint branch below).
+  if (credential.tenant_id === "") return null;
+
   // A credential bound to a real tenant is pinned to it HERE, at the shared
   // choke point, before any hint is read. Both hints below are client-owned
   // (`?tenant_id=`, and `mc_tenant` is set httpOnly:false), so honouring them for
