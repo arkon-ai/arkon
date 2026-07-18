@@ -422,3 +422,119 @@ describe("dashboard overview/recent tenant scoping", () => {
     expect(res.status).toBe(401);
   });
 });
+
+/* WI-1846 panel R9 — the role floor decided WHO reaches this surface and nothing
+   narrowed WHAT they get. `metadata.connectivity.ssh` is {host, user, keyPath}
+   for the agent's HOST, and /api/agents/register defaults its user to the fleet
+   operator's own login. Pre-WI only MC_ADMIN_TOKEN could read this route, so
+   that block only ever reached the fleet operator; admitting tenant-side admins
+   without projecting the row hands a customer the ssh coordinates of fleet
+   infrastructure. These tests pin the projection, not the gate. */
+
+const KEY_PATH = "/home/brynn/.ssh/id_ed25519";
+
+/** An agent row shaped like /api/agents/register writes it. */
+const AGENT_METADATA = {
+  connectivity: {
+    framework: "openclaw",
+    host: "100.90.212.53",
+    port: 18789,
+    ssh: { host: "100.90.212.53", user: "brynn", keyPath: KEY_PATH },
+  },
+  tags: ["prod"],
+};
+
+/** beforeEach's mock returns no agent rows; the projection needs one to project. */
+function withAgentRow() {
+  mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
+    if (String(sql).includes("JOIN user_sessions")) {
+      return { rows: sessionRowsFor(params?.[0]) } as never;
+    }
+    if (String(sql).includes("SELECT a.id, a.name, a.metadata")) {
+      return {
+        rows: [
+          {
+            id: "agent-a",
+            name: "lumina",
+            metadata: AGENT_METADATA,
+            tenant_id: "tenant-a",
+          },
+        ],
+      } as never;
+    }
+    return { rows: [] } as never;
+  });
+}
+
+describe("dashboard overview metadata projection", () => {
+  it("never sends an agent's ssh block to a tenant-scoped admin", async () => {
+    withAgentRow();
+
+    const res = await getOverview(
+      request("https://arkon.test/api/dashboard/overview", {
+        cookies: { mc_auth: "admin-a-session" },
+      })
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.agents).toHaveLength(1);
+    expect(body.agents[0].metadata.connectivity).not.toHaveProperty("ssh");
+    // The rule is about the SECRET, not about one key name: assert the key path
+    // is absent from the whole serialized response, so relocating it inside
+    // metadata cannot pass this test.
+    expect(JSON.stringify(body)).not.toContain(KEY_PATH);
+  });
+
+  it("projects rather than blanks — the tenant keeps the connectivity it needs", async () => {
+    withAgentRow();
+
+    const res = await getOverview(
+      request("https://arkon.test/api/dashboard/overview", {
+        cookies: { mc_auth: "admin-a-session" },
+      })
+    );
+    const body = await res.json();
+
+    // Without this, returning `metadata: {}` would pass the test above while
+    // silently gutting the dashboard.
+    expect(body.agents[0].metadata.connectivity).toMatchObject({
+      framework: "openclaw",
+      host: "100.90.212.53",
+      port: 18789,
+    });
+    expect(body.agents[0].metadata.tags).toEqual(["prod"]);
+    expect(body.agents[0].name).toBe("lumina");
+  });
+
+  it("leaves the fleet admin token's payload exactly as it was before WI-1846", async () => {
+    withAgentRow();
+
+    const res = await getOverview(
+      request("https://arkon.test/api/dashboard/overview", { bearer: "owner-secret" })
+    );
+    const body = await res.json();
+
+    // This principal is the surface's only pre-WI caller. Narrowing it too would
+    // make the WI a regression for the operator rather than a restoration.
+    expect(body.agents[0].metadata).toEqual(AGENT_METADATA);
+    expect(body.agents[0].metadata.connectivity.ssh.keyPath).toBe(KEY_PATH);
+  });
+
+  it("projects for an unbound owner SESSION, which could not reach this route at all before", async () => {
+    withAgentRow();
+
+    const res = await getOverview(
+      request("https://arkon.test/api/dashboard/overview", {
+        cookies: { mc_auth: "owner-unbound-session" },
+      })
+    );
+    const body = await res.json();
+
+    // Fleet-WIDE scope, but not the fleet admin TOKEN: the projection keys on
+    // credential type, so a newly-admitted principal does not inherit the
+    // operator's payload just by resolving to "*".
+    expect(res.status).toBe(200);
+    expect(body.agents[0].metadata.connectivity).not.toHaveProperty("ssh");
+  });
+});

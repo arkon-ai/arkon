@@ -110,6 +110,36 @@ describe("resolveTenantAccess", () => {
     const access = await resolveTenantAccess(req({}), {});
     expect(access).toBeNull();
   });
+
+  it("rejects an empty-string binding HERE, not only in dashboardTenantScope", async () => {
+    // "" is a corrupt row, not "unbound". It is falsy, so before panel R9 an
+    // owner-role session carrying it skipped the pin and reached the
+    // hint/wildcard branches — a garbage row reading as "intentionally unbound
+    // fleet owner" on every route that uses this resolver WITHOUT the dashboard
+    // helper (/api/client/*, /api/notifications/*), which is where the gate and
+    // the choke point disagreed.
+    mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
+      if (String(sql).includes("JOIN user_sessions") && (params as unknown[])?.[0] === hash("owner-blank-session")) {
+        return { rows: [{ id: 9, email: "blank@a.test", role: "owner", tenant_id: "" }] } as never;
+      }
+      return { rows: [] } as never;
+    });
+
+    // Neither the wildcard...
+    expect(
+      await resolveTenantAccess(req({ cookies: { mc_auth: "owner-blank-session" } }), {
+        allowOwnerWildcard: true,
+      })
+    ).toBeNull();
+
+    // ...nor a client-owned hint may rescue it into a scope.
+    expect(
+      await resolveTenantAccess(
+        req({ url: "https://arkon.test/api/x?tenant_id=tenant-b", cookies: { mc_auth: "owner-blank-session" } }),
+        { allowOwnerWildcard: true }
+      )
+    ).toBeNull();
+  });
 });
 
 describe("dashboardTenantScope", () => {
