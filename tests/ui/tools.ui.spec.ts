@@ -180,7 +180,7 @@ test.describe("MCP Servers Page UI", () => {
   test("MCP page shows the Connected KPI cell @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/integrations/mcp`);
     await page.waitForLoadState("domcontentloaded");
-    const kpi = page.locator("text=Connected");
+    const kpi = page.getByText("Connected", { exact: true });
     await expect(kpi.first()).toBeVisible({ timeout: 5000 });
   });
 

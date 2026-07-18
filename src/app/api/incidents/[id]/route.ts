@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { csrfValidForCookieAuth } from "@/lib/request-auth";
 import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -17,7 +18,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   if (!validateAdmin(req)) return unauthorized();
-
   try {
     const { id } = await params;
     // WI-1849: incidents.id is integer — non-numeric ids must 404, not cast-error.
@@ -60,6 +60,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   if (!validateAdmin(req)) return unauthorized();
+  // WI-1849: cookie-session mutations need the double-submit CSRF token.
+  if (!csrfValidForCookieAuth(req)) {
+    return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
+  }
+
 
   try {
     const { id } = await params;

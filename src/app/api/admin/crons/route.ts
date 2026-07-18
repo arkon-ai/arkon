@@ -105,6 +105,11 @@ export async function GET(req: NextRequest) {
 // Also used to send a message to the agent about a specific cron job
 export async function POST(req: NextRequest) {
   if (!validateAdmin(req)) return unauthorized();
+  // WI-1849: cookie-session mutations need the double-submit CSRF token.
+  if (!csrfValidForCookieAuth(req)) {
+    return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
+  }
+
 
   const body = await req.json() as { jobs?: CronJob[]; action?: string; jobId?: string; message?: string };
 
