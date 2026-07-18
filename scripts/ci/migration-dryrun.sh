@@ -21,6 +21,10 @@
 set -euo pipefail
 
 MODE="${1:?usage: migration-dryrun.sh real|selftest}"
+case "$MODE" in
+  real|selftest) ;;
+  *) echo "usage: migration-dryrun.sh real|selftest (got '$MODE')" >&2; exit 2 ;;
+esac
 ROOT="$(git rev-parse --show-toplevel)"
 SNAP_DIR="$ROOT/db/prod-snapshot"
 PG_BASE_URL="${PG_BASE_URL:-postgresql://arkon:arkon@localhost:5432}"

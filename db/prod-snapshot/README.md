@@ -41,13 +41,20 @@ ssh brynn@100.108.57.71 "docker exec mc-postgres pg_dump -U mcadmin -d mission_c
   --data-only --column-inserts --table=public._migrations --table=public.tenants" \
   > db/prod-snapshot/seed.sql
 
-# 2. Rewrite META.txt (keep the captured_at= key — CI's staleness guard parses it)
+# 2. Rewrite META.txt — emit ALL keys (captured_at= is parsed by CI's staleness guard;
+#    the rest are the provenance/audit fields this README's Files table promises)
 {
   echo "captured_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "source=mc-postgres/mission_control @ 100.108.57.71 (Hetzner EU)"
   ssh brynn@100.108.57.71 "docker exec mc-postgres psql -U mcadmin -d mission_control -tAc 'SELECT version();'" | sed 's/^/pg_version=/'
+  ssh brynn@100.108.57.71 "docker exec mc-postgres psql -U mcadmin -d mission_control -tAc \"SELECT extversion FROM pg_extension WHERE extname='timescaledb';\"" | sed 's/^/timescaledb_version=/'
   ssh brynn@100.108.57.71 "git -C ~/arkon log -1 --format='prod_head=%H %cI'"
+  ssh brynn@100.108.57.71 "docker exec mc-postgres psql -U mcadmin -d mission_control -tAc 'SELECT COUNT(*) FROM _migrations;'" | sed 's/^/applied_migrations=/'
+  echo "capture_method=pg_dump --schema-only --no-owner --no-privileges; --data-only --column-inserts --table=public._migrations --table=public.tenants"
+  echo "sanitization=admin_email values redacted to NULL; metadata jsonb eyeballed; INSERTs scoped to public._migrations + public.tenants (verified in step 3)"
 } > db/prod-snapshot/META.txt
+# If the CI image pin (.github/workflows/migration-dryrun.yml services.timescaledb.image)
+# no longer matches the captured timescaledb_version/pg line, bump it in the same PR.
 
 # 3. Sanitize the PLAINTEXT (all must hold before gzipping)
 grep -oE '^INSERT INTO [a-z._]+' db/prod-snapshot/seed.sql | sort -u   # ONLY public._migrations + public.tenants
