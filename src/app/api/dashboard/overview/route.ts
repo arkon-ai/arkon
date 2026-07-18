@@ -8,8 +8,11 @@ export async function GET(req: NextRequest) {
   // owner keeps the cross-tenant view ("*"); any other credential is pinned to
   // its own tenant_id by resolveTenantAccess, so a forged ?tenant_id or
   // mc_tenant cookie cannot widen the scope (see tenant-access.test.ts).
+  // Agent tokens stay out: they live in plaintext .env on fleet hosts and are
+  // scoped to ingest, not to reading their tenant's whole roster. They got a
+  // flat 401 here pre-WI-1846, so excluding them widens nothing (panel R1).
   const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
-  if (!access) {
+  if (!access || access.credential.type === "agent_token") {
     return unauthorized();
   }
 
