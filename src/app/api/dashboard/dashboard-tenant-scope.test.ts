@@ -128,8 +128,18 @@ const SCOPED_AGGREGATES = [
  * scope predicate is still present and the row count merely changes.
  */
 const DAILY_STATS_AGREEMENT = [
-  ["cost_30d rollup", "SELECT a.id, a.name, a.metadata", "ds.tenant_id = a.tenant_id"],
-  ["today stats", "WHERE day = CURRENT_DATE", "a.tenant_id = $1)"],
+  // cost_30d correlates the two tables directly.
+  ["cost_30d rollup", "SELECT a.id, a.name, a.metadata", ["ds.tenant_id = a.tenant_id"]],
+  // today-stats reads daily_stats with no join, so it expresses the same
+  // agreement TRANSITIVELY: the row's own tenant_id and its agent's must BOTH
+  // equal $1. Asserting only the EXISTS half would re-prove tenant scoping
+  // (already covered by SCOPED_AGGREGATES) while a dropped `tenant_id = $1`
+  // left the drift path open (panel R14: composer Major).
+  [
+    "today stats",
+    "WHERE day = CURRENT_DATE",
+    ["AND tenant_id = $1", "EXISTS (SELECT 1 FROM agents a", "a.tenant_id = $1)"],
+  ],
 ] as const;
 
 /**
@@ -183,8 +193,11 @@ describe("dashboard overview tenant scoping", () => {
     // daily_stats row whose tenant_id had drifted still landed on the agent's
     // card — the one aggregate trusting a single source of truth, directly
     // under a comment claiming the opposite.
-    for (const [label, fragment, agreement] of DAILY_STATS_AGREEMENT) {
-      expect(String(callFor(fragment)[0]), label).toContain(agreement);
+    for (const [label, fragment, required] of DAILY_STATS_AGREEMENT) {
+      const sql = String(callFor(fragment)[0]);
+      for (const clause of required) {
+        expect(sql, `${label}: missing ${clause}`).toContain(clause);
+      }
     }
   });
 
