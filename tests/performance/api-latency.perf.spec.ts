@@ -11,7 +11,8 @@ import { MC_URL, authHeaders } from "../helpers/auth";
 /** Standard endpoints — must respond < 500ms */
 const FAST_ENDPOINTS = [
   { method: "GET", path: "/api/health", name: "Health" },
-  { method: "GET", path: "/api/agents", name: "Agents list" },
+  // WI-1851: /api/agents has no route (404 — latency was 32ms); benchmark the real list endpoint
+  { method: "GET", path: "/api/active-runs", name: "Active runs" },
   { method: "GET", path: "/api/dashboard/overview", name: "Dashboard overview" },
   { method: "GET", path: "/api/dashboard/activity", name: "Dashboard activity" },
   { method: "GET", path: "/api/costs/overview", name: "Costs overview" },
@@ -26,10 +27,10 @@ const FAST_ENDPOINTS = [
 const SLOW_ENDPOINTS = [
   { method: "GET", path: "/api/costs/by-agent", name: "Costs by agent" },
   { method: "GET", path: "/api/costs/by-model", name: "Costs by model" },
-  { method: "GET", path: "/api/infrastructure/report", name: "Infra report" },
+  { method: "GET", path: "/api/infra/report", name: "Infra report" },  // WI-1851: was /api/infrastructure/* (404 — path never existed)
   { method: "GET", path: "/api/compliance/audit-log", name: "Audit log" },
   { method: "GET", path: "/api/dashboard/trends", name: "Dashboard trends" },
-  { method: "GET", path: "/api/analytics", name: "Analytics" },
+  { method: "GET", path: "/api/analytics/overview", name: "Analytics" },  // WI-1851: was /api/analytics (404 — real route is /overview)
 ];
 
 const FAST_THRESHOLD = 500; // ms
@@ -72,7 +73,7 @@ test.describe("API Latency — Concurrent Load @performance @regression", () => 
   test("5 concurrent API requests all complete under 1s", async ({ request }) => {
     const endpoints = [
       "/api/health",
-      "/api/agents",
+      "/api/active-runs",  // WI-1851: /api/agents 404s (no route)
       "/api/dashboard/overview",
       "/api/costs/overview",
       "/api/security/overview",
