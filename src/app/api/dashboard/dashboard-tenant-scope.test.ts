@@ -58,6 +58,10 @@ function sessionRowsFor(tokenHash: unknown) {
   if (tokenHash === hash("owner-unbound-session")) {
     return [{ id: 4, email: "fleet@example.com", role: "owner", tenant_id: null }];
   }
+  // Non-owner with no binding: legacy row, partial provision, manual SQL.
+  if (tokenHash === hash("viewer-unbound-session")) {
+    return [{ id: 5, email: "orphan@example.com", role: "viewer", tenant_id: null }];
+  }
   return [];
 }
 
@@ -68,6 +72,14 @@ beforeEach(() => {
   mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
     if (String(sql).includes("JOIN user_sessions")) {
       return { rows: sessionRowsFor(params?.[0]) } as never;
+    }
+    if (String(sql).includes("FROM api_keys")) {
+      return {
+        rows:
+          params?.[0] === hash("ak_live_key-a")
+            ? [{ id: 10, tenant_id: "tenant-a" }]
+            : [],
+      } as never;
     }
     if (String(sql).includes("FROM agents WHERE token_hash")) {
       return {
@@ -85,6 +97,18 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+/**
+ * The three aggregates the overview route must scope, as
+ * [label, fragment-unique-to-that-query, the predicate it must carry].
+ * Fragment uniqueness is enforced by callFor; asserting the predicate text as
+ * well as the params is what catches a dropped WHERE against a mocked driver.
+ */
+const SCOPED_AGGREGATES = [
+  ["agents", "SELECT a.id, a.name, a.metadata", "WHERE a.tenant_id = $1"],
+  ["today stats", "WHERE day = CURRENT_DATE", "AND a.tenant_id = $1)"],
+  ["tenants", "FROM tenants", "WHERE id = $1"],
+] as const;
+
 /* WI-1846 — /api/dashboard/overview aggregated agents, daily_stats and the full
    tenants roster with no tenant predicate at all. It was gated on the fleet
    MC_ADMIN_TOKEN, so it failed closed rather than leaking; the defect is that
@@ -100,13 +124,7 @@ describe("dashboard overview tenant scoping", () => {
     );
 
     expect(res.status).toBe(200);
-    // Fragment must be unique to the aggregate AND the predicate asserted —
-    // params alone would not catch a dropped WHERE against a mocked driver.
-    for (const [label, fragment, predicate] of [
-      ["agents", "SELECT a.id, a.name, a.metadata", "WHERE a.tenant_id = $1"],
-      ["today stats", "WHERE day = CURRENT_DATE", "AND a.tenant_id = $1)"],
-      ["tenants", "FROM tenants", "WHERE id = $1"],
-    ] as const) {
+    for (const [label, fragment, predicate] of SCOPED_AGGREGATES) {
       const call = callFor(fragment);
       expect(String(call[0]), label).toContain(predicate);
       expect(call[1], label).toEqual(["tenant-a"]);
@@ -138,20 +156,60 @@ describe("dashboard overview tenant scoping", () => {
 
   it("narrows the fleet owner to one tenant when ?tenant_id= is present", async () => {
     // API.md promises this narrowing; without a test the doc and the helper can
-    // drift apart silently.
+    // drift apart silently. Assert all three aggregates and the predicate text,
+    // not just the roster's params: narrowing that reached `tenants` while
+    // leaving agents and daily_stats fleet-wide is the leak, not a cosmetic gap.
     await getOverview(
       request("https://arkon.test/api/dashboard/overview?tenant_id=tenant-b", {
         bearer: "owner-secret",
       })
     );
 
-    expect(callFor("FROM tenants")[1]).toEqual(["tenant-b"]);
+    for (const [label, fragment, predicate] of SCOPED_AGGREGATES) {
+      const call = callFor(fragment);
+      expect(String(call[0]), label).toContain(predicate);
+      expect(call[1], label).toEqual(["tenant-b"]);
+    }
+  });
+
+  it("scopes a tenant-bound api_key to its own tenant, ignoring ?tenant_id=", async () => {
+    // api_key is on DASHBOARD_CREDENTIALS, so this surface is reachable with one.
+    // Pin what it gets: its OWN tenant, never the hint's, never the fleet.
+    const res = await getOverview(
+      request("https://arkon.test/api/dashboard/overview?tenant_id=tenant-b", {
+        bearer: "ak_live_key-a",
+      })
+    );
+
+    expect(res.status).toBe(200);
+    for (const [label, fragment, predicate] of SCOPED_AGGREGATES) {
+      const call = callFor(fragment);
+      expect(String(call[0]), label).toContain(predicate);
+      expect(call[1], label).toEqual(["tenant-a"]);
+    }
+  });
+
+  it("refuses a tenant-less non-owner instead of handing it the fleet", async () => {
+    // Belt-and-braces: resolveTenantAccess already rejects an unbound non-owner,
+    // so this 401 comes from that layer today. dashboardTenantScope is the second
+    // layer and is pinned directly in tenant-access.test.ts — an absent binding
+    // must never default to the widest scope at either layer.
+    const res = await getOverview(
+      request("https://arkon.test/api/dashboard/overview", {
+        cookies: { mc_auth: "viewer-unbound-session" },
+      })
+    );
+
+    expect(res.status).toBe(401);
+    expect(
+      mockQuery.mock.calls.some(([sql]) => String(sql).includes("FROM tenants"))
+    ).toBe(false);
   });
 
   it("refuses a non-owner whose own tenant_id is the '*' sentinel", async () => {
-    // "*" shares a value domain with real tenant ids, and `scoped` is a plain
-    // !== "*" test — so a non-owner carrying it must fail closed, never fall
-    // through to the unscoped owner SQL shape.
+    // "*" shares a value domain with real tenant ids, so a non-owner carrying it
+    // must fail closed rather than reach the unscoped SQL shape. As above, the
+    // 401 is resolveTenantAccess's; the route-level pin guards the composition.
     const res = await getOverview(
       request("https://arkon.test/api/dashboard/overview", {
         cookies: { mc_auth: "viewer-star-session" },
@@ -190,9 +248,14 @@ describe("dashboard overview tenant scoping", () => {
       );
 
       expect(res.status).toBe(200);
-      const call = callFor("FROM tenants");
-      expect(String(call[0])).toContain("WHERE id = $1");
-      expect(call[1]).toEqual(["tenant-a"]);
+      // All three aggregates, not just the roster: a partial fix that scoped
+      // `tenants` while leaving agents and daily_stats open would pass a
+      // roster-only assertion while leaking the high-value payload.
+      for (const [label, fragment, predicate] of SCOPED_AGGREGATES) {
+        const call = callFor(fragment);
+        expect(String(call[0]), label).toContain(predicate);
+        expect(call[1], label).toEqual(["tenant-a"]);
+      }
     });
   }
 
@@ -208,7 +271,9 @@ describe("dashboard overview tenant scoping", () => {
     );
 
     expect(res.status).toBe(200);
-    expect(String(callFor("FROM tenants")[0])).not.toContain("WHERE id = $1");
+    const tenantsCall = callFor("FROM tenants");
+    expect(String(tenantsCall[0])).not.toContain("WHERE id = $1");
+    expect(tenantsCall[1]).toEqual([]);
   });
 
   it("rejects an agent token even though it resolves to a real tenant", async () => {
