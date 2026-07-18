@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { unauthorized } from "@/app/api/tools/_utils";
-import { resolveTenantAccess, DASHBOARD_CREDENTIALS } from "@/lib/tenant-access";
+import { resolveTenantAccess, dashboardTenantScope } from "@/lib/tenant-access";
 
 export async function GET(req: NextRequest) {
   // Every aggregate below is scoped to the caller's tenant (WI-1846). The fleet
@@ -9,12 +9,13 @@ export async function GET(req: NextRequest) {
   // its own tenant_id by resolveTenantAccess, so a forged ?tenant_id or
   // mc_tenant cookie cannot widen the scope (see tenant-access.test.ts).
   const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
-  if (!access || !DASHBOARD_CREDENTIALS.has(access.credential.type)) {
+  const tenantId = access && dashboardTenantScope(access);
+  if (!tenantId) {
     return unauthorized();
   }
 
-  const scoped = access.tenantId !== "*";
-  const params = scoped ? [access.tenantId] : [];
+  const scoped = tenantId !== "*";
+  const params = scoped ? [tenantId] : [];
 
   try {
     // `events` has no tenant_id — it inherits the agent's via e.agent_id = a.id,

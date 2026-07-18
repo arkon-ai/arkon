@@ -30,6 +30,32 @@ export const DASHBOARD_CREDENTIALS: ReadonlySet<RequestCredential["type"]> = new
   "api_key",
 ]);
 
+/**
+ * Tenant scope for the operator dashboard aggregates: the tenant id to filter
+ * on, `"*"` for the fleet-wide view, or null to reject.
+ *
+ * `resolveTenantAccess` grants the wildcard on `credential.role === "owner"` and
+ * lets any hint (`?tenant_id=`, the `mc_tenant` cookie) redirect an owner. That
+ * is fine for the client portal, but on this surface it is an escalation: a user
+ * session with `role: "owner"` bound to one tenant could reach every tenant just
+ * by deleting `mc_tenant` — which is set `httpOnly: false`, so the client owns it
+ * (WI-1846, panel R4: grok CRITICAL / opus Major, converging).
+ *
+ * So the hint never decides scope here. A credential whose own record binds it to
+ * a tenant is pinned to that tenant, full stop. The fleet-wide view is reachable
+ * only by the fleet admin token, or by an owner-role user with no tenant binding
+ * at all — who has no tenant boundary to cross, and whom only an existing owner
+ * can create (`/api/auth/register`).
+ */
+export function dashboardTenantScope(access: TenantAccess): string | null {
+  if (!DASHBOARD_CREDENTIALS.has(access.credential.type)) return null;
+
+  const bound = access.credential.tenant_id;
+  if (bound && bound !== "*") return bound;
+
+  return access.credential.type === "owner_token" ? access.tenantId : "*";
+}
+
 export function roleAtLeast(role: RequestCredential["role"], required: RequestCredential["role"]): boolean {
   return ROLE_RANK[role] >= ROLE_RANK[required];
 }
