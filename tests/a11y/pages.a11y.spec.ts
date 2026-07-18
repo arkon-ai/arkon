@@ -76,6 +76,12 @@ test.describe("Accessibility — Authenticated Pages @a11y @regression", () => {
         impact: v.impact,
         description: v.description,
         nodes: v.nodes.length,
+        // WI-1850: keep per-node evidence — the reduced shape made contrast
+        // failures untriageable from CI output (no selector, no fg/bg pair).
+        sample: v.nodes.slice(0, 3).map((n) => ({
+          target: n.target.join(" "),
+          summary: n.failureSummary?.slice(0, 300),
+        })),
       }));
 
       expect(
@@ -102,6 +108,12 @@ test.describe("Accessibility — Public Pages @a11y @regression", () => {
         impact: v.impact,
         description: v.description,
         nodes: v.nodes.length,
+        // WI-1850: keep per-node evidence — the reduced shape made contrast
+        // failures untriageable from CI output (no selector, no fg/bg pair).
+        sample: v.nodes.slice(0, 3).map((n) => ({
+          target: n.target.join(" "),
+          summary: n.failureSummary?.slice(0, 300),
+        })),
       }));
 
       expect(
