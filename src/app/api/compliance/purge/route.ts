@@ -119,6 +119,12 @@ export async function POST(req: NextRequest) {
           // the tool_calls delete and the agents delete). Agent-keyed deletes
           // re-resolve the set inside the txn instead of trusting the
           // pre-transaction snapshot.
+          // Locking the tenants row gates NEW agent inserts too (agents.tenant_id
+          // FK takes KEY SHARE on it) — without this, an agent created after the
+          // agents-row lock could gain tool_calls and FK-abort the purge. Side
+          // effect: other tenants-FK child inserts for THIS tenant stall for the
+          // purge duration — acceptable for a GDPR purge.
+          await client.query(`SELECT id FROM tenants WHERE id = $1 FOR UPDATE`, [body.scope_id]);
           await client.query(`SELECT id FROM agents WHERE tenant_id = $1 FOR UPDATE`, [body.scope_id]);
           await client.query(`DELETE FROM events WHERE agent_id IN (SELECT id FROM agents WHERE tenant_id = $1)`, [body.scope_id]);
           await client.query(`DELETE FROM sessions WHERE agent_id IN (SELECT id FROM agents WHERE tenant_id = $1)`, [body.scope_id]);
