@@ -53,7 +53,17 @@ export function dashboardTenantScope(access: TenantAccess): string | null {
   const bound = access.credential.tenant_id;
   if (bound && bound !== "*") return bound;
 
-  return access.credential.type === "owner_token" ? access.tenantId : "*";
+  // Unbound. The fleet admin token narrows via ?tenant_id= (access.tenantId);
+  // an unbound owner-role USER has no boundary to cross. Anything else has no
+  // scope we can prove, so reject — an absent binding must never DEFAULT to the
+  // widest one (WI-1846, panel R5: all three lanes).
+  //
+  // The type check on the second branch is not redundant with the role check: an
+  // api_key row is also on this allowlist, and a null-tenant one carrying
+  // role "owner" is exactly the misconfiguration that must not buy the fleet.
+  if (access.credential.type === "owner_token") return access.tenantId;
+  if (access.credential.type === "user_session" && access.credential.role === "owner") return "*";
+  return null;
 }
 
 export function roleAtLeast(role: RequestCredential["role"], required: RequestCredential["role"]): boolean {
