@@ -76,32 +76,57 @@ jobs:
           if grep -niE "'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql; then bad=1; fi
           if grep -nE "'[A-Za-z0-9+/=]{40,}'|'[0-9a-f]{40,}'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql; then bad=1; fi
           if grep -niE "PASSWORD +'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql; then bad=1; fi
-          # seed allowlist must be NON-VACUOUS (panel R2, grok): a COPY-format or empty dump
-          # matching zero INSERT lines is a violation, not a pass — require >=1 INSERT for
-          # EACH allowed table and zero data payloads outside the INSERT form.
+          # common credential shapes (panel R3, grok: quoted-blob probes alone overclaim)
+          if grep -nE "ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|Bearer [A-Za-z0-9._-]{20,}|postgres(ql)?://[^[:space:]']+:[^[:space:]']+@" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql; then bad=1; fi
+          # seed.sql STRICT line allowlist (panel R3, grok: INSERT-prefix checks alone let
+          # UPDATE/ALTER/other statements or stray psql meta-commands through): every
+          # non-comment, non-empty line must be one of the shapes pg_dump actually emits
+          # for this two-table --column-inserts dump. This also rejects \! and any other
+          # non-restrict meta-command by construction.
+          if grep -nvE "^[[:space:]]*--|^[[:space:]]*$|^SET [a-z_]+ = |^SELECT pg_catalog\.set_config\('search_path'|^SELECT pg_catalog\.setval\('public\._migrations_id_seq'|^[\]restrict [A-Za-z0-9]+[[:space:]]*$|^[\]unrestrict [A-Za-z0-9]+[[:space:]]*$|^INSERT INTO public\._migrations |^INSERT INTO public\.tenants " db/prod-snapshot/seed.sql; then
+            echo "seed.sql lines outside the strict allowlist (see above)"; bad=1
+          fi
+          # non-vacuous: require >=1 INSERT for EACH allowed table (panel R2, grok: a
+          # COPY-format or truncated dump matching zero INSERT lines is a violation)
           if ! grep -qiE '^INSERT INTO public\._migrations' db/prod-snapshot/seed.sql; then echo "seed.sql has no _migrations INSERTs (COPY-format or truncated dump?)"; bad=1; fi
           if ! grep -qiE '^INSERT INTO public\.tenants' db/prod-snapshot/seed.sql; then echo "seed.sql has no tenants INSERTs (COPY-format or truncated dump?)"; bad=1; fi
-          if grep -niE '^COPY ' db/prod-snapshot/seed.sql; then echo "seed.sql carries COPY data payloads"; bad=1; fi
-          if grep -oiE '^INSERT INTO [a-z._"]+' db/prod-snapshot/seed.sql | sort -u | grep -viE '^INSERT INTO public\.(_migrations|tenants)$'; then echo "seed.sql INSERTs outside the allowlist"; bad=1; fi
+          # schema stream: no psql meta-commands beyond pg_dump's own restrict pair
+          if grep -n '^[\]' /tmp/snapshot-schema.sql | grep -vE ':[\](un)?restrict [A-Za-z0-9]+[[:space:]]*$'; then
+            echo "schema.sql carries psql meta-commands beyond restrict/unrestrict"; bad=1
+          fi
           if [ "$bad" -ne 0 ]; then
             echo "::error title=Snapshot sanitization violation::value-shaped secret/PII or out-of-scope data payload in db/prod-snapshot — see matches above and db/prod-snapshot/README.md"
             exit 1
           fi
           echo "snapshot scan clean: artifacts present; no value-shaped secrets/PII; seed INSERTs non-vacuously scoped to _migrations + tenants"
 
-      # Overlay AFTER the scan. Fail CLOSED on any checkout failure; the only legitimate
-      # fail-open is genuine bootstrap — the base ref verifiably has no snapshot yet
-      # (panel R2, grok: a permanent "|| warning" is a self-attestation door).
+      # Overlay AFTER the scan. Three-way branch (panel R3, grok+composer reconciled):
+      #   migrations+snapshot in ONE PR  -> REFUSE (gate self-poison: the snapshot could
+      #                                     pre-attest exactly the migrations under test);
+      #   snapshot-only PR (refresh)     -> dry-run the PR's OWN scanned snapshot (a
+      #                                     base-overlay would leave refreshes untested
+      #                                     until after merge — composer R3);
+      #   migrations/code-only PR        -> overlay from base (PR cannot self-attest),
+      #                                     failing CLOSED except verifiable bootstrap.
       - name: Use prod snapshot from the base ref (PRs cannot self-attest)
         if: github.event_name == 'pull_request'
         run: |
           set -euo pipefail
-          git fetch --depth=1 origin "${{ github.base_ref }}"
-          if git cat-file -e "origin/${{ github.base_ref }}:db/prod-snapshot/seed.sql" 2>/dev/null; then
-            git checkout "origin/${{ github.base_ref }}" -- db/prod-snapshot/
-            echo "dry-run seed restored from origin/${{ github.base_ref }} (PR cannot self-attest applied migrations)"
+          BASE="${{ github.base_ref }}"
+          git fetch --depth=1 origin "$BASE"
+          changed="$(git diff --name-only "origin/$BASE" HEAD --)"
+          snap="$(grep -c '^db/prod-snapshot/' <<<"$changed" || true)"
+          mig="$(grep -c '^migrations/.*\.sql$' <<<"$changed" || true)"
+          if [ "$snap" -gt 0 ] && [ "$mig" -gt 0 ]; then
+            echo "::error title=Snapshot and migrations changed in one PR::a PR must not modify db/prod-snapshot/ and migrations/*.sql together (the snapshot could pre-attest the very migrations under test). Split the refresh into its own PR — see db/prod-snapshot/README.md."
+            exit 1
+          elif [ "$snap" -gt 0 ]; then
+            echo "snapshot-refresh PR: dry-running against the PR's own (already-scanned) snapshot"
+          elif git cat-file -e "origin/$BASE:db/prod-snapshot/seed.sql" 2>/dev/null; then
+            git checkout "origin/$BASE" -- db/prod-snapshot/
+            echo "dry-run seed restored from origin/$BASE (PR cannot self-attest applied migrations)"
           else
-            echo "::warning::db/prod-snapshot absent on origin/${{ github.base_ref }} — bootstrap PR runs against its own snapshot"
+            echo "::warning::db/prod-snapshot absent on origin/$BASE — bootstrap PR runs against its own snapshot"
           fi
 
       - name: Setup Node.js
