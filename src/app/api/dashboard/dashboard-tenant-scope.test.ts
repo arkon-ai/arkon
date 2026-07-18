@@ -120,6 +120,19 @@ const SCOPED_AGGREGATES = [
 ] as const;
 
 /**
+ * The tenant-AGREEMENT invariant, which is separate from the tenant PREDICATE
+ * above. `daily_stats` carries a denormalized `tenant_id` that can drift from
+ * `agents.tenant_id`, so every path reading it must require the two to agree
+ * rather than trust either alone. Both of these are uncorrelated to `$1` and so
+ * must hold in the fleet view too — a regression here is silent, because the
+ * scope predicate is still present and the row count merely changes.
+ */
+const DAILY_STATS_AGREEMENT = [
+  ["cost_30d rollup", "SELECT a.id, a.name, a.metadata", "ds.tenant_id = a.tenant_id"],
+  ["today stats", "WHERE day = CURRENT_DATE", "a.tenant_id = $1)"],
+] as const;
+
+/**
  * Assert the predicate is present AND not disarmed.
  *
  * Presence alone is not isolation: `WHERE a.tenant_id = $1 OR TRUE` contains the
@@ -157,6 +170,34 @@ describe("dashboard overview tenant scoping", () => {
       expectTenantPredicate(String(call[0]), predicate, label);
       expect(call[1], label).toEqual(["tenant-a"]);
     }
+  });
+
+  it("requires daily_stats rows to agree with their agent's tenant, not just to match on agent_id", async () => {
+    await getOverview(
+      request("https://arkon.test/api/dashboard/overview", {
+        cookies: { mc_auth: "admin-a-session" },
+      })
+    );
+
+    // The route's own R3 rule. cost_30d correlated on ds.agent_id ALONE, so a
+    // daily_stats row whose tenant_id had drifted still landed on the agent's
+    // card — the one aggregate trusting a single source of truth, directly
+    // under a comment claiming the opposite.
+    for (const [label, fragment, agreement] of DAILY_STATS_AGREEMENT) {
+      expect(String(callFor(fragment)[0]), label).toContain(agreement);
+    }
+  });
+
+  it("holds the daily_stats agreement in the FLEET view too, where there is no $1 to lean on", async () => {
+    await getOverview(
+      request("https://arkon.test/api/dashboard/overview", { bearer: "owner-secret" })
+    );
+
+    // Unscoped: the tenant predicate is gone by design, so agreement is the only
+    // thing left keeping a drifted row off the wrong agent's cost.
+    expect(String(callFor("SELECT a.id, a.name, a.metadata")[0])).toContain(
+      "ds.tenant_id = a.tenant_id"
+    );
   });
 
   it("never returns the fleet-wide tenants roster to a tenant-scoped caller", async () => {
