@@ -6,9 +6,17 @@ name: Migration dry-run vs prod schema
 # 2026-07-18 migration-024 class, fixed reactively in #90/#91) fails the PR instead
 # of sitting merged-but-undeployable in front of the deploy queue.
 #
-# Two jobs-in-one: the "real" step must PASS; the "selftest" step seeds a 024-shaped
-# regression (db/ci/selftest_024_shape.sql) and must see the migrator ABORT — proof in
-# every run's logs that the job still catches the incident class.
+# Two steps in one job: the "real" step must PASS; the "selftest" step seeds a
+# 024-shaped regression (db/ci/selftest_024_shape.sql) and must see the migrator
+# ABORT — proof in every run's logs that the job still catches the incident class.
+#
+# Trust model (documented, per fleet review-gate doctrine): this gate defends against
+# the ACCIDENTAL incident class (honest migration, drifted CI schema). On PR events the
+# snapshot is restored from the BASE ref so a PR cannot self-attest its own migration
+# as already-applied; a deliberately malicious PR author is outside this layer's threat
+# model (on same-repo pull_request events the workflow file itself is PR-controlled) —
+# that bar is CODEOWNERS/required-review territory, tracked as a follow-up under
+# transformate WI-1847.
 
 on:
   push:
@@ -29,7 +37,9 @@ jobs:
 
     services:
       timescaledb:
-        image: timescale/timescaledb:latest-pg16
+        # Pinned to prod's captured extension/PG line (db/prod-snapshot/META.txt);
+        # bump deliberately with each snapshot refresh, never float on latest.
+        image: timescale/timescaledb:2.25.2-pg16
         env:
           POSTGRES_USER: arkon
           POSTGRES_PASSWORD: arkon
@@ -49,11 +59,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Use prod snapshot from the base ref (PRs cannot self-attest)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --depth=1 origin "${{ github.base_ref }}"
+          git checkout "origin/${{ github.base_ref }}" -- db/prod-snapshot/ || \
+            echo "::warning::db/prod-snapshot missing on base ref — first-landing PR uses its own snapshot"
+
+      - name: Secret/PII scan of the committed snapshot (schema gunzipped)
+        run: |
+          gunzip -c db/prod-snapshot/schema.sql.gz > /tmp/snapshot-schema.sql
+          bad=0
+          # value-shaped leaks, not identifiers: quoted email literals, long quoted hex/base64
+          # blobs, and password-bearing DDL literals
+          # each probe: match => bad=1; no match (grep rc=1) must not trip the step's bash -e
+          grep -nE "'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql && bad=1 || true
+          grep -nE "'[A-Za-z0-9+/=]{40,}'|'[0-9a-f]{40,}'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql && bad=1 || true
+          grep -niE "PASSWORD +'" /tmp/snapshot-schema.sql && bad=1 || true
+          grep -oE '^INSERT INTO [a-z._]+' db/prod-snapshot/seed.sql | sort -u | grep -vE '^INSERT INTO public\.(_migrations|tenants)$' && bad=1 || true
+          if [ "$bad" -ne 0 ]; then
+            echo "::error title=Snapshot sanitization violation::value-shaped secret/PII or out-of-scope INSERT found in db/prod-snapshot — see matches above and db/prod-snapshot/README.md"
+            exit 1
+          fi
+          echo "snapshot scan clean: no value-shaped secrets/PII; seed INSERTs scoped to _migrations + tenants"
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client-16
 
       - name: Install dependencies
         run: npm ci
