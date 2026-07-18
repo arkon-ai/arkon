@@ -115,9 +115,13 @@ curl -X POST https://your-arkon-url/api/ingest \
 
 Overview data for the main dashboard — agents, today's stats, tenants.
 
-**Auth:** An authenticated user session, or the fleet admin token. Agent tokens
-and API keys are both rejected — this is an operator surface, not an ingest one,
-and every API key is minted with the `agent` role.
+**Auth:** A user session of role `admin` or `owner`, or the fleet admin token.
+Agent tokens and API keys are both rejected **by credential type**, not by role
+name — the allowlist is `user_session` and `owner_token`, so a hand-minted
+`api_keys` row carrying a non-`agent` role still cannot reach this surface.
+A bound `viewer` is refused too: these aggregates return each agent's `metadata`,
+which holds its ssh connectivity block, so being bound to a tenant is not by
+itself entitlement to that tenant's operator view.
 
 Tenant-scoped, and the scope comes from the credential's own record, never from
 the request. A credential bound to a tenant sees only that tenant's agents, stats
@@ -128,6 +132,9 @@ the fleet admin token, or by an `owner` user with no tenant binding at all.
 
 `GET /api/dashboard/overview/recent` carries the same auth and scoping; its
 events are scoped through the `agents` join, since `events` has no `tenant_id`.
+A database failure there returns `500 {"error": "Internal server error"}` — it
+does not return an empty `events` array, so an empty feed means no activity
+rather than a swallowed error.
 
 **Response:**
 
