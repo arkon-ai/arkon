@@ -34,10 +34,12 @@ export async function GET(
     `, [agentId]);
 
     // Active sessions
-    // WI-1848: sessions has created_at, not started_at (prod + 000 agree) —
-    // the alias keeps the API's started_at contract.
+    // WI-1848 correction (deploy pre-flight, 2026-07-18): prod sessions has
+    // started_at and NO created_at — the earlier alias inverted reality and
+    // would have 500'd this route on prod. 000 + aligner 029 now converge every
+    // environment on started_at, so the plain column is correct everywhere.
     const sessions = await query(`
-      SELECT session_key, channel_id, created_at AS started_at, last_active, message_count
+      SELECT session_key, channel_id, started_at, last_active, message_count
       FROM sessions
       WHERE agent_id = $1
       ORDER BY last_active DESC
