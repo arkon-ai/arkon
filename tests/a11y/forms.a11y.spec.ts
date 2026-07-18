@@ -58,14 +58,18 @@ test.describe("Forms Accessibility @a11y @regression", () => {
       // screen-reader-announced error (role=alert / aria-live).
       const pwd = page.locator("input[type='password']").first();
       const submitBtn = page.getByRole("button", { name: /sign in|log in|submit/i }).first();
-      if (!(await submitBtn.isVisible()) || !(await pwd.isVisible())) return;
+      // Panel: a missing form must FAIL, not silently pass.
+      await expect(pwd).toBeVisible();
+      await expect(submitBtn).toBeVisible();
 
       await pwd.fill("definitely-wrong-passphrase-a11y-probe");
       await expect(submitBtn).toBeEnabled();
       await submitBtn.click();
 
-      const alerts = page.locator("[role='alert'], [aria-live='polite'], [aria-live='assertive']");
-      await expect(alerts.first()).toBeVisible({ timeout: 10000 });
+      // Panel: role=alert with real content — a bare [aria-live] locator would
+      // match Next's always-present route announcer and pass vacuously.
+      const alert = page.getByRole("alert").filter({ hasText: /\S/ }).first();
+      await expect(alert).toBeVisible({ timeout: 10000 });
     });
 
     test("login form axe-core scan passes", async ({ page }) => {
