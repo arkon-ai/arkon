@@ -86,13 +86,23 @@ jobs:
           if grep -nvE "^[[:space:]]*--|^[[:space:]]*$|^SET [a-z_]+ = |^SELECT pg_catalog\.set_config\('search_path'|^SELECT pg_catalog\.setval\('public\._migrations_id_seq'|^[\]restrict [A-Za-z0-9]+[[:space:]]*$|^[\]unrestrict [A-Za-z0-9]+[[:space:]]*$|^INSERT INTO public\._migrations |^INSERT INTO public\.tenants " db/prod-snapshot/seed.sql; then
             echo "seed.sql lines outside the strict allowlist (see above)"; bad=1
           fi
+          # Same-line SQL smuggling: an allowlisted INSERT line ending its statement early
+          # and appending a second one (panel R4, grok). pg_dump --column-inserts emits
+          # exactly one statement per line, so ANY interior ';' followed by non-comment
+          # content on an INSERT line is a violation.
+          if grep -nE "^INSERT INTO public\.(_migrations|tenants) .*;[[:space:]]*[^[:space:]-]" db/prod-snapshot/seed.sql; then
+            echo "seed.sql INSERT line carries a trailing second statement after ';'"; bad=1
+          fi
           # non-vacuous: require >=1 INSERT for EACH allowed table (panel R2, grok: a
           # COPY-format or truncated dump matching zero INSERT lines is a violation)
           if ! grep -qiE '^INSERT INTO public\._migrations' db/prod-snapshot/seed.sql; then echo "seed.sql has no _migrations INSERTs (COPY-format or truncated dump?)"; bad=1; fi
           if ! grep -qiE '^INSERT INTO public\.tenants' db/prod-snapshot/seed.sql; then echo "seed.sql has no tenants INSERTs (COPY-format or truncated dump?)"; bad=1; fi
-          # schema stream: no psql meta-commands beyond pg_dump's own restrict pair
-          if grep -n '^[\]' /tmp/snapshot-schema.sql | grep -vE ':[\](un)?restrict [A-Za-z0-9]+[[:space:]]*$'; then
-            echo "schema.sql carries psql meta-commands beyond restrict/unrestrict"; bad=1
+          # schema stream: no psql meta-commands beyond pg_dump's own restrict pair.
+          # psql honors meta-commands after LEADING WHITESPACE too (panel R4, grok), so
+          # match backslash at column 0 OR after indentation; allow only the restrict pair
+          # at column 0 (pg_dump never indents its own).
+          if grep -nE '^[[:space:]]*[\]' /tmp/snapshot-schema.sql | grep -vE ':[\](un)?restrict [A-Za-z0-9]+[[:space:]]*$'; then
+            echo "schema.sql carries psql meta-commands beyond restrict/unrestrict (incl. indented)"; bad=1
           fi
           if [ "$bad" -ne 0 ]; then
             echo "::error title=Snapshot sanitization violation::value-shaped secret/PII or out-of-scope data payload in db/prod-snapshot — see matches above and db/prod-snapshot/README.md"
