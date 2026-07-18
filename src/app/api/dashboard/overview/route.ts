@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { unauthorized } from "@/app/api/tools/_utils";
+import { resolveTenantAccess } from "@/lib/tenant-access";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  // Every aggregate below is scoped to the caller's tenant (WI-1846). The fleet
+  // owner keeps the cross-tenant view ("*"); any other credential is pinned to
+  // its own tenant_id by resolveTenantAccess, so a forged ?tenant_id or
+  // mc_tenant cookie cannot widen the scope (see tenant-access.test.ts).
+  const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
+  if (!access) {
     return unauthorized();
   }
 
+  const scoped = access.tenantId !== "*";
+  const params = scoped ? [access.tenantId] : [];
+
   try {
+    // events/daily_stats have no tenant_id of their own here — they inherit the
+    // agent's tenant via e.agent_id = a.id, so scoping `agents` scopes them too.
     const agents = await query(`
       SELECT a.id, a.name, a.metadata, a.created_at, a.tenant_id,
         (SELECT MAX(e.created_at) FROM events e WHERE e.agent_id = a.id) as last_active,
@@ -18,8 +29,9 @@ export async function GET(req: NextRequest) {
         (SELECT COUNT(*) FROM events e WHERE e.agent_id = a.id AND e.threat_level IS NOT NULL AND e.threat_level != 'none' AND e.created_at > NOW() - INTERVAL '30 days') as threats_30d,
         (SELECT COALESCE(SUM(ds.estimated_cost_usd), 0) FROM daily_stats ds WHERE ds.agent_id = a.id AND ds.day > CURRENT_DATE - INTERVAL '30 days') as cost_30d
       FROM agents a
+      ${scoped ? "WHERE a.tenant_id = $1" : ""}
       ORDER BY last_active DESC NULLS LAST
-    `);
+    `, params);
 
     const todayStats = await query(`
       SELECT agent_id, tenant_id,
@@ -31,12 +43,15 @@ export async function GET(req: NextRequest) {
         COALESCE(SUM(estimated_cost_usd), 0) as cost
       FROM daily_stats
       WHERE day = CURRENT_DATE
+      ${scoped ? "AND tenant_id = $1" : ""}
       GROUP BY agent_id, tenant_id
-    `);
+    `, params);
 
     const tenants = await query(`
-      SELECT id, name, domain, plan, created_at FROM tenants ORDER BY name
-    `);
+      SELECT id, name, domain, plan, created_at FROM tenants
+      ${scoped ? "WHERE id = $1" : ""}
+      ORDER BY name
+    `, params);
 
     return NextResponse.json({
       agents: agents.rows,

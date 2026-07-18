@@ -115,7 +115,10 @@ curl -X POST https://your-arkon-url/api/ingest \
 
 Overview data for the main dashboard — agents, today's stats, tenants.
 
-**Auth:** Admin token
+**Auth:** Any authenticated credential. Tenant-scoped: the fleet admin token
+sees every tenant; any other credential sees only its own tenant's agents,
+stats and tenant record. `?tenant_id=` narrows the view for the fleet owner
+only — it cannot widen a tenant-scoped caller's scope.
 
 **Response:**
 
