@@ -39,6 +39,8 @@ export async function GET(req: NextRequest) {
     );
   } catch (err) {
     console.error("[dashboard/overview/recent] Error:", err);
-    return NextResponse.json({ events: [] });
+    // 500, not an empty feed: a swallowed error renders as "no recent activity"
+    // for a tenant that is in fact busy, and fires no client error state.
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

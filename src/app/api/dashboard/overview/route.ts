@@ -20,8 +20,11 @@ export async function GET(req: NextRequest) {
     // `events` has no tenant_id — it inherits the agent's via e.agent_id = a.id,
     // so scoping `agents` scopes the event sub-selects (and cost_30d) too.
     // `daily_stats` DOES carry its own tenant_id (NOT NULL since migration 001,
-    // backfilled from agents) and todayStats filters it directly — same shape as
-    // /api/client/dashboard, and it keeps the idx_daily_stats_tenant index path.
+    // backfilled from agents), so todayStats filters it directly to keep the
+    // idx_daily_stats_tenant path — but pairs it with an EXISTS on the agent, so
+    // a row whose denormalized tenant_id has drifted from agents.tenant_id can't
+    // show up for the wrong tenant. Two sources of truth is the bug class this
+    // WI is about; the scoped path requires both to agree (panel R3).
     const agents = await query(`
       SELECT a.id, a.name, a.metadata, a.created_at, a.tenant_id,
         (SELECT MAX(e.created_at) FROM events e WHERE e.agent_id = a.id) as last_active,
@@ -46,7 +49,7 @@ export async function GET(req: NextRequest) {
         COALESCE(SUM(estimated_cost_usd), 0) as cost
       FROM daily_stats
       WHERE day = CURRENT_DATE
-      ${scoped ? "AND tenant_id = $1" : ""}
+      ${scoped ? "AND tenant_id = $1 AND EXISTS (SELECT 1 FROM agents a WHERE a.id = daily_stats.agent_id AND a.tenant_id = $1)" : ""}
       GROUP BY agent_id, tenant_id
     `, params);
 
