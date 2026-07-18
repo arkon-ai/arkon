@@ -111,6 +111,34 @@ describe("resolveTenantAccess", () => {
     expect(access).toBeNull();
   });
 
+  it("does not resolve a scope for a non-owner whose own binding is the '*' sentinel", async () => {
+    // grok filed the "*"-as-tenant-id overload as Major (panel R10) with an
+    // `admin` trigger. The trigger does not hold, and this is where it dies: "*"
+    // is not a real binding so it skips the pin, and both branches that could
+    // still hand back a scope require role "owner". An admin bearing "*" is
+    // therefore rejected here, before dashboardTenantScope sees it.
+    mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
+      if (String(sql).includes("JOIN user_sessions") && (params as unknown[])?.[0] === hash("admin-star-session")) {
+        return { rows: [{ id: 11, email: "star@a.test", role: "admin", tenant_id: "*" }] } as never;
+      }
+      return { rows: [] } as never;
+    });
+
+    expect(
+      await resolveTenantAccess(req({ cookies: { mc_auth: "admin-star-session" } }), {
+        allowOwnerWildcard: true,
+      })
+    ).toBeNull();
+
+    // Not even with a hint to ride in on.
+    expect(
+      await resolveTenantAccess(
+        req({ url: "https://arkon.test/api/x?tenant_id=tenant-b", cookies: { mc_auth: "admin-star-session" } }),
+        { allowOwnerWildcard: true }
+      )
+    ).toBeNull();
+  });
+
   it("rejects an empty-string binding HERE, not only in dashboardTenantScope", async () => {
     // "" is a corrupt row, not "unbound". It is falsy, so before panel R9 an
     // owner-role session carrying it skipped the pin and reached the
@@ -243,6 +271,20 @@ describe("dashboardTenantScope", () => {
         access({ type: "owner_token", role: "owner", tenant_id: "*" }, "tenant-b")
       )
     ).toBe("tenant-b");
+  });
+
+  it("never lets a non-owner reach the fleet by carrying '*' as its own binding", () => {
+    // The routes read scope by value — `const scoped = tenantId !== "*"` — so a
+    // credential whose OWN record says "*" would run the unscoped queries if
+    // anything upstream handed that value back for a non-owner (panel R10: grok
+    // filed this as Major against role `admin`). It cannot: resolveTenantAccess
+    // pins only real bindings, and its hint and wildcard branches are both gated
+    // on role "owner", so an admin/viewer bearing "*" resolves to null before
+    // this helper is ever called. Pinned here at BOTH layers so that a future
+    // loosening of either one goes red rather than silently granting the fleet.
+    expect(dashboardTenantScope(access({ role: "admin", tenant_id: "*" }))).toBeNull();
+    expect(dashboardTenantScope(access({ role: "operator", tenant_id: "*" }))).toBeNull();
+    expect(dashboardTenantScope(access({ role: "viewer", tenant_id: "*" }))).toBeNull();
   });
 
   it("rejects an agent token outright", () => {
