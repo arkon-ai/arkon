@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { resolveRequestCredential, csrfValidForCookieAuth } from "@/lib/request-auth";
 
 /**
  * GET /api/notifications — list notifications for the tenant
  * Query params: unread_only (bool), limit (int), offset (int)
  */
 export async function GET(req: NextRequest) {
+  // WI-1849: any valid credential may read; no credential -> 401 exactly.
+  const credential = await resolveRequestCredential(req);
+  if (!credential) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const sp = req.nextUrl.searchParams;
   const unreadOnly = sp.get("unread_only") === "true";
   const limit = Math.min(parseInt(sp.get("limit") ?? "20", 10), 100);
@@ -38,6 +45,15 @@ export async function GET(req: NextRequest) {
  * Body: { ids: number[] } or { all: true }
  */
 export async function PATCH(req: NextRequest) {
+  // WI-1849: auth (401) then CSRF for cookie sessions (403), before any parse.
+  const credential = await resolveRequestCredential(req);
+  if (!credential) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!csrfValidForCookieAuth(req)) {
+    return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
+  }
+
   const body = (await req.json()) as { ids?: number[]; all?: boolean };
   const tenantId = "default";
 

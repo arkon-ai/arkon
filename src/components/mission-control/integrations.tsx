@@ -290,7 +290,10 @@ function IntegrationRow({
 }
 
 /* ─── Main ────────────────────────────────────────────────── */
-export function IntegrationsScreen() {
+export function IntegrationsScreen({
+  title = "Integrations",
+  subtitle = "Tools your agents can call. Every server is health-checked, scoped per agent, and revocable.",
+}: { title?: string; subtitle?: string } = {}) {
   const [servers, setServers] = useState<ServerRow[]>([]);
   const [wiredAgents, setWiredAgents] = useState(0);
   const [stats, setStats] = useState<GatewayStats | null>(null);
@@ -409,8 +412,8 @@ export function IntegrationsScreen() {
   return (
     <div className="space-y-5 pb-24">
       <PageHeader
-        title="Integrations"
-        subtitle="Tools your agents can call. Every server is health-checked, scoped per agent, and revocable."
+        title={title}
+        subtitle={subtitle}
         live={true}
         updated={latestCheck ?? undefined}
         action={

@@ -93,6 +93,10 @@ export async function POST(
   { params }: { params: Promise<{ serverId: string }> }
 ) {
   const { serverId } = await params;
+  // WI-1849: mcp_servers.id is integer — a non-numeric id must 404, not cast-error.
+  if (!/^\d+$/.test(serverId)) {
+    return NextResponse.json({ error: "MCP server not found" }, { status: 404 });
+  }
   const start = Date.now();
   let mcpMethod: string | null = null;
   let requestBody = "";
@@ -204,6 +208,11 @@ export async function GET(
   { params }: { params: Promise<{ serverId: string }> }
 ) {
   const { serverId } = await params;
+  // WI-1849: same numeric guard as POST — this lookup has no try/catch at all,
+  // so a cast error here was an unhandled 500.
+  if (!/^\d+$/.test(serverId)) {
+    return NextResponse.json({ error: "MCP server not found" }, { status: 404 });
+  }
 
   // Look up server for SSE proxy
   const result = await query(

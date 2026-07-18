@@ -207,6 +207,12 @@ export async function PATCH(req: NextRequest) {
   const { jobId, action } = body;
   if (!jobId || !action) return NextResponse.json({ error: "jobId and action required" }, { status: 400 });
 
+  // WI-1849: unknown actions previously fell through to "run immediately".
+  const VALID_ACTIONS = ["disable", "enable", "delete", "run"];
+  if (!VALID_ACTIONS.includes(action)) {
+    return NextResponse.json({ error: `Invalid action. Must be one of: ${VALID_ACTIONS.join(", ")}` }, { status: 400 });
+  }
+
   // Get job name for context
   const jobRow = await query("SELECT name, schedule_expr FROM cron_jobs WHERE id = $1", [jobId]);
   const jobName = jobRow.rows[0]?.name ?? jobId;

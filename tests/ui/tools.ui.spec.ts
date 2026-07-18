@@ -163,26 +163,31 @@ test.describe("MCP Servers Page UI", () => {
     await expect(subtitle.first()).toBeVisible({ timeout: 5000 });
   });
 
-  test("MCP page has My Servers and Browse Registry tabs @regression", async ({ page }) => {
+  // WI-1849: these three tests were written against the retired approval-centric
+  // design ("My Servers (N)" tabs, Approved/Unapproved/Offline pills). The
+  // shipped IntegrationsScreen is health-centric: "All · N / Live · N / Idle · N
+  // / Issues · N" filter tabs + a "Browse registry" action. Assertions updated
+  // to the real affordances, not removed.
+  test("MCP page has filter tabs and registry browser @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/integrations/mcp`);
     await page.waitForLoadState("domcontentloaded");
-    const myServers = page.locator("text=/My Servers/i");
-    const browse = page.locator("text=Browse Registry");
-    await expect(myServers.first()).toBeVisible({ timeout: 5000 });
+    const allTab = page.locator("text=/All · \\d+/");
+    const browse = page.locator("text=Browse registry");
+    await expect(allTab.first()).toBeVisible({ timeout: 5000 });
     await expect(browse.first()).toBeVisible({ timeout: 5000 });
   });
 
-  test("MCP page shows server count in My Servers tab @regression", async ({ page }) => {
+  test("MCP page shows server count in the All tab @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/integrations/mcp`);
     await page.waitForLoadState("domcontentloaded");
-    const count = page.locator("text=/My Servers \\(\\d+\\)/i");
+    const count = page.locator("text=/All · \\d+/");
     await expect(count.first()).toBeVisible({ timeout: 5000 });
   });
 
-  test("MCP page has status filter pills (All, Approved, Unapproved, Offline) @regression", async ({ page }) => {
+  test("MCP page has status filter tabs (All, Live, Idle, Issues) @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/integrations/mcp`);
     await page.waitForLoadState("domcontentloaded");
-    const filters = ["All", "Approved", "Unapproved", "Offline"];
+    const filters = ["All ·", "Live ·", "Idle ·", "Issues ·"];
     for (const filter of filters) {
       const pill = page.locator(`text=${filter}`).first();
       await expect(pill).toBeVisible({ timeout: 3000 });
@@ -235,11 +240,13 @@ test.describe("MCP Servers Page UI", () => {
     expect(count).toBeGreaterThan(0);
   });
 
-  test("MCP server cards show URL @regression", async ({ page }) => {
+  // WI-1849: server rows show name + transport badge, not the URL (URLs appear
+  // in the registry browser). Assert a seeded server row renders instead.
+  test("MCP server rows show seeded server name @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/integrations/mcp`);
     await page.waitForLoadState("domcontentloaded");
-    const url = page.locator("text=/github\\.com|https:\\/\\//i");
-    await expect(url.first()).toBeVisible({ timeout: 5000 });
+    const row = page.locator("text=Filesystem");
+    await expect(row.first()).toBeVisible({ timeout: 5000 });
   });
 
   test("clicking status filter changes visible servers @regression", async ({ page }) => {

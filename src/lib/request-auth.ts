@@ -109,3 +109,17 @@ export async function resolveRequestCredential(req: NextRequest): Promise<Reques
 export function isNonBrowserCredential(credential: RequestCredential): boolean {
   return credential.type === "owner_token" || credential.type === "api_key" || credential.type === "agent_token";
 }
+
+/**
+ * Double-submit CSRF check for state-changing routes (WI-1849).
+ * Only cookie-session requests carry ambient authority — Bearer-token
+ * requests (admin/agent/api-key) are CSRF-exempt by construction.
+ * Returns true when the request is safe to mutate.
+ */
+export function csrfValidForCookieAuth(req: NextRequest): boolean {
+  if (extractBearerToken(req)) return true;
+  if (!req.cookies.get("mc_auth")?.value) return true; // no cookie auth in play
+  const cookie = req.cookies.get("mc_csrf")?.value ?? "";
+  const header = req.headers.get("x-csrf-token") ?? "";
+  return !!cookie && !!header && constantTimeEqual(cookie, header);
+}
