@@ -51,6 +51,24 @@ fi
 
 # ── Fresh DB + restore ──
 psql "$ADMIN_URL" -v ON_ERROR_STOP=1 -q -c "DROP DATABASE IF EXISTS ${DB_NAME};" -c "CREATE DATABASE ${DB_NAME};"
+# Pre-create roles referenced by RLS policies. pg_dump --no-owner --no-privileges strips
+# ownership and ACLs, but `CREATE POLICY ... TO <role>` still names prod roles — the
+# first CI run aborted on `role "arkonhelm" does not exist`. Extract the TO-lists
+# dynamically (future refreshes may add roles), allowlist each token (lowercase
+# identifier only — skips PUBLIC/CURRENT_USER and anything weird), create NOLOGIN.
+gunzip -c "$SNAP_DIR/schema.sql.gz" | grep -E '^CREATE POLICY ' \
+  | sed -nE 's/^CREATE POLICY .* TO ([A-Za-z0-9_, ]+) (USING|WITH CHECK).*/\1/p' \
+  | tr ',' '\n' | sed 's/^ *//; s/ *$//' | sort -u \
+  | while read -r role; do
+      [ -n "$role" ] || continue
+      if [[ "$role" =~ ^[a-z_][a-z0-9_]*$ ]]; then
+        psql "$DB_URL" -v ON_ERROR_STOP=1 -q -c \
+          "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$role') THEN CREATE ROLE \"$role\" NOLOGIN; END IF; END \$\$;"
+        echo "pre-created policy role: $role"
+      else
+        echo "skipping non-identifier policy role token: '$role'" >&2
+      fi
+    done
 # Idempotent extension creation: the CI image may pre-create timescaledb in new DBs.
 gunzip -c "$SNAP_DIR/schema.sql.gz" \
   | sed -E 's/^CREATE EXTENSION (IF NOT EXISTS )?/CREATE EXTENSION IF NOT EXISTS /' \
