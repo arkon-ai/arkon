@@ -51,23 +51,21 @@ test.describe("Forms Accessibility @a11y @regression", () => {
       await page.goto(`${MC_URL}/login`);
       await page.waitForLoadState("domcontentloaded");
 
-      // Submit empty form to trigger validation
+      // WI-1850: the old flow clicked with an EMPTY form, but the app
+      // fail-safes empty submission via a disabled control — the click waited
+      // 45s for enablement and timed out without testing anything. Exercise
+      // the real announcement path instead: a wrong passphrase must produce a
+      // screen-reader-announced error (role=alert / aria-live).
+      const pwd = page.locator("input[type='password']").first();
       const submitBtn = page.getByRole("button", { name: /sign in|log in|submit/i }).first();
-      if (await submitBtn.isVisible()) {
-        await submitBtn.click();
-        await page.waitForTimeout(500);
+      if (!(await submitBtn.isVisible()) || !(await pwd.isVisible())) return;
 
-        // Error messages should use role=alert or aria-live
-        const alerts = page.locator("[role='alert'], [aria-live='polite'], [aria-live='assertive']");
-        const errorText = page.locator("[class*='error'], [class*='Error']");
-        const totalErrors = (await alerts.count()) + (await errorText.count());
-        // If there's an error shown, it should be accessible
-        if (totalErrors > 0) {
-          const ariaAlerts = await alerts.count();
-          // At least some errors should be aria-announced
-          expect(ariaAlerts + (await errorText.count())).toBeGreaterThan(0);
-        }
-      }
+      await pwd.fill("definitely-wrong-passphrase-a11y-probe");
+      await expect(submitBtn).toBeEnabled();
+      await submitBtn.click();
+
+      const alerts = page.locator("[role='alert'], [aria-live='polite'], [aria-live='assertive']");
+      await expect(alerts.first()).toBeVisible({ timeout: 10000 });
     });
 
     test("login form axe-core scan passes", async ({ page }) => {
