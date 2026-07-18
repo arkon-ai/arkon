@@ -83,6 +83,17 @@ export async function POST(req: NextRequest) {
         );
         results.workflows = wfCount.rows[0]?.c ?? 0;
 
+        // WI-1848: incidents exist on every DB now (migration 025) and hold
+        // tenant data — a tenant purge must take them (updates cascade via FK).
+        const incidentCount = await query(
+          `SELECT COUNT(*)::int as c FROM incidents WHERE tenant_id = $1`, [body.scope_id]
+        );
+        results.incidents = incidentCount.rows[0]?.c ?? 0;
+        const incidentUpdateCount = await query(
+          `SELECT COUNT(*)::int as c FROM incident_updates iu JOIN incidents i ON i.id = iu.incident_id WHERE i.tenant_id = $1`, [body.scope_id]
+        );
+        results.incident_updates = incidentUpdateCount.rows[0]?.c ?? 0;
+
         results.agents = ids.length;
 
         if (!dryRun) {
@@ -101,6 +112,7 @@ export async function POST(req: NextRequest) {
             await client.query(`DELETE FROM audit_log WHERE tenant_id = $1`, [body.scope_id]);
             await client.query(`DELETE FROM workflow_runs WHERE tenant_id = $1`, [body.scope_id]);
             await client.query(`DELETE FROM workflows WHERE tenant_id = $1`, [body.scope_id]);
+            await client.query(`DELETE FROM incidents WHERE tenant_id = $1`, [body.scope_id]);
             await client.query(`DELETE FROM agents WHERE tenant_id = $1`, [body.scope_id]);
             // Log the purge itself (inside the txn — the audit row lands iff the purge commits)
             await client.query(

@@ -7,9 +7,9 @@
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.columns
-             WHERE table_name = 'workflow_runs' AND column_name = 'created_at')
+             WHERE table_schema = 'public' AND table_name = 'workflow_runs' AND column_name = 'created_at')
      AND NOT EXISTS (SELECT 1 FROM information_schema.columns
-             WHERE table_name = 'workflow_runs' AND column_name = 'started_at') THEN
+             WHERE table_schema = 'public' AND table_name = 'workflow_runs' AND column_name = 'started_at') THEN
     ALTER TABLE workflow_runs RENAME COLUMN created_at TO started_at;
   END IF;
 END;
@@ -22,3 +22,19 @@ ALTER TABLE tool_calls ADD COLUMN IF NOT EXISTS arguments_summary TEXT;
 ALTER TABLE tool_calls ADD COLUMN IF NOT EXISTS result_summary TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_tool_calls_agent ON tool_calls(agent_id, created_at DESC);
+
+-- Old-000 DBs carry ON DELETE CASCADE on tool_calls.agent_id; prod and the
+-- corrected 000 use plain NO ACTION (purge routes delete explicitly). Converge
+-- delete semantics: swap only when the existing FK cascades (no-op on prod/fresh).
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_constraint
+             WHERE conname = 'tool_calls_agent_id_fkey'
+               AND conrelid = 'public.tool_calls'::regclass
+               AND confdeltype = 'c') THEN
+    ALTER TABLE tool_calls DROP CONSTRAINT tool_calls_agent_id_fkey;
+    ALTER TABLE tool_calls ADD CONSTRAINT tool_calls_agent_id_fkey
+      FOREIGN KEY (agent_id) REFERENCES agents(id);
+  END IF;
+END;
+$$;
