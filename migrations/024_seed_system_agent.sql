@@ -14,12 +14,15 @@
 -- preimage authenticates nothing) to satisfy stricter NOT NULL shapes.
 -- Prod's missing system agent is a separate, pre-existing gap needing a tenant
 -- decision — tracked in the WI-1848 handback, deliberately NOT seeded here.
+-- Panel hardening: the insert uses ONLY columns present in every known agents
+-- shape (prod + 000) — the tenant guard selects the environment, the column
+-- list no longer assumes it. The token_hash placeholder is deliberately
+-- non-hash-shaped: no computed credential hash can ever equal it.
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM tenants WHERE id = 'default') THEN
-    INSERT INTO agents (id, name, description, token_hash, role, tenant_id)
-    VALUES ('system', 'System', 'Internal system actor for audit/ops events',
-            md5(random()::text || clock_timestamp()::text), 'system', 'default')
+    INSERT INTO agents (id, name, token_hash, role, tenant_id)
+    VALUES ('system', 'System', 'seed-placeholder-not-a-credential', 'system', 'default')
     ON CONFLICT (id) DO NOTHING;
   END IF;
 END $$;
