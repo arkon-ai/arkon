@@ -81,12 +81,14 @@ if [ "$MODE" = "selftest" ]; then
     echo "::error title=Migration dry-run self-test FAILED::the seeded 024-shaped migration applied cleanly — this job would NOT have caught the 2026-07-18 incident class. Do not trust the green above."
     exit 1
   fi
-  if ! grep -q '999_ci_selftest_024_shape' "$WORK/migrate.log"; then
-    echo "::error title=Self-test aborted for the wrong reason::migrate.ts failed before reaching the seeded fixture — inspect the log above."
+  if ! grep -q 'FAILED on 999_ci_selftest_024_shape' "$WORK/migrate.log"; then
+    echo "::error title=Self-test aborted for the wrong reason::migrate.ts did not fail ON the seeded fixture (a mere mention elsewhere does not count) — inspect the log above."
     exit 1
   fi
   echo "SELF-TEST PASS: migrator aborted on the seeded 024-shaped migration (rc=${rc}) — the dry-run catches the incident class."
 else
-  DATABASE_URL="$DB_URL" npx tsx "$ROOT/scripts/migrate.ts"
+  # Pin cwd: migrate.ts discovers migrations from process.cwd()/migrations — an off-root
+  # invocation would apply the wrong (or an empty) set and false-green the gate.
+  ( cd "$ROOT" && DATABASE_URL="$DB_URL" npx tsx "$ROOT/scripts/migrate.ts" )
   echo "PASS: pending migration set applies cleanly against the prod schema snapshot."
 fi

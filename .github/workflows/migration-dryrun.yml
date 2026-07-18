@@ -59,29 +59,50 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Use prod snapshot from the base ref (PRs cannot self-attest)
-        if: github.event_name == 'pull_request'
-        run: |
-          git fetch --depth=1 origin "${{ github.base_ref }}"
-          git checkout "origin/${{ github.base_ref }}" -- db/prod-snapshot/ || \
-            echo "::warning::db/prod-snapshot missing on base ref — first-landing PR uses its own snapshot"
-
+      # Scan the PR'S OWN committed snapshot BEFORE the base-ref overlay (panel R2, opus):
+      # refresh PRs are exactly the ones introducing new snapshot content — scanning after
+      # the overlay would examine the base's old files and let an unsanitized refresh merge.
       - name: Secret/PII scan of the committed snapshot (schema gunzipped)
         run: |
+          set -euo pipefail
+          # fail CLOSED on missing/empty artifacts (panel R2, composer/grok: grep rc=2 on a
+          # missing file must not read as "clean")
+          test -s db/prod-snapshot/schema.sql.gz
+          test -s db/prod-snapshot/seed.sql
           gunzip -c db/prod-snapshot/schema.sql.gz > /tmp/snapshot-schema.sql
           bad=0
           # value-shaped leaks, not identifiers: quoted email literals, long quoted hex/base64
           # blobs, and password-bearing DDL literals
-          # each probe: match => bad=1; no match (grep rc=1) must not trip the step's bash -e
-          grep -nE "'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql && bad=1 || true
-          grep -nE "'[A-Za-z0-9+/=]{40,}'|'[0-9a-f]{40,}'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql && bad=1 || true
-          grep -niE "PASSWORD +'" /tmp/snapshot-schema.sql && bad=1 || true
-          grep -oE '^INSERT INTO [a-z._]+' db/prod-snapshot/seed.sql | sort -u | grep -vE '^INSERT INTO public\.(_migrations|tenants)$' && bad=1 || true
+          if grep -niE "'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql; then bad=1; fi
+          if grep -nE "'[A-Za-z0-9+/=]{40,}'|'[0-9a-f]{40,}'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql; then bad=1; fi
+          if grep -niE "PASSWORD +'" /tmp/snapshot-schema.sql db/prod-snapshot/seed.sql; then bad=1; fi
+          # seed allowlist must be NON-VACUOUS (panel R2, grok): a COPY-format or empty dump
+          # matching zero INSERT lines is a violation, not a pass — require >=1 INSERT for
+          # EACH allowed table and zero data payloads outside the INSERT form.
+          if ! grep -qiE '^INSERT INTO public\._migrations' db/prod-snapshot/seed.sql; then echo "seed.sql has no _migrations INSERTs (COPY-format or truncated dump?)"; bad=1; fi
+          if ! grep -qiE '^INSERT INTO public\.tenants' db/prod-snapshot/seed.sql; then echo "seed.sql has no tenants INSERTs (COPY-format or truncated dump?)"; bad=1; fi
+          if grep -niE '^COPY ' db/prod-snapshot/seed.sql; then echo "seed.sql carries COPY data payloads"; bad=1; fi
+          if grep -oiE '^INSERT INTO [a-z._"]+' db/prod-snapshot/seed.sql | sort -u | grep -viE '^INSERT INTO public\.(_migrations|tenants)$'; then echo "seed.sql INSERTs outside the allowlist"; bad=1; fi
           if [ "$bad" -ne 0 ]; then
-            echo "::error title=Snapshot sanitization violation::value-shaped secret/PII or out-of-scope INSERT found in db/prod-snapshot — see matches above and db/prod-snapshot/README.md"
+            echo "::error title=Snapshot sanitization violation::value-shaped secret/PII or out-of-scope data payload in db/prod-snapshot — see matches above and db/prod-snapshot/README.md"
             exit 1
           fi
-          echo "snapshot scan clean: no value-shaped secrets/PII; seed INSERTs scoped to _migrations + tenants"
+          echo "snapshot scan clean: artifacts present; no value-shaped secrets/PII; seed INSERTs non-vacuously scoped to _migrations + tenants"
+
+      # Overlay AFTER the scan. Fail CLOSED on any checkout failure; the only legitimate
+      # fail-open is genuine bootstrap — the base ref verifiably has no snapshot yet
+      # (panel R2, grok: a permanent "|| warning" is a self-attestation door).
+      - name: Use prod snapshot from the base ref (PRs cannot self-attest)
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin "${{ github.base_ref }}"
+          if git cat-file -e "origin/${{ github.base_ref }}:db/prod-snapshot/seed.sql" 2>/dev/null; then
+            git checkout "origin/${{ github.base_ref }}" -- db/prod-snapshot/
+            echo "dry-run seed restored from origin/${{ github.base_ref }} (PR cannot self-attest applied migrations)"
+          else
+            echo "::warning::db/prod-snapshot absent on origin/${{ github.base_ref }} — bootstrap PR runs against its own snapshot"
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
