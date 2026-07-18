@@ -243,7 +243,7 @@ async function seedWorkflows() {
   const runsExisting = await pool.query(`SELECT 1 FROM workflow_runs WHERE workflow_id = $1 LIMIT 1`, [workflowId]);
   if ((runsExisting.rowCount ?? 0) === 0) {
     await pool.query(
-      `INSERT INTO workflow_runs (workflow_id, status, triggered_by, tenant_id, step_results, completed_at, created_at)
+      `INSERT INTO workflow_runs (workflow_id, status, triggered_by, tenant_id, step_results, completed_at, started_at)
        VALUES
          ($1, 'completed', 'scheduler', 'transformate', '[]'::jsonb, NOW() - INTERVAL '23 hours', NOW() - INTERVAL '23 hours'),
          ($1, 'failed', 'manual', 'transformate', '[]'::jsonb, NOW() - INTERVAL '2 hours', NOW() - INTERVAL '2 hours')`,

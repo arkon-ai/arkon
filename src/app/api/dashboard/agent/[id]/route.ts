@@ -35,7 +35,7 @@ export async function GET(
 
     // Active sessions
     const sessions = await query(`
-      SELECT session_key, channel_id, started_at, last_active, message_count
+      SELECT session_key, channel_id, created_at AS started_at, last_active, message_count
       FROM sessions
       WHERE agent_id = $1
       ORDER BY last_active DESC

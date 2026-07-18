@@ -134,6 +134,9 @@ CREATE TABLE IF NOT EXISTS workflows (
   updated_at TIMESTAMPTZ
 );
 
+-- WI-1848 (2026-07-18): started_at (not created_at) is the live prod column —
+-- this table predates 000 on prod, so 000's original created_at shape only ever
+-- materialized on from-scratch DBs, breaking every route that reads started_at.
 CREATE TABLE IF NOT EXISTS workflow_runs (
   id SERIAL PRIMARY KEY,
   workflow_id INTEGER REFERENCES workflows(id) ON DELETE CASCADE,
@@ -143,7 +146,7 @@ CREATE TABLE IF NOT EXISTS workflow_runs (
   step_results JSONB DEFAULT '[]',
   error TEXT,
   completed_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  started_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -192,17 +195,22 @@ CREATE TABLE IF NOT EXISTS tasks (
   updated_at TIMESTAMPTZ
 );
 
+-- WI-1848 (2026-07-18): aligned to the live prod shape (this table also
+-- predates 000 on prod). The old input/output/status/session_key shape was
+-- referenced nowhere; analytics/overview reads result_summary, which only
+-- existed on prod — from-scratch DBs 500'd the analytics route.
 CREATE TABLE IF NOT EXISTS tool_calls (
-  id SERIAL PRIMARY KEY,
-  agent_id TEXT REFERENCES agents(id) ON DELETE CASCADE,
+  id BIGSERIAL PRIMARY KEY,
+  event_id BIGINT,
+  agent_id TEXT NOT NULL REFERENCES agents(id),
   tool_name TEXT NOT NULL,
-  input JSONB,
-  output JSONB,
-  status TEXT DEFAULT 'completed',
+  arguments_summary TEXT,
+  result_summary TEXT,
   duration_ms INTEGER,
-  session_key TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_tool_calls_agent ON tool_calls(agent_id, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS subagent_runs (
   id SERIAL PRIMARY KEY,
