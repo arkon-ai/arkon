@@ -497,8 +497,18 @@ const AGENT_METADATA = {
   role: "primary",
 };
 
+/**
+ * The same row, but with a secret smuggled under an ALLOWLISTED key. Allowlisting
+ * the key name alone would forward this verbatim — the R9 leak one key sideways
+ * (panel R12: grok Major).
+ */
+const AGENT_METADATA_NESTED = {
+  model: "claude-opus-4-8",
+  instance: { ssh: { host: "10.0.0.1", user: "brynn", keyPath: KEY_PATH } },
+};
+
 /** beforeEach's mock returns no agent rows; the projection needs one to project. */
-function withAgentRow() {
+function withAgentRow(metadata: unknown = AGENT_METADATA) {
   mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
     if (String(sql).includes("JOIN user_sessions")) {
       return { rows: sessionRowsFor(params?.[0]) } as never;
@@ -509,7 +519,7 @@ function withAgentRow() {
           {
             id: "agent-a",
             name: "lumina",
-            metadata: AGENT_METADATA,
+            metadata,
             tenant_id: "tenant-a",
           },
         ],
@@ -541,6 +551,23 @@ describe("dashboard overview metadata projection", () => {
     for (const secret of [KEY_PATH, "hunter2-connectivity", "tok-should-never-ship"]) {
       expect(serialized, `leaked ${secret}`).not.toContain(secret);
     }
+  });
+
+  it("drops a non-scalar smuggled under an allowlisted key", async () => {
+    withAgentRow(AGENT_METADATA_NESTED);
+
+    const res = await getOverview(
+      request("https://arkon.test/api/dashboard/overview", {
+        cookies: { mc_auth: "admin-a-session" },
+      })
+    );
+    const body = await res.json();
+
+    // Allowlisting the KEY is not the whole contract: `instance` is permitted,
+    // but an OBJECT under it is not, or the ssh block just moves one key
+    // sideways and ships anyway.
+    expect(body.agents[0].metadata).toEqual({ model: "claude-opus-4-8" });
+    expect(JSON.stringify(body)).not.toContain(KEY_PATH);
   });
 
   it("passes through the four keys the dashboard actually renders", async () => {

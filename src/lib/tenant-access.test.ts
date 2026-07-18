@@ -111,6 +111,22 @@ describe("resolveTenantAccess", () => {
     expect(access).toBeNull();
   });
 
+  it("pins a BOUND owner on the client-portal call shape too, not just the dashboard", async () => {
+    // The R7 pin lives at the shared resolver, so it governs /api/client/* and
+    // /api/notifications/* as well — routes that call this WITHOUT
+    // dashboardTenantScope and without allowOwnerWildcard. The pre-existing
+    // owner-hint test mocks `rows: []`, so it exercises the UNBOUND admin token
+    // and stays green either way; nothing pinned what a BOUND owner sees on the
+    // portal (panel R12: opus Major). Pinned here so a later refactor cannot
+    // quietly restore cross-tenant switching for that principal.
+    ownerASession();
+    const access = await resolveTenantAccess(
+      req({ cookies: { mc_auth: "owner-a-session", mc_tenant: "tenant-b" } }),
+      {} // no allowOwnerWildcard — the client-portal call shape
+    );
+    expect(access?.tenantId).toBe("tenant-a");
+  });
+
   it("does not resolve a scope for a non-owner whose own binding is the '*' sentinel", async () => {
     // grok filed the "*"-as-tenant-id overload as Major (panel R10) with an
     // `admin` trigger. The trigger does not hold, and this is where it dies: "*"
