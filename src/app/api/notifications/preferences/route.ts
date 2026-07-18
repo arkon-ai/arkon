@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { getClientIp, logAudit } from "@/lib/audit";
 import { resolveTenantAccess } from "@/lib/tenant-access";
-import { resolveRequestCredential } from "@/lib/request-auth";
+import { resolveRequestCredential, csrfValidForCookieAuth } from "@/lib/request-auth";
 
 const SECRET_KEYS = new Set([
   "bot_token",
@@ -54,9 +54,13 @@ export async function GET(req: NextRequest) {
  * Body: { channel: string, enabled: boolean, config: object }
  */
 export async function PUT(req: NextRequest) {
-  // WI-1849: same 401/403 split + owner-wildcard fallback as GET above.
+  // WI-1849: same 401/403 split + owner-wildcard fallback as GET above,
+  // plus the double-submit CSRF gate for cookie sessions.
   const credential = await resolveRequestCredential(req);
   if (!credential) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!csrfValidForCookieAuth(req)) {
+    return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
+  }
   const access = await resolveTenantAccess(req, { minimumRole: "admin" });
   const tenantId = access?.tenantId ?? (credential.role === "owner" ? "default" : null);
   if (!tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

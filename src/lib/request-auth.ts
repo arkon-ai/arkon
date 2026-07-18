@@ -114,6 +114,11 @@ export function isNonBrowserCredential(credential: RequestCredential): boolean {
  * Double-submit CSRF check for state-changing routes (WI-1849).
  * Only cookie-session requests carry ambient authority — Bearer-token
  * requests (admin/agent/api-key) are CSRF-exempt by construction.
+ * INVARIANT: the Bearer exemption is safe because extractRequestToken()
+ * short-circuits Bearer over the mc_auth cookie — a present-but-junk Bearer
+ * fails auth outright and can never fall through to cookie credentials. If
+ * that precedence ever changes, this exemption must key on the RESOLVED
+ * credential type instead.
  * Returns true when the request is safe to mutate.
  */
 export function csrfValidForCookieAuth(req: NextRequest): boolean {

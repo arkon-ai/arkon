@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { forbidden, unauthorized, validateRole, resolveUser } from "@/app/api/tools/_utils";
+import { csrfValidForCookieAuth } from "@/lib/request-auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 
 // GET /api/admin/agents — list all agents with role and tenant info
@@ -147,6 +148,10 @@ export async function PATCH(req: NextRequest) {
   const role = await validateRole(req, "owner");
   if (!role) return unauthorized();
   if (role !== "owner") return forbidden("Owner only");
+  // WI-1849: cookie-session mutations need the double-submit CSRF token.
+  if (!csrfValidForCookieAuth(req)) {
+    return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
+  }
 
   const body = await req.json() as {
     id?: string;

@@ -68,8 +68,9 @@ describe("notification preferences auth", () => {
   it("stores preference updates under the authenticated tenant instead of a forged cookie tenant", async () => {
     const res = await PUT(request("/api/notifications/preferences", {
       method: "PUT",
-      cookies: { mc_auth: "tenant-admin-session", mc_tenant: "tenant-b" },
-      headers: { "content-type": "application/json" },
+      // WI-1849: cookie-session mutations now need the double-submit CSRF pair.
+      cookies: { mc_auth: "tenant-admin-session", mc_tenant: "tenant-b", mc_csrf: "csrf-test-token" },
+      headers: { "content-type": "application/json", "x-csrf-token": "csrf-test-token" },
       body: JSON.stringify({ channel: "slack", enabled: true, config: { webhook_url: "https://hooks.example/secret" } }),
     }));
 
@@ -81,8 +82,9 @@ describe("notification preferences auth", () => {
   it("sends test notifications using the authenticated tenant's config", async () => {
     const res = await testNotification(request("/api/notifications/test", {
       method: "POST",
-      cookies: { mc_auth: "tenant-admin-session", mc_tenant: "tenant-b" },
-      headers: { "content-type": "application/json" },
+      // WI-1849: cookie-session mutations now need the double-submit CSRF pair.
+      cookies: { mc_auth: "tenant-admin-session", mc_tenant: "tenant-b", mc_csrf: "csrf-test-token" },
+      headers: { "content-type": "application/json", "x-csrf-token": "csrf-test-token" },
       body: JSON.stringify({ channel: "slack" }),
     }));
 

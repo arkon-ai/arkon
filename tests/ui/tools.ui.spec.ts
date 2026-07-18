@@ -177,11 +177,11 @@ test.describe("MCP Servers Page UI", () => {
     await expect(browse.first()).toBeVisible({ timeout: 5000 });
   });
 
-  test("MCP page shows server count in the All tab @regression", async ({ page }) => {
+  test("MCP page shows the Connected KPI cell @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/integrations/mcp`);
     await page.waitForLoadState("domcontentloaded");
-    const count = page.locator("text=/All · \\d+/");
-    await expect(count.first()).toBeVisible({ timeout: 5000 });
+    const kpi = page.locator("text=Connected");
+    await expect(kpi.first()).toBeVisible({ timeout: 5000 });
   });
 
   test("MCP page has status filter tabs (All, Live, Idle, Issues) @regression", async ({ page }) => {
