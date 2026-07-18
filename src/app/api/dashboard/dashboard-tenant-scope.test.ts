@@ -41,8 +41,16 @@ function callFor(fragment: string) {
 
 /** Rows for the credential lookups resolveRequestCredential walks, by token. */
 function sessionRowsFor(tokenHash: unknown) {
+  // The ordinary tenant-scoped operator: bound to tenant-a and above the role
+  // floor, so it is the principal the scoping tests below exercise.
+  if (tokenHash === hash("admin-a-session")) {
+    return [{ id: 1, email: "a@example.com", role: "admin", tenant_id: "tenant-a" }];
+  }
+  // Same binding, below the floor: request-auth maps `tenant_user` to "viewer",
+  // and these aggregates expose a.metadata (ssh host/user/keyPath), so this one
+  // must be refused outright rather than scoped (panel R7).
   if (tokenHash === hash("viewer-a-session")) {
-    return [{ id: 1, email: "a@example.com", role: "viewer", tenant_id: "tenant-a" }];
+    return [{ id: 6, email: "ro@example.com", role: "viewer", tenant_id: "tenant-a" }];
   }
   // A viewer whose own tenant_id is the "*" sentinel — the value domain
   // resolveTenantAccess uses for "fleet wide".
@@ -119,7 +127,7 @@ describe("dashboard overview tenant scoping", () => {
   it("pins a tenant-scoped caller to its OWN tenant despite a forged tenant_id + cookie", async () => {
     const res = await getOverview(
       request("https://arkon.test/api/dashboard/overview?tenant_id=tenant-b", {
-        cookies: { mc_auth: "viewer-a-session", mc_tenant: "tenant-b" },
+        cookies: { mc_auth: "admin-a-session", mc_tenant: "tenant-b" },
       })
     );
 
@@ -134,7 +142,7 @@ describe("dashboard overview tenant scoping", () => {
   it("never returns the fleet-wide tenants roster to a tenant-scoped caller", async () => {
     await getOverview(
       request("https://arkon.test/api/dashboard/overview", {
-        cookies: { mc_auth: "viewer-a-session" },
+        cookies: { mc_auth: "admin-a-session" },
       })
     );
 
@@ -209,6 +217,32 @@ describe("dashboard overview tenant scoping", () => {
     expect(res.status).toBe(401);
     expect(
       mockQuery.mock.calls.some(([sql]) => String(sql).includes("FROM tenants"))
+    ).toBe(false);
+  });
+
+  it("refuses a bound tenant VIEWER — bound is not the same as entitled", async () => {
+    // Unlike the two 401s above, this one is NOT resolveTenantAccess's: a bound
+    // viewer resolves fine and reaches dashboardTenantScope, which is the only
+    // thing standing between a read-only tenant_user and every agent's ssh
+    // connectivity metadata. Deleting the role floor leaves the rest of this
+    // suite green (the scoping tests use an admin), so this is the one test that
+    // fails for it — hence the positive control that the session really resolved.
+    const res = await getOverview(
+      request("https://arkon.test/api/dashboard/overview", {
+        cookies: { mc_auth: "viewer-a-session" },
+      })
+    );
+
+    expect(res.status).toBe(401);
+    expect(
+      mockQuery.mock.calls.some(
+        ([sql, params]) =>
+          String(sql).includes("JOIN user_sessions") &&
+          (params as unknown[] | undefined)?.[0] === hash("viewer-a-session")
+      )
+    ).toBe(true);
+    expect(
+      mockQuery.mock.calls.some(([sql]) => String(sql).includes("SELECT a.id, a.name, a.metadata"))
     ).toBe(false);
   });
 
@@ -310,7 +344,7 @@ describe("dashboard overview tenant scoping", () => {
     // value itself.
     await getOverview(
       request("https://arkon.test/api/dashboard/overview?tenant_id=*", {
-        cookies: { mc_auth: "viewer-a-session", mc_tenant: "*" },
+        cookies: { mc_auth: "admin-a-session", mc_tenant: "*" },
       })
     );
 
@@ -334,7 +368,7 @@ describe("dashboard overview/recent tenant scoping", () => {
   it("scopes events to the caller's tenant through the agents join", async () => {
     const res = await getRecent(
       request("https://arkon.test/api/dashboard/overview/recent?limit=5", {
-        cookies: { mc_auth: "viewer-a-session", mc_tenant: "tenant-b" },
+        cookies: { mc_auth: "admin-a-session", mc_tenant: "tenant-b" },
       })
     );
 

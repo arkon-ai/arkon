@@ -23,6 +23,17 @@ function viewerASession() {
   });
 }
 
+// An owner-role user whose own record binds it to tenant-a — the escalation
+// shape: fleet-grade role, tenant-grade binding.
+function ownerASession() {
+  mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
+    if (String(sql).includes("JOIN user_sessions") && (params as unknown[])?.[0] === hash("owner-a-session")) {
+      return { rows: [{ id: 8, email: "o@a.test", role: "owner", tenant_id: "tenant-a" }] } as never;
+    }
+    return { rows: [] } as never;
+  });
+}
+
 function req(opts: { url?: string; bearer?: string; cookies?: Record<string, string> }) {
   const headers = opts.bearer ? { authorization: `Bearer ${opts.bearer}` } : undefined;
   const r = new NextRequest(opts.url ?? "https://arkon.test/api/x", headers ? { headers } : undefined);
@@ -47,6 +58,26 @@ describe("resolveTenantAccess", () => {
     expect(access).not.toBeNull();
     expect(access?.credential.role).toBe("viewer");
     expect(access?.tenantId).toBe("tenant-a"); // NOT tenant-b
+  });
+
+  // The resolver is the SHARED choke point: /api/client/{agents,costs,dashboard,
+  // api-keys} and /api/notifications/* consume its tenantId directly, with no
+  // dashboardTenantScope in the path. So a bound owner escaping its binding here
+  // is a cross-tenant read on all of them, not just the dashboard (panel R7).
+  it("pins a tenant-BOUND owner to its own tenant despite a forged hint", async () => {
+    ownerASession();
+    for (const url of [
+      "https://arkon.test/api/x?tenant_id=tenant-b",
+      "https://arkon.test/api/x",
+    ]) {
+      const access = await resolveTenantAccess(
+        req({ url, cookies: { mc_auth: "owner-a-session", mc_tenant: "tenant-b" } }),
+        { allowOwnerWildcard: true },
+      );
+      expect(access?.credential.role).toBe("owner");
+      // NOT tenant-b, and NOT "*" — allowOwnerWildcard must not widen a binding.
+      expect(access?.tenantId).toBe("tenant-a");
+    }
   });
 
   it("an owner with a tenant hint resolves to the hinted tenant", async () => {
@@ -96,9 +127,35 @@ describe("dashboardTenantScope", () => {
   }
 
   it("pins a bound credential to its own tenant, ignoring the resolved hint", () => {
+    // role "admin" because the bind branch carries a role floor (see the floor
+    // test below); the point under test here is the tenant, not the role.
     expect(
-      dashboardTenantScope(access({ tenant_id: "tenant-a" }, "tenant-b"))
+      dashboardTenantScope(access({ role: "admin", tenant_id: "tenant-a" }, "tenant-b"))
     ).toBe("tenant-a");
+  });
+
+  it("refuses a bound tenant VIEWER — these aggregates carry ssh connectivity metadata", () => {
+    // The base WI-1846 fix widened this surface from admin-token-only to any
+    // allowlisted credential type, which handed a read-only tenant_user the
+    // agent roster including a.metadata (ssh host/user/keyPath). The floor is
+    // what keeps the widening to WHICH tenant, not WHO (panel R7: opus + grok).
+    expect(dashboardTenantScope(access({ role: "viewer", tenant_id: "tenant-a" }))).toBeNull();
+    expect(dashboardTenantScope(access({ role: "agent", tenant_id: "tenant-a" }))).toBeNull();
+    // ...but a tenant admin or owner keeps its own tenant's operator view.
+    expect(dashboardTenantScope(access({ role: "admin", tenant_id: "tenant-a" }))).toBe("tenant-a");
+    expect(dashboardTenantScope(access({ role: "owner", tenant_id: "tenant-a" }))).toBe("tenant-a");
+  });
+
+  it("refuses an admin token whose resolved scope is empty or blank", () => {
+    // access.tenantId is the one client-derived string this function returns
+    // verbatim. "" must deny, not authorize a `tenant_id = ''` filter — or skip
+    // filtering entirely in a fail-open caller (panel R7: composer + grok).
+    expect(
+      dashboardTenantScope(access({ type: "owner_token", role: "owner", tenant_id: "*" }, ""))
+    ).toBeNull();
+    expect(
+      dashboardTenantScope(access({ type: "owner_token", role: "owner", tenant_id: "*" }, "   "))
+    ).toBeNull();
   });
 
   it("pins a BOUND OWNER too, whatever the hint resolved to", () => {

@@ -57,19 +57,37 @@ export const DASHBOARD_CREDENTIALS: ReadonlySet<RequestCredential["type"]> = new
 export function dashboardTenantScope(access: TenantAccess): string | null {
   if (!DASHBOARD_CREDENTIALS.has(access.credential.type)) return null;
 
-  // Bind BEFORE role: a credential with a real tenant_id is pinned to it no
-  // matter its role. Reordering these two blocks reintroduces the R4 CRITICAL.
-  // Only null/undefined/"*" count as unbound — "" is a garbage row, not a
-  // licence to widen (panel R6), so it falls to the reject at the bottom.
+  // Bind BEFORE role: WHICH tenant is decided by the credential's own record,
+  // never by its role — reordering these blocks reintroduces the R4 CRITICAL.
+  // (The floor inside the branch can only reject, never redirect.) Only
+  // null/undefined/"*" count as unbound — "" is a garbage row, not a licence to
+  // widen (panel R6), so it falls to the reject at the bottom.
   const bound = access.credential.tenant_id;
-  if (bound && bound !== "*") return bound;
+  if (bound && bound !== "*") {
+    // The pin decides which tenant; this floor decides whether the caller may
+    // read this surface at all. These aggregates carry `a.metadata`, which holds
+    // each agent's connectivity block — ssh host, user and key path (see
+    // /api/agents/register) — and the surface was admin-token-only before
+    // WI-1846. A `tenant_user` (which request-auth maps to role "viewer") must
+    // not inherit fleet-operator detail merely by being bound (panel R7: opus +
+    // grok, converging). A tenant admin still gets its own tenant's view, so
+    // nobody who could reach this endpoint before the WI loses access.
+    return roleAtLeast(access.credential.role, "admin") ? bound : null;
+  }
   if (bound !== null && bound !== undefined && bound !== "*") return null;
 
   // Unbound. The fleet admin token narrows via ?tenant_id= (access.tenantId);
   // an unbound owner-role USER has no boundary to cross. Anything else has no
   // scope we can prove, so reject — an absent binding must never DEFAULT to the
   // widest one (WI-1846, panel R5: all three lanes).
-  if (access.credential.type === "owner_token") return access.tenantId;
+  if (access.credential.type === "owner_token") {
+    // access.tenantId is the only client-derived string that reaches a return
+    // here. "" would read as authorized and filter on `tenant_id = ''` — or skip
+    // the filter entirely in a caller that treats a non-null scope as "narrow
+    // only if truthy" — so prove it before handing it back (panel R7: composer +
+    // grok, converging).
+    return access.tenantId.trim() === "" ? null : access.tenantId;
+  }
   return access.credential.role === "owner" ? "*" : null;
 }
 
@@ -85,6 +103,18 @@ export async function resolveTenantAccess(
   if (!credential) return null;
   if (options.minimumRole && !roleAtLeast(credential.role, options.minimumRole)) return null;
 
+  // A credential bound to a real tenant is pinned to it HERE, at the shared
+  // choke point, before any hint is read. Both hints below are client-owned
+  // (`?tenant_id=`, and `mc_tenant` is set httpOnly:false), so honouring them for
+  // a BOUND owner let that owner reach every other tenant on every route using
+  // this resolver. Pinning inside dashboardTenantScope fixed the dashboard only:
+  // /api/client/{agents,costs,dashboard,api-keys} and /api/notifications/* call
+  // this resolver WITHOUT that helper and stayed exposed (panel R7: grok Major).
+  // Unbound principals are untouched — the fleet owner keeps the tenant switcher.
+  if (credential.tenant_id && credential.tenant_id !== "*") {
+    return { credential, tenantId: credential.tenant_id };
+  }
+
   const hintedTenant =
     req.nextUrl.searchParams.get("tenant_id") ??
     req.cookies.get("mc_tenant")?.value ??
@@ -98,6 +128,8 @@ export async function resolveTenantAccess(
     return { credential, tenantId: "*" };
   }
 
-  if (!credential.tenant_id || credential.tenant_id === "*") return null;
-  return { credential, tenantId: credential.tenant_id };
+  // Unbound and not an owner: nothing above resolved a scope, and the binding
+  // that used to be consulted here is already handled by the pin above — by this
+  // line `tenant_id` is only ever falsy or "*". Fail closed.
+  return null;
 }
