@@ -115,8 +115,9 @@ curl -X POST https://your-arkon-url/api/ingest \
 
 Overview data for the main dashboard — agents, today's stats, tenants.
 
-**Auth:** Any authenticated user session or API key (agent tokens are rejected —
-this is an operator surface, not an ingest one).
+**Auth:** An authenticated user session, or the fleet admin token. Agent tokens
+and API keys are both rejected — this is an operator surface, not an ingest one,
+and every API key is minted with the `agent` role.
 
 Tenant-scoped, and the scope comes from the credential's own record, never from
 the request. A credential bound to a tenant sees only that tenant's agents, stats

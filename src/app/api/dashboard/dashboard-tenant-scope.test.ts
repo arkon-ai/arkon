@@ -172,21 +172,27 @@ describe("dashboard overview tenant scoping", () => {
     }
   });
 
-  it("scopes a tenant-bound api_key to its own tenant, ignoring ?tenant_id=", async () => {
-    // api_key is on DASHBOARD_CREDENTIALS, so this surface is reachable with one.
-    // Pin what it gets: its OWN tenant, never the hint's, never the fleet.
+  it("rejects a valid tenant-bound api_key — ingest-grade, not operator", async () => {
+    // API.md admitted API keys to this surface until panel R6. resolveRequestCredential
+    // mints every api_key with role "agent", so admitting them handed a tenant's
+    // ingest key the same roster + metadata + cost payload agent_token was
+    // excluded to protect. The key below is REAL and resolves to tenant-a.
     const res = await getOverview(
-      request("https://arkon.test/api/dashboard/overview?tenant_id=tenant-b", {
+      request("https://arkon.test/api/dashboard/overview", {
         bearer: "ak_live_key-a",
       })
     );
 
-    expect(res.status).toBe(200);
-    for (const [label, fragment, predicate] of SCOPED_AGGREGATES) {
-      const call = callFor(fragment);
-      expect(String(call[0]), label).toContain(predicate);
-      expect(call[1], label).toEqual(["tenant-a"]);
-    }
+    expect(res.status).toBe(401);
+    // Positive control, same shape as the agent-token test: prove the key
+    // actually resolved, so this is an allowlist rejection and not an
+    // unrecognized-token 401 that would pass with the allowlist deleted.
+    expect(
+      mockQuery.mock.calls.some(([sql]) => String(sql).includes("FROM api_keys"))
+    ).toBe(true);
+    expect(
+      mockQuery.mock.calls.some(([sql]) => String(sql).includes("FROM tenants"))
+    ).toBe(false);
   });
 
   it("refuses a tenant-less non-owner instead of handing it the fleet", async () => {
