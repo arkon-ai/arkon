@@ -66,9 +66,14 @@ gitleaks detect --no-git -s db/prod-snapshot 2>/dev/null || echo "run gitleaks i
 # 4. Gzip the schema (sanitized-plaintext -> committed artifact), keep seed.sql plaintext
 gzip -9 -n -f db/prod-snapshot/schema.sql   # produces schema.sql.gz
 
-# 5. Commit on the deploy's branch/PR
+# 5. Commit — in a SNAPSHOT-ONLY PR
 git add db/prod-snapshot && git commit -m "chore(db): refresh prod schema snapshot (transformate WI-2075)"
 ```
+
+**One PR rule:** a refresh PR must not also touch `migrations/*.sql` — CI refuses the
+combination outright (a snapshot changed alongside migrations could pre-attest the very
+migrations under test). Refreshes ride alone; snapshot-only PRs are dry-run against
+their own (scanned) content, migration PRs against the base ref's snapshot.
 
 **No fleet cron on purpose:** WI-2075 deliberately keeps refresh manual-in-runbook +
 CI staleness warning. If refresh toil proves real, file a follow-up proposal WI citing
