@@ -41,6 +41,9 @@ CREATE TABLE IF NOT EXISTS events (
 
 CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at DESC);
 
+-- WI-1848 (2026-07-18): started_at (not created_at) is the live prod column —
+-- same class as workflow_runs below (table predates 000 on prod; the old shape
+-- only ever materialized on from-scratch DBs).
 CREATE TABLE IF NOT EXISTS sessions (
   id SERIAL PRIMARY KEY,
   agent_id TEXT REFERENCES agents(id) ON DELETE CASCADE,
@@ -48,7 +51,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   channel_id TEXT,
   last_active TIMESTAMPTZ,
   message_count INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
+  started_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(agent_id, session_key)
 );
 
