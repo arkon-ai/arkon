@@ -54,6 +54,10 @@ function sessionRowsFor(tokenHash: unknown) {
   if (tokenHash === hash("owner-role-session")) {
     return [{ id: 3, email: "own@example.com", role: "owner", tenant_id: "tenant-a" }];
   }
+  // An owner with no tenant binding at all — the genuine fleet owner shape.
+  if (tokenHash === hash("owner-unbound-session")) {
+    return [{ id: 4, email: "fleet@example.com", role: "owner", tenant_id: null }];
+  }
   return [];
 }
 
@@ -157,23 +161,54 @@ describe("dashboard overview tenant scoping", () => {
     expect(res.status).toBe(401);
   });
 
-  it("pins a role:'owner' user session to its own tenant when logged in normally", async () => {
-    // allowOwnerWildcard keys off credential.role, not credential.type, so this
-    // is the branch that decides scoped vs unscoped for user sessions. /api/auth/
-    // login always sets mc_tenant to the user's own tenant_id, and that hint wins
-    // over the wildcard — so the real browser flow for a tenant-bound owner stays
-    // scoped. Only an owner with NO tenant_id (mc_tenant="*") goes fleet-wide,
-    // and only an existing owner can mint an owner (api/auth/register:14).
+  /* The escalation the panel converged on (grok CRITICAL / opus Major, R4):
+     resolveTenantAccess grants the wildcard on role and lets a hint redirect an
+     owner — but mc_tenant is httpOnly:false, so the client owns that hint. A
+     tenant-bound owner-role session must therefore be pinned by its DB record,
+     no matter what hint it sends or withholds. All three vectors below returned
+     the whole fleet before dashboardTenantScope existed. */
+  const OWNER_ROLE_ESCALATION = [
+    ["deleting the mc_tenant cookie", "https://arkon.test/api/dashboard/overview", {}],
+    [
+      "setting mc_tenant=*",
+      "https://arkon.test/api/dashboard/overview",
+      { mc_tenant: "*" },
+    ],
+    [
+      "asking for another tenant by query",
+      "https://arkon.test/api/dashboard/overview?tenant_id=tenant-b",
+      { mc_tenant: "tenant-a" },
+    ],
+  ] as const;
+
+  for (const [vector, url, extraCookies] of OWNER_ROLE_ESCALATION) {
+    it(`pins a tenant-bound role:'owner' session to its own tenant despite ${vector}`, async () => {
+      const res = await getOverview(
+        request(url, {
+          cookies: { mc_auth: "owner-role-session", ...extraCookies },
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const call = callFor("FROM tenants");
+      expect(String(call[0])).toContain("WHERE id = $1");
+      expect(call[1]).toEqual(["tenant-a"]);
+    });
+  }
+
+  it("still gives an unbound owner-role session the fleet-wide view", async () => {
+    // The deliberate residual: an owner-role user with NO tenant_id has no tenant
+    // boundary to cross, and only an existing owner can create one
+    // (/api/auth/register:14). Pinned so the escalation fix above cannot quietly
+    // become a 401 for the fleet owner's own login.
     const res = await getOverview(
       request("https://arkon.test/api/dashboard/overview", {
-        cookies: { mc_auth: "owner-role-session", mc_tenant: "tenant-a" },
+        cookies: { mc_auth: "owner-unbound-session" },
       })
     );
 
     expect(res.status).toBe(200);
-    const call = callFor("FROM tenants");
-    expect(String(call[0])).toContain("WHERE id = $1");
-    expect(call[1]).toEqual(["tenant-a"]);
+    expect(String(callFor("FROM tenants")[0])).not.toContain("WHERE id = $1");
   });
 
   it("rejects an agent token even though it resolves to a real tenant", async () => {

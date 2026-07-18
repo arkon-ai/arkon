@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { unauthorized } from "@/app/api/tools/_utils";
-import { resolveTenantAccess, DASHBOARD_CREDENTIALS } from "@/lib/tenant-access";
+import { resolveTenantAccess, dashboardTenantScope } from "@/lib/tenant-access";
 
 export async function GET(req: NextRequest) {
   // Same tenant scoping as the parent overview route (WI-1846) — events carry
   // no tenant_id, so they are scoped through the agents join.
   const access = await resolveTenantAccess(req, { allowOwnerWildcard: true });
-  if (!access || !DASHBOARD_CREDENTIALS.has(access.credential.type)) {
+  const tenantId = access && dashboardTenantScope(access);
+  if (!tenantId) {
     return unauthorized();
   }
 
-  const scoped = access.tenantId !== "*";
+  const scoped = tenantId !== "*";
 
   // Clamp both ends: an unparseable or negative limit used to reach Postgres as
   // NaN/-1 and come back a 500 (panel R1).
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
        ${scoped ? "WHERE a.tenant_id = $2" : ""}
        ORDER BY e.created_at DESC
        LIMIT $1`,
-      scoped ? [limit, access.tenantId] : [limit]
+      scoped ? [limit, tenantId] : [limit]
     );
 
     // Per-principal since WI-1846 — see the parent overview route.

@@ -116,10 +116,14 @@ curl -X POST https://your-arkon-url/api/ingest \
 Overview data for the main dashboard — agents, today's stats, tenants.
 
 **Auth:** Any authenticated user session or API key (agent tokens are rejected —
-this is an operator surface, not an ingest one). Tenant-scoped: the fleet owner
-sees every tenant; any other credential sees only its own tenant's agents,
-stats and tenant record. `?tenant_id=` narrows the view for the fleet owner
-only — it cannot widen a tenant-scoped caller's scope.
+this is an operator surface, not an ingest one).
+
+Tenant-scoped, and the scope comes from the credential's own record, never from
+the request. A credential bound to a tenant sees only that tenant's agents, stats
+and tenant record — `?tenant_id=` and the `mc_tenant` cookie cannot move it, not
+even for a user whose role is `owner`. The fleet-wide view is reachable only by
+the fleet admin token, or by an `owner` user with no tenant binding at all.
+`?tenant_id=` narrows the fleet admin token's view; it can never widen anyone's.
 
 `GET /api/dashboard/overview/recent` carries the same auth and scoping; its
 events are scoped through the `agents` join, since `events` has no `tenant_id`.
