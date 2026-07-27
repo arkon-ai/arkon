@@ -1,0 +1,66 @@
+# Reference lefthook.yml — Tier-1 local fast gate (deterministic, no LLM).
+# Adopt in a repo (full steps + the precondition: SKILL.md, "Adopt in a repo"):
+#   0. PRECONDITION — every host that pushes this repo must be able to resolve the gates
+#      (the code-build skill at ~/.claude/skills/code-build, or CODE_BUILD_SKILL_DIR, or the
+#      gates vendored in-repo). The shim fails CLOSED; check this BEFORE installing.
+#   1. copy this file to the repo root
+#   2. mkdir -p .lefthook, copy `run-gate.sh` there, and COMMIT it
+#   3. pin its line endings in .gitattributes:  .lefthook/run-gate.sh text eol=lf
+#      (Git for Windows defaults to core.autocrlf=true; a CRLF checkout makes bash fail on
+#      a carriage return and blocks every push, with nothing in the error to explain why)
+#   4. lefthook install
+# Windows note: the CodeRabbit CLI runs in WSL; lefthook hooks run via git on either shell.
+# Skip a command per repo by deleting it — keep gitleaks + the pre-push gates everywhere.
+#
+# DO NOT put `$VAR`, `${VAR}` or `${VAR:-default}` in a `run:` line. lefthook v2.1.10
+# substitutes variables ITSELF, before any shell sees the string, and it is not a shell:
+# `${VAR:-default}` leaves a literal `:-default` behind, `$$` becomes the PID, `\$` does
+# not escape, and an unset name becomes the empty string — silently. That is
+# transformate WI-2412: the previous version of this file invoked the gates through
+# `${CODE_BUILD_SKILL_DIR:-$HOME/.claude/skills/code-build}` and every repo carrying it
+# got **exit 127** on every push. There is no quoting trick — no shell-side defaulting of
+# any kind survives inside `run:`. All path resolution therefore happens inside
+# `.lefthook/run-gate.sh`, where a real bash evaluates it, and the `run:` lines below are
+# deliberately free of `$`.
+
+pre-commit:
+  parallel: true
+  commands:
+    secret-scan:
+      run: gitleaks protect --staged --redact --no-banner
+      fail_text: "Secret detected in staged changes — commit blocked."
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: npx tsc --noEmit
+
+pre-push:
+  parallel: false   # gate messages must not interleave
+  commands:
+    # v4 PANEL-CORE gate (Brynn doctrine 2026-07-11): block-direct-main, the panel
+    # manifest check, and the adjudication-record check all live in panel-gate.sh — a
+    # ONE-LINER call, because lefthook v2.1.10 on Windows/Git-Bash cannot parse
+    # multi-line `run:` scripts (the 2026-07-10 gate was silently unenforceable here).
+    # Manifest is produced by review-panel.sh (4 lanes: opus + composer-2.5 + grok-4.5 +
+    # sol-5.6; quorum floor opus + >=3 lanes + >=3 distinct vendors). Since RSH-1
+    # (transformate WI-2426) a green manifest is necessary but NOT sufficient: the push
+    # also needs `.review-panel/<sha>/ADJUDICATION.md` beside it, carrying an asserted
+    # CONFIRMED/REFUTED verdict (or `FINDINGS: 0`). That requirement lives in the gate this
+    # shim resolves, so it takes effect on a host once its code-build skill carries it —
+    # this file does not enforce it by itself.
+    # WIP/draft escape: PANEL_OVERRIDE=1 git push (logged).
+    panel-gate:
+      # use_stdin: git's pre-push ref lines must reach panel-gate.sh for per-ref manifest
+      # binding (2026-07-11); without it lefthook may swallow stdin and the gate silently
+      # degrades to HEAD-only. Verify on each host's lefthook. Only panel-gate.sh reads
+      # stdin — wi-gate.sh works from the branch name and commit messages, hence no
+      # use_stdin on its entry below.
+      use_stdin: true
+      run: bash .lefthook/run-gate.sh panel-gate.sh
+    # WI-MANDATORY gate (Brynn doctrine 2026-07-11): ALL work is Helm-WI-backed.
+    # Push must carry a WI ref (wi<NUM>/ branch or tenant-qualified "… WI-NNN"
+    # commit). Only Brynn can bypass (BRYNN_WI_OVERRIDE token, hash-checked,
+    # every use Discord-pinged). Do NOT install in warden-memory.
+    wi-gate:
+      run: bash .lefthook/run-gate.sh wi-gate.sh
+    semgrep:
+      run: semgrep ci --quiet || true   # heavier scan on push only; non-fatal so it informs, doesn't block
