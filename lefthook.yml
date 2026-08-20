@@ -35,6 +35,11 @@ pre-commit:
 
 pre-push:
   parallel: false   # gate messages must not interleave
+  # `priority` is REQUIRED for that promise to hold (transformate WI-2438). With
+  # `parallel: false` and no priorities, lefthook v2.1.10 runs commands in ALPHABETICAL name
+  # order — observed live across the transformate WI-2428 rollout as panel-gate → semgrep →
+  # wi-gate, i.e. semgrep's output landing between the two gates whose messages this block
+  # exists to keep uninterleaved. Explicit priorities make the YAML order the real order.
   commands:
     # v4 PANEL-CORE gate (Brynn doctrine 2026-07-11): block-direct-main, the panel
     # manifest check, and the adjudication-record check all live in panel-gate.sh — a
@@ -55,12 +60,124 @@ pre-push:
       # stdin — wi-gate.sh works from the branch name and commit messages, hence no
       # use_stdin on its entry below.
       use_stdin: true
-      run: bash .lefthook/run-gate.sh panel-gate.sh
+      priority: 1
+      # This `env:` block is LOAD-BEARING — it is the ONLY layer that can close the BASH_ENV
+      # fail-open (transformate WI-2438). A non-interactive bash sources the file named by
+      # $BASH_ENV before the script it was given, so `BASH_ENV=/tmp/x.sh git push` with
+      # `exit 0` in that file made the hook exit 0 having run no gate at all, and lefthook
+      # scored it as a PASS.
+      # Why it must be HERE and not in the `run:` line: lefthook spawns its own shell per
+      # command, and THAT shell sources $BASH_ENV before it parses a single token of `run:`.
+      # Both obvious in-line fixes were measured and both FAILED — `env -u BASH_ENV -u ENV
+      # bash …` inside `run:` still fired the payload, because the payload had already run and
+      # exited by then. `env:` works because lefthook applies it to the process it spawns, so
+      # the shell starts with the name already empty and sources nothing. Verified with a
+      # control in the same run: identical command WITHOUT this block fires the payload and
+      # never reaches the gate; WITH it, the gate runs and the payload does not.
+      # Empty string, not unset: lefthook's env map sets values, and bash treats an empty
+      # BASH_ENV as "no startup file". SHELLOPTS/BASHOPTS are scrubbed alongside it because
+      # `SHELLOPTS=noexec` makes a bash PARSE its script and execute nothing, exiting 0 —
+      # the same one-variable silent pass (measured).
+      # HONEST LIMIT, do not overstate this block: `SHELLOPTS=noexec git push` also neuters
+      # the GIT HOOK SCRIPT that invokes lefthook, so lefthook never runs and none of this
+      # applies — measured: no output at all, exit 0. That bypass is above every layer here
+      # and belongs with `git push --no-verify` in the accepted threat model. What this block
+      # does close is the in-hook path, which is the part we control.
+      # `bash -p` on the run: line is the companion: privileged mode makes the shim's own bash
+      # refuse inherited exported functions (BASH_FUNC_*), which cannot be scrubbed by name
+      # because the attacker picks the name.
+      env:
+        BASH_ENV: ""
+        ENV: ""
+        SHELLOPTS: ""
+        BASHOPTS: ""
+      # ABSOLUTE /usr/bin/env, not a bare command name (transformate WI-2438, sol MAJOR x2 —
+      # confirmed with a control before applying). An exported shell function shadows a bare
+      # name in lefthook's shell: `bash() { return 0; }; export -f bash; git push` made BOTH
+      # gate commands resolve to the function, so neither gate started and both scored PASS.
+      # `gitleaks() { return 0; }` fakes a clean secret scan the same way. Calling through an
+      # absolute path defeats it, because shell function lookup only applies to bare names, and
+      # env then resolves the target as an EXECUTABLE, where functions do not participate.
+      # Applied to the semgrep lane too since transformate WI-3027 — it is a GATE now (it blocks
+      # when its binary is absent) and goes through the same shim, so it gets the same
+      # function-shadowing defence. Still NOT applied to typecheck/lint-staged, which are
+      # informational and invoke npx directly.
+      #
+      # …AND THE INTERPRETER ITSELF IS ABSOLUTE TOO (transformate WI-3032). These lines used to
+      # read `/usr/bin/env bash -p …`, which closed the FUNCTION-shadowing hole the comment
+      # above describes and left the PATH-planting one wide open: `/usr/bin/env` is absolute,
+      # but its whole job is then to look `bash` up in PATH. Measured on hofmi-crm-app —
+      # `PATH=/tmp/evil:$PATH` with a two-line `/tmp/evil/bash` that exits 0 made this exact
+      # run: line report the gate as PASSED without executing one line of it. The entry point
+      # had the same defect as the shims it starts, and the two hardenings are NOT the same:
+      # function lookup applies to bare names, so `env` defeats `bash() { :; }` and does nothing
+      # whatever about a `/tmp/evil/bash` FILE.
+      # `/bin/bash` removes the lookup entirely and keeps the function-lookup property intact.
+      # /bin/bash specifically, not a newer path: run-gate.sh uses no bash-4 feature, and it
+      # re-execs the real gate through its own absolute candidate list. That list prefers
+      # ROOT-OWNED paths (/bin, /usr/bin) over /usr/local and /opt/homebrew, because `brew`
+      # chowns its prefix to the calling user — preferring a caller-writable interpreter for
+      # the review wall is the defect, not the portability fix (panel R1, three vendors).
+      # No portability change against the previous form: `/usr/bin/env` needed the same POSIX
+      # layer `/bin/bash` does.
+      run: /bin/bash -p .lefthook/run-gate.sh panel-gate.sh
     # WI-MANDATORY gate (Brynn doctrine 2026-07-11): ALL work is Helm-WI-backed.
     # Push must carry a WI ref (wi<NUM>/ branch or tenant-qualified "… WI-NNN"
     # commit). Only Brynn can bypass (BRYNN_WI_OVERRIDE token, hash-checked,
     # every use Discord-pinged). Do NOT install in warden-memory.
     wi-gate:
-      run: bash .lefthook/run-gate.sh wi-gate.sh
+      priority: 2
+      # Same BASH_ENV/ENV scrub as panel-gate above — see that comment. Both gates need it;
+      # a gate that can be skipped by one exported variable is not a gate.
+      env:
+        BASH_ENV: ""
+        ENV: ""
+        SHELLOPTS: ""
+        BASHOPTS: ""
+      # Absolute /bin/bash rather than `/usr/bin/env bash` — see the panel-gate lane above
+      # (transformate WI-3032).
+      # This is the lane where the planted-binary bypass was worst: wi-gate.sh hashes the
+      # override token, so a planted PATH entry could forge Brynn's override outright.
+      run: /bin/bash -p .lefthook/run-gate.sh wi-gate.sh
+    # Heavier SAST on push only. BLOCKING whenever the scan produced NO RESULT — an ABSENT
+    # binary, or a scan that ERRORED (exit >=2: bad config, unreachable --config auto registry,
+    # crash, unrunnable stub). Still NON-blocking on findings (transformate WI-3027, 2026-08-19).
+    #
+    # This lane used to be a `run:` chain that ended in `|| echo <message>`, which meant a
+    # MISSING BINARY exited 0 and lefthook drew a green tick beside it. Receipted live on the
+    # deck-arkon W27 arc (ledger 20260819-1830, defect #1): `semgrep: command not found`
+    # immediately followed by `semgrep (0.10 seconds)` ✔️. A static-analysis step that reports
+    # success while its binary is absent reads to a later auditor as a scan that passed.
+    #
+    # The chain could not be fixed in place, for reasons that are structural and not stylistic:
+    # its `||` arm is reached BOTH when semgrep is absent AND when semgrep merely exits
+    # non-zero on findings, so one chain cannot tell those apart (which is why the old message
+    # had to name three outcomes and ask the operator to guess); `|| echo` forces exit 0; and
+    # every shape that would fix it is forbidden in a `run:` line — a compound `if … fi` exits
+    # 2 and FAILS the hook, a quoted message is truncated to its first word, and `$VAR` is
+    # substituted by lefthook itself, so no env knob can be read here at all. The branch
+    # therefore lives in semgrep-gate.sh, reached through the SAME shim as the other two gates,
+    # where exit codes and environment variables behave like they do everywhere else.
+    #
+    # Sanctioned skip, fail-closed by default: `SEMGREP_LANE_SKIP=1 git push` exits 0 and
+    # PRINTS exactly what did not run, so the gap stays in the push output instead of behind a
+    # tick. See semgrep-gate.sh for the full contract.
+    #
+    # ADOPTION NOTE: this entry names a gate that older vendored shims do not know. A repo that
+    # updates lefthook.yml MUST also re-copy `.lefthook/run-gate.sh` from the code-build skill,
+    # or the push is refused with "'semgrep-gate.sh' is not a known gate" — fail-closed and
+    # legible, but a blocked push all the same.
     semgrep:
-      run: semgrep ci --quiet || true   # heavier scan on push only; non-fatal so it informs, doesn't block
+      priority: 3
+      # Same scrub as the gates, and now for the same reason rather than for consistency: this
+      # lane blocks, so one exported variable skipping it is a silent fail-open again.
+      env:
+        BASH_ENV: ""
+        ENV: ""
+        SHELLOPTS: ""
+        BASHOPTS: ""
+      # No `$`, no compound statement, no quoted message — the three `run:` constraints above
+      # are satisfied by having nothing here but a path and two words.
+      # Absolute /bin/bash rather than `/usr/bin/env bash` — see the panel-gate lane above
+      # (transformate WI-3032).
+      run: /bin/bash -p .lefthook/run-gate.sh semgrep-gate.sh

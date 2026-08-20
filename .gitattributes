@@ -1,1 +1,6 @@
 .lefthook/run-gate.sh text eol=lf
+
+# Shell hooks must stay LF: a CRLF checkout makes bash fail on the carriage return.
+# For the PRE-COMMIT gate that blocks every COMMIT, not just every push
+# (transformate WI-3035 / transformate WI-3046).
+.lefthook/gitleaks-gate.sh text eol=lf
