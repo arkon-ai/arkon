@@ -57,7 +57,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       # Scan the PR'S OWN committed snapshot BEFORE the base-ref overlay (panel R2, opus):
       # refresh PRs are exactly the ones introducing new snapshot content — scanning after
