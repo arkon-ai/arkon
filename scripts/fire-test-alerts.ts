@@ -9,8 +9,8 @@
  * tenantId, so the alert path resolves the tenant exactly as the server does.
  * Ids are non-existent ('test-wi3986-<n>'); titles carry 'TEST transformate WI-3986'.
  *
- * STOPS (exit 1, nothing fired) when no server-written threat or approval
- * notification row exists, or when its tenant differs from the resolved tenant.
+ * STOPS (exit 1, nothing fired) when no server-written notification row
+ * exists, or when its tenant differs from the resolved tenant.
  * A fetch spy prints Telegram ok + message_id (parsed from the response body)
  * and, for any other host, the HTTP status only. Never prints a config or env value.
  */
@@ -57,16 +57,17 @@ export async function fireTestAlerts(): Promise<number> {
     return 1;
   }
 
-  // Independent tenant check (N3): the newest threat/approval row the server wrote.
+  // Independent tenant check (N3): the newest notification row the server wrote,
+  // of any type (every server path resolves its tenant the same way).
   const { rows } = await query(
     `SELECT tenant_id, created_at FROM notifications
-     WHERE type IN ('threat', 'approval') AND title NOT LIKE $1
+     WHERE title NOT LIKE $1
      ORDER BY created_at DESC LIMIT 1`,
     [`%${TEST_MARK}%`],
   );
   const newest = rows[0] as { tenant_id: string; created_at: unknown } | undefined;
   if (!newest) {
-    console.log("STOP: no server-written threat or approval notification row; tenant check cannot run");
+    console.log("STOP: no server-written notification row; tenant check cannot run");
     return 1;
   }
   console.log(`newest server-written row: tenant=${newest.tenant_id} at ${String(newest.created_at)}`);

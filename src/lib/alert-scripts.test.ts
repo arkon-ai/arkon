@@ -25,11 +25,24 @@ let logs: string[];
 
 const telegramRow = { channel: "telegram", config: { bot_token: SECRET, chat_id: "4242" } };
 
-function db(opts: { prefs?: unknown[]; serverRows?: unknown[] }) {
-  mockQuery.mockImplementation(async (sql: string) => {
+type ServerRow = { tenant_id: string; type: string; title: string; created_at: string };
+
+// The notifications SELECT applies the script's own filters (a type list, a
+// title NOT LIKE), so a change to the filter line changes what the mock returns.
+function db(opts: { prefs?: unknown[]; serverRows?: ServerRow[] }) {
+  mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
     const s = String(sql);
     if (s.includes("notification_preferences")) return { rows: opts.prefs ?? [] } as never;
-    if (s.includes("FROM notifications")) return { rows: opts.serverRows ?? [] } as never;
+    if (s.includes("FROM notifications")) {
+      let rows = opts.serverRows ?? [];
+      const types = /type IN \(([^)]*)\)/.exec(s);
+      if (types) rows = rows.filter((r) => types[1].includes(`'${r.type}'`));
+      if (/title NOT LIKE \$1/.test(s)) {
+        const mark = String(params?.[0]).replace(/%/g, "");
+        rows = rows.filter((r) => !r.title.includes(mark));
+      }
+      return { rows } as never;
+    }
     return { rows: [] } as never; // INSERT, push_subscriptions
   });
 }
@@ -157,7 +170,12 @@ describe("check-alert-channel (F2)", () => {
 });
 
 describe("fire-test-alerts (F3)", () => {
-  const serverRow = { tenant_id: TENANT, created_at: "2026-10-03T10:00:00Z" };
+  const serverRow: ServerRow = {
+    tenant_id: TENANT,
+    type: "threat",
+    title: "HIGH threat detected — agent-x",
+    created_at: "2026-10-03T10:00:00Z",
+  };
 
   it("fires 2 threats + 1 approval through the real alert path; the spy prints ok + message_id only", async () => {
     db({ prefs: [telegramRow], serverRows: [serverRow] });
@@ -210,6 +228,29 @@ describe("fire-test-alerts (F3)", () => {
     expect(logs.some((l) => l.startsWith("STOP: no server-written"))).toBe(true);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(mockQuery.mock.calls.some(([s]) => String(s).includes("INSERT"))).toBe(false);
+  });
+
+  // FOLD 1 (RULING 4072): production has never held a threat/approval row; its
+  // server rows are infra_offline, written through the same tenant resolver.
+  it("a non-alert server row (infra_offline) on the resolved tenant lets the check pass", async () => {
+    db({
+      prefs: [telegramRow],
+      serverRows: [{ ...serverRow, type: "infra_offline", title: "Node offline" }],
+    });
+    fetchMock.mockImplementation(async () => json(200, { ok: true, result: { message_id: 1 } }));
+    expect(await fireTestAlerts()).toBe(0);
+    expect(logs).toContain(`newest server-written row: tenant=${TENANT} at ${serverRow.created_at}`);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("ignores a row whose title carries the TEST mark (a script-written row)", async () => {
+    db({
+      prefs: [telegramRow],
+      serverRows: [{ ...serverRow, type: "threat", title: `CRITICAL threat detected — ${TEST_MARK}` }],
+    });
+    expect(await fireTestAlerts()).toBe(1);
+    expect(logs.some((l) => l.startsWith("STOP: no server-written"))).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("STOPS before firing when the server-written row's tenant differs", async () => {
