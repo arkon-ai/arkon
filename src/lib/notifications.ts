@@ -123,10 +123,23 @@ export async function sendNotification(params: SendNotificationParams): Promise<
       [tenantId],
     );
 
-    if (prefs.rows.length === 0) return;
+    // Threat and approval alerts that reach no external channel log NOTIFY-DARK
+    // (WI-3986). Only a fetch that returned ok counts; web push never counts.
+    const prefKey = getPreferenceKey(params.type, params.severity);
+    const isAlert = params.type === "threat" || params.type === "approval";
+    let delivered = 0;
+    const logIfDark = () => {
+      if (isAlert && delivered === 0) {
+        console.error(`NOTIFY-DARK ${prefKey} tenant=${tenantId}`);
+      }
+    };
+
+    if (prefs.rows.length === 0) {
+      logIfDark();
+      return;
+    }
 
     // 3. Fan out to enabled channels
-    const prefKey = getPreferenceKey(params.type, params.severity);
     const message = formatMessage(params);
 
     const dispatches = prefs.rows
@@ -139,12 +152,18 @@ export async function sendNotification(params: SendNotificationParams): Promise<
         return types[prefKey] === true;
       })
       .map((row: { channel: string; config: Record<string, unknown> }) =>
-        dispatchToChannel(row.channel, row.config, message, params).catch((err) => {
-          console.error(`[notifications] Failed to dispatch to ${row.channel}:`, err);
-        }),
+        dispatchToChannel(row.channel, row.config, message, params).then(
+          (ok) => {
+            if (ok) delivered++;
+          },
+          (err) => {
+            console.error(`[notifications] Failed to dispatch to ${row.channel}:`, err);
+          },
+        ),
       );
 
     await Promise.allSettled(dispatches);
+    logIfDark();
 
     // 4. Web Push — send to all registered push subscriptions for critical/high severity
     if (params.severity === "critical" || params.severity === "warning") {
@@ -180,35 +199,36 @@ function formatMessage(params: SendNotificationParams): string {
 
 /* ── Channel Dispatchers ── */
 
+/**
+ * Returns true only when the channel's fetch returned ok. A missing config key,
+ * 'email' (not implemented) or an unknown channel returns false; a non-ok
+ * fetch throws.
+ */
 async function dispatchToChannel(
   channel: string,
   config: Record<string, unknown>,
   message: string,
   params: SendNotificationParams,
-): Promise<void> {
+): Promise<boolean> {
   switch (channel) {
     case "telegram":
-      await sendTelegram(config, message);
-      break;
+      return sendTelegram(config, message);
     case "slack":
-      await sendSlack(config, message);
-      break;
+      return sendSlack(config, message);
     case "discord":
-      await sendDiscord(config, message);
-      break;
+      return sendDiscord(config, message);
     case "webhook":
-      await sendWebhook(config, message, params);
-      break;
-    case "email":
-      // Email SMTP not yet implemented — skip silently
-      break;
+      return sendWebhook(config, message, params);
+    default:
+      // 'email': SMTP not yet implemented — not a delivery
+      return false;
   }
 }
 
-async function sendTelegram(config: Record<string, unknown>, text: string): Promise<void> {
+async function sendTelegram(config: Record<string, unknown>, text: string): Promise<boolean> {
   const botToken = config.bot_token as string;
   const chatId = config.chat_id as string;
-  if (!botToken || !chatId) return;
+  if (!botToken || !chatId) return false;
 
   const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: "POST",
@@ -219,11 +239,12 @@ async function sendTelegram(config: Record<string, unknown>, text: string): Prom
   if (!res.ok) {
     throw new Error(`Telegram API returned ${res.status}`);
   }
+  return true;
 }
 
-async function sendSlack(config: Record<string, unknown>, text: string): Promise<void> {
+async function sendSlack(config: Record<string, unknown>, text: string): Promise<boolean> {
   const webhookUrl = config.webhook_url as string;
-  if (!webhookUrl) return;
+  if (!webhookUrl) return false;
 
   const res = await fetch(webhookUrl, {
     method: "POST",
@@ -234,11 +255,12 @@ async function sendSlack(config: Record<string, unknown>, text: string): Promise
   if (!res.ok) {
     throw new Error(`Slack webhook returned ${res.status}`);
   }
+  return true;
 }
 
-async function sendDiscord(config: Record<string, unknown>, text: string): Promise<void> {
+async function sendDiscord(config: Record<string, unknown>, text: string): Promise<boolean> {
   const webhookUrl = config.webhook_url as string;
-  if (!webhookUrl) return;
+  if (!webhookUrl) return false;
 
   const res = await fetch(webhookUrl, {
     method: "POST",
@@ -249,15 +271,16 @@ async function sendDiscord(config: Record<string, unknown>, text: string): Promi
   if (!res.ok) {
     throw new Error(`Discord webhook returned ${res.status}`);
   }
+  return true;
 }
 
 async function sendWebhook(
   config: Record<string, unknown>,
   _message: string,
   params: SendNotificationParams,
-): Promise<void> {
+): Promise<boolean> {
   const url = config.url as string;
-  if (!url) return;
+  if (!url) return false;
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (config.secret_header && config.secret_value) {
@@ -281,6 +304,7 @@ async function sendWebhook(
   if (!res.ok) {
     throw new Error(`Webhook returned ${res.status}`);
   }
+  return true;
 }
 
 /* ── Legacy Compatibility ── */
