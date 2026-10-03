@@ -14,7 +14,7 @@ const ALL_PAGES = [
   { path: "/analytics", label: "Anomaly Detection" },
   { path: "/infrastructure", label: "Infrastructure" },
   { path: "/traces", label: "Traces" },
-  { path: "/victoryos", label: "VictoryOS" },
+  { path: "/arkonos", label: "ArkonOS" }, // renamed from /victoryos in f1530b9 (2026-04-11)
   // Respond
   { path: "/security", label: "ThreatGuard" },
   { path: "/integrations/command", label: "Command" },

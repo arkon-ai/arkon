@@ -470,9 +470,10 @@ function CaptureModal({
     setSaving(true);
     setError(null);
     try {
+      const csrf = document.cookie.match(/mc_csrf=([^;]+)/)?.[1];
       const res = await fetch("/api/journal/entries", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...(csrf ? { "x-csrf-token": decodeURIComponent(csrf) } : {}) },
         credentials: "include",
         body: JSON.stringify({
           title: title.trim(),

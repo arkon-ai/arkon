@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { isNonBrowserCredential, resolveRequestCredential } from "@/lib/request-auth";
+import { extractBearerToken, isNonBrowserCredential, resolveRequestCredential } from "@/lib/request-auth";
 import { getReviewModePayload } from "@/lib/review-data";
 import {
   canUseReviewMode,
@@ -141,7 +141,9 @@ export async function proxy(request: NextRequest) {
     const csrfHeader = request.headers.get("x-csrf-token");
     const csrfCookie = request.cookies.get("mc_csrf")?.value;
     credential ??= await resolveRequestCredential(request);
-    const hasValidatedApiCredential = !!credential && isNonBrowserCredential(credential);
+    // Exempt only a credential sent as a Bearer header: the same token in the mc_auth cookie is ambient
+    // browser authority (/api/auth/init stores the owner token there), so it needs CSRF (transformate WI-3990).
+    const hasValidatedApiCredential = !!credential && isNonBrowserCredential(credential) && !!extractBearerToken(request);
 
     const csrfMatch = !!(csrfHeader && csrfCookie && decodeURIComponent(csrfHeader) === decodeURIComponent(csrfCookie));
 

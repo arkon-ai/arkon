@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { query } from "@/lib/db";
 import { logAudit, getClientIp } from "@/lib/audit";
+import { isUuid } from "@/app/api/tools/_utils";
 
 /**
  * GET /api/auth/sessions — List active sessions for the current user.
@@ -62,6 +63,10 @@ export async function DELETE(req: NextRequest) {
   }
 
   if (sessionId) {
+    // user_sessions.id is a UUID: a malformed id can match no row (it made Postgres throw, a 500)
+    if (!isUuid(sessionId)) {
+      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    }
     // Revoke specific session (must belong to this user)
     const result = await query(
       "DELETE FROM user_sessions WHERE id = $1 AND user_id = $2 RETURNING id",

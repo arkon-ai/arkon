@@ -25,13 +25,12 @@ test.describe("Agents List Page UI", () => {
     await expect(heading).toBeVisible({ timeout: 5000 });
   });
 
-  test("agents page shows section description 'What is this?' @regression", async ({ page }) => {
+  // WI-392 (1716d3a, 2026-05-20) merged fleet + roster and removed the "What is this?" panel;
+  // the canonical PageHeader subtitle carries the explanation.
+  test("agents page explains itself in the header subtitle @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/agents`);
     await page.waitForLoadState("domcontentloaded");
-    const desc = page.locator("text=What is this?")
-      .or(page.locator("text=Got it, hide this"))
-      .or(page.locator("text=Sub-agent status cards"));
-    await expect(desc.first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=Registered AI workforce").first()).toBeVisible({ timeout: 5000 });
   });
 
   test("agents page shows subtitle about freshness and model @regression", async ({ page }) => {

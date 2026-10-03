@@ -756,6 +756,7 @@ export function DocsToolScreen() {
             data.items.map((doc) => (
               <div
                 key={doc.id}
+                data-testid="doc-item"
                 onClick={() => void openDoc(doc.id)}
                 className="w-full text-left"
               >

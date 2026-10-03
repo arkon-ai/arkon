@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authenticate, authHeaders, csrfHeaders } from "../helpers/auth";
+import { MC_URL, ADMIN_TOKEN, authenticate, authenticateUser, authHeaders, csrfHeaders } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 4: Session Management — Edge & Security Tests
@@ -97,12 +97,13 @@ test.describe("Concurrent Sessions", () => {
 test.describe("Logout Invalidation", () => {
   test("logout invalidates session — subsequent API call returns 401 @regression @edge", async ({ browser }) => {
     const context = await browser.newContext();
-    await authenticate(context);
+    // a cookie session mutates with the double-submit token (proxy CSRF gate, transformate WI-3990)
+    const csrfToken = await authenticate(context);
     // Verify session works first
     const before = await context.request.get(`${MC_URL}/api/dashboard/overview`);
     expect([200, 429]).toContain(before.status());
     // Logout
-    const logout = await context.request.post(`${MC_URL}/api/auth/logout`);
+    const logout = await context.request.post(`${MC_URL}/api/auth/logout`, { headers: csrfHeaders(csrfToken) });
     expect([200, 204]).toContain(logout.status());
     // Subsequent call should fail (cookies cleared by server)
     const after = await context.request.get(`${MC_URL}/api/dashboard/overview`);
@@ -113,10 +114,10 @@ test.describe("Logout Invalidation", () => {
 
   test("double logout does not error @regression @edge", async ({ browser }) => {
     const context = await browser.newContext();
-    await authenticate(context);
-    const res1 = await context.request.post(`${MC_URL}/api/auth/logout`);
+    const csrfToken = await authenticate(context);
+    const res1 = await context.request.post(`${MC_URL}/api/auth/logout`, { headers: csrfHeaders(csrfToken) });
     expect([200, 204]).toContain(res1.status());
-    const res2 = await context.request.post(`${MC_URL}/api/auth/logout`);
+    const res2 = await context.request.post(`${MC_URL}/api/auth/logout`, { headers: csrfHeaders(csrfToken) });
     // Should be idempotent — 200 or 401, never 500
     expect(res2.status()).toBeLessThan(500);
     await context.close();
@@ -139,7 +140,7 @@ test.describe("Session Revocation", () => {
 
   test("revoke specific session with invalid ID returns error @regression @edge", async ({ browser }) => {
     const context = await browser.newContext();
-    const csrfToken = await authenticate(context);
+    const csrfToken = await authenticateUser(context);
     const res = await context.request.delete(
       `${MC_URL}/api/auth/sessions?id=nonexistent-session-id`,
       { headers: csrfHeaders(csrfToken) }
@@ -153,7 +154,8 @@ test.describe("Session Revocation", () => {
 
 test.describe("Cookie Manipulation", () => {
   test("missing mc_auth cookie returns 401 @regression @edge", async ({ browser }) => {
-    const context = await browser.newContext();
+    // empty storageState: the project default carries the admin mc_auth this test must not send
+    const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
     const domain = new URL(MC_URL).hostname;
     // Set all cookies EXCEPT mc_auth
     await context.addCookies([

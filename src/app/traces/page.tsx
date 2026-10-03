@@ -262,6 +262,7 @@ export default function TracesPage() {
                   return (
                     <tr
                       key={trace.trace_id}
+                      data-testid="trace-row"
                       onClick={() => router.push(`/traces/${trace.trace_id}`)}
                       className="cursor-pointer border-b border-[var(--border)]/50 transition-colors hover:bg-[rgba(var(--ion-rgb),0.03)]"
                     >

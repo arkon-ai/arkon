@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders, authenticate, csrfHeaders } from "../helpers/auth";
+import { MC_URL, ADMIN_TOKEN, authHeaders, authenticate, csrfHeaders, sseHead } from "../helpers/auth";
 
 // API specs authenticate explicitly per-request — run without the ambient
 // admin storageState so negative-auth tests are genuinely unauthenticated.
@@ -287,13 +287,9 @@ test.describe("GET /api/dashboard/stream", () => {
     expect([401, 429]).toContain(res.status());
   });
 
-  test("returns SSE content-type with auth @regression", async ({ request }) => {
-    const res = await request.get(`${MC_URL}/api/dashboard/stream`, {
-      headers: authHeaders(),
-    });
-    if (res.status() === 200) {
-      const ct = res.headers()["content-type"] ?? "";
-      expect(ct).toContain("text/event-stream");
-    }
+  test("returns SSE content-type with auth @regression", async () => {
+    const res = await sseHead("/api/dashboard/stream", authHeaders());
+    expect(res.status).toBe(200);
+    expect(res.contentType).toContain("text/event-stream");
   });
 });

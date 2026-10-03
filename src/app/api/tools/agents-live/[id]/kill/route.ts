@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { unauthorized, validateAdmin } from "../../../_utils";
+import { parseSerialId, unauthorized, validateAdmin } from "../../../_utils";
 import { removeRun, getRunById } from "@/lib/active-runs";
 import { broadcast } from "@/lib/event-bus";
 
@@ -13,6 +13,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
   try {
     const { id } = await context.params;
+    if (parseSerialId(id) === null) return NextResponse.json({ error: "Not found" }, { status: 404 });
     const body = await req.json().catch(() => ({})) as { reason?: string };
 
     // Snapshot active run before removing

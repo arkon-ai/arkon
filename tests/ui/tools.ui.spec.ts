@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
 
 /* ── Phase 3: Tools Hub + Sub-Pages — comprehensive UI regression ── */
 
@@ -110,18 +110,18 @@ test.describe("Docs Viewer Page UI", () => {
   });
 
   test("clicking a document shows detail view @regression", async ({ page }) => {
+    // Own fixture: whether any doc exists otherwise depends on other specs. The old locator
+    // (a[href*='docs']) hit the sidebar nav link, under the sidebar's section labels.
+    const title = `E2E viewer doc ${Date.now()}`;
+    const created = await page.request.post(`${MC_URL}/api/tools/docs`, {
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      // the route requires agent_id, title, category and content (src/app/api/tools/docs/route.ts)
+      data: { agent_id: "lumina", title, category: "Runbook", content: "Viewer test content" },
+    });
+    expect([200, 201]).toContain(created.status());
     await page.goto(`${MC_URL}/integrations/docs`);
-    await page.waitForLoadState("domcontentloaded");
-    const docLink = page.locator("a[href*='docs']").first()
-      .or(page.locator("[data-testid='doc-item']").first());
-    if (await docLink.isVisible()) {
-      await docLink.click();
-      await page.waitForLoadState("domcontentloaded");
-      // Detail view should show "Back to documents" link
-      const backLink = page.locator("text=Back to documents")
-        .or(page.locator("text=← Back"));
-      await expect(page.locator("body")).not.toBeEmpty();
-    }
+    await page.locator("[data-testid='doc-item']").filter({ hasText: title }).getByRole("button", { name: title }).click();
+    await expect(page.locator("text=Back to documents").first()).toBeVisible({ timeout: 5000 });
   });
 
   test("doc detail shows tags (category, Pinned) @regression", async ({ page }) => {
@@ -155,11 +155,12 @@ test.describe("MCP Servers Page UI", () => {
     await expect(heading.first()).toBeVisible({ timeout: 5000 });
   });
 
+  // WI-391 (next.config.ts): /integrations/mcp redirects to /integrations, which IS the MCP servers
+  // control point now; its subtitle carries the health-check promise.
   test("MCP page shows subtitle about registry and health @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/integrations/mcp`);
-    await page.waitForLoadState("domcontentloaded");
-    const subtitle = page.locator("text=Model Context Protocol")
-      .or(page.locator("text=/server registry|health monitor/i"));
+    await expect(page).toHaveURL(/\/integrations$/);
+    const subtitle = page.locator("text=/Every server is health-checked/i");
     await expect(subtitle.first()).toBeVisible({ timeout: 5000 });
   });
 

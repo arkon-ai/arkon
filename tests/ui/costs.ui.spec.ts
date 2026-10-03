@@ -19,12 +19,11 @@ test.describe("Costs Page UI", () => {
     expect(errors.filter(e => !e.includes("ResizeObserver"))).toHaveLength(0);
   });
 
-  test("costs page shows Cost Tracker heading @regression", async ({ page }) => {
+  // WI-396 (54d4f7b, 2026-05-21) rebuilt "Cost Tracker" as the canonical "Cost ceilings" page.
+  test("costs page shows Cost ceilings heading @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/costs`);
     await page.waitForLoadState("domcontentloaded");
-    const heading = page.locator("text=Cost Tracker")
-      .or(page.locator("text=Costs"));
-    await expect(heading.first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("heading", { level: 1, name: "Cost ceilings" })).toBeVisible({ timeout: 5000 });
   });
 
   test("costs page shows subtitle about AI spend @regression", async ({ page }) => {
@@ -38,16 +37,16 @@ test.describe("Costs Page UI", () => {
   test("costs page shows breadcrumbs @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/costs`);
     await page.waitForLoadState("domcontentloaded");
-    const breadcrumb = page.locator("text=Costs").first();
-    await expect(breadcrumb).toBeVisible({ timeout: 5000 });
+    // WI-391: the top bar owns the crumbs (Arkon › Govern › Cost ceilings); the last one is the page
+    const crumb = page.getByRole("navigation", { name: "Breadcrumb" }).locator('[aria-current="page"]');
+    await expect(crumb.first()).toHaveText(/cost ceilings/i, { timeout: 5000 });
   });
 
-  test("costs page shows 'What is this?' section description @regression", async ({ page }) => {
+  // WI-396 removed the "What is this?" panel; the canonical PageHeader subtitle carries the explanation.
+  test("costs page explains itself in the header subtitle @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/costs`);
     await page.waitForLoadState("domcontentloaded");
-    const desc = page.locator("text=What is this?")
-      .or(page.locator("text=Got it, hide this"));
-    await expect(desc.first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("text=Every agent has a daily and a monthly limit you set").first()).toBeVisible({ timeout: 5000 });
   });
 
   // ── Tab Navigation (Overview / By Agent / By Model) ────────

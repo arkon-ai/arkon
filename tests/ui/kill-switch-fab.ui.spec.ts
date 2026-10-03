@@ -11,6 +11,9 @@ test.describe("Floating Kill Switch UI", () => {
   });
 
   test("FAB is hidden when no agents are running @regression", async ({ page }) => {
+    // The precondition, made explicit: /api/active-runs is in-memory and fed by /api/ingest, which
+    // other specs in the same run exercise; without this the FAB shows their runs.
+    await page.route("**/api/active-runs*", (route) => route.fulfill({ json: { runs: [] } }));
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(4000);

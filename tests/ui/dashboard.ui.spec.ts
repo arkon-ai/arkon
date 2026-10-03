@@ -3,6 +3,10 @@ import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
 
 /* ── Phase 3: Dashboard — comprehensive UI regression ──────── */
 
+// PR-06 pulse-hero rebuild (15a551d, 2026-05-18): the desktop KPI cell is "Events · 24h"; the
+// hidden mobile view (md:hidden) still says "Events 24h", which a bare text= locator hit first.
+const EVENTS_CELL = "text=/^Events · 24h$/";
+
 test.describe("Dashboard Page UI", () => {
   test.beforeEach(async ({ context }) => {
     await context.request.post(`${MC_URL}/api/auth/init`, {
@@ -73,7 +77,7 @@ test.describe("Dashboard Page UI", () => {
   test("dashboard renders EVENTS 24H stat card @smoke @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
-    const eventsCard = page.locator("text=EVENTS 24H");
+    const eventsCard = page.locator(EVENTS_CELL);
     await expect(eventsCard.first()).toBeVisible({ timeout: 5000 });
   });
 
@@ -87,7 +91,7 @@ test.describe("Dashboard Page UI", () => {
   test("EVENTS 24H card shows numeric count and delta @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
-    const eventsCard = page.locator("text=EVENTS 24H").locator("..");
+    const eventsCard = page.locator(EVENTS_CELL).locator("..");
     await expect(eventsCard).toBeVisible({ timeout: 5000 });
     const cardText = await eventsCard.textContent();
     expect(cardText).toMatch(/\d/);
@@ -110,12 +114,14 @@ test.describe("Dashboard Page UI", () => {
     expect(count).toBeGreaterThan(0);
   });
 
-  test("stat cards have tooltip info icons @regression", async ({ page }) => {
+  // PR-06 replaced the icon+tooltip stat cards with the 6-cell brand-package pulse strip
+  // (no icons on desktop cells); assert the strip itself.
+  test("pulse strip shows its six labelled cells @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
-    const tooltipIcons = page.locator("text=EVENTS 24H").locator("..").locator("svg");
-    const count = await tooltipIcons.count();
-    expect(count).toBeGreaterThan(0);
+    for (const label of ["Health", "Agents", "Events · 24h", "Burn · 24h", "Threats", "Alerts"]) {
+      await expect(page.locator(`[data-tour="dashboard"] >> text=/^${label}$/`).first()).toBeVisible({ timeout: 5000 });
+    }
   });
 
   test("stat cards show percentage delta indicator @regression", async ({ page }) => {
@@ -128,7 +134,8 @@ test.describe("Dashboard Page UI", () => {
   test("stat cards show secondary metrics (tools fired, errors) @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
-    const secondary = page.locator("text=/tools fired|errors/i").first();
+    // desktop Events cell sub-line: "<n> tools fired", or the delta "<n>% up|down" once there is a prior day
+    const secondary = page.locator(EVENTS_CELL).locator("..").locator("text=/tools fired|% (up|down)/");
     await expect(secondary).toBeVisible({ timeout: 5000 });
   });
 
@@ -148,16 +155,22 @@ test.describe("Dashboard Page UI", () => {
     await expect(observe.first()).toBeVisible({ timeout: 5000 });
   });
 
-  test("sidebar shows all nav groups (OBSERVE, RESPOND, MANAGE) @regression", async ({ page }) => {
+  // Shell IA refresh (518959d, 2026-05-18): the groups are Provision, Govern, Observe.
+  test("sidebar shows all nav groups (PROVISION, GOVERN, OBSERVE) @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
-    for (const group of ["OBSERVE", "RESPOND", "MANAGE"]) {
-      const section = page.locator(`text=${group}`).first();
+    for (const group of ["Provision", "Govern", "Observe"]) {
+      const section = page.getByRole("button", { name: `Collapse ${group}` });
       await expect(section).toBeVisible({ timeout: 3000 });
     }
   });
 
   test("sidebar has Quick Access section @regression", async ({ page }) => {
+    // Quick Access renders only with pinned docs; the E2E seed pins none (a seeded pin would put the
+    // section on every visual baseline), so this test supplies one through the documented endpoint.
+    await page.route("**/api/tools/docs?pinned=true*", (route) =>
+      route.fulfill({ json: { items: [{ id: 1, title: "E2E pinned doc", category: "Runbook", file_path: null }] } })
+    );
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     const quickAccess = page.locator("text=QUICK ACCESS");
@@ -197,7 +210,10 @@ test.describe("Dashboard Page UI", () => {
       if (msg.type() === "error") consoleErrors.push(msg.text());
     });
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    // not "networkidle": the dashboard holds an EventSource (/api/dashboard/stream) open, so the
+    // network is never idle. Wait for the first data render plus one poll window instead.
+    await expect(page.locator(EVENTS_CELL)).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(3000);
     const real = consoleErrors.filter(
       (e) => !e.includes("ResizeObserver") && !e.includes("favicon")
     );
