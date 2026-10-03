@@ -43,13 +43,21 @@ export interface SendNotificationParams {
 export const LEGACY_TENANT_SENTINEL = "default";
 
 /**
- * A caught error as its name, plus its code when that is a string. Never the
- * message, cause or stack: those can carry a URL or a config value (WI-3986).
+ * A caught error as its name and code (WI-3986). Never the message, cause or
+ * stack, and a name or code only in a closed form, since free text can carry a
+ * URL or a config value. Name: ^[A-Za-z][A-Za-z0-9]{0,39}$. Code: ^[A-Z][A-Z0-9_]{0,39}$
+ * as is (ECONNREFUSED), or a PostgreSQL SQLSTATE ^[0-9][0-9A-Z]{4}$ as pg:<code>.
+ * Anything else prints 'unknown'; no code, no code part.
  */
 function errorLabel(err: unknown): string {
   const e = err as { name?: unknown; code?: unknown } | null | undefined;
-  const name = typeof e?.name === "string" ? e.name : typeof err;
-  return typeof e?.code === "string" ? `${name} ${e.code}` : name;
+  const name =
+    typeof e?.name === "string" && /^[A-Za-z][A-Za-z0-9]{0,39}$/.test(e.name) ? e.name : "unknown";
+  const code = e?.code;
+  if (code === undefined || code === null) return name;
+  if (typeof code === "string" && /^[A-Z][A-Z0-9_]{0,39}$/.test(code)) return `${name} ${code}`;
+  if (typeof code === "string" && /^[0-9][0-9A-Z]{4}$/.test(code)) return `${name} pg:${code}`;
+  return `${name} unknown`;
 }
 
 /**

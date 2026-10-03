@@ -271,6 +271,59 @@ describe("sendNotification external delivery (WI-3986)", () => {
     for (const l of all) expect(l).not.toContain(FAKE);
   });
 
+  // FOLD 3: errorLabel prints a name or code only in a closed pattern, a
+  // PostgreSQL SQLSTATE as pg:<code>, else 'unknown' (a free-form code or name
+  // can carry a URL or config value).
+  const failOnWith = (match: string, err: unknown) =>
+    mockQuery.mockImplementation(async (sql: string) => {
+      if (String(sql).includes(match)) throw err;
+      return { rows: [] } as never;
+    });
+  const insertFailsWith = async (err: unknown) => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    failOnWith("INSERT INTO notifications", err);
+    await expect(threat("critical")).resolves.toBeUndefined();
+    const all = [...errorSpy.mock.calls, ...warnSpy.mock.calls].map((c) => inspect(c, { depth: 5 }));
+    const line = errorSpy.mock.calls
+      .map((c: unknown[]) => String(c[0]))
+      .find((l: string) => l.startsWith("[notifications] Error sending notification:"));
+    return { all, line };
+  };
+
+  it("(a) a URL-bearing code is logged as unknown and never printed", async () => {
+    // FAKE fixture value, not a real URL or config value.
+    const { all, line } = await insertFailsWith(
+      Object.assign(new Error("fixed"), { code: "https://fixture-wi3986-code-marker" }),
+    );
+    expect(line).toBe("[notifications] Error sending notification: Error unknown");
+    for (const l of all) expect(l).not.toContain("fixture-wi3986-code-marker");
+  });
+
+  it.each(["a:b", "x/y", "econnrefused"])("(b) code %s is logged as unknown", async (code) => {
+    const { line } = await insertFailsWith(Object.assign(new Error("fixed"), { code }));
+    expect(line).toBe("[notifications] Error sending notification: Error unknown");
+  });
+
+  it("(c) a URL-bearing name is logged as unknown and never printed", async () => {
+    // FAKE fixture value, not a real URL.
+    const { all, line } = await insertFailsWith(
+      Object.assign(new Error("x"), { name: "https://fixture-wi3986-name-marker" }),
+    );
+    expect(line).toBe("[notifications] Error sending notification: unknown");
+    for (const l of all) expect(l).not.toContain("fixture-wi3986-name-marker");
+  });
+
+  it("(d) ECONNREFUSED is still printed", async () => {
+    const { line } = await insertFailsWith(Object.assign(new Error("x"), { code: "ECONNREFUSED" }));
+    expect(line).toBe("[notifications] Error sending notification: Error ECONNREFUSED");
+  });
+
+  it("(e) a PostgreSQL SQLSTATE is printed as pg:<code>", async () => {
+    const err = Object.assign(new Error("dup"), { name: "DatabaseError", code: "23505" });
+    const { line } = await insertFailsWith(err);
+    expect(line).toBe("[notifications] Error sending notification: DatabaseError pg:23505");
+  });
+
   // 1b CHARACTERISATION: a row without config.types gets the three alert keys.
   it("1b: a row with no config.types dispatches threat_critical, threat_high and approval once each", async () => {
     prefRows([telegram()]);
