@@ -3,11 +3,15 @@ import { NextRequest } from "next/server";
 import { query } from "@/lib/db";
 import { POST } from "./route";
 
-vi.mock("@/lib/db", () => ({ query: vi.fn() }));
+vi.mock("@/lib/db", () => {
+  const query = vi.fn();
+  // one transaction = the same fake query (the in-memory db has no concurrency; the race arm is route.pg.test.ts)
+  return { query, withTransaction: vi.fn((fn: (q: typeof query) => unknown) => fn(query)) };
+});
 
 // transformate WI-3991, deck-main RULING 4122: the public setup endpoint may act only on a fresh install.
 // A tiny in-memory tenants/agents table answers whichever SQL the route sends (old or new shape).
-type Db = { tenants: Array<{ id: string; setup_completed: boolean }>; agents: Array<{ id: string; token_hash: string }> };
+type Db = { tenants: Array<{ id: string; setup_completed: boolean }>; agents: Array<{ id: string; token_hash: string }>; users?: Array<{ role: string }> };
 let db: Db;
 
 function fakeQuery(sql: string, params: unknown[] = []) {
@@ -18,6 +22,7 @@ function fakeQuery(sql: string, params: unknown[] = []) {
         default_tenants: db.tenants.filter((t) => t.id === "default").length,
         other_tenants: db.tenants.filter((t) => t.id !== "default" || t.setup_completed).length,
         agents: db.agents.filter((a) => a.id !== "system").length,
+        users: (db.users ?? []).length,
       }],
     };
   }
@@ -84,6 +89,21 @@ describe("POST /api/setup/complete — first-run lock", () => {
       expect(res.status, body.step).toBe(403);
       expect(db.agents.map((a) => a.id)).toEqual(["system"]);
       expect(db.tenants.every((t) => !t.setup_completed)).toBe(true);
+    }
+  });
+
+  it("(4) an owner user exists, no agents (FOLD 1, RULING 4174): every step is refused, no token, no agent", async () => {
+    for (const body of [
+      { step: "account", org_name: "Evil", admin_email: "x@example.test" },
+      { step: "agent", agent_name: "New Bot" },
+      { step: "complete" },
+    ]) {
+      db = { tenants: [{ id: "default", setup_completed: false }], agents: [{ id: "system", token_hash: "seed:x" }], users: [{ role: "owner" }] };
+      const res = await post(body);
+      expect(res.status, body.step).toBe(403);
+      expect(await res.json(), body.step).not.toHaveProperty("token");
+      expect(db.agents.map((a) => a.id)).toEqual(["system"]);
+      expect(db.tenants[0].setup_completed).toBe(false);
     }
   });
 

@@ -51,3 +51,29 @@ test("Sign Out (client portal shell) calls POST /api/auth/logout and ends the se
   await signOutFrom(page, "/client");
   await context.close();
 });
+
+/* Sign Out fails loud (FOLD 1, deck-main RULING 4174): when the server logout fails, the shell stays on the page,
+   shows the failure and keeps the button for a retry; the retry then signs out. */
+for (const [shell, path] of [["app shell", "/"], ["client portal shell", "/client"]] as const) {
+  for (const failure of ["HTTP 500", "network error"] as const) {
+    test(`Sign Out (${shell}) on a ${failure} stays on the page, shows the failure and can retry @regression @security`, async ({ browser }) => {
+      const context = await browser.newContext();
+      await authenticate(context);
+      const page = await context.newPage();
+      await page.route("**/api/auth/logout", (route) =>
+        failure === "HTTP 500" ? route.fulfill({ status: 500, json: { error: "logout failed" } }) : route.abort("failed"));
+      await page.goto(`${MC_URL}${path}`);
+      const button = page.getByRole("button", { name: /sign out/i }).filter({ visible: true }).first();
+      await button.click();
+      await expect(page.getByRole("alert").filter({ hasText: /sign out failed/i }).filter({ visible: true }).first()).toBeVisible({ timeout: 10000 });
+      expect(page.url()).not.toMatch(/\/login/);
+      // the session is still live, so the page must not pretend it ended
+      expect((await page.request.get(`${MC_URL}/api/dashboard/overview`)).status()).toBe(200);
+      await page.unroute("**/api/auth/logout");
+      await expect(button).toBeEnabled();
+      await button.click();
+      await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
+      await context.close();
+    });
+  }
+}
