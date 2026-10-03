@@ -94,7 +94,7 @@ test.describe("Input Boundaries — Unicode and emoji", () => {
 
   test("search with emoji in query @regression @edge", async ({ request }) => {
     const res = await request.get(
-      `${MC_URL}/api/traces?search=${encodeURIComponent("🔥")}`,
+      `${MC_URL}/api/traces?q=${encodeURIComponent("🔥")}`,
       { headers: authHeaders() }
     );
     expect(res.status()).toBeLessThan(500);
@@ -186,7 +186,7 @@ test.describe("Input Boundaries — Special characters", () => {
   test("search with special regex characters @regression @edge", async ({ request }) => {
     const specialChars = "test.*+?^${}()|[]\\";
     const res = await request.get(
-      `${MC_URL}/api/traces?search=${encodeURIComponent(specialChars)}`,
+      `${MC_URL}/api/traces?q=${encodeURIComponent(specialChars)}`,
       { headers: authHeaders() }
     );
     expect(res.status()).toBeLessThan(500);

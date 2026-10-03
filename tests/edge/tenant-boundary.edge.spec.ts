@@ -114,7 +114,9 @@ test.describe("Tenant Boundary — List endpoint scoping", () => {
 
   for (const endpoint of SCOPED_ENDPOINTS) {
     test(`${endpoint} returns tenant-scoped data @regression @edge`, async ({ request }) => {
-      const res = await request.get(`${MC_URL}${endpoint}`, {
+      // The owner token is fleet-wide (tenant "*") and sees every tenant by design; scope the request
+      // to one tenant (the owner tenant hint, src/lib/tenant-access.ts) and assert nothing else leaks.
+      const res = await request.get(`${MC_URL}${endpoint}?tenant_id=default`, {
         headers: authHeaders(),
       });
       expect([200, 429]).toContain(res.status());
@@ -127,8 +129,8 @@ test.describe("Tenant Boundary — List endpoint scoping", () => {
           const tenantIds = new Set(
             items.filter((i: any) => i.tenant_id).map((i: any) => i.tenant_id)
           );
-          // All items should belong to same tenant (or no tenant_id field)
-          expect(tenantIds.size).toBeLessThanOrEqual(1);
+          // All items should belong to the requested tenant (or carry no tenant_id field)
+          expect([...tenantIds].filter((t) => t !== "default")).toEqual([]);
         }
       }
     });

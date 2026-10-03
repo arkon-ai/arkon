@@ -56,7 +56,7 @@ test.describe("XSS — Event ingest content", () => {
 test.describe("XSS — Query parameters", () => {
   test('search param with <script> tag is escaped @regression @edge @security', async ({ request }) => {
     const res = await request.get(
-      `${MC_URL}/api/traces?search=${encodeURIComponent('<script>alert(1)</script>')}`,
+      `${MC_URL}/api/traces?q=${encodeURIComponent('<script>alert(1)</script>')}`,
       { headers: authHeaders() }
     );
     expect([200, 400]).toContain(res.status());

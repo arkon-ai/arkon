@@ -28,7 +28,7 @@ test.describe("SQL Injection — Query parameters", () => {
 
     test(`traces search with "${label}" is safe @regression @edge @security`, async ({ request }) => {
       const res = await request.get(
-        `${MC_URL}/api/traces?search=${encodeURIComponent(payload)}`,
+        `${MC_URL}/api/traces?q=${encodeURIComponent(payload)}`,
         { headers: authHeaders() }
       );
       // Should return valid response or 400, never 500
@@ -169,7 +169,7 @@ test.describe("SQL Injection — Time-based blind", () => {
   test("search param with SLEEP does not delay response beyond 5s @regression @edge @security", async ({ request }) => {
     const start = Date.now();
     const res = await request.get(
-      `${MC_URL}/api/traces?search=${encodeURIComponent("1' AND SLEEP(10) --")}`,
+      `${MC_URL}/api/traces?q=${encodeURIComponent("1' AND SLEEP(10) --")}`,
       { headers: authHeaders() }
     );
     const elapsed = Date.now() - start;
@@ -195,7 +195,7 @@ test.describe("SQL Injection — Time-based blind", () => {
 test.describe("SQL Injection — Stacked queries", () => {
   test("stacked query in search param does not execute @regression @edge @security", async ({ request }) => {
     const res = await request.get(
-      `${MC_URL}/api/traces?search=${encodeURIComponent("test'; INSERT INTO agents (id,name) VALUES ('hacked','hacked'); --")}`,
+      `${MC_URL}/api/traces?q=${encodeURIComponent("test'; INSERT INTO agents (id,name) VALUES ('hacked','hacked'); --")}`,
       { headers: authHeaders() }
     );
     expect(res.status()).toBeLessThan(500);

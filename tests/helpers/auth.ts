@@ -112,6 +112,19 @@ export function agentHeaders(): Record<string, string> {
 }
 
 /**
+ * Open an SSE endpoint, read status + content-type, then abort. APIRequestContext buffers the whole
+ * body and an event stream never ends (the test timed out, "Request context disposed"). Node fetch
+ * returns at the headers; it also carries no ambient cookies, so "no auth" means no auth.
+ */
+export async function sseHead(path: string, headers: Record<string, string> = {}): Promise<{ status: number; contentType: string }> {
+  const ctrl = new AbortController();
+  const res = await fetch(`${MC_URL}${path}`, { headers, signal: ctrl.signal });
+  const out = { status: res.status, contentType: res.headers.get("content-type") ?? "" };
+  ctrl.abort();
+  return out;
+}
+
+/**
  * Get auth headers for cookie-authenticated mutation requests.
  * Pass the CSRF token returned by authenticate().
  */
