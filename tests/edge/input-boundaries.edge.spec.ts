@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, authHeaders, authenticate, csrfHeaders } from "../helpers/auth";
+import { MC_URL, agentHeaders, authHeaders, authenticate, csrfHeaders } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 4: Input Boundaries — Edge & Security Tests
@@ -14,7 +14,7 @@ test.describe("Input Boundaries — Max-length strings", () => {
   test("ingest with 5000+ char content is truncated @regression @edge", async ({ request }) => {
     const longContent = "A".repeat(6000);
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: { agent: "boundary-test", type: "message_received", content: longContent },
     });
     expect([200, 400, 413]).toContain(res.status());
@@ -23,7 +23,7 @@ test.describe("Input Boundaries — Max-length strings", () => {
   test("ingest with exactly 5000 chars is accepted @regression @edge", async ({ request }) => {
     const content = "B".repeat(5000);
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: { agent: "boundary-test", type: "heartbeat", content },
     });
     expect([200, 400]).toContain(res.status());
@@ -58,7 +58,7 @@ test.describe("Input Boundaries — Max-length strings", () => {
 test.describe("Input Boundaries — Unicode and emoji", () => {
   test("ingest with emoji content @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: {
         agent: "emoji-test",
         type: "message_received",
@@ -70,7 +70,7 @@ test.describe("Input Boundaries — Unicode and emoji", () => {
 
   test("ingest with CJK characters @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: {
         agent: "cjk-test",
         type: "message_received",
@@ -82,7 +82,7 @@ test.describe("Input Boundaries — Unicode and emoji", () => {
 
   test("ingest with RTL text (Arabic/Hebrew) @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: {
         agent: "rtl-test",
         type: "message_received",
@@ -117,7 +117,7 @@ test.describe("Input Boundaries — Unicode and emoji", () => {
 test.describe("Input Boundaries — Empty and whitespace", () => {
   test("ingest with empty content @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: { agent: "empty-test", type: "heartbeat", content: "" },
     });
     expect([200, 400, 422]).toContain(res.status());
@@ -125,7 +125,7 @@ test.describe("Input Boundaries — Empty and whitespace", () => {
 
   test("ingest with whitespace-only content @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: { agent: "ws-test", type: "heartbeat", content: "   \n\t   " },
     });
     expect([200, 400]).toContain(res.status());
@@ -133,7 +133,7 @@ test.describe("Input Boundaries — Empty and whitespace", () => {
 
   test("ingest with null content @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: { agent: "null-test", type: "heartbeat", content: null },
     });
     expect([200, 400, 422]).toContain(res.status());
@@ -141,7 +141,7 @@ test.describe("Input Boundaries — Empty and whitespace", () => {
 
   test("empty agent name is rejected @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: { agent: "", type: "heartbeat", content: "test" },
     });
     expect([200, 400, 422]).toContain(res.status());
@@ -161,7 +161,7 @@ test.describe("Input Boundaries — Empty and whitespace", () => {
 test.describe("Input Boundaries — Special characters", () => {
   test("ingest with newlines and tabs in content @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: {
         agent: "special-test",
         type: "message_received",
@@ -173,7 +173,7 @@ test.describe("Input Boundaries — Special characters", () => {
 
   test("ingest with null bytes is handled @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: {
         agent: "null-byte-test",
         type: "message_received",
@@ -194,7 +194,7 @@ test.describe("Input Boundaries — Special characters", () => {
 
   test("agent name with path traversal attempt @regression @edge @security", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: {
         agent: "../../../etc/passwd",
         type: "heartbeat",
@@ -211,7 +211,7 @@ test.describe("Input Boundaries — Special characters", () => {
       nested = { nested };
     }
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: {
         agent: "nested-test",
         type: "heartbeat",
@@ -228,7 +228,7 @@ test.describe("Input Boundaries — Oversized payloads", () => {
   test("very large JSON payload is rejected or handled @regression @edge", async ({ request }) => {
     const largePayload = "X".repeat(100_000);
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: {
         agent: "oversized-test",
         type: "message_received",
@@ -241,7 +241,7 @@ test.describe("Input Boundaries — Oversized payloads", () => {
 
   test("empty JSON body is handled @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { ...agentHeaders(), "Content-Type": "application/json" },
       data: {},
     });
     expect([200, 400, 422]).toContain(res.status());
@@ -249,7 +249,7 @@ test.describe("Input Boundaries — Oversized payloads", () => {
 
   test("non-JSON content type is handled @regression @edge", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/ingest`, {
-      headers: { ...authHeaders(), "Content-Type": "text/plain" },
+      headers: { ...agentHeaders(), "Content-Type": "text/plain" },
       data: "this is plain text not json",
     });
     expect(res.status()).toBeLessThan(500);

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authenticate, authHeaders, csrfHeaders } from "../helpers/auth";
+import { MC_URL, ADMIN_TOKEN, authenticate, authenticateUser, authHeaders, csrfHeaders } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 4: Session Management — Edge & Security Tests
@@ -139,7 +139,7 @@ test.describe("Session Revocation", () => {
 
   test("revoke specific session with invalid ID returns error @regression @edge", async ({ browser }) => {
     const context = await browser.newContext();
-    const csrfToken = await authenticate(context);
+    const csrfToken = await authenticateUser(context);
     const res = await context.request.delete(
       `${MC_URL}/api/auth/sessions?id=nonexistent-session-id`,
       { headers: csrfHeaders(csrfToken) }
@@ -153,7 +153,8 @@ test.describe("Session Revocation", () => {
 
 test.describe("Cookie Manipulation", () => {
   test("missing mc_auth cookie returns 401 @regression @edge", async ({ browser }) => {
-    const context = await browser.newContext();
+    // empty storageState: the project default carries the admin mc_auth this test must not send
+    const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
     const domain = new URL(MC_URL).hostname;
     // Set all cookies EXCEPT mc_auth
     await context.addCookies([

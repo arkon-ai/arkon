@@ -138,20 +138,22 @@ test.describe("Tenant Boundary — List endpoint scoping", () => {
 // ── Client Portal Tenant Isolation ──────────────────────────
 
 test.describe("Tenant Boundary — Client portal", () => {
+  // The owner token is fleet-wide (tenant "*"): client routes need a tenant to scope to, else 401 by design
+  // (src/lib/tenant-access.ts resolveTenantAccess fails closed). The seed's tenant is 'transformate'.
   test("client/dashboard requires auth @regression @edge", async ({ request }) => {
     const res = await request.get(`${MC_URL}/api/client/dashboard`);
     expect(res.status()).toBe(401);
   });
 
   test("client/costs returns tenant-scoped costs @regression @edge", async ({ request }) => {
-    const res = await request.get(`${MC_URL}/api/client/costs`, {
+    const res = await request.get(`${MC_URL}/api/client/costs?tenant_id=transformate`, {
       headers: authHeaders(),
     });
     expect([200, 403, 404]).toContain(res.status());
   });
 
   test("client/agents returns tenant-scoped agents @regression @edge", async ({ request }) => {
-    const res = await request.get(`${MC_URL}/api/client/agents`, {
+    const res = await request.get(`${MC_URL}/api/client/agents?tenant_id=transformate`, {
       headers: authHeaders(),
     });
     expect([200, 403, 404]).toContain(res.status());
@@ -161,6 +163,9 @@ test.describe("Tenant Boundary — Client portal", () => {
 // ── Role-Based Access ───────────────────────────────────────
 
 test.describe("Tenant Boundary — Role enforcement", () => {
+  // no ambient admin storageState: these requests must be genuinely unauthenticated
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test("admin/tenants is restricted to owner/admin @regression @edge @security", async ({ request }) => {
     const res = await request.get(`${MC_URL}/api/admin/tenants`);
     expect(res.status()).toBe(401);

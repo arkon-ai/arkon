@@ -5,6 +5,10 @@ import { MC_URL, authHeaders, authenticate, csrfHeaders } from "../helpers/auth"
 // admin storageState so negative-auth tests are genuinely unauthenticated.
 test.use({ storageState: { cookies: [], origins: [] } });
 
+// The owner token is fleet-wide (tenant "*"): /api/client/* needs a tenant to scope to, else 401 by design
+// (src/lib/tenant-access.ts resolveTenantAccess fails closed). scripts/seed-e2e.ts seeds 'transformate'.
+const E2E_TENANT = "transformate";
+
 /* ══════════════════════════════════════════════════════════════
    Phase 2: Client Portal Routes — Comprehensive API Regression
    Routes: client/dashboard, client/agents, client/costs,
@@ -15,7 +19,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("GET /api/client/dashboard", () => {
   test("returns dashboard overview @regression", async ({ request }) => {
-    const res = await request.get(`${MC_URL}/api/client/dashboard`, {
+    const res = await request.get(`${MC_URL}/api/client/dashboard?tenant_id=${E2E_TENANT}`, {
       headers: authHeaders(),
     });
     expect([200, 403]).toContain(res.status());
@@ -35,7 +39,7 @@ test.describe("GET /api/client/dashboard", () => {
 
 test.describe("GET /api/client/agents", () => {
   test("returns tenant-scoped agents @regression", async ({ request }) => {
-    const res = await request.get(`${MC_URL}/api/client/agents`, {
+    const res = await request.get(`${MC_URL}/api/client/agents?tenant_id=${E2E_TENANT}`, {
       headers: authHeaders(),
     });
     expect([200, 403]).toContain(res.status());
@@ -55,7 +59,7 @@ test.describe("GET /api/client/agents", () => {
 
 test.describe("GET /api/client/costs", () => {
   test("returns tenant-scoped costs @regression", async ({ request }) => {
-    const res = await request.get(`${MC_URL}/api/client/costs`, {
+    const res = await request.get(`${MC_URL}/api/client/costs?tenant_id=${E2E_TENANT}`, {
       headers: authHeaders(),
     });
     expect([200, 403]).toContain(res.status());
