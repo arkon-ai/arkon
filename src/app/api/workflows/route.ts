@@ -64,6 +64,11 @@ export async function POST(req: NextRequest) {
     if (!body.name) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
+    // a workflow name is a plain label: refuse markup at the boundary (defense in depth; React
+    // escapes it on render, but the stored value also reaches toasts, exports and audit text)
+    if (/[<>]/.test(body.name)) {
+      return NextResponse.json({ error: "name must not contain < or >" }, { status: 400 });
+    }
 
     const result = await query(
       `INSERT INTO workflows (name, description, definition, status, trigger_type, trigger_config, created_by, tenant_id)

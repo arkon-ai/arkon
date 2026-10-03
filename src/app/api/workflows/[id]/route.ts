@@ -60,6 +60,9 @@ export async function PUT(
     const values: unknown[] = [];
     let idx = 1;
 
+    if (body.name !== undefined && /[<>]/.test(String(body.name))) {
+      return NextResponse.json({ error: "name must not contain < or >" }, { status: 400 });
+    }
     if (body.name !== undefined) { sets.push(`name = $${idx++}`); values.push(body.name); }
     if (body.description !== undefined) { sets.push(`description = $${idx++}`); values.push(body.description); }
     if (body.definition !== undefined) { sets.push(`definition = $${idx++}`); values.push(JSON.stringify(body.definition)); }
