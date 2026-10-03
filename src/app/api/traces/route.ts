@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateRole, unauthorized, parseInteger } from "@/app/api/tools/_utils";
+import { validateRole, unauthorized, parseNonNegativeInteger } from "@/app/api/tools/_utils";
 
 export const dynamic = "force-dynamic";
 
@@ -45,8 +45,8 @@ export async function GET(req: NextRequest) {
   if (search) { idx++; conditions.push(`(name ILIKE $${idx} OR agent_id ILIKE $${idx})`); values.push(`%${search}%`); }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const limit = Math.min(parseInteger(params.get("limit"), 50), 200);
-  const offset = parseInteger(params.get("offset"), 0);
+  const limit = Math.min(parseNonNegativeInteger(params.get("limit"), 50), 200);
+  const offset = parseNonNegativeInteger(params.get("offset"), 0);
 
   idx++; const limitIdx = idx; values.push(limit);
   idx++; const offsetIdx = idx; values.push(offset);

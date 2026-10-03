@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
+import { MC_URL, ADMIN_TOKEN, authHeaders, sseHead } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 4: Network Failures — Edge & Security Tests
@@ -86,22 +86,19 @@ test.describe("Network Failures — Slow responses", () => {
 // ── SSE Stream Handling ─────────────────────────────────────
 
 test.describe("Network Failures — SSE stream", () => {
-  test("SSE stream endpoint exists and returns event-stream @regression @edge", async ({ request }) => {
-    const res = await request.get(`${MC_URL}/api/dashboard/stream`, {
-      headers: authHeaders(),
-    });
+  test("SSE stream endpoint exists and returns event-stream @regression @edge", async () => {
+    const res = await sseHead("/api/dashboard/stream", authHeaders());
     // SSE endpoint may return 200 with text/event-stream or close immediately
-    expect([200, 401, 404]).toContain(res.status());
-    if (res.status() === 200) {
-      const contentType = res.headers()["content-type"] ?? "";
+    expect([200, 401, 404]).toContain(res.status);
+    if (res.status === 200) {
       // May be event-stream or JSON depending on implementation
-      expect(contentType.includes("event-stream") || contentType.includes("json")).toBeTruthy();
+      expect(res.contentType.includes("event-stream") || res.contentType.includes("json")).toBeTruthy();
     }
   });
 
-  test("SSE stream requires auth @regression @edge", async ({ request }) => {
-    const res = await request.get(`${MC_URL}/api/dashboard/stream`);
-    expect([401, 403]).toContain(res.status());
+  test("SSE stream requires auth @regression @edge", async () => {
+    const res = await sseHead("/api/dashboard/stream");
+    expect([401, 403]).toContain(res.status);
   });
 });
 

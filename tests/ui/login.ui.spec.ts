@@ -54,11 +54,11 @@ test.describe("Login Page UI", () => {
     await page.waitForLoadState("domcontentloaded");
     const submit = page.getByRole("button", { name: /sign in|log in|submit|authenticate/i })
       .or(page.locator("button[type='submit']"));
-    if (await submit.first().isVisible()) {
-      await submit.first().click();
-      await page.waitForTimeout(500);
-      expect(page.url()).toContain("/login");
-    }
+    // The form guards an empty secret by disabling submit (login-page.tsx, since the first commit);
+    // click() waits for an enabled button and timed out. Assert the guard itself, then the URL.
+    await expect(submit.first()).toBeVisible({ timeout: 5000 });
+    await expect(submit.first()).toBeDisabled();
+    expect(page.url()).toContain("/login");
   });
 
   test("submitting wrong password shows error message @regression", async ({ page }) => {

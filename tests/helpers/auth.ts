@@ -74,10 +74,54 @@ export async function authenticate(context: BrowserContext): Promise<string> {
 }
 
 /**
+ * Authenticate a context as a real USER session (users + user_sessions rows), not the owner token.
+ * Routes that act on "the current user" (e.g. /api/auth/sessions) answer 401 to the owner token by design.
+ * Registers a throwaway admin user in the seeded 'transformate' tenant, logs in, returns the CSRF token.
+ */
+export async function authenticateUser(context: BrowserContext): Promise<string> {
+  const email = `e2e-user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`;
+  const password = "E2e-user-Passw0rd";
+  const reg = await context.request.post(`${MC_URL}/api/auth/register`, {
+    headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
+    data: { email, password, role: "admin", tenant_id: "transformate" },
+  });
+  if (!reg.ok()) throw new Error(`Register failed: ${reg.status()} ${await reg.text()}`);
+  const login = await context.request.post(`${MC_URL}/api/auth/login`, { data: { email, password } });
+  if (!login.ok()) throw new Error(`Login failed: ${login.status()} ${await login.text()}`);
+  const setCookie = login.headers()["set-cookie"] ?? "";
+  const domain = getCookieDomain();
+  const toSet = ["mc_auth", "mc_csrf", "mc_role", "mc_tenant"]
+    .map((name) => ({ name, value: parseCookieValue(setCookie, name), domain, path: "/" }))
+    .filter((c): c is { name: string; value: string; domain: string; path: string } => !!c.value);
+  if (toSet.length) await context.addCookies(toSet);
+  return (await context.cookies(MC_URL)).find((c) => c.name === "mc_csrf")?.value ?? "";
+}
+
+/**
  * Get auth headers for API requests (Bearer token — CSRF exempt).
  */
 export function authHeaders(): Record<string, string> {
   return { Authorization: `Bearer ${ADMIN_TOKEN}` };
+}
+
+/**
+ * Agent bearer for agent-only routes (/api/ingest takes an agent token, never the admin token).
+ */
+export function agentHeaders(): Record<string, string> {
+  return { Authorization: `Bearer ${AGENT_TOKEN}` };
+}
+
+/**
+ * Open an SSE endpoint, read status + content-type, then abort. APIRequestContext buffers the whole
+ * body and an event stream never ends (the test timed out, "Request context disposed"). Node fetch
+ * returns at the headers; it also carries no ambient cookies, so "no auth" means no auth.
+ */
+export async function sseHead(path: string, headers: Record<string, string> = {}): Promise<{ status: number; contentType: string }> {
+  const ctrl = new AbortController();
+  const res = await fetch(`${MC_URL}${path}`, { headers, signal: ctrl.signal });
+  const out = { status: res.status, contentType: res.headers.get("content-type") ?? "" };
+  ctrl.abort();
+  return out;
 }
 
 /**

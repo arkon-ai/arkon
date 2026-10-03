@@ -15,7 +15,9 @@ test.describe("Agents Visual Regression @visual @regression", () => {
 
   test("agents page full layout matches baseline", async ({ page }) => {
     await page.goto(`${MC_URL}/agents`);
-    await page.waitForLoadState("networkidle");
+    // not "networkidle": the page holds an EventSource (/api/dashboard/stream) open, so the network
+    // never idles; wait for the rendered page header instead
+    await expect(page.getByRole("heading", { level: 1, name: "Agents" })).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
     await expect(page).toHaveScreenshot("agents-full.png", {
       maxDiffPixelRatio: 0.02,
@@ -25,7 +27,9 @@ test.describe("Agents Visual Regression @visual @regression", () => {
 
   test("agents above-the-fold matches baseline", async ({ page }) => {
     await page.goto(`${MC_URL}/agents`);
-    await page.waitForLoadState("networkidle");
+    // not "networkidle": the page holds an EventSource (/api/dashboard/stream) open, so the network
+    // never idles; wait for the rendered page header instead
+    await expect(page.getByRole("heading", { level: 1, name: "Agents" })).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
     await expect(page).toHaveScreenshot("agents-above-fold.png", {
       maxDiffPixelRatio: 0.02,

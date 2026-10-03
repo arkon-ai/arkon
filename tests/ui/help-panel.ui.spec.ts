@@ -1,7 +1,18 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
 
 /* ── Phase 3: Help Panel & Glossary — comprehensive UI regression ── */
+
+// The "?" listener is attached on hydration; a key pressed right after domcontentloaded can land
+// before it and be lost. Press until the panel shows ("?" toggles, so stop at the first open).
+async function openHelpWithKey(page: Page) {
+  const panel = page.locator("text=Key Concepts").or(page.locator("text=Common Tasks")).first();
+  await expect(async () => {
+    if (!(await panel.isVisible())) await page.keyboard.press("?");
+    await expect(panel).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
+}
+
 
 test.describe("Help Panel", () => {
   test.beforeEach(async ({ context }) => {
@@ -30,7 +41,7 @@ test.describe("Help Panel", () => {
   test("? key opens help panel @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
-    await page.keyboard.press("?");
+    await openHelpWithKey(page);
     const panelContent = page.locator("text=Key Concepts")
       .or(page.locator("text=Common Tasks"));
     await expect(panelContent.first()).toBeVisible({ timeout: 3000 });
@@ -51,7 +62,7 @@ test.describe("Help Panel", () => {
   test("Escape closes help panel @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
-    await page.keyboard.press("?");
+    await openHelpWithKey(page);
     const panelContent = page.locator("text=Key Concepts")
       .or(page.locator("text=Common Tasks"));
     await expect(panelContent.first()).toBeVisible({ timeout: 3000 });
@@ -62,7 +73,7 @@ test.describe("Help Panel", () => {
   test("help panel shows contextual content for dashboard @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
-    await page.keyboard.press("?");
+    await openHelpWithKey(page);
     const dashHelp = page.locator("text=Dashboard");
     await expect(dashHelp.first()).toBeVisible({ timeout: 3000 });
   });
@@ -70,7 +81,7 @@ test.describe("Help Panel", () => {
   test("help panel shows contextual content for security page @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/security`);
     await page.waitForLoadState("domcontentloaded");
-    await page.keyboard.press("?");
+    await openHelpWithKey(page);
     const secHelp = page.locator("text=ThreatGuard").or(page.locator("text=threat"));
     await expect(secHelp.first()).toBeVisible({ timeout: 3000 });
   });
@@ -78,7 +89,7 @@ test.describe("Help Panel", () => {
   test("help panel shows contextual content for costs page @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/costs`);
     await page.waitForLoadState("domcontentloaded");
-    await page.keyboard.press("?");
+    await openHelpWithKey(page);
     const costHelp = page.locator("text=Cost")
       .or(page.locator("text=cost"));
     await expect(costHelp.first()).toBeVisible({ timeout: 3000 });
@@ -87,7 +98,7 @@ test.describe("Help Panel", () => {
   test("help panel has link to full glossary @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
-    await page.keyboard.press("?");
+    await openHelpWithKey(page);
     const glossaryLink = page.locator("a[href*='glossary']")
       .or(page.locator("text=Glossary"));
     await expect(glossaryLink.first()).toBeVisible({ timeout: 3000 });

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, authHeaders, authenticate, csrfHeaders } from "../helpers/auth";
+import { MC_URL, agentHeaders, authHeaders, authenticate, csrfHeaders } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 4: XSS Injection — Edge & Security Tests
@@ -30,10 +30,12 @@ test.describe("XSS — Event ingest content", () => {
       request,
     }) => {
       const res = await request.post(`${MC_URL}/api/ingest`, {
-        headers: { ...authHeaders(), "Content-Type": "application/json" },
+        headers: { ...agentHeaders(), "Content-Type": "application/json" },
         data: {
           agent: "xss-test-agent",
           type: "message_received",
+          // the route validates event_type; without it every payload stops at 400 and the stored path is never exercised
+          event_type: "message_received",
           content: payload,
         },
       });
@@ -54,7 +56,7 @@ test.describe("XSS — Event ingest content", () => {
 test.describe("XSS — Query parameters", () => {
   test('search param with <script> tag is escaped @regression @edge @security', async ({ request }) => {
     const res = await request.get(
-      `${MC_URL}/api/traces?search=${encodeURIComponent('<script>alert(1)</script>')}`,
+      `${MC_URL}/api/traces?q=${encodeURIComponent('<script>alert(1)</script>')}`,
       { headers: authHeaders() }
     );
     expect([200, 400]).toContain(res.status());

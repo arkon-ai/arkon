@@ -74,6 +74,25 @@ describe("proxy auth and csrf gates", () => {
     expect(res.status).toBe(403);
   });
 
+  it("does not let an owner token carried in the mc_auth cookie mutate without CSRF (transformate WI-3990)", async () => {
+    // /api/auth/init stores the owner token in mc_auth: a cookie is ambient authority whatever token it holds
+    const res = await proxy(request("/api/workflows", {
+      method: "POST",
+      cookies: { mc_auth: "owner-secret" },
+    }));
+
+    expect(res.status).toBe(403);
+  });
+
+  it("still lets the owner token as a Bearer HEADER mutate without CSRF (transformate WI-3990 guard)", async () => {
+    const res = await proxy(request("/api/workflows", {
+      method: "POST",
+      headers: { authorization: "Bearer owner-secret" },
+    }));
+
+    expect(res.status).toBe(200);
+  });
+
   it("lets a valid non-browser bearer mutate without CSRF", async () => {
     const res = await proxy(request("/api/workflows", {
       method: "POST",

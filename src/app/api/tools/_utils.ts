@@ -96,6 +96,24 @@ export function parseTextArray(value: unknown) {
   return value.filter((entry): entry is string => typeof entry === "string");
 }
 
+/** A SERIAL (int4) primary key from a URL or body, or null when no row can have it (transformate WI-3989). */
+export function parseSerialId(value: unknown): number | null {
+  const s = typeof value === "number" ? String(value) : value;
+  if (typeof s !== "string" || !/^[1-9]\d{0,9}$/.test(s)) return null;
+  const n = Number(s);
+  return n <= 2147483647 ? n : null;
+}
+
+/** A UUID primary key from a URL or query; anything else can match no row (and makes Postgres throw). */
+export function isUuid(value: string | null | undefined): value is string {
+  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+/** A non-negative integer query parameter (LIMIT/OFFSET must not be negative in Postgres). */
+export function parseNonNegativeInteger(value: string | null, fallback: number) {
+  return Math.max(0, parseInteger(value, fallback));
+}
+
 export function parseInteger(value: string | null, fallback: number) {
   const parsed = Number.parseInt(value ?? "", 10);
   return Number.isFinite(parsed) ? parsed : fallback;

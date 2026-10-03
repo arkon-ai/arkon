@@ -10,6 +10,13 @@ test.describe("Kill Switch UI", () => {
     });
   });
 
+  // These cases assert the empty-list dialog ("No active runs"); /api/active-runs is in-memory and fed
+  // by /api/ingest from other specs in the same run, so pin the precondition (the dialog with runs
+  // shows neither that text nor role="dialog").
+  test.beforeEach(async ({ page }) => {
+    await page.route("**/api/active-runs*", (route) => route.fulfill({ json: { runs: [] } }));
+  });
+
   test("header renders with kill switch area @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");

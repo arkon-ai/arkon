@@ -118,13 +118,17 @@ test.describe("Rate Limiting — Concurrent burst", () => {
     }
   });
 
-  test("unauthenticated burst returns 401 not 500 @regression @edge", async ({ request }) => {
+  test("unauthenticated burst returns 401 not 500 @regression @edge", async ({ playwright }) => {
+    // a request context with NO cookies: the `request` fixture carries the project's admin storageState,
+    // and playwright.request.newContext() inherits the project `use` options unless told otherwise
+    const anon = await playwright.request.newContext({ storageState: { cookies: [], origins: [] } });
     const promises = Array.from({ length: 20 }, () =>
-      request.get(`${MC_URL}/api/dashboard/overview`)
+      anon.get(`${MC_URL}/api/dashboard/overview`)
     );
     const responses = await Promise.all(promises);
     for (const res of responses) {
       expect([401, 429]).toContain(res.status());
     }
+    await anon.dispose();
   });
 });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { unauthorized, validateAdmin } from "@/app/api/tools/_utils";
+import { parseSerialId, unauthorized, validateAdmin } from "@/app/api/tools/_utils";
 
 // GET /api/dashboard/anomalies?limit=20&unacknowledged=true
 export async function GET(req: NextRequest) {
@@ -29,8 +29,10 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   if (!validateAdmin(req)) return unauthorized();
 
-  const { id } = await req.json() as { id?: string };
-  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  const { id: rawId } = await req.json() as { id?: string };
+  if (!rawId) return NextResponse.json({ error: "id required" }, { status: 400 });
+  const id = parseSerialId(rawId);
+  if (id === null) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await query("UPDATE anomaly_alerts SET acknowledged = TRUE WHERE id = $1", [id]);
   return NextResponse.json({ ok: true });

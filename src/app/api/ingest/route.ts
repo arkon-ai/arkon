@@ -45,8 +45,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Parse body
-    const body: IngestPayload = await request.json();
+    // 3. Parse body (a non-JSON or empty body is the caller's error: 400, not a 500)
+    let body: IngestPayload;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Body must be JSON" }, { status: 400 });
+    }
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Body must be a JSON object" }, { status: 400 });
+    }
 
     // 4. Validate
     if (!body.event_type || !VALID_EVENT_TYPES.includes(body.event_type)) {

@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { signOut } from "@/lib/sign-out";
 
 function isRouteActive(pathname: string | null, href: string) {
   if (!pathname) return false;
@@ -55,12 +56,16 @@ export function ClientShell({ children }: { children: ReactNode }) {
     return () => { mounted = false; };
   }, []);
 
-  const handleLogout = () => {
-    document.cookie = "mc_auth=; path=/; max-age=0";
-    document.cookie = "mc_csrf=; path=/; max-age=0";
-    document.cookie = "mc_role=; path=/; max-age=0";
-    document.cookie = "mc_tenant=; path=/; max-age=0";
-    document.cookie = "mc_user_session=; path=/; max-age=0";
+  // Sign Out fails loud (FOLD 1, RULING 4174): leave the page only when the server ended the session.
+  const [logoutFailed, setLogoutFailed] = useState(false);
+  const handleLogout = async () => {
+    setLogoutFailed(false);
+    try {
+      await signOut();
+    } catch {
+      setLogoutFailed(true);
+      return;
+    }
     router.push("/login");
   };
 
@@ -124,6 +129,11 @@ export function ClientShell({ children }: { children: ReactNode }) {
           <LogOut className="h-4 w-4 shrink-0" />
           <span>Sign Out</span>
         </button>
+        {logoutFailed && (
+          <p role="alert" className="px-3 pt-1 text-xs text-danger">
+            Sign out failed. Try again.
+          </p>
+        )}
       </div>
     </div>
   );

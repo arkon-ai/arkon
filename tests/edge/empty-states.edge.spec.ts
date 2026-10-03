@@ -36,7 +36,7 @@ test.describe("Empty States — API responses", () => {
 
   test("traces returns empty array for no matches @regression @edge", async ({ request }) => {
     const res = await request.get(
-      `${MC_URL}/api/traces?search=zzzznonexistent999`,
+      `${MC_URL}/api/traces?q=zzzznonexistent999`,
       { headers: authHeaders() }
     );
     expect(res.status()).toBe(200);

@@ -109,13 +109,13 @@ test.describe("Traces Page UI", () => {
   test("trace rows are clickable and navigate to detail @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/traces`);
     await page.waitForLoadState("domcontentloaded");
-    const rows = page.locator("table tbody tr, [data-testid='trace-row']");
-    const count = await rows.count();
-    if (count > 0) {
-      await rows.first().click();
-      await page.waitForLoadState("domcontentloaded");
-      expect(page.url()).toMatch(/\/traces\//);
-    }
+    // Real rows only: the loading skeleton is also "table tbody tr" and is not clickable.
+    // The E2E seed inserts traces, so a row must appear; the row navigates with router.push,
+    // which finishes after click() returns, so wait on the URL.
+    const rows = page.locator("[data-testid='trace-row']");
+    await expect(rows.first()).toBeVisible({ timeout: 10000 });
+    await rows.first().click();
+    await expect(page).toHaveURL(/\/traces\/[0-9a-f-]{36}/, { timeout: 10000 });
   });
 
   // ── Pagination ─────────────────────────────────────────────
