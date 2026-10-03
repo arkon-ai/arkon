@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { randomBytes, createHash } from "crypto";
 import { query } from "@/lib/db";
+import { readSetupState } from "@/lib/setup-guard";
 
 /**
  * POST /api/setup/complete — public endpoint (only works if setup not yet done)
@@ -10,20 +11,28 @@ import { query } from "@/lib/db";
  *   - Step 5: Mark setup as complete
  */
 export async function POST(req: NextRequest) {
-  // Guard: only allow if setup is not yet complete
-  const check = await query(
-    "SELECT setup_completed FROM tenants WHERE id = 'default' LIMIT 1"
-  );
-  const rows = check.rows as Array<{ setup_completed: boolean }>;
-  if (rows.length > 0 && rows[0].setup_completed) {
+  // Guard (transformate WI-3991, RULING 4122): this endpoint is public, so it acts ONLY on a fresh
+  // install (src/lib/setup-guard.ts). The old guard read only tenant 'default'.setup_completed and
+  // never fired where that row is absent.
+  const state = await readSetupState();
+  if (state.locked) {
     return NextResponse.json(
       { error: "Setup already completed" },
       { status: 403 }
     );
   }
 
-  const body = await req.json();
+  const body = await req.json().catch(() => ({}));
   const { step } = body;
+
+  // Creating the org or the first agent is for an install with no agents yet; once one exists, an
+  // anonymous caller must not add, rename or re-key agents.
+  if ((step === "account" || step === "agent") && state.hasAgents) {
+    return NextResponse.json(
+      { error: "Setup already completed" },
+      { status: 403 }
+    );
+  }
 
   switch (step) {
     case "account": {
@@ -58,37 +67,28 @@ export async function POST(req: NextRequest) {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
 
-      // Check if agent already exists (idempotent for retry)
+      // Never update, nor return a token for, an EXISTING agent id (the takeover path).
       const existing = await query(
         "SELECT id FROM agents WHERE id = $1 LIMIT 1",
         [agentId]
       );
       if ((existing.rows as Array<{ id: string }>).length > 0) {
-        // Update the token
-        await query(
-          "UPDATE agents SET token_hash = $1, name = $2, description = $3, framework = $4, updated_at = NOW() WHERE id = $5",
-          [
-            tokenHash,
-            agent_name.trim(),
-            (agent_description || "").trim(),
-            (framework || "custom").toLowerCase(),
-            agentId,
-          ]
-        );
-      } else {
-        await query(
-          `INSERT INTO agents (id, name, description, framework, token_hash, tenant_id, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, 'default', NOW(), NOW())`,
-          [
-            agentId,
-            agent_name.trim(),
-            (agent_description || "").trim(),
-            (framework || "custom").toLowerCase(),
-            tokenHash,
-          ]
+        return NextResponse.json(
+          { error: "Agent already exists" },
+          { status: 409 }
         );
       }
-
+      await query(
+        `INSERT INTO agents (id, name, description, framework, token_hash, tenant_id, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, 'default', NOW(), NOW())`,
+        [
+          agentId,
+          agent_name.trim(),
+          (agent_description || "").trim(),
+          (framework || "custom").toLowerCase(),
+          tokenHash,
+        ]
+      );
       return NextResponse.json({
         ok: true,
         agent_id: agentId,

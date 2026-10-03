@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { readSetupState } from "@/lib/setup-guard";
 
 /**
  * GET /api/setup/status — public endpoint
@@ -8,12 +8,11 @@ import { query } from "@/lib/db";
  */
 export async function GET() {
   try {
-    const result = await query(
-      "SELECT setup_completed FROM tenants WHERE setup_completed = TRUE LIMIT 1"
-    );
-    const rows = result.rows as Array<{ setup_completed: boolean }>;
+    // Same lock as POST /api/setup/complete (transformate WI-3991): an install in use is "completed",
+    // so the wizard is never offered where every step would be refused.
+    const { locked } = await readSetupState();
 
-    if (rows.length === 0) {
+    if (!locked) {
       // No completed setup found — first run
       return NextResponse.json({ setup_completed: false, needs_setup: true });
     }
