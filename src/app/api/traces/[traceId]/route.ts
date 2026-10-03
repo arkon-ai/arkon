@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateRole, unauthorized } from "@/app/api/tools/_utils";
+import { validateRole, unauthorized, isUuid } from "@/app/api/tools/_utils";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,10 @@ export async function GET(
   if (!role) return unauthorized();
 
   const { traceId } = await params;
+  // trace_id is a UUID column: any other string can match no row (and made Postgres throw, a 500)
+  if (!isUuid(traceId)) {
+    return NextResponse.json({ error: "Trace not found" }, { status: 404 });
+  }
 
   try {
     const traceResult = await query(

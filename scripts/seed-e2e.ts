@@ -59,6 +59,56 @@ async function seedTenants() {
   console.log("[seed-e2e] tenants: ensured 'transformate'");
 }
 
+// External tables: ArkonOS (vos_*) and the Warden fleet layer (worker_activity_events,
+// delegation_jobs) are owned by other products and exist only on hosts they run on; no migration in
+// this repo creates them, so /api/arkonos/overview and /api/fleet/agents answered 500 on a fresh CI DB
+// (and the agents page baked "FLEET TELEMETRY UNAVAILABLE" into its screenshot). E2E fixture only:
+// create the tables those routes read, empty, when absent (columns as the routes use them).
+async function seedExternalSchema() {
+  if (!(await tableExists("worker_activity_events"))) {
+    await pool.query(
+      `CREATE TABLE worker_activity_events (
+         id BIGSERIAL PRIMARY KEY,
+         worker_id TEXT NOT NULL,
+         event_type TEXT NOT NULL,
+         ts TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+         payload JSONB NOT NULL DEFAULT '{}',
+         status TEXT,
+         duration_ms INTEGER
+       )`
+    );
+  }
+  if (!(await tableExists("delegation_jobs"))) {
+    await pool.query(
+      `CREATE TABLE delegation_jobs (
+         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+         target TEXT NOT NULL,
+         status TEXT NOT NULL,
+         queued_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+       )`
+    );
+  }
+  if (!(await tableExists("vos_channels"))) {
+    await pool.query(
+      `CREATE TABLE vos_channels (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, slug TEXT NOT NULL)`
+    );
+  }
+  if (!(await tableExists("vos_messages"))) {
+    await pool.query(
+      `CREATE TABLE vos_messages (
+         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+         channel_id UUID REFERENCES vos_channels(id),
+         role TEXT NOT NULL,
+         status TEXT,
+         content TEXT,
+         metadata JSONB NOT NULL DEFAULT '{}',
+         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+       )`
+    );
+  }
+  console.log("[seed-e2e] external: ensured worker_activity_events, delegation_jobs, vos_channels, vos_messages (E2E fixture)");
+}
+
 async function seedAgents() {
   await pool.query(
     `INSERT INTO agents (id, name, description, framework, role, tenant_id)
@@ -68,6 +118,22 @@ async function seedAgents() {
      ON CONFLICT (id) DO NOTHING`
   );
   console.log("[seed-e2e] agents: ensured 'lumina', 'content-factory'");
+
+  // Bootstrap agent tokens (MC_AGENT_TOKENS "id:token,...") resolve to these agent ids on
+  // /api/ingest; without a row, every ingest hits events_agent_id_fkey and answers 500.
+  const bootstrapIds = (process.env.MC_AGENT_TOKENS || "")
+    .split(",")
+    .map((pair) => pair.split(":")[0]?.trim())
+    .filter((id): id is string => !!id);
+  for (const id of bootstrapIds) {
+    await pool.query(
+      `INSERT INTO agents (id, name, description, framework, role, tenant_id)
+       VALUES ($1, $1, 'Bootstrap-token agent (E2E fixture)', 'openclaw', 'operator', 'default')
+       ON CONFLICT (id) DO NOTHING`,
+      [id]
+    );
+  }
+  console.log(`[seed-e2e] agents: ensured ${bootstrapIds.length} bootstrap-token agent(s)`);
 }
 
 async function seedEvents() {
@@ -340,6 +406,7 @@ async function seedIncidents() {
 async function run() {
   console.log("[seed-e2e] Starting E2E fixture seed...");
   await seedTenants();
+  await seedExternalSchema();
   await seedAgents();
   await seedEvents();
   await seedSessions();

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createHash, randomBytes } from "crypto";
 import { query } from "@/lib/db";
-import { resolveRole, resolveUser, unauthorized, forbidden } from "@/app/api/tools/_utils";
+import { resolveRole, resolveUser, unauthorized, forbidden, parseSerialId } from "@/app/api/tools/_utils";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { resolveTenantAccess } from "@/lib/tenant-access";
 
@@ -115,12 +115,17 @@ export async function DELETE(req: NextRequest) {
   if (!access) return unauthorized("No tenant context");
 
   try {
-    const body = (await req.json()) as { id?: number };
+    // an absent or non-JSON body is a client error (400), not a crash (transformate WI-3989)
+    const body = (await req.json().catch(() => ({}))) as { id?: unknown };
     if (!body.id) {
       return NextResponse.json({ error: "Key ID required" }, { status: 400 });
     }
+    const keyId = parseSerialId(body.id);
+    if (keyId === null) {
+      return NextResponse.json({ error: "Key not found" }, { status: 404 });
+    }
 
-    const existing = await query("SELECT id, tenant_id, name FROM api_keys WHERE id = $1", [body.id]);
+    const existing = await query("SELECT id, tenant_id, name FROM api_keys WHERE id = $1", [keyId]);
     if (existing.rows.length === 0) {
       return NextResponse.json({ error: "Key not found" }, { status: 404 });
     }
@@ -131,14 +136,14 @@ export async function DELETE(req: NextRequest) {
       return forbidden("Cannot revoke keys from other tenants");
     }
 
-    await query("UPDATE api_keys SET is_active = FALSE WHERE id = $1", [body.id]);
+    await query("UPDATE api_keys SET is_active = FALSE WHERE id = $1", [keyId]);
 
     logAudit({
       actorType: "user",
       actorId: user?.id?.toString() ?? "owner",
       action: "api_key.revoked",
       targetType: "api_key",
-      targetId: body.id.toString(),
+      targetId: keyId.toString(),
       description: `Revoked API key "${key.name}"`,
       ipAddress: getClientIp(req.headers),
       tenantId: key.tenant_id,

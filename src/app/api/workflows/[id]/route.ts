@@ -1,7 +1,7 @@
 // src/app/api/workflows/[id]/route.ts — Get, Update, Delete single workflow
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized, resolveUser } from "@/app/api/tools/_utils";
+import { validateAdmin, unauthorized, resolveUser, parseSerialId } from "@/app/api/tools/_utils";
 import { logAudit, getClientIp } from "@/lib/audit";
 
 export async function GET(
@@ -11,7 +11,8 @@ export async function GET(
   if (!validateAdmin(req)) return unauthorized();
 
   try {
-    const { id } = await params;
+    const id = parseSerialId((await params).id);
+    if (id === null) return NextResponse.json({ error: "Workflow not found" }, { status: 404 });
     const result = await query(
       `SELECT * FROM workflows WHERE id = $1`,
       [id]
@@ -39,6 +40,7 @@ export async function PUT(
 
   try {
     const { id } = await params;
+    if (parseSerialId(id) === null) return NextResponse.json({ error: "Workflow not found" }, { status: 404 });
 
     // Fetch old values for audit diff
     const oldResult = await query("SELECT name, status, trigger_type FROM workflows WHERE id = $1", [id]);
@@ -109,6 +111,7 @@ export async function DELETE(
 
   try {
     const { id } = await params;
+    if (parseSerialId(id) === null) return NextResponse.json({ error: "Workflow not found" }, { status: 404 });
     const result = await query(
       `DELETE FROM workflows WHERE id = $1 RETURNING id, name`,
       [id]
