@@ -268,6 +268,7 @@ export function NotionShell({ children }: { children: ReactNode }) {
   }, []);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [quickKillOpen, setQuickKillOpen] = useState(false);
+  const [logoutFailed, setLogoutFailed] = useState(false);
 
   const isPublicPage = pathname === "/login" || pathname?.startsWith("/setup");
 
@@ -415,8 +416,15 @@ export function NotionShell({ children }: { children: ReactNode }) {
   );
   const topbarCrumbs = ["Arkon", activeNavGroup?.label ?? "Observe", currentPageLabel];
 
+  // Sign Out fails loud (FOLD 1, RULING 4174): leave the page only when the server ended the session.
   const handleLogout = async () => {
-    await signOut();
+    setLogoutFailed(false);
+    try {
+      await signOut();
+    } catch {
+      setLogoutFailed(true);
+      return;
+    }
     router.push("/login");
   };
 
@@ -620,6 +628,11 @@ export function NotionShell({ children }: { children: ReactNode }) {
             <LogOut className="h-4 w-4 shrink-0" />
             {!sidebarCollapsed && <span>Sign Out</span>}
           </button>
+          {logoutFailed && (
+            <p role="alert" className="px-3 pt-1 text-xs text-danger">
+              Sign out failed. Try again.
+            </p>
+          )}
         </div>
       </div>
     </div>

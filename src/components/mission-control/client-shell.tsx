@@ -56,8 +56,16 @@ export function ClientShell({ children }: { children: ReactNode }) {
     return () => { mounted = false; };
   }, []);
 
+  // Sign Out fails loud (FOLD 1, RULING 4174): leave the page only when the server ended the session.
+  const [logoutFailed, setLogoutFailed] = useState(false);
   const handleLogout = async () => {
-    await signOut();
+    setLogoutFailed(false);
+    try {
+      await signOut();
+    } catch {
+      setLogoutFailed(true);
+      return;
+    }
     router.push("/login");
   };
 
@@ -121,6 +129,11 @@ export function ClientShell({ children }: { children: ReactNode }) {
           <LogOut className="h-4 w-4 shrink-0" />
           <span>Sign Out</span>
         </button>
+        {logoutFailed && (
+          <p role="alert" className="px-3 pt-1 text-xs text-danger">
+            Sign out failed. Try again.
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { randomBytes, createHash } from "crypto";
-import { query } from "@/lib/db";
-import { readSetupState } from "@/lib/setup-guard";
+import { withTransaction, type Query } from "@/lib/db";
+import { readSetupState, SETUP_LOCK_SQL } from "@/lib/setup-guard";
 
 /**
  * POST /api/setup/complete — public endpoint (only works if setup not yet done)
@@ -11,10 +11,29 @@ import { readSetupState } from "@/lib/setup-guard";
  *   - Step 5: Mark setup as complete
  */
 export async function POST(req: NextRequest) {
+  const body: SetupBody = await req.json().catch(() => ({}));
+  // The state check and the step's write run in ONE transaction under ONE advisory lock (FOLD 1, RULING 4174):
+  // two anonymous callers cannot both pass the "no agents yet" check and both mint a first-agent token.
+  return withTransaction(async (q) => {
+    await q(SETUP_LOCK_SQL);
+    return runStep(q, body);
+  });
+}
+
+type SetupBody = {
+  step?: string;
+  org_name?: string;
+  admin_email?: string;
+  agent_name?: string;
+  agent_description?: string;
+  framework?: string;
+};
+
+async function runStep(q: Query, body: SetupBody) {
   // Guard (transformate WI-3991, RULING 4122): this endpoint is public, so it acts ONLY on a fresh
   // install (src/lib/setup-guard.ts). The old guard read only tenant 'default'.setup_completed and
   // never fired where that row is absent.
-  const state = await readSetupState();
+  const state = await readSetupState(q);
   if (state.locked) {
     return NextResponse.json(
       { error: "Setup already completed" },
@@ -22,7 +41,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json().catch(() => ({}));
   const { step } = body;
 
   // Creating the org or the first agent is for an install with no agents yet; once one exists, an
@@ -43,7 +61,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      await query(
+      await q(
         "UPDATE tenants SET name = $1, admin_email = $2, updated_at = NOW() WHERE id = 'default'",
         [org_name.trim(), admin_email.trim()]
       );
@@ -68,7 +86,7 @@ export async function POST(req: NextRequest) {
         .replace(/^-|-$/g, "");
 
       // Never update, nor return a token for, an EXISTING agent id (the takeover path).
-      const existing = await query(
+      const existing = await q(
         "SELECT id FROM agents WHERE id = $1 LIMIT 1",
         [agentId]
       );
@@ -78,7 +96,7 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         );
       }
-      await query(
+      await q(
         `INSERT INTO agents (id, name, description, framework, token_hash, tenant_id, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, 'default', NOW(), NOW())`,
         [
@@ -97,7 +115,7 @@ export async function POST(req: NextRequest) {
     }
 
     case "complete": {
-      await query(
+      await q(
         "UPDATE tenants SET setup_completed = TRUE, updated_at = NOW() WHERE id = 'default'"
       );
       return NextResponse.json({ ok: true });
