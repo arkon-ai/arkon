@@ -43,6 +43,16 @@ export interface SendNotificationParams {
 export const LEGACY_TENANT_SENTINEL = "default";
 
 /**
+ * A caught error as its name, plus its code when that is a string. Never the
+ * message, cause or stack: those can carry a URL or a config value (WI-3986).
+ */
+function errorLabel(err: unknown): string {
+  const e = err as { name?: unknown; code?: unknown } | null | undefined;
+  const name = typeof e?.name === "string" ? e.name : typeof err;
+  return typeof e?.code === "string" ? `${name} ${e.code}` : name;
+}
+
+/**
  * Resolve the tenant that owns system-level (non-tenant-scoped) notifications:
  * ARKON_SYSTEM_TENANT_ID if configured, else the owner-plan tenant, else the
  * oldest tenant. Returns null when no tenant exists so callers can skip the
@@ -58,7 +68,7 @@ export async function getSystemTenantId(): Promise<string | null> {
     );
     return (res.rows[0] as { id?: string } | undefined)?.id ?? null;
   } catch (err) {
-    console.error("[notifications] Failed to resolve system tenant:", err);
+    console.error(`[notifications] Failed to resolve system tenant: ${errorLabel(err)}`);
     return null;
   }
 }
@@ -90,11 +100,19 @@ function getPreferenceKey(type: NotificationType, severity: NotificationSeverity
  * Send a notification: always creates in-app, then fans out to external channels.
  */
 export async function sendNotification(params: SendNotificationParams): Promise<void> {
+  // Threat and approval alerts that reach no external channel log NOTIFY-DARK
+  // once, on every exit (WI-3986). Only a fetch that returned ok counts; web
+  // push never counts.
+  const prefKey = getPreferenceKey(params.type, params.severity);
+  const isAlert = params.type === "threat" || params.type === "approval";
+  let tenantId: string | null = null;
+  let delivered = 0;
+
   try {
     // Resolve the tenant before any write. The legacy 'default' sentinel is not
     // a real tenants row, so inserting it verbatim violates the FK. If nothing
     // resolves, skip the write rather than emit a failing insert.
-    const tenantId = await resolveNotificationTenantId(params.tenantId);
+    tenantId = await resolveNotificationTenantId(params.tenantId);
     if (!tenantId) {
       console.warn(
         `[notifications] No tenant resolved for "${params.type}" notification — skipping`,
@@ -123,21 +141,7 @@ export async function sendNotification(params: SendNotificationParams): Promise<
       [tenantId],
     );
 
-    // Threat and approval alerts that reach no external channel log NOTIFY-DARK
-    // (WI-3986). Only a fetch that returned ok counts; web push never counts.
-    const prefKey = getPreferenceKey(params.type, params.severity);
-    const isAlert = params.type === "threat" || params.type === "approval";
-    let delivered = 0;
-    const logIfDark = () => {
-      if (isAlert && delivered === 0) {
-        console.error(`NOTIFY-DARK ${prefKey} tenant=${tenantId}`);
-      }
-    };
-
-    if (prefs.rows.length === 0) {
-      logIfDark();
-      return;
-    }
+    if (prefs.rows.length === 0) return;
 
     // 3. Fan out to enabled channels
     const message = formatMessage(params);
@@ -157,23 +161,26 @@ export async function sendNotification(params: SendNotificationParams): Promise<
             if (ok) delivered++;
           },
           (err) => {
-            console.error(`[notifications] Failed to dispatch to ${row.channel}:`, err);
+            console.error(`[notifications] Failed to dispatch to ${row.channel}: ${errorLabel(err)}`);
           },
         ),
       );
 
     await Promise.allSettled(dispatches);
-    logIfDark();
 
     // 4. Web Push — send to all registered push subscriptions for critical/high severity
     if (params.severity === "critical" || params.severity === "warning") {
       await sendWebPushNotifications({ ...params, tenantId }).catch((err) => {
-        console.error("[notifications] Web push dispatch failed:", err);
+        console.error(`[notifications] Web push dispatch failed: ${errorLabel(err)}`);
       });
     }
   } catch (err) {
     // Notification failure is non-fatal
-    console.error("[notifications] Error sending notification:", err);
+    console.error(`[notifications] Error sending notification: ${errorLabel(err)}`);
+  } finally {
+    if (isAlert && delivered === 0) {
+      console.error(`NOTIFY-DARK ${prefKey} tenant=${tenantId ?? "unknown"}`);
+    }
   }
 }
 
@@ -419,6 +426,6 @@ async function sendWebPushNotifications(params: SendNotificationParams): Promise
     }
   } catch (err) {
     // web-push module not installed or other error — non-fatal
-    console.warn("[notifications] web-push not available:", (err as Error).message);
+    console.warn(`[notifications] web-push not available: ${errorLabel(err)}`);
   }
 }

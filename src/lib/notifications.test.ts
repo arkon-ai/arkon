@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { inspect } from "util";
 import { query } from "@/lib/db";
 import {
   resolveNotificationTenantId,
@@ -202,6 +203,72 @@ describe("sendNotification external delivery (WI-3986)", () => {
     prefRows([]);
     await sendNotification({ tenantId: "default", type: "infra_offline", severity: "critical", title: "N" });
     expect(darkLines()).toEqual([]);
+  });
+
+  // FOLD 2 (MAJOR 1): every exit of an alert call with zero deliveries logs
+  // exactly one marker, including the early failures before any dispatch.
+  const failOn = (match: string, rows: unknown[] = []) =>
+    mockQuery.mockImplementation(async (sql: string) => {
+      if (String(sql).includes(match)) throw new Error("db down");
+      return { rows } as never;
+    });
+
+  it("tenant lookup rejects -> one NOTIFY-DARK with tenant=unknown, no throw", async () => {
+    delete process.env.ARKON_SYSTEM_TENANT_ID;
+    failOn("FROM tenants");
+    await expect(threat("critical")).resolves.toBeUndefined();
+    expect(darkLines()).toEqual(["NOTIFY-DARK threat_critical tenant=unknown"]);
+  });
+
+  it("no tenant resolved -> one NOTIFY-DARK with tenant=unknown, no throw", async () => {
+    delete process.env.ARKON_SYSTEM_TENANT_ID;
+    mockQuery.mockResolvedValue({ rows: [] } as never);
+    await expect(threat("warning")).resolves.toBeUndefined();
+    expect(darkLines()).toEqual(["NOTIFY-DARK threat_high tenant=unknown"]);
+  });
+
+  it("in-app INSERT rejects -> one NOTIFY-DARK, no throw", async () => {
+    failOn("INSERT INTO notifications");
+    await expect(
+      sendNotification({ tenantId: "default", type: "approval", severity: "critical", title: "A" }),
+    ).resolves.toBeUndefined();
+    expect(darkLines()).toEqual([`NOTIFY-DARK approval tenant=${TENANT}`]);
+  });
+
+  it("prefs SELECT rejects after the INSERT -> one NOTIFY-DARK, no throw, no dispatch", async () => {
+    failOn("notification_preferences");
+    await expect(threat("critical")).resolves.toBeUndefined();
+    expect(mockQuery.mock.calls.some(([q]) => String(q).includes("INSERT INTO notifications"))).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(darkLines()).toEqual([`NOTIFY-DARK threat_critical tenant=${TENANT}`]);
+  });
+
+  it("an early failure of a non-alert type logs no NOTIFY-DARK", async () => {
+    failOn("INSERT INTO notifications");
+    await sendNotification({ tenantId: "default", type: "budget", severity: "warning", title: "B" });
+    expect(darkLines()).toEqual([]);
+  });
+
+  // FOLD 2 (MAJOR 2): a caught error is logged by name (and string code) only.
+  // FAKE fixture value, not a real secret: it stands for a config value in an error text.
+  const FAKE = "fixture-wi3986-fake-secret";
+  it.each([
+    ["tenant lookup", "FROM tenants"],
+    ["in-app INSERT", "INSERT INTO notifications"],
+    ["prefs SELECT", "notification_preferences"],
+  ])("%s error: its message and cause never reach the log", async (_name, match) => {
+    if (match === "FROM tenants") delete process.env.ARKON_SYSTEM_TENANT_ID;
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    mockQuery.mockImplementation(async (sql: string) => {
+      if (String(sql).includes(match)) {
+        throw Object.assign(new Error(`connect https://${FAKE}`, { cause: new Error(FAKE) }), { code: "ECONNREFUSED" });
+      }
+      return { rows: [] } as never;
+    });
+    await threat("critical");
+    const all = [...errorSpy.mock.calls, ...warnSpy.mock.calls].map((c) => inspect(c, { depth: 5 }));
+    expect(all.some((l) => l.includes("ECONNREFUSED"))).toBe(true);
+    for (const l of all) expect(l).not.toContain(FAKE);
   });
 
   // 1b CHARACTERISATION: a row without config.types gets the three alert keys.

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, writeFileSync, rmSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
+import { inspect } from "util";
 import { query } from "@/lib/db";
 import {
   checkAlertChannel,
@@ -47,6 +48,10 @@ function db(opts: { prefs?: unknown[]; serverRows?: ServerRow[] }) {
   });
 }
 
+// Every console arg in full (an Error with its message, stack and cause).
+const show = (args: unknown[]) =>
+  args.map((x) => (typeof x === "string" ? x : inspect(x, { depth: 5 }))).join(" ");
+
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
@@ -57,9 +62,9 @@ beforeEach(() => {
   process.env.ARKON_SYSTEM_TENANT_ID = TENANT;
   delete process.env.ALERT_MIN_LEVEL;
   logs = [];
-  vi.spyOn(console, "log").mockImplementation((...a: unknown[]) => void logs.push(a.join(" ")));
-  vi.spyOn(console, "error").mockImplementation((...a: unknown[]) => void logs.push(a.join(" ")));
-  vi.spyOn(console, "warn").mockImplementation(() => {});
+  vi.spyOn(console, "log").mockImplementation((...a: unknown[]) => void logs.push(show(a)));
+  vi.spyOn(console, "error").mockImplementation((...a: unknown[]) => void logs.push(show(a)));
+  vi.spyOn(console, "warn").mockImplementation((...a: unknown[]) => void logs.push(show(a)));
 });
 
 afterEach(() => {
@@ -251,6 +256,21 @@ describe("fire-test-alerts (F3)", () => {
     expect(await fireTestAlerts()).toBe(1);
     expect(logs.some((l) => l.startsWith("STOP: no server-written"))).toBe(true);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  // FOLD 2 (MAJOR 2): the REAL fetch rejects a malformed webhook URL while
+  // parsing it (no network). The error text carries the URL; no log may.
+  it("a dispatch error never prints the configured webhook value (real fetch)", async () => {
+    vi.unstubAllGlobals(); // this case uses the real fetch
+    // FAKE fixture value, not a real webhook: an invalid URL that cannot be fetched.
+    const FAKE_URL = "ht!tp://fixture-wi3986-marker";
+    db({
+      prefs: [{ channel: "discord", config: { webhook_url: FAKE_URL } }],
+      serverRows: [serverRow],
+    });
+    expect(await fireTestAlerts()).toBe(0);
+    expect(logs.some((l) => l.includes("Failed to dispatch to discord"))).toBe(true);
+    for (const l of logs) expect(l).not.toContain("fixture-wi3986-marker");
   });
 
   it("STOPS before firing when the server-written row's tenant differs", async () => {
