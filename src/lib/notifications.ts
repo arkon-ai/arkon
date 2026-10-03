@@ -43,6 +43,24 @@ export interface SendNotificationParams {
 export const LEGACY_TENANT_SENTINEL = "default";
 
 /**
+ * A caught error as its name and code (WI-3986). Never the message, cause or
+ * stack, and a name or code only in a closed form, since free text can carry a
+ * URL or a config value. Name: ^[A-Za-z][A-Za-z0-9]{0,39}$. Code: ^[A-Z][A-Z0-9_]{0,39}$
+ * as is (ECONNREFUSED), or a PostgreSQL SQLSTATE ^[0-9][0-9A-Z]{4}$ as pg:<code>.
+ * Anything else prints 'unknown'; no code, no code part.
+ */
+function errorLabel(err: unknown): string {
+  const e = err as { name?: unknown; code?: unknown } | null | undefined;
+  const name =
+    typeof e?.name === "string" && /^[A-Za-z][A-Za-z0-9]{0,39}$/.test(e.name) ? e.name : "unknown";
+  const code = e?.code;
+  if (code === undefined || code === null) return name;
+  if (typeof code === "string" && /^[A-Z][A-Z0-9_]{0,39}$/.test(code)) return `${name} ${code}`;
+  if (typeof code === "string" && /^[0-9][0-9A-Z]{4}$/.test(code)) return `${name} pg:${code}`;
+  return `${name} unknown`;
+}
+
+/**
  * Resolve the tenant that owns system-level (non-tenant-scoped) notifications:
  * ARKON_SYSTEM_TENANT_ID if configured, else the owner-plan tenant, else the
  * oldest tenant. Returns null when no tenant exists so callers can skip the
@@ -58,7 +76,7 @@ export async function getSystemTenantId(): Promise<string | null> {
     );
     return (res.rows[0] as { id?: string } | undefined)?.id ?? null;
   } catch (err) {
-    console.error("[notifications] Failed to resolve system tenant:", err);
+    console.error(`[notifications] Failed to resolve system tenant: ${errorLabel(err)}`);
     return null;
   }
 }
@@ -90,11 +108,19 @@ function getPreferenceKey(type: NotificationType, severity: NotificationSeverity
  * Send a notification: always creates in-app, then fans out to external channels.
  */
 export async function sendNotification(params: SendNotificationParams): Promise<void> {
+  // Threat and approval alerts that reach no external channel log NOTIFY-DARK
+  // once, on every exit (WI-3986). Only a fetch that returned ok counts; web
+  // push never counts.
+  const prefKey = getPreferenceKey(params.type, params.severity);
+  const isAlert = params.type === "threat" || params.type === "approval";
+  let tenantId: string | null = null;
+  let delivered = 0;
+
   try {
     // Resolve the tenant before any write. The legacy 'default' sentinel is not
     // a real tenants row, so inserting it verbatim violates the FK. If nothing
     // resolves, skip the write rather than emit a failing insert.
-    const tenantId = await resolveNotificationTenantId(params.tenantId);
+    tenantId = await resolveNotificationTenantId(params.tenantId);
     if (!tenantId) {
       console.warn(
         `[notifications] No tenant resolved for "${params.type}" notification — skipping`,
@@ -126,7 +152,6 @@ export async function sendNotification(params: SendNotificationParams): Promise<
     if (prefs.rows.length === 0) return;
 
     // 3. Fan out to enabled channels
-    const prefKey = getPreferenceKey(params.type, params.severity);
     const message = formatMessage(params);
 
     const dispatches = prefs.rows
@@ -139,9 +164,14 @@ export async function sendNotification(params: SendNotificationParams): Promise<
         return types[prefKey] === true;
       })
       .map((row: { channel: string; config: Record<string, unknown> }) =>
-        dispatchToChannel(row.channel, row.config, message, params).catch((err) => {
-          console.error(`[notifications] Failed to dispatch to ${row.channel}:`, err);
-        }),
+        dispatchToChannel(row.channel, row.config, message, params).then(
+          (ok) => {
+            if (ok) delivered++;
+          },
+          (err) => {
+            console.error(`[notifications] Failed to dispatch to ${row.channel}: ${errorLabel(err)}`);
+          },
+        ),
       );
 
     await Promise.allSettled(dispatches);
@@ -149,12 +179,16 @@ export async function sendNotification(params: SendNotificationParams): Promise<
     // 4. Web Push — send to all registered push subscriptions for critical/high severity
     if (params.severity === "critical" || params.severity === "warning") {
       await sendWebPushNotifications({ ...params, tenantId }).catch((err) => {
-        console.error("[notifications] Web push dispatch failed:", err);
+        console.error(`[notifications] Web push dispatch failed: ${errorLabel(err)}`);
       });
     }
   } catch (err) {
     // Notification failure is non-fatal
-    console.error("[notifications] Error sending notification:", err);
+    console.error(`[notifications] Error sending notification: ${errorLabel(err)}`);
+  } finally {
+    if (isAlert && delivered === 0) {
+      console.error(`NOTIFY-DARK ${prefKey} tenant=${tenantId ?? "unknown"}`);
+    }
   }
 }
 
@@ -180,35 +214,36 @@ function formatMessage(params: SendNotificationParams): string {
 
 /* ── Channel Dispatchers ── */
 
+/**
+ * Returns true only when the channel's fetch returned ok. A missing config key,
+ * 'email' (not implemented) or an unknown channel returns false; a non-ok
+ * fetch throws.
+ */
 async function dispatchToChannel(
   channel: string,
   config: Record<string, unknown>,
   message: string,
   params: SendNotificationParams,
-): Promise<void> {
+): Promise<boolean> {
   switch (channel) {
     case "telegram":
-      await sendTelegram(config, message);
-      break;
+      return sendTelegram(config, message);
     case "slack":
-      await sendSlack(config, message);
-      break;
+      return sendSlack(config, message);
     case "discord":
-      await sendDiscord(config, message);
-      break;
+      return sendDiscord(config, message);
     case "webhook":
-      await sendWebhook(config, message, params);
-      break;
-    case "email":
-      // Email SMTP not yet implemented — skip silently
-      break;
+      return sendWebhook(config, message, params);
+    default:
+      // 'email': SMTP not yet implemented — not a delivery
+      return false;
   }
 }
 
-async function sendTelegram(config: Record<string, unknown>, text: string): Promise<void> {
+async function sendTelegram(config: Record<string, unknown>, text: string): Promise<boolean> {
   const botToken = config.bot_token as string;
   const chatId = config.chat_id as string;
-  if (!botToken || !chatId) return;
+  if (!botToken || !chatId) return false;
 
   const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: "POST",
@@ -219,11 +254,12 @@ async function sendTelegram(config: Record<string, unknown>, text: string): Prom
   if (!res.ok) {
     throw new Error(`Telegram API returned ${res.status}`);
   }
+  return true;
 }
 
-async function sendSlack(config: Record<string, unknown>, text: string): Promise<void> {
+async function sendSlack(config: Record<string, unknown>, text: string): Promise<boolean> {
   const webhookUrl = config.webhook_url as string;
-  if (!webhookUrl) return;
+  if (!webhookUrl) return false;
 
   const res = await fetch(webhookUrl, {
     method: "POST",
@@ -234,11 +270,12 @@ async function sendSlack(config: Record<string, unknown>, text: string): Promise
   if (!res.ok) {
     throw new Error(`Slack webhook returned ${res.status}`);
   }
+  return true;
 }
 
-async function sendDiscord(config: Record<string, unknown>, text: string): Promise<void> {
+async function sendDiscord(config: Record<string, unknown>, text: string): Promise<boolean> {
   const webhookUrl = config.webhook_url as string;
-  if (!webhookUrl) return;
+  if (!webhookUrl) return false;
 
   const res = await fetch(webhookUrl, {
     method: "POST",
@@ -249,15 +286,16 @@ async function sendDiscord(config: Record<string, unknown>, text: string): Promi
   if (!res.ok) {
     throw new Error(`Discord webhook returned ${res.status}`);
   }
+  return true;
 }
 
 async function sendWebhook(
   config: Record<string, unknown>,
   _message: string,
   params: SendNotificationParams,
-): Promise<void> {
+): Promise<boolean> {
   const url = config.url as string;
-  if (!url) return;
+  if (!url) return false;
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (config.secret_header && config.secret_value) {
@@ -281,6 +319,7 @@ async function sendWebhook(
   if (!res.ok) {
     throw new Error(`Webhook returned ${res.status}`);
   }
+  return true;
 }
 
 /* ── Legacy Compatibility ── */
@@ -395,6 +434,6 @@ async function sendWebPushNotifications(params: SendNotificationParams): Promise
     }
   } catch (err) {
     // web-push module not installed or other error — non-fatal
-    console.warn("[notifications] web-push not available:", (err as Error).message);
+    console.warn(`[notifications] web-push not available: ${errorLabel(err)}`);
   }
 }
