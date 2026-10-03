@@ -49,6 +49,7 @@ import { HelpPanel } from "./help-panel";
 import { TenantSwitcher } from "./tenant-switcher";
 import { ThemeToggle } from "./theme-toggle";
 import { isReviewModeActiveInBrowser } from "@/lib/review-mode";
+import { signOut } from "@/lib/sign-out";
 
 const pageLabels: Record<string, string> = {
   "/": "Dashboard",
@@ -414,10 +415,8 @@ export function NotionShell({ children }: { children: ReactNode }) {
   );
   const topbarCrumbs = ["Arkon", activeNavGroup?.label ?? "Observe", currentPageLabel];
 
-  const handleLogout = () => {
-    document.cookie = "mc_auth=; path=/; max-age=0";
-    document.cookie = "mc_csrf=; path=/; max-age=0";
-    document.cookie = "mc_role=; path=/; max-age=0";
+  const handleLogout = async () => {
+    await signOut();
     router.push("/login");
   };
 

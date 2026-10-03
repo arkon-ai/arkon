@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { signOut } from "@/lib/sign-out";
 
 function isRouteActive(pathname: string | null, href: string) {
   if (!pathname) return false;
@@ -55,12 +56,8 @@ export function ClientShell({ children }: { children: ReactNode }) {
     return () => { mounted = false; };
   }, []);
 
-  const handleLogout = () => {
-    document.cookie = "mc_auth=; path=/; max-age=0";
-    document.cookie = "mc_csrf=; path=/; max-age=0";
-    document.cookie = "mc_role=; path=/; max-age=0";
-    document.cookie = "mc_tenant=; path=/; max-age=0";
-    document.cookie = "mc_user_session=; path=/; max-age=0";
+  const handleLogout = async () => {
+    await signOut();
     router.push("/login");
   };
 
