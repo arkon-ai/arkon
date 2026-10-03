@@ -133,10 +133,10 @@ test.describe("Settings Appearance Page UI", () => {
   test("Notifications tab navigates to notifications settings @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/settings/appearance`);
     await page.waitForLoadState("domcontentloaded");
-    const notifTab = page.locator("text=Notifications").first();
-    await notifTab.click();
-    await page.waitForLoadState("domcontentloaded");
-    expect(page.url()).toContain("notification");
+    // the settings nav link (src/app/settings/layout.tsx); a client-side navigation finishes after
+    // click() returns, so wait on the URL instead of reading it once
+    await page.getByRole("link", { name: "Notifications", exact: true }).first().click();
+    await expect(page).toHaveURL(/\/settings\/notifications/, { timeout: 10000 });
   });
 
   test("no console errors on appearance page @regression", async ({ page }) => {

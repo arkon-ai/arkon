@@ -251,7 +251,14 @@ export default function SetupPage() {
         </div>
 
         {/* Progress bar */}
-        <div className="mb-8 flex items-center gap-2">
+        <div
+          className="mb-8 flex items-center gap-2"
+          role="progressbar"
+          aria-label="Setup progress"
+          aria-valuemin={1}
+          aria-valuemax={TOTAL_STEPS}
+          aria-valuenow={step}
+        >
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
             <div key={i} className="flex-1">
               <div
@@ -283,10 +290,11 @@ export default function SetupPage() {
                 Let&apos;s get your governance platform running in a few minutes.
               </p>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+                <label htmlFor="setup-org-name" className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Organization Name
                 </label>
                 <input
+                  id="setup-org-name"
                   type="text"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
@@ -296,10 +304,11 @@ export default function SetupPage() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+                <label htmlFor="setup-admin-email" className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Admin Email
                 </label>
                 <input
+                  id="setup-admin-email"
                   type="email"
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
@@ -308,10 +317,11 @@ export default function SetupPage() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+                <label htmlFor="setup-admin-password" className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Admin Password
                 </label>
                 <input
+                  id="setup-admin-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -320,10 +330,11 @@ export default function SetupPage() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+                <label htmlFor="setup-confirm-password" className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
                   Confirm Password
                 </label>
                 <input
+                  id="setup-confirm-password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}

@@ -67,17 +67,18 @@ test.describe("Admin Panel Page UI", () => {
   test("Manual Event Ingest has event type selector @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/admin`);
     await page.waitForLoadState("domcontentloaded");
-    const eventType = page.locator("text=EVENT TYPE").first()
+    // .first() goes on the union: both arms render, so the bare .or() is a strict-mode violation
+    const eventType = page.locator("text=EVENT TYPE")
       .or(page.locator("text=message — a conversation or chat event"));
-    await expect(eventType).toBeVisible({ timeout: 5000 });
+    await expect(eventType.first()).toBeVisible({ timeout: 5000 });
   });
 
   test("Manual Event Ingest has content textarea @regression", async ({ page }) => {
     await page.goto(`${MC_URL}/admin`);
     await page.waitForLoadState("domcontentloaded");
-    const content = page.locator("text=CONTENT").first()
+    const content = page.locator("text=CONTENT")
       .or(page.getByPlaceholder(/describe the event/i));
-    await expect(content).toBeVisible({ timeout: 5000 });
+    await expect(content.first()).toBeVisible({ timeout: 5000 });
   });
 
   test("Manual Event Ingest has Log Event button @regression", async ({ page }) => {

@@ -24,13 +24,16 @@ test.describe("Notification Bell UI", () => {
     const header = page.locator("header").first();
     const bell = header.locator('button[aria-label*="notification" i]')
       .or(header.locator('button[aria-label*="bell" i]'));
-    if (await bell.first().isVisible()) {
-      await bell.first().click();
-      await page.waitForTimeout(500);
-      const dropdown = page.locator('[role="menu"], [role="dialog"], [data-testid="notification-panel"]')
-        .or(page.locator("text=Notifications").nth(1));
-      await expect(dropdown.first()).toBeVisible({ timeout: 3000 });
-    }
+    await expect(bell.first()).toBeVisible({ timeout: 5000 });
+    // The panel (notification-dropdown.tsx) has no role; its <h3> reads "Notifications" plus the
+    // unread badge. .nth(1) assumed a second match that is not there. A click before hydration is
+    // lost: retry it (only while the panel is closed, the bell toggles).
+    const dropdown = page.locator('[role="menu"], [role="dialog"], [data-testid="notification-panel"]')
+      .or(page.getByRole("heading", { level: 3, name: /^Notifications/ }));
+    await expect(async () => {
+      if (!(await dropdown.first().isVisible())) await bell.first().click();
+      await expect(dropdown.first()).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 10000 });
   });
 
   test("notification dropdown shows messages or empty state @regression", async ({ page }) => {

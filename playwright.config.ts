@@ -27,11 +27,23 @@ export default defineConfig({
       name: "setup",
       testMatch: /.*\.setup\.ts/,
     },
+    // Desktop Chrome visual baselines — run FIRST, on the freshly seeded DB. The other specs write
+    // data (ingest, workflows, docs, agents) that the costs/workflows/agents screens show, so a
+    // screenshot taken alongside them depends on test order (transformate WI-3989). Snapshot files
+    // keep the "-chromium-desktop" name. If a visual case fails, Playwright skips chromium-desktop.
+    {
+      name: "chromium-desktop-visual",
+      testMatch: /visual\/.*\.visual\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"], storageState: "tests/.auth/admin.json" },
+      snapshotPathTemplate: "{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}-chromium-desktop{-snapshotSuffix}{ext}",
+      dependencies: ["setup"],
+    },
     // Desktop Chrome (primary)
     {
       name: "chromium-desktop",
+      testIgnore: /visual\/.*\.visual\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], storageState: "tests/.auth/admin.json" },
-      dependencies: ["setup"],
+      dependencies: ["setup", "chromium-desktop-visual"],
     },
     // Mobile Chrome
     {

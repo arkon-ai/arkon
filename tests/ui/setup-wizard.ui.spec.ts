@@ -13,6 +13,18 @@ test.describe("Setup Status API", () => {
 });
 
 test.describe("Setup Wizard UI", () => {
+  // These cases test the wizard UI on a fresh install. /api/setup/status reads shared DB state that
+  // other specs can flip mid-run (the page then redirects to "/"), so pin "not completed"; and no
+  // case here may write the real default tenant through the public /api/setup/complete.
+  test.beforeEach(async ({ page }) => {
+    await page.route("**/api/setup/status", (route) =>
+      route.fulfill({ json: { setup_completed: false, needs_setup: true } })
+    );
+    await page.route("**/api/setup/complete", (route) =>
+      route.request().method() === "POST" ? route.fulfill({ json: { ok: true } }) : route.fallback()
+    );
+  });
+
   // ── Basic Rendering ────────────────────────────────────────
   test("setup page loads without errors @regression", async ({ page }) => {
     const errors: string[] = [];
@@ -84,12 +96,14 @@ test.describe("Setup Wizard UI", () => {
     await page.goto(`${MC_URL}/setup`);
     await page.waitForLoadState("domcontentloaded");
     if (!page.url().includes("/setup")) return;
-    // Try to continue without filling required fields
+    // Required fields are enforced by disabling Continue until organization and email are filled
+    // (src/app/setup/page.tsx); click() waited on the disabled button and timed out.
     const continueBtn = page.getByRole("button", { name: /continue|next|create/i }).first();
-    await continueBtn.click();
-    // Should show validation error or not advance
-    await page.waitForTimeout(500);
-    // Should still be on setup page
+    await expect(continueBtn).toBeDisabled({ timeout: 5000 });
+    await page.getByLabel(/organization/i).fill("E2E Org");
+    await expect(continueBtn).toBeDisabled();
+    await page.getByLabel(/email/i).fill("e2e@example.test");
+    await expect(continueBtn).toBeEnabled();
     expect(page.url()).toContain("/setup");
   });
 
@@ -159,7 +173,10 @@ test.describe("Setup Wizard UI", () => {
       if (msg.type() === "error") consoleErrors.push(msg.text());
     });
     await page.goto(`${MC_URL}/setup`);
-    await page.waitForLoadState("networkidle");
+    // not "networkidle" (it never settled here; the run timed out at 45 s): wait for the wizard,
+    // then give its status fetch a moment to land and report
+    await expect(page.getByRole("button", { name: /continue/i }).first()).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(3000);
     const real = consoleErrors.filter(
       (e) => !e.includes("ResizeObserver") && !e.includes("favicon")
     );

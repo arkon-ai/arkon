@@ -15,7 +15,9 @@ test.describe("Dashboard Visual Regression @visual @regression", () => {
 
   test("dashboard full page matches baseline", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    // not "networkidle": the page holds an EventSource (/api/dashboard/stream) open, so the network
+    // never idles; wait for the rendered page header instead
+    await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible({ timeout: 15000 });
     // Wait for animations/transitions to settle
     await page.waitForTimeout(1000);
     await expect(page).toHaveScreenshot("dashboard-full.png", {
@@ -26,7 +28,9 @@ test.describe("Dashboard Visual Regression @visual @regression", () => {
 
   test("dashboard above-the-fold matches baseline", async ({ page }) => {
     await page.goto(`${MC_URL}/`);
-    await page.waitForLoadState("networkidle");
+    // not "networkidle": the page holds an EventSource (/api/dashboard/stream) open, so the network
+    // never idles; wait for the rendered page header instead
+    await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
     await expect(page).toHaveScreenshot("dashboard-above-fold.png", {
       maxDiffPixelRatio: 0.02,
