@@ -149,8 +149,9 @@ test.describe("POST /api/auth/login", () => {
 test.describe("POST /api/auth/logout", () => {
   test("authenticated logout clears cookies @regression", async ({ browser }) => {
     const context = await browser.newContext();
-    await authenticate(context);
-    const res = await context.request.post(`${MC_URL}/api/auth/logout`);
+    // a cookie session mutates with the double-submit token (proxy CSRF gate, transformate WI-3990)
+    const csrfToken = await authenticate(context);
+    const res = await context.request.post(`${MC_URL}/api/auth/logout`, { headers: csrfHeaders(csrfToken) });
     expect([200, 204]).toContain(res.status());
     // Verify cookies are cleared
     const cookieHeader = res.headers()["set-cookie"] ?? "";

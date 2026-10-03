@@ -97,12 +97,13 @@ test.describe("Concurrent Sessions", () => {
 test.describe("Logout Invalidation", () => {
   test("logout invalidates session — subsequent API call returns 401 @regression @edge", async ({ browser }) => {
     const context = await browser.newContext();
-    await authenticate(context);
+    // a cookie session mutates with the double-submit token (proxy CSRF gate, transformate WI-3990)
+    const csrfToken = await authenticate(context);
     // Verify session works first
     const before = await context.request.get(`${MC_URL}/api/dashboard/overview`);
     expect([200, 429]).toContain(before.status());
     // Logout
-    const logout = await context.request.post(`${MC_URL}/api/auth/logout`);
+    const logout = await context.request.post(`${MC_URL}/api/auth/logout`, { headers: csrfHeaders(csrfToken) });
     expect([200, 204]).toContain(logout.status());
     // Subsequent call should fail (cookies cleared by server)
     const after = await context.request.get(`${MC_URL}/api/dashboard/overview`);
@@ -113,10 +114,10 @@ test.describe("Logout Invalidation", () => {
 
   test("double logout does not error @regression @edge", async ({ browser }) => {
     const context = await browser.newContext();
-    await authenticate(context);
-    const res1 = await context.request.post(`${MC_URL}/api/auth/logout`);
+    const csrfToken = await authenticate(context);
+    const res1 = await context.request.post(`${MC_URL}/api/auth/logout`, { headers: csrfHeaders(csrfToken) });
     expect([200, 204]).toContain(res1.status());
-    const res2 = await context.request.post(`${MC_URL}/api/auth/logout`);
+    const res2 = await context.request.post(`${MC_URL}/api/auth/logout`, { headers: csrfHeaders(csrfToken) });
     // Should be idempotent — 200 or 401, never 500
     expect(res2.status()).toBeLessThan(500);
     await context.close();
