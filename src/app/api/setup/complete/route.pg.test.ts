@@ -51,21 +51,26 @@ async function post(body: unknown) {
 }
 
 const nonSystemAgents = async () =>
-  (await admin.query("SELECT id FROM agents WHERE id <> 'system' ORDER BY id")).rows.map((r) => r.id as string);
+  (await admin.query("SELECT id FROM public.agents WHERE id <> 'system' ORDER BY id")).rows.map((r) => r.id as string);
 
-/** Throws unless the database holds no table in schema public beyond tenants, users and agents (WI-3996 guard). */
+/** Throws unless the database holds no table in schema public beyond tenants, users and agents (WI-3996 guard),
+ *  and unqualified names resolve to public: the route and src/lib/db.ts run unqualified SQL (FOLD 1 belt). */
 async function throwawayGuard() {
+  const schema = (await admin.query("SELECT current_schema() AS s")).rows[0].s as string | null;
+  if (schema !== "public") throw new Error(`SETUP_PG_URL is not a throwaway database (current schema ${schema}, not public): nothing dropped`);
   const { rows } = await admin.query(`SELECT table_name FROM information_schema.tables
     WHERE table_schema = 'public' AND table_name NOT IN ('tenants', 'users', 'agents') ORDER BY table_name`);
   if (rows.length) throw new Error(`SETUP_PG_URL is not a throwaway database (it holds ${rows.map((r) => r.table_name).join(", ")}): nothing dropped`);
 }
-const RESET_SQL = `DROP TABLE IF EXISTS agents, users, tenants;
-  CREATE TABLE tenants(id text PRIMARY KEY, name text, admin_email text, setup_completed boolean NOT NULL DEFAULT false, updated_at timestamptz);
-  CREATE TABLE users(id serial PRIMARY KEY, role text NOT NULL DEFAULT 'viewer', is_active boolean NOT NULL DEFAULT true);
-  CREATE TABLE agents(id text PRIMARY KEY, name text, description text, framework text, token_hash text,
-    tenant_id text REFERENCES tenants(id), created_at timestamptz, updated_at timestamptz);
-  INSERT INTO tenants(id) VALUES ('default'); INSERT INTO agents(id, tenant_id) VALUES ('system', 'default');`;
-const DROP_SQL = "DROP TABLE IF EXISTS agents, users, tenants";
+// Every statement names schema public (FOLD 1, RULING 4231): search_path ("$user", public by default) can never
+// move a DROP or CREATE into a schema the guard did not read.
+const RESET_SQL = `DROP TABLE IF EXISTS public.agents, public.users, public.tenants;
+  CREATE TABLE public.tenants(id text PRIMARY KEY, name text, admin_email text, setup_completed boolean NOT NULL DEFAULT false, updated_at timestamptz);
+  CREATE TABLE public.users(id serial PRIMARY KEY, role text NOT NULL DEFAULT 'viewer', is_active boolean NOT NULL DEFAULT true);
+  CREATE TABLE public.agents(id text PRIMARY KEY, name text, description text, framework text, token_hash text,
+    tenant_id text REFERENCES public.tenants(id), created_at timestamptz, updated_at timestamptz);
+  INSERT INTO public.tenants(id) VALUES ('default'); INSERT INTO public.agents(id, tenant_id) VALUES ('system', 'default');`;
+const DROP_SQL = "DROP TABLE IF EXISTS public.agents, public.users, public.tenants";
 let guarded = false;
 
 describe("POST /api/setup/complete on PostgreSQL", () => {
@@ -88,11 +93,11 @@ describe("POST /api/setup/complete on PostgreSQL", () => {
   });
 
   it("(0) the guard refuses a database with another table in schema public (transformate WI-3996)", async () => {
-    await admin.query("CREATE TABLE wi3996_guard_probe(x int)");
+    await admin.query("CREATE TABLE public.wi3996_guard_probe(x int)");
     try {
       await expect(throwawayGuard()).rejects.toThrow(/not a throwaway database \(it holds wi3996_guard_probe\)/);
     } finally {
-      await admin.query("DROP TABLE wi3996_guard_probe");
+      await admin.query("DROP TABLE public.wi3996_guard_probe");
     }
     await expect(throwawayGuard()).resolves.toBeUndefined();
   });
@@ -140,7 +145,7 @@ describe("POST /api/setup/complete on PostgreSQL", () => {
   });
 
   it("(1) an owner user, no agents: step 'agent' is refused, no token, no agent", async () => {
-    await admin.query("INSERT INTO users(role) VALUES ('owner')");
+    await admin.query("INSERT INTO public.users(role) VALUES ('owner')");
     const res = await post({ step: "agent", agent_name: "Unauthorized bot" });
     expect(res.status).toBe(403);
     expect(res.body).not.toHaveProperty("token");
