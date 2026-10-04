@@ -1,5 +1,6 @@
 import { describe, it, expect, afterAll } from "vitest";
-import { spawnSync } from "child_process";
+import { spawn, spawnSync } from "child_process";
+import { randomBytes } from "crypto";
 import pg from "pg";
 
 /* The REAL hooks of route.pg.test.ts (FOLD 1 AMENDED, RULING 4231 (1)): its beforeAll guard and its afterAll drop.
@@ -69,4 +70,71 @@ describe("route.pg.test.ts hooks, read from outside the file", () => {
     expect(run.out).toMatch(/Tests\s+6 passed \(6\)/);
     expect(await publicTables()).toEqual([]);
   }, 150_000);
+});
+
+/* A test may destroy only what it made (FOLD 2, RULING 4236). Each arm runs THIS file's two arms above as a child
+   vitest (-t filter) and reads, after the child exits, a database the ARM made. Every name here is unique per run. */
+const SELF = "src/app/api/setup/complete/route.pg.hooks.test.ts";
+const urlFor = (db: string) => `${m![1]}${encodeURIComponent(db)}${m![3] ?? ""}`;
+const runTag = () => `${process.pid}_${randomBytes(4).toString("hex")}`;
+
+function runSelf(env: Record<string, string>): Promise<{ status: number | null; out: string }> {
+  const e: Record<string, string | undefined> = { ...process.env, ...env };
+  for (const k of Object.keys(e)) if (k.startsWith("VITEST") || k === "DATABASE_URL") delete e[k];
+  return new Promise((resolve) => {
+    const c = spawn(process.execPath, ["node_modules/vitest/vitest.mjs", "run", SELF, "-t", "read from outside the file"],
+      { env: e as NodeJS.ProcessEnv });
+    let out = "";
+    c.stdout.on("data", (d) => (out += d));
+    c.stderr.on("data", (d) => (out += d));
+    c.on("close", (status) => resolve({ status, out: out.replace(/\x1b\[[0-9;]*m/g, "") }));
+  });
+}
+
+/** CREATE DATABASE (plain: a name that exists fails) with a marker table; returns a dropper for exactly that name. */
+async function ownDb(name: string, marker = true) {
+  await onDb(url!, (c) => c.query(`CREATE DATABASE ${ident(name)}`));
+  if (marker) await onDb(urlFor(name), (c) => c.query("CREATE TABLE public.protected_marker(v text); INSERT INTO public.protected_marker VALUES ('keep')"));
+  return {
+    marker: () => onDb(urlFor(name), async (c) => (await c.query("SELECT v FROM public.protected_marker")).rows).catch((e: Error) => e.message),
+    drop: () => onDb(url!, (c) => c.query(`DROP DATABASE IF EXISTS ${ident(name)}`)),
+  };
+}
+
+describe("hooks scratch database: only what the run made (FOLD 2, RULING 4236)", () => {
+  it("(c) a pre-existing database under the OLD fixed name <setup db>_wi3996_hooks survives a full run, marker intact", async () => {
+    expect(url, "SETUP_PG_URL must name a throwaway PostgreSQL database").toBeTruthy();
+    const parentName = `wi3996_f2c_${runTag()}`; // a unique throwaway parent, so this arm never meets another run's names
+    const parent = await ownDb(parentName, false);
+    const sibling = await ownDb(`${parentName}_wi3996_hooks`);
+    try {
+      const run = await runSelf({ SETUP_PG_URL: urlFor(parentName) });
+      expect(run.status, run.out).toBe(0);
+      expect(await sibling.marker()).toEqual([{ v: "keep" }]);
+    } finally {
+      await sibling.drop();
+      await parent.drop();
+    }
+  }, 300_000);
+
+  it("(d) two runs at once on one SETUP_PG_URL both pass", async () => {
+    expect(url, "SETUP_PG_URL must name a throwaway PostgreSQL database").toBeTruthy();
+    const [r1, r2] = await Promise.all([runSelf({ SETUP_PG_URL: url! }), runSelf({ SETUP_PG_URL: url! })]);
+    expect(r1.status, r1.out).toBe(0);
+    expect(r2.status, r2.out).toBe(0);
+  }, 300_000);
+
+  it("(e) a name collision (test seam WI3996_HOOKS_SUFFIX_TEST) refuses and drops nothing", async () => {
+    expect(url, "SETUP_PG_URL must name a throwaway PostgreSQL database").toBeTruthy();
+    const seam = `collide_${runTag()}`;
+    const taken = await ownDb(`wi3996_hooks_${seam}_a`);
+    try {
+      const run = await runSelf({ SETUP_PG_URL: url!, WI3996_HOOKS_SUFFIX_TEST: seam });
+      expect(run.status, run.out).not.toBe(0);
+      expect(run.out).toContain(`scratch database wi3996_hooks_${seam}_a already exists: refused, nothing dropped`);
+      expect(await taken.marker()).toEqual([{ v: "keep" }]);
+    } finally {
+      await taken.drop();
+    }
+  }, 300_000);
 });
