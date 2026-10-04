@@ -5,15 +5,20 @@ import pg from "pg";
 
 /* The REAL hooks of route.pg.test.ts (FOLD 1 AMENDED, RULING 4231 (1)): its beforeAll guard and its afterAll drop.
    Each arm runs that file as a child vitest against a scratch database and reads the database AFTER the child exits.
-   Needs SETUP_PG_URL (a throwaway database whose role may CREATE DATABASE); it creates and drops only the database
-   named <SETUP_PG_URL's database>_wi3996_hooks. It fails loud without SETUP_PG_URL, never skips. */
+   Needs SETUP_PG_URL (a throwaway database whose role may CREATE DATABASE). Each arm makes its scratch database under
+   a name unique to this run, wi3996_hooks_<pid>_<random>_<arm>, by a PLAIN CREATE DATABASE (a name that exists is
+   refused and nothing is dropped), and afterAll drops ONLY the names this process created (FOLD 2, RULING 4236).
+   A crash between create and drop leaves a stray database: its name is in the run's log; drop it by that name.
+   It fails loud without SETUP_PG_URL, never skips. */
 
 const url = process.env.SETUP_PG_URL;
 const PG_TEST = "src/app/api/setup/complete/route.pg.test.ts";
 // the database name is the last path segment (WHATWG URL rejects the socket form postgresql://user@/db?host=...)
 const m = url?.match(/^([^?]*\/)([^/?]+)(\?.*)?$/);
-const hooksDb = m ? `${decodeURIComponent(m[2])}_wi3996_hooks` : "";
-const hooksUrl = m ? `${m[1]}${encodeURIComponent(hooksDb)}${m[3] ?? ""}` : "";
+// TEST SEAM (arm (e) only): WI3996_HOOKS_SUFFIX_TEST replaces "<pid>_<random>" so a run can be made to collide.
+const runSuffix = process.env.WI3996_HOOKS_SUFFIX_TEST ?? `${process.pid}_${randomBytes(4).toString("hex")}`;
+const created: string[] = []; // the ONLY names afterAll may drop
+let hooksUrl = "";
 const ident = (s: string) => `"${s.replace(/"/g, '""')}"`;
 
 async function onDb<T>(target: string, fn: (c: pg.Client) => Promise<T>): Promise<T> {
@@ -26,13 +31,17 @@ async function onDb<T>(target: string, fn: (c: pg.Client) => Promise<T>): Promis
   }
 }
 
-async function freshHooksDb(setupSql?: string) {
+async function freshHooksDb(arm: string, setupSql?: string) {
   expect(url, "SETUP_PG_URL must name a throwaway PostgreSQL database").toBeTruthy();
   expect(m, "SETUP_PG_URL must end in /<database>").toBeTruthy();
-  await onDb(url!, async (c) => {
-    await c.query(`DROP DATABASE IF EXISTS ${ident(hooksDb)} WITH (FORCE)`);
-    await c.query(`CREATE DATABASE ${ident(hooksDb)}`);
+  const name = `wi3996_hooks_${runSuffix}_${arm}`;
+  await onDb(url!, (c) => c.query(`CREATE DATABASE ${ident(name)}`)).catch((e: { code?: string }) => {
+    if (e.code === "42P04") throw new Error(`scratch database ${name} already exists: refused, nothing dropped`);
+    throw e;
   });
+  created.push(name);
+  console.log(`[wi3996 hooks] created scratch database ${name}; afterAll drops it (after a crash, drop it by this name)`);
+  hooksUrl = `${m![1]}${encodeURIComponent(name)}${m![3] ?? ""}`;
   if (setupSql) await onDb(hooksUrl, (c) => c.query(setupSql));
 }
 
@@ -49,11 +58,14 @@ const publicTables = () =>
 
 describe("route.pg.test.ts hooks, read from outside the file", () => {
   afterAll(async () => {
-    if (m) await onDb(url!, (c) => c.query(`DROP DATABASE IF EXISTS ${ident(hooksDb)} WITH (FORCE)`));
+    for (const name of created) {
+      await onDb(url!, (c) => c.query(`DROP DATABASE ${ident(name)}`));
+      console.log(`[wi3996 hooks] dropped scratch database ${name}`);
+    }
   });
 
   it("(a) the beforeAll guard refuses a database holding a non-throwaway table BEFORE any statement; its marked row survives", async () => {
-    await freshHooksDb(`CREATE TABLE public.schema_migrations(version text); INSERT INTO public.schema_migrations VALUES ('041');
+    await freshHooksDb("a", `CREATE TABLE public.schema_migrations(version text); INSERT INTO public.schema_migrations VALUES ('041');
       CREATE TABLE public.tenants(id text, name text); INSERT INTO public.tenants VALUES ('real', 'keep')`);
     const run = runPgTest();
     expect(run.status, run.out).not.toBe(0);
@@ -64,7 +76,7 @@ describe("route.pg.test.ts hooks, read from outside the file", () => {
   }, 150_000);
 
   it("(b) after a passing run, the afterAll drop leaves public.tenants, users and agents ABSENT", async () => {
-    await freshHooksDb();
+    await freshHooksDb("b");
     const run = runPgTest();
     expect(run.status, run.out).toBe(0);
     expect(run.out).toMatch(/Tests\s+6 passed \(6\)/);
