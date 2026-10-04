@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "vitest run src/**/*.test.ts",
+    "test": "vitest run",
     "lint": "eslint",
     "test:e2e": "playwright test",
     "test:smoke": "playwright test --grep @smoke",
