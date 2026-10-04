@@ -104,6 +104,19 @@ function getPreferenceKey(type: NotificationType, severity: NotificationSeverity
   return type;
 }
 
+/** The preference keys whose alerts must reach an external channel (WI-3986). */
+export const ALERT_PREF_KEYS = ["threat_critical", "threat_high", "approval"];
+
+/**
+ * Whether a preferences row dispatches this preference key: its config.types
+ * must say true, and a row with no config.types takes the three alert keys.
+ */
+export function rowTakesKey(config: Record<string, unknown> | null | undefined, prefKey: string): boolean {
+  const types = config?.types as Record<string, boolean> | undefined;
+  if (!types) return ALERT_PREF_KEYS.includes(prefKey);
+  return types[prefKey] === true;
+}
+
 /**
  * Send a notification: always creates in-app, then fans out to external channels.
  */
@@ -155,14 +168,7 @@ export async function sendNotification(params: SendNotificationParams): Promise<
     const message = formatMessage(params);
 
     const dispatches = prefs.rows
-      .filter((row: { config: Record<string, unknown> }) => {
-        const types = (row.config as Record<string, unknown>)?.types as Record<string, boolean> | undefined;
-        if (!types) {
-          // Default: send critical threats, high threats, and approvals
-          return ["threat_critical", "threat_high", "approval"].includes(prefKey);
-        }
-        return types[prefKey] === true;
-      })
+      .filter((row: { config: Record<string, unknown> }) => rowTakesKey(row.config, prefKey))
       .map((row: { channel: string; config: Record<string, unknown> }) =>
         dispatchToChannel(row.channel, row.config, message, params).then(
           (ok) => {

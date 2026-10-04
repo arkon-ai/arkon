@@ -11,7 +11,9 @@
  *   telegram -> Telegram getChat (bot_token + chat_id)
  *   discord  -> GET webhook_url
  *   slack, webhook and email rows are NOT checked live and read DARK.
- * Exit 0 and 'live' when at least one row answers ok; else exit 1 and 'DARK'.
+ * A live row covers only the alert types it dispatches (config.types; no types =
+ * threat_critical, threat_high and approval). Exit 0 and 'live' when every alert
+ * type has a live row; else exit 1 and 'DARK' for each uncovered type.
  * Prints names, the tenant id and HTTP statuses only — never a config or env value.
  */
 
@@ -86,17 +88,26 @@ export async function checkAlertChannel(): Promise<number> {
     return 1;
   }
 
-  const live: string[] = [];
+  const live: Row[] = [];
   for (const row of rows as Row[]) {
     const result = await probe(row);
     console.log(`${row.channel}: ${result}`);
-    if (result === "live") live.push(row.channel);
+    if (result === "live") live.push(row);
   }
   if (live.length === 0) {
     console.log("DARK: no row answered ok");
     return 1;
   }
-  console.log(`live: ${live.join(", ")}`);
+  // Types-aware (WI-3994): a live row counts only for the alert types it dispatches.
+  const { ALERT_PREF_KEYS, rowTakesKey } = await import("../src/lib/notifications");
+  let dark = 0;
+  for (const key of ALERT_PREF_KEYS) {
+    const by = live.filter((r) => rowTakesKey(r.config, key)).map((r) => r.channel);
+    if (by.length === 0) dark++;
+    console.log(by.length ? `${key}: live (${by.join(", ")})` : `${key}: DARK (no live row covers it)`);
+  }
+  if (dark > 0) return 1;
+  console.log(`live: ${live.map((r) => r.channel).join(", ")}`);
   return 0;
 }
 
