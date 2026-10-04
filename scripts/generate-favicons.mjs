@@ -19,7 +19,7 @@
  * Usage:
  *   node scripts/generate-favicons.mjs
  *
- * Dev deps required: sharp, png-to-ico
+ * Deps required: sharp (a dependency since WI-3986), png-to-ico (dev)
  * WI-1063 — 2026-06-13
  */
 
