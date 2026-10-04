@@ -8,6 +8,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  prod-sharp:
+    # The production install (Dockerfile `npm ci --omit=dev`) must still load the
+    # sharp next resolves; a full `npm ci` cannot see that (transformate WI-3986).
+    name: Production install loads sharp
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: npm ci --omit=dev, then resize a PNG through next's sharp
+        run: bash scripts/check-prod-sharp.sh
+        env:
+          ARKON_NPM_TOKEN: ${{ secrets.ARKON_NPM_TOKEN }}
+
   test:
     name: Playwright E2E
     runs-on: ubuntu-latest
