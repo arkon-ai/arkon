@@ -166,6 +166,70 @@ describe("check-alert-channel (F2)", () => {
     noSecret();
   });
 
+  // WI-3994 item 3: 'live' is types-aware. A live row counts only for the alert
+  // types it would dispatch (no config.types = all three; else types[key] === true).
+  it("a live row whose config.types excludes every alert type -> DARK for each, exit 1", async () => {
+    db({
+      prefs: [
+        { ...telegramRow, config: { ...telegramRow.config, types: { threat_critical: false, threat_high: false, approval: false, budget: true } } },
+      ],
+    });
+    fetchMock.mockResolvedValue(json(200, { ok: true, result: { id: 4242 } }));
+    expect(await checkAlertChannel()).toBe(1);
+    expect(logs).toContain("telegram: live");
+    expect(logs).toEqual(
+      expect.arrayContaining([
+        "threat_critical: DARK (no live row covers it)",
+        "threat_high: DARK (no live row covers it)",
+        "approval: DARK (no live row covers it)",
+      ]),
+    );
+    expect(logs.some((l) => l.startsWith("live: "))).toBe(false);
+    noSecret();
+  });
+
+  it("a live row covering only approval -> the two threat types read DARK, exit 1", async () => {
+    db({ prefs: [{ ...telegramRow, config: { ...telegramRow.config, types: { approval: true } } }] });
+    fetchMock.mockResolvedValue(json(200, { ok: true, result: { id: 4242 } }));
+    expect(await checkAlertChannel()).toBe(1);
+    expect(logs).toEqual(
+      expect.arrayContaining([
+        "threat_critical: DARK (no live row covers it)",
+        "threat_high: DARK (no live row covers it)",
+        "approval: live (telegram)",
+      ]),
+    );
+  });
+
+  it("a DARK row's types do not count; a live row with no types covers all three, exit 0", async () => {
+    db({
+      prefs: [
+        { channel: "slack", config: { webhook_url: "https://hooks.example/s" } },
+        { ...telegramRow, config: { ...telegramRow.config, types: { threat_critical: true, threat_high: true } } },
+        { channel: "discord", config: { webhook_url: "https://d.example/x", types: { approval: true } } },
+      ],
+    });
+    fetchMock.mockImplementation(async (url: string) =>
+      String(url).includes("telegram") ? json(200, { ok: true }) : json(404, {}),
+    );
+    expect(await checkAlertChannel()).toBe(1);
+    expect(logs).toContain("approval: DARK (no live row covers it)");
+    expect(logs).toContain("threat_high: live (telegram)");
+
+    logs = [];
+    db({ prefs: [telegramRow] });
+    fetchMock.mockResolvedValue(json(200, { ok: true }));
+    expect(await checkAlertChannel()).toBe(0);
+    expect(logs).toEqual(
+      expect.arrayContaining([
+        "threat_critical: live (telegram)",
+        "threat_high: live (telegram)",
+        "approval: live (telegram)",
+        "live: telegram",
+      ]),
+    );
+  });
+
   it("discord webhook GET ok -> live, exit 0", async () => {
     db({ prefs: [{ channel: "discord", config: { webhook_url: "https://d.example/x" } }] });
     fetchMock.mockResolvedValue(json(200, {}));

@@ -172,6 +172,19 @@ describe("sendNotification external delivery (WI-3986)", () => {
     expect(darkLines()).toEqual([`NOTIFY-DARK threat_critical tenant=${TENANT}`]);
   });
 
+  // WI-3994 item 1: a telegram row without bot_token or chat_id is not a
+  // delivery (kills review mutant M3 'telegram missing keys delivered').
+  it.each([
+    ["bot_token", { chat_id: "4242" }],
+    ["chat_id", { bot_token: "BOT-TOKEN-SECRET" }],
+  ])("a telegram row missing %s is not a delivery -> NOTIFY-DARK, no fetch", async (_key, config) => {
+    prefRows([{ channel: "telegram", config }]);
+    fetchMock.mockResolvedValue(okTelegram());
+    await threat("critical");
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(darkLines()).toEqual([`NOTIFY-DARK threat_critical tenant=${TENANT}`]);
+  });
+
   it("the marker never carries a config value", async () => {
     prefRows([telegram()]);
     fetchMock.mockResolvedValue(notFound());
