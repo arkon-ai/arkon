@@ -59,6 +59,13 @@ async function throwawayGuard() {
     WHERE table_schema = 'public' AND table_name NOT IN ('tenants', 'users', 'agents') ORDER BY table_name`);
   if (rows.length) throw new Error(`SETUP_PG_URL is not a throwaway database (it holds ${rows.map((r) => r.table_name).join(", ")}): nothing dropped`);
 }
+const RESET_SQL = `DROP TABLE IF EXISTS agents, users, tenants;
+  CREATE TABLE tenants(id text PRIMARY KEY, name text, admin_email text, setup_completed boolean NOT NULL DEFAULT false, updated_at timestamptz);
+  CREATE TABLE users(id serial PRIMARY KEY, role text NOT NULL DEFAULT 'viewer', is_active boolean NOT NULL DEFAULT true);
+  CREATE TABLE agents(id text PRIMARY KEY, name text, description text, framework text, token_hash text,
+    tenant_id text REFERENCES tenants(id), created_at timestamptz, updated_at timestamptz);
+  INSERT INTO tenants(id) VALUES ('default'); INSERT INTO agents(id, tenant_id) VALUES ('system', 'default');`;
+const DROP_SQL = "DROP TABLE IF EXISTS agents, users, tenants";
 let guarded = false;
 
 describe("POST /api/setup/complete on PostgreSQL", () => {
@@ -71,15 +78,10 @@ describe("POST /api/setup/complete on PostgreSQL", () => {
     expect(url, "SETUP_PG_URL must name a throwaway PostgreSQL database").toBeTruthy();
     if (!guarded) throw new Error("the throwaway-database guard did not pass: nothing dropped");
     barrier = null;
-    await admin.query(`DROP TABLE IF EXISTS agents, users, tenants;
-      CREATE TABLE tenants(id text PRIMARY KEY, name text, admin_email text, setup_completed boolean NOT NULL DEFAULT false, updated_at timestamptz);
-      CREATE TABLE users(id serial PRIMARY KEY, role text NOT NULL DEFAULT 'viewer', is_active boolean NOT NULL DEFAULT true);
-      CREATE TABLE agents(id text PRIMARY KEY, name text, description text, framework text, token_hash text,
-        tenant_id text REFERENCES tenants(id), created_at timestamptz, updated_at timestamptz);
-      INSERT INTO tenants(id) VALUES ('default'); INSERT INTO agents(id, tenant_id) VALUES ('system', 'default');`);
+    await admin.query(RESET_SQL);
   });
   afterAll(async () => {
-    if (guarded) await admin.query("DROP TABLE IF EXISTS agents, users, tenants");
+    if (guarded) await admin.query(DROP_SQL);
     await admin.end();
     const db = await import("@/lib/db");
     await db.default.end();
@@ -93,6 +95,48 @@ describe("POST /api/setup/complete on PostgreSQL", () => {
       await admin.query("DROP TABLE wi3996_guard_probe");
     }
     await expect(throwawayGuard()).resolves.toBeUndefined();
+  });
+
+  it("(0b) G2: a schema named after the connecting role holds real tables: the guard refuses, its marked row survives (FOLD 1, RULING 4231)", async () => {
+    const role = (await admin.query("SELECT current_user AS r")).rows[0].r as string;
+    const S = `"${role.replace(/"/g, '""')}"`;
+    await admin.query(`CREATE SCHEMA ${S}; CREATE TABLE ${S}.tenants(id text, name text); INSERT INTO ${S}.tenants VALUES ('real', 'keep');
+      CREATE TABLE ${S}.users(id int); CREATE TABLE ${S}.agents(id text)`);
+    let refused = false;
+    let kept: unknown[] = [];
+    try {
+      refused = await throwawayGuard().then(() => false, () => true);
+      if (!refused) { await admin.query(RESET_SQL); await admin.query(DROP_SQL); } // what the run would do next
+    } finally {
+      kept = (await admin.query(`SELECT name FROM ${S}.tenants WHERE id = 'real'`).catch(() => ({ rows: [] }))).rows;
+      await admin.query(`DROP SCHEMA ${S} CASCADE`);
+    }
+    expect(kept).toEqual([{ name: "keep" }]);
+    expect(refused).toBe(true);
+  });
+
+  it("(0c) a connection whose search_path puts another schema first moves no DROP or CREATE out of public (FOLD 1, RULING 4231)", async () => {
+    await admin.query(`DROP SCHEMA IF EXISTS wi3996_shadow CASCADE; CREATE SCHEMA wi3996_shadow;
+      CREATE TABLE wi3996_shadow.tenants(id text); CREATE TABLE wi3996_shadow.users(id int); CREATE TABLE wi3996_shadow.agents(id text);
+      INSERT INTO wi3996_shadow.tenants VALUES ('shadow'); INSERT INTO wi3996_shadow.users VALUES (7); INSERT INTO wi3996_shadow.agents VALUES ('shadow')`);
+    const shadowRows = async () => (await admin.query(`SELECT (SELECT string_agg(id, ',') FROM wi3996_shadow.tenants) t,
+      (SELECT string_agg(id::text, ',') FROM wi3996_shadow.users) u, (SELECT string_agg(id, ',') FROM wi3996_shadow.agents) a`)).rows[0];
+    const c = new pg.Client({ connectionString: url, options: "-c search_path=wi3996_shadow,public" });
+    await c.connect();
+    try {
+      expect((await c.query("SELECT current_schema() AS s")).rows[0].s).toBe("wi3996_shadow");
+      // start from an empty public: a CREATE that meets an existing table would roll back the whole reset and hide a moved DROP
+      await admin.query("DROP TABLE IF EXISTS public.agents, public.users, public.tenants");
+      await c.query(RESET_SQL);
+      expect((await admin.query("SELECT to_regclass('public.tenants') IS NOT NULL AS t")).rows[0].t, "RESET_SQL created public.tenants").toBe(true);
+      expect(await shadowRows()).toEqual({ t: "shadow", u: "7", a: "shadow" });
+      await c.query(DROP_SQL);
+      expect((await admin.query("SELECT to_regclass('public.tenants') IS NULL AS t")).rows[0].t, "DROP_SQL dropped public.tenants").toBe(true);
+      expect(await shadowRows()).toEqual({ t: "shadow", u: "7", a: "shadow" });
+    } finally {
+      await c.end();
+      await admin.query("DROP SCHEMA IF EXISTS wi3996_shadow CASCADE");
+    }
   });
 
   it("(1) an owner user, no agents: step 'agent' is refused, no token, no agent", async () => {
