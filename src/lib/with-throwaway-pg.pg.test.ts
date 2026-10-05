@@ -25,12 +25,13 @@ function run(cmd: string[], opts: { pgBin?: string; space?: boolean } = {}) {
   return { status: r.status, out: `${r.stdout}${r.stderr}`, left, procs };
 }
 
-// the server is up: its unix socket exists in the dir SETUP_PG_URL names
-const SOCKET_UP = ["sh", "-c", 's=${SETUP_PG_URL#*host=}; s=$(printf %s "$s" | sed "s/%20/ /g"); test -S "$s/.s.PGSQL.55433"'];
+// the server answers: node-postgres connects through SETUP_PG_URL and runs SELECT 1
+const CONNECTS = ["node", "-e", `const pg = require("pg"); const c = new pg.Client({ connectionString: process.env.SETUP_PG_URL });
+  c.connect().then(() => c.query("SELECT 1")).then(() => c.end()).then(() => process.exit(0), (e) => { console.error(e.message); process.exit(1); });`];
 
 describe("with-throwaway-pg.sh: PG_BIN is the knob; the dir goes, also after a failure (FOLD 4)", () => {
   it("PG_BIN exported to the real bin dir: rc 0, server up, 0 dirs left", () => {
-    const r = run(SOCKET_UP, { pgBin: REAL_BIN });
+    const r = run(CONNECTS, { pgBin: REAL_BIN });
     expect(r.out).not.toMatch(/unbound variable/);
     expect(r.status, r.out).toBe(0);
     expect(r.left).toEqual([]);
@@ -44,7 +45,7 @@ describe("with-throwaway-pg.sh: PG_BIN is the knob; the dir goes, also after a f
   }, 60_000);
 
   it("a TMPDIR holding a space: rc 0, server up, 0 dirs left", () => {
-    const r = run(SOCKET_UP, { space: true });
+    const r = run(CONNECTS, { space: true });
     expect(r.status, r.out).toBe(0);
     expect(r.left).toEqual([]);
   }, 60_000);
