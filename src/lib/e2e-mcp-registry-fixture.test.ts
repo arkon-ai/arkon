@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { spawn, type ChildProcess } from "child_process";
+import { spawn, spawnSync, type ChildProcess } from "child_process";
+import { existsSync, readFileSync } from "fs";
 import { fileURLToPath } from "url";
 
 // The CI-only MCP registry fixture (deck-main RULING 4864 (1)): the E2E "MCP Registry API" tests
@@ -8,6 +9,8 @@ const SCRIPT = fileURLToPath(new URL("../../scripts/e2e-mcp-registry-fixture.mjs
 
 let child: ChildProcess;
 let base: string;
+let host: string;
+let port: number;
 
 type Page = { servers: Array<{ server: { name: string } }>; metadata: { count: number } };
 
@@ -27,10 +30,13 @@ beforeAll(async () => {
     let out = "";
     child.stdout!.on("data", (chunk) => {
       out += String(chunk);
-      const m = out.match(/listening on (http:\/\/127\.0\.0\.1:\d+)/);
+      // Whatever address the fixture prints: a wrong bind must reach the bind tests, not this timeout.
+      const m = out.match(/listening on http:\/\/(\S+):(\d+)\r?\n/);
       if (m) {
         clearTimeout(timer);
-        resolve(m[1]);
+        host = m[1];
+        port = Number(m[2]);
+        resolve(`http://${host.includes(":") ? `[${host}]` : host}:${port}`);
       }
     });
   });
@@ -40,9 +46,53 @@ afterAll(() => {
   child?.kill();
 });
 
+// The kernel's own view of who listens on `port`, read outside the fixture (deck-main RULING 4872):
+// `ss -ltnH`, else /proc/net/tcp{,6} decoded. Returns the local addresses, or null when neither
+// source exists (not Linux).
+function kernelListeners(port: number): { source: string; addresses: string[]; lines: string[] } | null {
+  const ss = spawnSync("ss", ["-ltnH"], { encoding: "utf8" });
+  if (ss.status === 0) {
+    const lines = ss.stdout.split("\n").filter((l) => l.trim().split(/\s+/)[3]?.endsWith(`:${port}`));
+    const addresses = lines.map((l) => {
+      const local = l.trim().split(/\s+/)[3];
+      return local.slice(0, local.lastIndexOf(":")).replace(/%.*$/, "");
+    });
+    return { source: "ss -ltnH", addresses, lines };
+  }
+  if (!existsSync("/proc/net/tcp")) return null;
+  const lines: string[] = [];
+  const addresses: string[] = [];
+  for (const file of ["/proc/net/tcp", "/proc/net/tcp6"]) {
+    if (!existsSync(file)) continue;
+    for (const line of readFileSync(file, "utf8").split("\n").slice(1)) {
+      const [, local, , st] = line.trim().split(/\s+/);
+      if (st !== "0A" || !local) continue; // 0A = LISTEN
+      const [hex, portHex] = local.split(":");
+      if (Number.parseInt(portHex, 16) !== port) continue;
+      lines.push(`${file}: ${line.trim()}`);
+      // IPv4 is one little-endian word; IPv6 is four, each little-endian.
+      const bytes = (hex.match(/.{8}/g) ?? []).flatMap((w) => (w.match(/../g) ?? []).reverse());
+      addresses.push(
+        hex.length === 8
+          ? bytes.map((b) => Number.parseInt(b, 16)).join(".")
+          : `[${(bytes.join("").match(/.{4}/g) ?? []).join(":")}]`,
+      );
+    }
+  }
+  return { source: "/proc/net/tcp{,6}", addresses, lines };
+}
+
 describe("e2e MCP registry fixture", () => {
-  it("binds 127.0.0.1 only", () => {
-    expect(base).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
+  it("prints server.address() as 127.0.0.1", () => {
+    expect(host).toBe("127.0.0.1");
+  });
+
+  it("the kernel's listeners on its port are 127.0.0.1 only (ss, else /proc/net/tcp)", (ctx) => {
+    const seen = kernelListeners(port);
+    if (!seen) ctx.skip("neither `ss` nor /proc/net/tcp exists on this host (not Linux): listener check not run");
+    console.log(`[fixture-bind] ${seen!.source} port ${port}: ${seen!.lines.join(" | ")}`);
+    expect(seen!.addresses.length, seen!.source).toBeGreaterThan(0);
+    expect(seen!.addresses, seen!.source).toEqual(seen!.addresses.map(() => "127.0.0.1"));
   });
 
   it("search=notion and search=github each return more than 0 matching servers", async () => {

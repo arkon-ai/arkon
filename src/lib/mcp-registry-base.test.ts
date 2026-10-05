@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { GET } from "@/app/api/tools/mcp-registry/route";
+import { mcpRegistryBase } from "@/lib/mcp-registry-base";
 
 // arkon E2E "MCP Registry API" deterministic (deck-main RULING 4864 (1)): the route's registry
 // base comes from MCP_REGISTRY_BASE so CI can point it at a local fixture; unset or invalid
@@ -63,6 +64,24 @@ describe("GET /api/tools/mcp-registry registry base", () => {
   it("a trailing slash on the base does not double the path separator", async () => {
     process.env.MCP_REGISTRY_BASE = "https://registry.example.test/v0/";
     expect(await fetchedUrl()).toBe("https://registry.example.test/v0/servers?limit=30&offset=0");
+  });
+
+  for (const [raw, want] of [
+    ["http://127.0.0.1:4010/v0?a=b#c", "http://127.0.0.1:4010/v0"],
+    ["http://127.0.0.1:4010/v0/?a=b", "http://127.0.0.1:4010/v0"],
+  ]) {
+    it(`a base's query and fragment are dropped: ${raw}`, () => {
+      process.env.MCP_REGISTRY_BASE = raw;
+      expect(mcpRegistryBase()).toBe(want);
+    });
+  }
+
+  it("a base's query and fragment never reach the registry call", async () => {
+    process.env.MCP_REGISTRY_BASE = "http://127.0.0.1:4010/v0?a=b#c";
+    const url = await fetchedUrl("?search=notion");
+    expect(url.startsWith("http://127.0.0.1:4010/v0/servers?")).toBe(true);
+    expect(url).not.toContain("a=b");
+    expect(url).not.toContain("#");
   });
 
   for (const bad of [
