@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
+    "test:pg": "bash scripts/with-throwaway-pg.sh vitest run --config vitest.pg.config.ts",
     "lint": "eslint",
     "test:e2e": "playwright test",
     "test:smoke": "playwright test --grep @smoke",

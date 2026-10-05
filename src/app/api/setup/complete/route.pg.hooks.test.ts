@@ -12,6 +12,7 @@ import pg from "pg";
    It fails loud without SETUP_PG_URL, never skips. */
 
 const url = process.env.SETUP_PG_URL;
+// child runs use vitest.pg.config.ts: npm test's config leaves the pg set out (RULING 4823)
 const PG_TEST = "src/app/api/setup/complete/route.pg.test.ts";
 // the database name is the last path segment (WHATWG URL rejects the socket form postgresql://user@/db?host=...)
 const m = url?.match(/^([^?]*\/)([^/?]+)(\?.*)?$/);
@@ -48,7 +49,7 @@ async function freshHooksDb(arm: string, setupSql?: string) {
 function runPgTest() {
   const env: Record<string, string | undefined> = { ...process.env, SETUP_PG_URL: hooksUrl };
   for (const k of Object.keys(env)) if (k.startsWith("VITEST") || k === "DATABASE_URL") delete env[k];
-  const r = spawnSync(process.execPath, ["node_modules/vitest/vitest.mjs", "run", PG_TEST], { env: env as NodeJS.ProcessEnv, encoding: "utf8", timeout: 120_000 });
+  const r = spawnSync(process.execPath, ["node_modules/vitest/vitest.mjs", "run", "--config", "vitest.pg.config.ts", PG_TEST], { env: env as NodeJS.ProcessEnv, encoding: "utf8", timeout: 120_000 });
   return { status: r.status, out: `${r.stdout}${r.stderr}`.replace(/\x1b\[[0-9;]*m/g, "") };
 }
 
@@ -94,7 +95,7 @@ function runSelf(env: Record<string, string>): Promise<{ status: number | null; 
   const e: Record<string, string | undefined> = { ...process.env, ...env };
   for (const k of Object.keys(e)) if (k.startsWith("VITEST") || k === "DATABASE_URL") delete e[k];
   return new Promise((resolve) => {
-    const c = spawn(process.execPath, ["node_modules/vitest/vitest.mjs", "run", SELF, "-t", "read from outside the file"],
+    const c = spawn(process.execPath, ["node_modules/vitest/vitest.mjs", "run", "--config", "vitest.pg.config.ts", SELF, "-t", "read from outside the file"],
       { env: e as NodeJS.ProcessEnv });
     let out = "";
     c.stdout.on("data", (d) => (out += d));
