@@ -65,7 +65,11 @@ describe("npm test + npm run test:pg: every tracked src test file runs in exactl
     for (const f of r.both) console.log(`  IN BOTH SETS ${f}`);
     expect(r.neither).toEqual([]);
     expect(r.both).toEqual([]);
-    expect(pg).toEqual(["src/app/api/setup/complete/route.pg.hooks.test.ts", "src/app/api/setup/complete/route.pg.test.ts"]);
+    expect(pg).toEqual([
+      "src/app/api/setup/complete/route.pg.hooks.test.ts",
+      "src/app/api/setup/complete/route.pg.test.ts",
+      "src/lib/with-throwaway-pg.pg.test.ts",
+    ]);
     expect(r.ok).toBe(true);
   }, 60_000);
 
