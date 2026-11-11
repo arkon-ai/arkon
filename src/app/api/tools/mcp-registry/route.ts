@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
+import { mcpRegistryBase } from "@/lib/mcp-registry-base";
 import { unauthorized, validateAdmin } from "../_utils";
-
-const REGISTRY_BASE = "https://registry.modelcontextprotocol.io/v0";
 
 /* ─── GET — search/list the official MCP registry ───────── */
 export async function GET(req: NextRequest) {
@@ -17,7 +16,7 @@ export async function GET(req: NextRequest) {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (search) params.set("search", search);
 
-    const res = await fetch(`${REGISTRY_BASE}/servers?${params.toString()}`, {
+    const res = await fetch(`${mcpRegistryBase()}/servers?${params.toString()}`, {
       headers: { "Accept": "application/json" },
       signal: AbortSignal.timeout(8000),
     });

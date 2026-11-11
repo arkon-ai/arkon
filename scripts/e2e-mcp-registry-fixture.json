@@ -1,0 +1,52 @@
+{
+  "_comment": "CI-only fixture for the E2E MCP Registry API tests (deck-main RULING 4864 (1)). Entries follow the official registry's GET /v0/servers entry shape ({ server, _meta }); the names include 'notion' and 'github' so both search tests find servers.",
+  "servers": [
+    {
+      "server": {
+        "name": "io.github.makenotion/notion-mcp-server",
+        "description": "Fixture: Notion workspace pages and databases.",
+        "version": "1.0.0",
+        "repository": { "url": "https://github.com/makenotion/notion-mcp-server", "source": "github" },
+        "remotes": [{ "type": "streamable-http", "url": "https://mcp.notion.example.test/mcp" }]
+      },
+      "_meta": { "io.modelcontextprotocol.registry/official": { "status": "active", "publishedAt": "2026-10-05T00:00:00Z", "isLatest": true } }
+    },
+    {
+      "server": {
+        "name": "io.github.github/github-mcp-server",
+        "description": "Fixture: GitHub repositories, issues and pull requests.",
+        "version": "1.0.0",
+        "repository": { "url": "https://github.com/github/github-mcp-server", "source": "github" },
+        "remotes": [{ "type": "streamable-http", "url": "https://api.github.example.test/mcp" }]
+      },
+      "_meta": { "io.modelcontextprotocol.registry/official": { "status": "active", "publishedAt": "2026-10-05T00:00:00Z", "isLatest": true } }
+    },
+    {
+      "server": {
+        "name": "io.example/filesystem",
+        "description": "Fixture: local filesystem access.",
+        "version": "0.6.2",
+        "packages": [{ "registryType": "npm", "identifier": "@example/mcp-filesystem", "version": "0.6.2", "transport": { "type": "stdio" } }]
+      },
+      "_meta": { "io.modelcontextprotocol.registry/official": { "status": "active", "publishedAt": "2026-10-05T00:00:00Z", "isLatest": true } }
+    },
+    {
+      "server": {
+        "name": "io.example/postgres",
+        "description": "Fixture: read-only PostgreSQL queries.",
+        "version": "0.3.0",
+        "packages": [{ "registryType": "npm", "identifier": "@example/mcp-postgres", "version": "0.3.0", "transport": { "type": "stdio" } }]
+      },
+      "_meta": { "io.modelcontextprotocol.registry/official": { "status": "active", "publishedAt": "2026-10-05T00:00:00Z", "isLatest": true } }
+    },
+    {
+      "server": {
+        "name": "io.example/slack",
+        "description": "Fixture: Slack channels and messages.",
+        "version": "0.2.1",
+        "remotes": [{ "type": "sse", "url": "https://mcp.slack.example.test/sse" }]
+      },
+      "_meta": { "io.modelcontextprotocol.registry/official": { "status": "active", "publishedAt": "2026-10-05T00:00:00Z", "isLatest": true } }
+    }
+  ]
+}

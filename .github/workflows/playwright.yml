@@ -85,10 +85,23 @@ jobs:
       - name: Build Arkon
         run: npm run build
 
+      # The MCP Registry API tests (tests/api/tools.api.spec.ts) read this local fixture, not the
+      # live registry.modelcontextprotocol.io, whose answers decided our CI (master red on :241
+      # and :251 since 2026-10-04; deck-main RULING 4864 (1)). Guarded by
+      # src/lib/e2e-mcp-registry-wiring.test.ts.
+      - name: Start MCP registry fixture
+        run: node scripts/e2e-mcp-registry-fixture.mjs &
+        env:
+          MCP_REGISTRY_FIXTURE_PORT: 4010
+
+      - name: Wait for MCP registry fixture
+        run: npx wait-on http-get://127.0.0.1:4010/v0/servers --timeout 30000
+
       - name: Start Arkon server
         run: npm start &
         env:
           PORT: 3000
+          MCP_REGISTRY_BASE: http://127.0.0.1:4010/v0
 
       - name: Wait for server to be ready
         run: npx wait-on http://localhost:3000/api/health --timeout 30000

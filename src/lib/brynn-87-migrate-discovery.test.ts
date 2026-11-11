@@ -5,11 +5,22 @@
  *   1. Only .sql regular files are returned, in lex order; non-sql and subdirs excluded
  *   2. Non-existent directory throws with "not found" in the message
  */
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { mkdtemp, mkdir, writeFile, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import { discoverMigrations } from "../../scripts/migrate";
+
+// Importing scripts/migrate.ts starts a migration run at once (its top-level run()). npm test now collects this
+// file (transformate WI-3996), so pg is held: the run never reaches a database (DATABASE_URL, or localhost:5432)
+// and never calls process.exit. Replaces the RULING 4074 suite exclusion.
+vi.mock("pg", () => ({
+  Pool: class {
+    query() { return new Promise(() => {}); }
+    connect() { return new Promise(() => {}); }
+    end() {}
+  },
+}));
 
 let tmpDir: string;
 
