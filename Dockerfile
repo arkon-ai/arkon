@@ -16,7 +16,7 @@ COPY src/ src/
 COPY public/ public/
 COPY migrations/ migrations/
 COPY scripts/ scripts/
-COPY next.config.ts tsconfig.json postcss.config.mjs eslint.config.mjs ./
+COPY next.config.ts tsconfig.json postcss.config.mjs eslint.config.mjs vitest.config.ts ./
 
 # Next.js standalone build
 ENV NEXT_TELEMETRY_DISABLED=1
