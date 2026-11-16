@@ -21,7 +21,7 @@ done
 echo "[arkon] Database is ready."
 
 echo "[arkon] Running database migrations..."
-npx tsx scripts/migrate.ts
+node scripts/migrate.js
 
 echo "[arkon] Migrations complete. Starting Arkon..."
 exec node server.js

@@ -2,15 +2,15 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+COPY package.json package-lock.json .npmrc ./
+RUN --mount=type=secret,id=arkon_npm_token,env=ARKON_NPM_TOKEN npm ci --omit=dev
 
 # ── Stage 2: Build ──────────────────────────────────────────────────────
 FROM node:20-alpine AS build
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json package-lock.json .npmrc ./
+RUN --mount=type=secret,id=arkon_npm_token,env=ARKON_NPM_TOKEN npm ci
 
 COPY src/ src/
 COPY public/ public/
@@ -21,6 +21,9 @@ COPY next.config.ts tsconfig.json postcss.config.mjs eslint.config.mjs vitest.co
 # Next.js standalone build
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
+
+# Migration runner: compiled here by the locked typescript, so the runtime stage needs no tsx
+RUN node_modules/.bin/tsc --module commonjs --target es2022 --moduleResolution node --esModuleInterop --skipLibCheck --types node --outDir scripts scripts/migrate.ts
 
 # ── Stage 3: Runtime ────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
@@ -45,11 +48,12 @@ COPY --from=build /app/public ./public
 
 # Copy migrations and runner for entrypoint
 COPY migrations/ migrations/
-COPY scripts/migrate.ts scripts/migrate.ts
+COPY --from=build /app/scripts/migrate.js scripts/migrate.js
 COPY package.json ./
 
-# Install tsx for migration runner + web-push for VAPID notifications
-RUN npm install --no-save tsx pg web-push
+# pg (database wait + migration runner) and web-push (VAPID notifications) come from the
+# deps stage's locked production install: zero registry install in the runtime stage
+COPY --from=deps /app/node_modules ./node_modules
 
 # Copy entrypoint
 COPY docker-entrypoint.sh /docker-entrypoint.sh
