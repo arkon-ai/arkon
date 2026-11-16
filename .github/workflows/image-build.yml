@@ -1,0 +1,34 @@
+name: image-build
+# Builds the two image stages that install from the private registry (deps, build),
+# with the registry token as a BuildKit build secret only (transformate WI-4683).
+# arkon is a public repo: the token reaches ONE step, and only on a push to master
+# or a pull request from a branch of this repo. A pull request from a fork gets no
+# token: it runs the install-site check, prints one line and skips the token step.
+# Never a trigger that runs fork code with this repo's secret values.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  image-stages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: Check every npm install site
+        run: node scripts/check-npm-install-sites.mjs .
+      - name: Fork pull request, no registry token
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: echo "Fork pull request, so the registry-token build stage is skipped (a fork gets no token)."
+      - name: Build the deps and build stages, registry token as a BuildKit secret
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          ARKON_NPM_TOKEN: ${{ secrets.ARKON_NPM_TOKEN }}
+        run: |
+          docker buildx build --secret id=arkon_npm_token,env=ARKON_NPM_TOKEN --target deps .
+          docker buildx build --secret id=arkon_npm_token,env=ARKON_NPM_TOKEN --target build .
