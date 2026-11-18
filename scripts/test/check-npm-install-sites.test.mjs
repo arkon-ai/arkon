@@ -671,3 +671,75 @@ describe("F2 fix round", () => {
     assert.equal(rows(r, /^(SITE|CHECK) \.github\/workflows\/probe\.yml.* FAIL: /).length, 0, `a probe.yml FAIL row\n${r.brief}`);
   });
 });
+
+describe("F3 fix round", () => {
+  const P = "qzx4774mark-pkg";
+  const WF = ".github/workflows/probe.yml";
+  const AC = ".github/actions/qzx4774mark/action.yml";
+  const why = `"npm install ${P}": 'npm install' can fetch a package by name (not from the lock)`;
+  const rows = (r, re) => r.out.split("\n").filter((l) => re.test(l));
+  const fails = (r) => rows(r, /^(SITE|CHECK) .* FAIL: /);
+  // the F1 block's composite action helper, the same lines (that helper is scoped to its block)
+  const action = (run) => [
+    "# QZX4774MARK synthetic fixture",
+    "name: a",
+    "description: QZX4774MARK synthetic composite action",
+    "runs:",
+    "  using: composite",
+    "  steps:",
+    `    - run: ${run}`,
+    "      shell: bash",
+    "",
+  ].join("\n");
+  // a `run: |` block of a workflow step: its k-th line is probe.yml line 10 + k
+  const wfRun = (ls) => ({ [WF]: workflow(["      - run: |", ...ls.map((l) => `          ${l}`)]) });
+  // rc 1 and EXACTLY these FAIL rows (each by file, line and quoted command), in order
+  const expectRows = (files, want) => {
+    const r = run(files);
+    assert.equal(r.rc, 1, `want rc 1, got ${r.rc}\n${r.brief}`);
+    assert.deepEqual(fails(r), want, `want FAIL rows ${JSON.stringify(want)}\n${r.brief}`);
+    return r;
+  };
+  // rc 0 and zero FAIL row
+  const expectNoRow = (files) => {
+    const r = run(files);
+    assert.equal(r.rc, 0, `want rc 0, got ${r.rc}\n${r.brief}`);
+    assert.equal(fails(r).length, 0, `want 0 FAIL rows, got ${fails(r).length}\n${r.brief}`);
+    assert.match(r.out, /^T1 RESULT: PASS /m);
+    return r;
+  };
+  test("F3-a NG_wf_cont_then_comment: echo \\, a comment line, then npm install FAILs at the install line, not joined", () => {
+    const r = expectRows(wfRun(["echo start \\", "# comment", `npm install ${P}`]), [`SITE ${WF}:13 FAIL: ${why}`]);
+    assert.equal(rows(r, /FAIL: .*echo start/).length, 0, `a FAIL row holds echo start\n${r.brief}`);
+  });
+  test("F3-b the action form: echo \\, a comment line, then npm install FAILs at the action's install line", () => {
+    const r = expectRows({ [AC]: action(["|", "        echo start \\", "        # comment", `        npm install ${P}`].join("\n")) },
+      [`SITE ${AC}:10 FAIL: ${why}`]);
+    assert.equal(rows(r, /FAIL: .*echo start/).length, 0, `a FAIL row holds echo start\n${r.brief}`);
+  });
+  test("F3-c PIN the N1 shape: echo with no \\, a comment ending in \\, then npm install FAILs at the install line", () => {
+    const r = expectRows(wfRun(["echo start", "# install deps \\", `npm install ${P}`]), [`SITE ${WF}:13 FAIL: ${why}`]);
+    assert.equal(rows(r, /^(SITE|NOTE) \.github\/workflows\/probe\.yml:1[12][ :]/).length, 0, `a row at :11 or :12\n${r.brief}`);
+  });
+  test("F3-d NF_install_cont_comment_echo: npm install \\, a comment line, then echo: ONE FAIL row at line 1, the install alone", () => {
+    const r = expectRows(wfRun([`npm install ${P} \\`, "# c", "echo b"]), [`SITE ${WF}:11 FAIL: ${why}`]);
+    assert.equal(rows(r, /FAIL: .*echo b/).length, 0, `a FAIL row holds echo b\n${r.brief}`);
+  });
+  test("F3-e NF_ci_cont_comment_install: npm ci \\, a comment line, then npm install FAILs at line 3; line 1 is npm ci alone", () => {
+    const r = expectRows(wfRun(["npm ci \\", "# c", `npm install ${P}`]), [`SITE ${WF}:13 FAIL: ${why}`]);
+    const at1 = rows(r, /^(SITE|CHECK|NOTE) \.github\/workflows\/probe\.yml:11[ :]/);
+    assert.ok(at1.length >= 1, `want a row at :11 for npm ci\n${r.brief}`);
+    for (const l of at1) assert.match(l, /^SITE \.github\/workflows\/probe\.yml:11 OK: "npm ci": npm ci from the lock/, `a :11 row is not npm ci alone: ${l}`);
+    assert.equal(at1.filter((l) => /npm install|# c/.test(l)).length, 0, `a :11 row holds npm install or # c\n${r.brief}`);
+  });
+  test("SAFE-F3-names PIN: echo \\, a comment line naming npm install, then echo runs no install: rc 0", () => {
+    expectNoRow(wfRun(["echo a \\", `# npm install ${P}`, "echo b"]));
+  });
+  test("SAFE-F3-npm: npm \\, a comment line, then install runs no npm install (the shell runs npm, then install): rc 0", () => {
+    expectNoRow(wfRun(["npm \\", "# c", `install ${P}`]));
+  });
+  test("SAFE-F3-only PIN: a run block's comment line then echo: rc 0, zero row of any kind for the comment line", () => {
+    const r = expectNoRow(wfRun(["# c", "echo done"]));
+    assert.equal(rows(r, /^(SITE|CHECK|NOTE) \.github\/workflows\/probe\.yml:11[ :]/).length, 0, `a row for the comment line\n${r.brief}`);
+  });
+});
