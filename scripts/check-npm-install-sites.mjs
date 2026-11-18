@@ -58,9 +58,10 @@ function read(rel) {
 
 // npm/npx/yarn/pnpm calls in one shell command string. F8 (WI-4774): a call by a path
 // (/usr/bin/npm, ./node_modules/.bin/npm) or by npm's own npm-cli.js / npx-cli.js is a call too.
+// WI-4774 F1: a quote or a backtick before the tool is a boundary too (sh -c "npm install x").
 function npmCalls(cmd) {
   const out = [];
-  const re = /(?:^|[\s;&|(])((?:[\w.~${}@+-]*\/)+)?(npm|npx|yarn|pnpm|npm-cli\.js|npx-cli\.js)(?=\s|$)((?:\s+-{1,2}[\w-]+(?:=\S+)?)*)\s*([\w@./:-]*)/g;
+  const re = /(?:^|[\s;&|(`"'])((?:[\w.~${}@+-]*\/)+)?(npm|npx|yarn|pnpm|npm-cli\.js|npx-cli\.js)(?=\s|$)((?:\s+-{1,2}[\w-]+(?:=\S+)?)*)\s*([\w@./:-]*)/g;
   let m;
   while ((m = re.exec(cmd)) !== null) {
     const byPath = !!m[1] || m[2].endsWith(".js");
@@ -73,6 +74,12 @@ function npmCalls(cmd) {
       else if (FETCH_CMDS.has(sub)) out.push({ kind: "fetch", text: `${name} ${sub}${tag}` });
     } else {
       out.push({ kind: "fetch", text: `${name} ${sub}`.trim() + tag, tool, pkg: sub });
+    }
+    // WI-4774 F1: the tool's next word is itself npm, npx, yarn or pnpm (npx npm install x):
+    // scan again from that word, so the call it runs is read too
+    if (/^(?:[\w.~${}@+-]*\/)*(npm|npx|yarn|pnpm|npm-cli\.js|npx-cli\.js)$/.test(sub)) {
+      out.push(...npmCalls(cmd.slice(m.index + m[0].length - sub.length)));
+      break;
     }
   }
   return out;
@@ -498,6 +505,15 @@ function yamlTree(text) {
 }
 const kid = (n, k) => (n ? n.children.find((c) => !c.isItem && c.key === k) : undefined);
 const runLines = (n) => (n.body ? n.body.filter((b) => b.text.trim() !== "") : [{ line: n.line, text: n.value }]);
+// WI-4774 F1: a one-line quoted scalar is the text inside its quotes, as YAML gives it to the shell
+const unquote = (v) => {
+  const t = v.trim();
+  if (/^"(?:[^"\\]|\\.)*"$/.test(t)) return t.slice(1, -1).replace(/\\(.)/g, (_, c) => (c === "n" ? "\n" : c === "t" ? "\t" : c));
+  if (/^'(?:[^']|'')*'$/.test(t)) return t.slice(1, -1).replace(/''/g, "'");
+  return v;
+};
+// the command lines of a run node, as the shell gets them (the npm site matcher reads these)
+const cmdLines = (n) => (n.body ? runLines(n) : [{ line: n.line, text: unquote(n.value) }]);
 const expr = (v) => v.replace(/^\$\{\{\s*/, "").replace(/\s*\}\}$/, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "");
 
 // ---------- workflows ----------
@@ -530,7 +546,7 @@ for (const f of wfFiles) {
     if (why.length) line("CHECK", `${rel}:${e.line} ${form.slice(0, 2)}`, false, `${form}: ${reasons} (it reaches every step under it: fail closed)`);
   }
   for (const n of all.filter((x) => x.key === "run")) {
-    for (const b of runLines(n)) {
+    for (const b of cmdLines(n)) {
       if (/^\s*#/.test(b.text)) continue;
       for (const c of npmCalls(b.text)) {
         if (c.kind === "ci") {
