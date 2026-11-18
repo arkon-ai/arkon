@@ -476,7 +476,8 @@ for (const f of wfFiles) {
       else if (/secrets\.|\$\{\{/.test(r.value)) why.push(`${r.key} takes a secrets or \${{ }} value`);
       else if (/^(npm_config_|NODE_AUTH_TOKEN$|NPM_TOKEN$)/i.test(r.key) || r.key === TOKEN_VAR) why.push(`${r.key} is a name npm reads`);
     }
-    if (why.length) line("CHECK", `${rel}:${e.line} ${form.slice(0, 2)}`, false, `${form}: ${why.join("; ")} (it reaches every step under it: fail closed)`);
+    const reasons = why.join("; ");
+    if (why.length) line("CHECK", `${rel}:${e.line} ${form.slice(0, 2)}`, false, `${form}: ${reasons} (it reaches every step under it: fail closed)`);
   }
   for (const n of all.filter((x) => x.key === "run")) {
     for (const b of runLines(n)) {
