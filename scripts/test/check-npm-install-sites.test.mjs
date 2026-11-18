@@ -743,3 +743,103 @@ describe("F3 fix round", () => {
     assert.equal(rows(r, /^(SITE|CHECK|NOTE) \.github\/workflows\/probe\.yml:11[ :]/).length, 0, `a row for the comment line\n${r.brief}`);
   });
 });
+
+describe("F4 pin round", () => {
+  const P = "qzx4774mark-pkg";
+  const WF = ".github/workflows/probe.yml";
+  const AC = ".github/actions/qzx4774mark/action.yml";
+  // a FAIL row of the npm install rule, by file, line and quoted command
+  const row = (f, ln, cmd) => `SITE ${f}:${ln} FAIL: "${cmd}": 'npm install' can fetch a package by name (not from the lock)`;
+  const rows = (r, re) => r.out.split("\n").filter((l) => re.test(l));
+  const fails = (r) => rows(r, /^(SITE|CHECK) .* FAIL: /);
+  // the F1 block's composite action helper, the same lines (that helper is scoped to its block)
+  const action = (run) => [
+    "# QZX4774MARK synthetic fixture",
+    "name: a",
+    "description: QZX4774MARK synthetic composite action",
+    "runs:",
+    "  using: composite",
+    "  steps:",
+    `    - run: ${run}`,
+    "      shell: bash",
+    "",
+  ].join("\n");
+  // a `run: |` block of a workflow step: its k-th line is probe.yml line 10 + k (an empty line stays empty)
+  const wfRun = (ls) => ({ [WF]: workflow(["      - run: |", ...ls.map((l) => (l === "" ? "" : `          ${l}`))]) });
+  // the same lines as a `run: |` block of a composite action: its k-th line is action.yml line 7 + k
+  const acRun = (ls) => ({ [AC]: action(["|", ...ls.map((l) => (l === "" ? "" : `        ${l}`))].join("\n")) });
+  // a one-line `run:` value of a workflow step, at probe.yml line 10
+  const wfOne = (v) => ({ [WF]: workflow([`      - run: ${v}`]) });
+  // rc 1 and EXACTLY these FAIL rows (each by file, line and quoted command), in order
+  const expectRows = (files, want) => {
+    const r = run(files);
+    assert.equal(r.rc, 1, `want rc 1, got ${r.rc}\n${r.brief}`);
+    assert.deepEqual(fails(r), want, `want FAIL rows ${JSON.stringify(want)}\n${r.brief}`);
+    return r;
+  };
+  // rc 0 and zero FAIL row
+  const expectNoRow = (files) => {
+    const r = run(files);
+    assert.equal(r.rc, 0, `want rc 0, got ${r.rc}\n${r.brief}`);
+    assert.equal(fails(r).length, 0, `want 0 FAIL rows, got ${fails(r).length}\n${r.brief}`);
+    assert.match(r.out, /^T1 RESULT: PASS /m);
+    return r;
+  };
+  // (a) OpenAI F3-R1: a continued line, then a comment line that itself ends in '\', then an install.
+  // sh and bash read `echo start # c \`: the comment ends the command, so the install runs alone.
+  test("F4-a PIN comment_backslash: echo \\, a comment ending in \\, then npm install FAILs at the install line alone", () => {
+    const r = expectRows(wfRun(["echo start \\", "# c \\", `npm install ${P}`]), [row(WF, 13, `npm install ${P}`)]);
+    assert.equal(rows(r, /FAIL: .*(echo start|# c)/).length, 0, `a FAIL row holds echo start or # c\n${r.brief}`);
+  });
+  test("F4-b PIN the action form of comment_backslash FAILs at the action's install line alone", () => {
+    const r = expectRows(acRun(["echo start \\", "# c \\", `npm install ${P}`]), [row(AC, 10, `npm install ${P}`)]);
+    assert.equal(rows(r, /FAIL: .*(echo start|# c)/).length, 0, `a FAIL row holds echo start or # c\n${r.brief}`);
+  });
+  test("F4-c PIN two_comments: echo \\, two comments ending in \\, then npm install FAILs at the install line alone", () => {
+    const r = expectRows(wfRun(["echo start \\", "# a \\", "# b \\", `npm install ${P}`]), [row(WF, 14, `npm install ${P}`)]);
+    assert.equal(rows(r, /FAIL: .*(echo start|# a|# b)/).length, 0, `a FAIL row holds echo start, # a or # b\n${r.brief}`);
+  });
+  test("F4-d PIN the action form of two_comments FAILs at the action's install line alone", () => {
+    const r = expectRows(acRun(["echo start \\", "# a \\", "# b \\", `npm install ${P}`]), [row(AC, 11, `npm install ${P}`)]);
+    assert.equal(rows(r, /FAIL: .*(echo start|# a|# b)/).length, 0, `a FAIL row holds echo start, # a or # b\n${r.brief}`);
+  });
+  // (c) WI-4790: a one-line quoted `run:` value; SAFE and PIN differ by the '#' only
+  test('SAFE-Q-dq PIN: run: "# npm install <pkg>" (double-quoted) is a shell comment: rc 0, zero FAIL row', () => {
+    expectNoRow(wfOne(`"# npm install ${P}"`));
+  });
+  test("SAFE-Q-sq PIN: run: '# npm install <pkg>' (single-quoted) is a shell comment: rc 0, zero FAIL row", () => {
+    expectNoRow(wfOne(`'# npm install ${P}'`));
+  });
+  test('PIN-Q-dq: run: "npm install <pkg>" (double-quoted) FAILs at its line naming the package', () => {
+    const r = expectRows(wfOne(`"npm install ${P}"`), [row(WF, 10, `npm install ${P}`)]);
+    assert.match(r.out, /qzx4774mark-pkg/);
+  });
+  test("PIN-Q-sq: run: 'npm install <pkg>' (single-quoted) FAILs at its line naming the package", () => {
+    const r = expectRows(wfOne(`'npm install ${P}'`), [row(WF, 10, `npm install ${P}`)]);
+    assert.match(r.out, /qzx4774mark-pkg/);
+  });
+  // (b) the Opus F3 O1: a '#' line after a line ending in '\' with NO blank before the '\', at the
+  // block indent, is no comment: the '\'-newline glues '#' inside a word, so the install runs
+  test("O1-a midword_semicolon: echo a\\ then '#; npm install' at the block indent FAILs with the joined row at line 1", () => {
+    expectRows(wfRun(["echo a\\", `#; npm install ${P}`]), [row(WF, 11, `echo a #; npm install ${P}`)]);
+  });
+  test("O1-b midword_assign: x=\\ then '#; npm install' at the block indent FAILs with the joined row at line 1", () => {
+    expectRows(wfRun(["x=\\", `#; npm install ${P}`]), [row(WF, 11, `x= #; npm install ${P}`)]);
+  });
+  test("O1-c midword_bs: echo a\\, '#b; npm \\', then install FAILs with the joined row at line 1", () => {
+    expectRows(wfRun(["echo a\\", "#b; npm \\", `install ${P}`]), [row(WF, 11, `echo a #b; npm install ${P}`)]);
+  });
+  test("O1-d the action form of midword_semicolon FAILs with the joined row at the action's line 1", () => {
+    expectRows(acRun(["echo a\\", `#; npm install ${P}`]), [row(AC, 8, `echo a #; npm install ${P}`)]);
+  });
+  test("SAFE-O1-ind PIN: echo a\\ then '#; npm install' indented past the block is a comment: rc 0, zero FAIL row", () => {
+    expectNoRow(wfRun(["echo a\\", `  #; npm install ${P}`]));
+  });
+  test("NIT-midword-safe: echo a\\, '#b \\', then npm install (sh runs one echo) FAILs closed with the joined row at line 1", () => {
+    expectRows(wfRun(["echo a\\", "#b \\", `npm install ${P}`]), [row(WF, 11, `echo a #b npm install ${P}`)]);
+  });
+  test("NIT-blank-cont PIN: echo a \\, an empty line, then npm install FAILs with a row naming the install", () => {
+    const r = expectRows(wfRun(["echo a \\", "", `npm install ${P}`]), [row(WF, 11, `echo a  npm install ${P}`)]);
+    assert.equal(rows(r, /FAIL: .*npm install qzx4774mark-pkg/).length, 1, `want one FAIL row naming the install\n${r.brief}`);
+  });
+});
