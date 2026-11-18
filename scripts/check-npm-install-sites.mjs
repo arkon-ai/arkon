@@ -374,7 +374,8 @@ if (entry !== null) {
 
 // ---------- a tiny YAML reader (block mappings and sequences, block scalars) ----------
 // It models block mappings, block sequences, one-line scalars, one-line flow sequences and
-// '|' or '>' block scalars. Each other construct is a FAIL row, never a silent skip
+// '|' or '>' block scalars (a '>' body is folded as YAML folds it before the npm
+// matcher reads it: WI-4774 F1). Each other construct is a FAIL row, never a silent skip
 // (transformate WI-4774): F1 an anchor, F2 an alias or a merge key, F5 a multi-line flow
 // scalar, UNREADABLE (a tab in the indent, a flow mapping or an unclosed flow sequence, a
 // tag, a directive, a complex key, a second document, a block scalar header it does not
@@ -475,10 +476,10 @@ function yamlTree(text) {
       if (item) last = item;
       continue;
     }
-    if (m[1] === "<<") flag(F2, i + 1, "a merge key '<<'");
+    if (m[1].trim() === "<<") flag(F2, i + 1, "a merge key '<<'"); // '<< :' too (WI-4774 F1)
     const value = props((m[2] || "").trim(), i + 1);
     flow(value, i + 1);
-    const node = { col, isItem: false, key: m[1].replace(/^["']|["']$/g, ""), value, children: [], line: i + 1, parent: stack[stack.length - 1] };
+    const node = { col, isItem: false, key: m[1].trim().replace(/^["']|["']$/g, ""), value, children: [], line: i + 1, parent: stack[stack.length - 1] };
     node.parent.children.push(node);
     all.push(node);
     stack.push(node);
@@ -513,7 +514,30 @@ const unquote = (v) => {
   return v;
 };
 // the command lines of a run node, as the shell gets them (the npm site matcher reads these)
-const cmdLines = (n) => (n.body ? runLines(n) : [{ line: n.line, text: unquote(n.value) }]);
+// WI-4774 F1: a '>' body folded as YAML folds it: lines at the body indent join with one
+// space; an empty line or a more-indented line keeps its newline (a more-indented line stands
+// alone). Each folded line is at the body line it starts on.
+const foldLines = (body) => {
+  const ne = body.filter((b) => b.text.trim() !== "");
+  const ind = ne.length ? ne[0].text.search(/\S/) : 0;
+  const out = [];
+  let cur = null;
+  for (const b of body) {
+    if (b.text.trim() === "") {
+      cur = null;
+    } else if (b.text.search(/\S/) > ind) {
+      out.push({ line: b.line, text: b.text });
+      cur = null;
+    } else if (cur) {
+      cur.text += " " + b.text.trim();
+    } else {
+      cur = { line: b.line, text: b.text.trim() };
+      out.push(cur);
+    }
+  }
+  return out;
+};
+const cmdLines = (n) => (n.body ? (/^>/.test(n.value) ? foldLines(n.body) : runLines(n)) : [{ line: n.line, text: unquote(n.value) }]);
 const expr = (v) => v.replace(/^\$\{\{\s*/, "").replace(/\s*\}\}$/, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "");
 
 // ---------- workflows ----------
