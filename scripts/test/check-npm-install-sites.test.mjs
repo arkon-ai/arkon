@@ -307,6 +307,10 @@ describe("F1 fix round", () => {
     expectFail({ Dockerfile: dockerfile(["RUN <<'EOF'", `npm install ${P}`, "EOF"]) },
       /^SITE Dockerfile:6 FAIL: .*F7 RUN heredoc/);
   });
+  test("M1-h: a '<<EOF' glued inside a word (cat<<EOF) is no BuildKit heredoc word: it FAILs closed", () => {
+    expectFail({ Dockerfile: dockerfile(["RUN cat<<EOF", `npm install ${P}`, "EOF"]) },
+      /^CHECK Dockerfile:6 FAIL: F7 RUN heredoc: a '<<' in the word 'cat<<EOF'/);
+  });
 
   // X-m1 (Opus m1): npx (or any tool) whose word is itself npm/npx/yarn/pnpm is scanned again from that word
   test("m1-a: /usr/bin/npx npm install FAILs with the row THE BASE prints", () => {
