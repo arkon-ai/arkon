@@ -12,6 +12,7 @@ import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { describe } from "node:test";
 
 const CHECK = resolve(dirname(fileURLToPath(import.meta.url)), "..", "check-npm-install-sites.mjs");
 const SHA = "0123456789abcdef0123456789abcdef01234567";
@@ -227,4 +228,372 @@ test("UNREADABLE: a tab-indented line FAILs", () => {
   expectFail({
     ".github/workflows/t.yml": workflow(["      - name: tab", "\t\trun: npm install qzx4774mark-pkg"]),
   }, /^CHECK \.github\/workflows\/t\.yml:11 .*UNREADABLE/);
+});
+
+// ---------- F1 fix round (transformate WI-4774, the U1 review pair's findings) ----------
+// Each case is one finding of the two reads: Opus M1, m1 to m6; OpenAI R1 (= m3), R2.
+// A PIN case already holds at 98c4c8a7 and pins it against a mutant; every other case is
+// RED there by its own assert. A SAFE twin asserts rc 0 AND the row the check prints for it.
+describe("F1 fix round", () => {
+  const P = "qzx4774mark-pkg";
+  const rows = (r, re) => r.out.split("\n").filter((l) => re.test(l));
+  const hasRow = (r, re) => assert.ok(rows(r, re).length > 0, `no row matching ${re}\n${r.brief}`);
+  const noRow = (r, re) => assert.equal(rows(r, re).length, 0, `a row matching ${re}\n${r.brief}`);
+  // the base Dockerfile with lines appended to its runtime stage (line 9 on)
+  const dockerRt = (extra = []) => [
+    "# QZX4774MARK synthetic fixture",
+    "FROM node:20-alpine AS deps",
+    "WORKDIR /app",
+    "COPY package.json package-lock.json .npmrc ./",
+    `RUN ${MOUNT} npm ci --omit=dev`,
+    "FROM node:20-alpine AS runtime",
+    "WORKDIR /app",
+    "COPY --from=deps /app/node_modules ./node_modules",
+    ...extra,
+    "",
+  ].join("\n");
+  const sh = (lines) => ["#!/bin/sh", "# QZX4774MARK synthetic fixture", ...lines, ""].join("\n");
+  // the two FAIL rows THE BASE dbeceb8e prints on the D08 root (Opus M1)
+  const D08_ROWS = [
+    "CHECK Dockerfile:11 FAIL: ARG names a token (ARG NPM_TOKEN): a token in a build arg or env lands in the image history",
+    "CHECK Dockerfile:10 FAIL: stage runtime (runtime) copies .npmrc",
+  ];
+  const d08 = (opener) => ({ Dockerfile: dockerRt([opener, "COPY .npmrc ./", "ARG NPM_TOKEN", "RUN cat <<EOF", "built", "EOF"]) });
+
+  // X-M1 (Opus M1): a heredoc opens only on an unquoted shell word '<<WORD', as BuildKit splits words
+  test('M1-a D08: a double-quoted "<<EOF" opens no heredoc; both base FAIL rows stay', () => {
+    const r = expectFail(d08('RUN echo "<<EOF"'), /^CHECK Dockerfile:11 FAIL: ARG names a token/);
+    assert.deepEqual(rows(r, / FAIL: /), D08_ROWS);
+  });
+  test("M1-b D08: a single-quoted '<<EOF' opens no heredoc; both base FAIL rows stay", () => {
+    const r = expectFail(d08("RUN echo '<<EOF'"), /^CHECK Dockerfile:11 FAIL: ARG names a token/);
+    assert.deepEqual(rows(r, / FAIL: /), D08_ROWS);
+  });
+  test("M1-c D08c: a quoted <<EOF before FROM: the runtime stage keeps its own FAIL row", () => {
+    const r = expectFail({ Dockerfile: [
+      "# QZX4774MARK synthetic fixture",
+      "FROM node:20-alpine AS deps",
+      "WORKDIR /app",
+      "COPY package.json package-lock.json .npmrc ./",
+      `RUN ${MOUNT} npm ci --omit=dev`,
+      'RUN echo "<<EOF"',
+      "FROM node:20-alpine AS runtime",
+      "WORKDIR /app",
+      `RUN npm install ${P}`,
+      "RUN cat <<EOF",
+      "built",
+      "EOF",
+      "",
+    ].join("\n") }, /^SITE Dockerfile:9 FAIL: stage=runtime "npm install qzx4774mark-pkg": a registry install in the runtime stage/);
+    noRow(r, /^SITE Dockerfile:6 /);
+    hasRow(r, /^SITE Dockerfile:5 OK: /);
+  });
+  test("M1-d PIN D08b: the same root with no quoted opener keeps both base FAIL rows", () => {
+    const r = expectFail({ Dockerfile: dockerRt(["COPY .npmrc ./", "ARG NPM_TOKEN", "RUN cat <<EOF", "built", "EOF"]) }, /^CHECK Dockerfile:10 FAIL: ARG names a token/);
+    assert.deepEqual(rows(r, / FAIL: /), [
+      "CHECK Dockerfile:10 FAIL: ARG names a token (ARG NPM_TOKEN): a token in a build arg or env lands in the image history",
+      "CHECK Dockerfile:9 FAIL: stage runtime (runtime) copies .npmrc",
+    ]);
+  });
+  test("M1-e a <<EOF after a shell comment opens nothing: both base FAIL rows stay, the comment opener FAILs closed", () => {
+    const r = expectFail(d08("RUN echo hi # <<EOF"), /^CHECK Dockerfile:9 FAIL: F7 RUN heredoc: .*comment/);
+    for (const want of D08_ROWS) assert.ok(rows(r, / FAIL: /).includes(want), `lost base row: ${want}\n${r.brief}`);
+  });
+  test("M1-f PIN: a quoted word before a real <<EOF on the same RUN still opens the heredoc", () => {
+    expectFail({ Dockerfile: dockerfile(['RUN echo "start" && sh <<EOF', `npm install ${P}`, "EOF"]) },
+      /^SITE Dockerfile:6 FAIL: .*F7 RUN heredoc/);
+  });
+  test("M1-g PIN: a quoted delimiter word <<'EOF' opens a heredoc", () => {
+    expectFail({ Dockerfile: dockerfile(["RUN <<'EOF'", `npm install ${P}`, "EOF"]) },
+      /^SITE Dockerfile:6 FAIL: .*F7 RUN heredoc/);
+  });
+
+  // X-m1 (Opus m1): npx (or any tool) whose word is itself npm/npx/yarn/pnpm is scanned again from that word
+  test("m1-a: /usr/bin/npx npm install FAILs with the row THE BASE prints", () => {
+    expectFail({ ".github/workflows/m1.yml": workflow([`      - run: /usr/bin/npx npm install ${P}`]) },
+      /^SITE \.github\/workflows\/m1\.yml:10 FAIL: "\/usr\/bin\/npx npm install qzx4774mark-pkg": 'npm install' can fetch a package by name \(not from the lock\)$/);
+  });
+  test("m1-b: npx npm install FAILs", () => {
+    expectFail({ ".github/workflows/m1.yml": workflow([`      - run: npx npm install ${P}`]) },
+      /^SITE \.github\/workflows\/m1\.yml:10 FAIL: .*'npm install' can fetch a package by name/);
+  });
+  test("m1 SAFE twin: npx of a tool reads as its NOTE, no SITE", () => {
+    const r = expectPass({ ".github/workflows/m1.yml": workflow(["      - run: npx qzx4774mark-tool --help"]) });
+    hasRow(r, /^NOTE \.github\/workflows\/m1\.yml:10: "npx qzx4774mark-tool --help": npx qzx4774mark-tool is NOT in the lock/);
+    noRow(r, /^SITE \.github\/workflows\/m1\.yml/);
+  });
+
+  // X-m2 (Opus m2): a merge key written '<< :' is F2 like '<<:'
+  test("m2-a Y03b: a step env merged by '<< :' holding the token FAILs as F2", () => {
+    expectFail({ ".github/workflows/m2.yml": workflow(["      - run: npm ci", "        env:", "          << :", "            ARKON_NPM_TOKEN: ${{ secrets.ARKON_NPM_TOKEN }}"]) },
+      /^CHECK \.github\/workflows\/m2\.yml:12 yaml FAIL: F2 YAML alias or merge key: a merge key/);
+  });
+  test("m2-b: a job env merged by '<< : *x' names the merge key as F2", () => {
+    expectFail({ ".github/workflows/m2.yml": workflow(["      - run: npm ci"], { job: ["    env:", "      << : *x"] }) },
+      /^CHECK \.github\/workflows\/m2\.yml:9 yaml FAIL: F2 YAML alias or merge key: a merge key/);
+  });
+
+  // X-m3 (Opus m3 = OpenAI R1): a folded block scalar is read as YAML folds it
+  test("m3-a Y04: run: > over 'npm' / 'install <pkg>' FAILs at the run's first line", () => {
+    expectFail({ ".github/workflows/m3.yml": workflow(["      - run: >", "          npm", `          install ${P}`]) },
+      /^SITE \.github\/workflows\/m3\.yml:11 FAIL: "npm install qzx4774mark-pkg": 'npm install' can fetch/);
+  });
+  test("m3-b Y04b (OpenAI R1): run: >- over 'npm' / 'install <pkg>' FAILs at the run's first line", () => {
+    expectFail({ ".github/workflows/m3.yml": workflow(["      - run: >-", "          npm", `          install ${P}`]) },
+      /^SITE \.github\/workflows\/m3\.yml:11 FAIL: "npm install qzx4774mark-pkg": 'npm install' can fetch/);
+  });
+  test("m3-c PIN: the folded direct control (the whole command on one line) FAILs", () => {
+    expectFail({ ".github/workflows/m3.yml": workflow(["      - run: >-", `          npm install ${P}`]) },
+      /^SITE \.github\/workflows\/m3\.yml:11 FAIL: /);
+  });
+  test("m3-d: a more-indented line of a folded scalar keeps its newline; the line after it is folded alone", () => {
+    expectFail({ ".github/workflows/m3.yml": workflow(["      - run: >", "          echo start", "            ls", "          npm", `          install ${P}`]) },
+      /^SITE \.github\/workflows\/m3\.yml:13 FAIL: "npm install qzx4774mark-pkg"/);
+  });
+  test("m3 SAFE twin: a folded echo reads no SITE", () => {
+    const r = expectPass({ ".github/workflows/m3.yml": workflow(["      - run: >", "          echo", "          built"]) });
+    noRow(r, /^SITE \.github\/workflows\/m3\.yml/);
+  });
+  test("m3 SAFE twin: a folded 'npm' / 'ci' prints its SITE OK row", () => {
+    const r = expectPass({ ".github/workflows/m3.yml": workflow(["      - run: >", "          npm", "          ci"]) });
+    hasRow(r, /^SITE \.github\/workflows\/m3\.yml:11 OK: "npm ci": npm ci from the lock/);
+  });
+
+  // X-m4 (Opus m4): a quote or a backtick is a left boundary; a quoted YAML scalar is matched unquoted
+  const unquotedRow = /^SITE \.github\/workflows\/m4\.yml:10 FAIL: "npm install qzx4774mark-pkg": 'npm install' can fetch a package by name \(not from the lock\)$/;
+  test('m4-a Y06: run: "npm install <pkg>" FAILs with the unquoted row', () => {
+    expectFail({ ".github/workflows/m4.yml": workflow([`      - run: "npm install ${P}"`]) }, unquotedRow);
+  });
+  test("m4-b Y07: run: 'npm install <pkg>' FAILs with the unquoted row", () => {
+    expectFail({ ".github/workflows/m4.yml": workflow([`      - run: 'npm install ${P}'`]) }, unquotedRow);
+  });
+  test('m4-c D04: RUN sh -c "npm install <pkg>" FAILs', () => {
+    expectFail({ Dockerfile: dockerfile([`RUN sh -c "npm install ${P}"`]) },
+      /^SITE Dockerfile:6 FAIL: stage=deps .*'npm install' can fetch a package by name/);
+  });
+  test('m4-d S02: sh -c "npm install <pkg>" in scripts/*.sh FAILs', () => {
+    expectFail({ "scripts/m4.sh": sh([`sh -c "npm install ${P}"`]) },
+      /^SITE scripts\/m4\.sh:3 FAIL: .*'npm install' can fetch a package by name/);
+  });
+  test("m4-e: a backtick command substitution holding npm install FAILs", () => {
+    expectFail({ ".github/workflows/m4.yml": workflow([`      - run: echo \`npm install ${P}\``]) },
+      /^SITE \.github\/workflows\/m4\.yml:10 FAIL: .*'npm install' can fetch/);
+  });
+  test('m4 SAFE twin: echo "npm is a tool" reads no SITE', () => {
+    const r = expectPass({ ".github/workflows/m4.yml": workflow(['      - run: echo "npm is a tool"']) });
+    noRow(r, /^SITE \.github\/workflows\/m4\.yml/);
+  });
+
+  // X-m5 (Opus m5): the open forms, one case each
+  test("m5-a Y05: a line continuation splitting npm and install in a run block FAILs", () => {
+    expectFail({ ".github/workflows/m5.yml": workflow(["      - run: |", "          npm \\", `            install ${P}`]) },
+      /^SITE \.github\/workflows\/m5\.yml:11 FAIL: .*'npm install' can fetch/);
+  });
+  test("m5-a S01: a line continuation splitting npm and install in scripts/*.sh FAILs", () => {
+    expectFail({ "scripts/m5.sh": sh(["npm \\", `  install ${P}`]) },
+      /^SITE scripts\/m5\.sh:3 FAIL: .*'npm install' can fetch/);
+  });
+  test("m5-b Y19: npm --prefix /app install in a workflow FAILs", () => {
+    expectFail({ ".github/workflows/m5.yml": workflow([`      - run: npm --prefix /app install ${P}`]) },
+      /^SITE \.github\/workflows\/m5\.yml:10 FAIL: .*'npm install' can fetch/);
+  });
+  test("m5-b D12: npm --prefix /app install in a RUN FAILs", () => {
+    expectFail({ Dockerfile: dockerfile([`RUN npm --prefix /app install ${P}`]) },
+      /^SITE Dockerfile:6 FAIL: .*'npm install' can fetch/);
+  });
+  test("m5-c Y13: $(which npm) install in a workflow FAILs", () => {
+    expectFail({ ".github/workflows/m5.yml": workflow([`      - run: $(which npm) install ${P}`]) },
+      /^SITE \.github\/workflows\/m5\.yml:10 FAIL: .*'npm install' can fetch/);
+  });
+  test("m5-c D05: $(which npm) install in a RUN FAILs", () => {
+    expectFail({ Dockerfile: dockerfile([`RUN $(which npm) install ${P}`]) },
+      /^SITE Dockerfile:6 FAIL: .*'npm install' can fetch/);
+  });
+  test("m5-d Y14: $NPM_BIN install in a workflow FAILs closed as UNREADABLE", () => {
+    expectFail({ ".github/workflows/m5.yml": workflow(["      - env:", "          NPM_BIN: npm", `        run: $NPM_BIN install ${P}`]) },
+      /^SITE \.github\/workflows\/m5\.yml:12 FAIL: .*UNREADABLE/);
+  });
+  test("m5-d D06: ENV NPM_BIN=npm then RUN $NPM_BIN install FAILs closed as UNREADABLE", () => {
+    expectFail({ Dockerfile: dockerfile(["ENV NPM_BIN=npm", `RUN $NPM_BIN install ${P}`]) },
+      /^SITE Dockerfile:7 FAIL: .*UNREADABLE/);
+  });
+  test("m5-d: RUN ${NPM} ci FAILs closed as UNREADABLE", () => {
+    expectFail({ Dockerfile: dockerfile(["RUN ${NPM} ci"]) }, /^SITE Dockerfile:6 FAIL: .*UNREADABLE/);
+  });
+  test("m5-d SAFE twin: $PY install (a name with no npm or npx) reads no SITE", () => {
+    const r = expectPass({ ".github/workflows/m5.yml": workflow(["      - run: $PY install qzx4774mark-x"]) });
+    noRow(r, /^SITE \.github\/workflows\/m5\.yml/);
+  });
+  const escapeDf = (esc, extra) => [
+    `# escape=${esc}`,
+    "# QZX4774MARK synthetic fixture",
+    "FROM node:20-alpine AS deps",
+    "WORKDIR /app",
+    "COPY package.json package-lock.json .npmrc ./",
+    `RUN ${MOUNT} npm ci --omit=dev`,
+    ...extra,
+    "FROM node:20-alpine AS runtime",
+    "WORKDIR /app",
+    "COPY --from=deps /app/node_modules ./node_modules",
+    "",
+  ].join("\n");
+  test("m5-e D09: a '# escape=`' parser directive FAILs closed naming the directive", () => {
+    expectFail({ Dockerfile: escapeDf("`", ["RUN npm `", `    install ${P}`]) }, /^CHECK Dockerfile:1 FAIL: .*# escape=/);
+  });
+  test("m5-e SAFE twin: '# escape=\\' (the backslash) reads OK with its SITE row", () => {
+    const r = expectPass({ Dockerfile: escapeDf("\\", []) });
+    hasRow(r, /^SITE Dockerfile:6 OK: /);
+  });
+  test("m5-f D10: CMD exec form holding npm install FAILs", () => {
+    expectFail({ Dockerfile: dockerRt([`CMD ["npm", "install", "${P}"]`]) }, /^SITE Dockerfile:9 FAIL: .*CMD/);
+  });
+  test("m5-f: CMD shell form holding npm install FAILs", () => {
+    expectFail({ Dockerfile: dockerRt([`CMD npm install ${P}`]) }, /^SITE Dockerfile:9 FAIL: .*CMD/);
+  });
+  test("m5-f: ENTRYPOINT exec form holding npx FAILs", () => {
+    expectFail({ Dockerfile: dockerRt([`ENTRYPOINT ["npx", "${P}"]`]) }, /^SITE Dockerfile:9 FAIL: .*ENTRYPOINT/);
+  });
+  test("m5-f SAFE twin: CMD [node, server.js] reads no SITE", () => {
+    const r = expectPass({ Dockerfile: dockerRt(['CMD ["node", "server.js"]']) });
+    noRow(r, /^SITE Dockerfile:9 /);
+  });
+  const action = (run) => [
+    "# QZX4774MARK synthetic fixture",
+    "name: a",
+    "description: QZX4774MARK synthetic composite action",
+    "runs:",
+    "  using: composite",
+    "  steps:",
+    `    - run: ${run}`,
+    "      shell: bash",
+    "",
+  ].join("\n");
+  test("m5-g Y21: a composite action's run: npm install FAILs", () => {
+    expectFail({ ".github/actions/a/action.yml": action(`npm install ${P}`) },
+      /^SITE \.github\/actions\/a\/action\.yml:7 FAIL: .*'npm install' can fetch/);
+  });
+  test("m5-g SAFE twin: a composite action's run: npm ci prints its SITE OK row", () => {
+    const r = expectPass({ ".github/actions/a/action.yml": action("npm ci") });
+    hasRow(r, /^SITE \.github\/actions\/a\/action\.yml:7 OK: "npm ci"/);
+  });
+  test("m5-h Y11: the token in jobs.<id>.container.env FAILs as F4", () => {
+    expectFail({ ".github/workflows/m5.yml": workflow(["      - run: npm ci"], { job: ["    container:", "      image: node:20-alpine", "      env:", "        ARKON_NPM_TOKEN: ${{ secrets.ARKON_NPM_TOKEN }}"] }) },
+      /^CHECK \.github\/workflows\/m5\.yml:10 F4 FAIL: F4 job env .*ARKON_NPM_TOKEN takes a secrets/);
+  });
+  test("m5-h SAFE twin: a plain container env reads OK with the run's SITE row", () => {
+    const r = expectPass({ ".github/workflows/m5.yml": workflow(["      - run: npm ci"], { job: ["    container:", "      image: node:20-alpine", "      env:", "        QZX_LEVEL: plain"] }) });
+    hasRow(r, /^SITE \.github\/workflows\/m5\.yml:14 OK: "npm ci"/);
+  });
+
+  // X-m6 (Opus m6): one PIN per sub-rule the U1 cases did not pin (the D08 root is M1-a)
+  test("m6 PIN: a merge key '<<:' FAILs as F2", () => {
+    expectFail({ ".github/workflows/m6.yml": workflow(["      - run: npm ci", "        env:", "          <<:", "            QZX_LEVEL: plain"]) },
+      /^CHECK \.github\/workflows\/m6\.yml:12 yaml FAIL: F2 YAML alias or merge key: a merge key/);
+  });
+  test("m6 PIN: a tag on a run FAILs as UNREADABLE", () => {
+    expectFail({ ".github/workflows/m6.yml": workflow(["      - run: !!str echo built"]) },
+      /^CHECK \.github\/workflows\/m6\.yml:10 yaml FAIL: UNREADABLE: a tag/);
+  });
+  test("m6 PIN: a job env row named for npm FAILs as F4", () => {
+    expectFail({ ".github/workflows/m6.yml": workflow(["      - run: npm ci"], { job: ["    env:", "      NODE_AUTH_TOKEN: plain"] }) },
+      /^CHECK \.github\/workflows\/m6\.yml:8 F4 FAIL: .*NODE_AUTH_TOKEN is a name npm reads/);
+  });
+  test("m6 PIN: a COPY heredoc FAILs as F7", () => {
+    expectFail({ Dockerfile: dockerfile(["COPY <<EOF /app/qzx4774mark.txt", "built", "EOF"]) },
+      /^CHECK Dockerfile:6 FAIL: F7 RUN heredoc: a heredoc on COPY/);
+  });
+  test("m6 PIN: an unterminated heredoc FAILs as F7", () => {
+    expectFail({ Dockerfile: dockerRt(["RUN cat <<EOF", "built"]) },
+      /^CHECK Dockerfile:9 FAIL: F7 RUN heredoc: a heredoc with no end line/);
+  });
+  test("m6 PIN: npm-cli.js by path FAILs as F8", () => {
+    expectFail({ Dockerfile: dockerfile([`RUN node /usr/local/lib/node_modules/npm/bin/npm-cli.js install ${P}`]) },
+      /^SITE Dockerfile:6 FAIL: .*npm-cli\.js install \(F8 npm by path\)/);
+  });
+  test("m6 PIN: /run/secrets in an exec-form RUN FAILs", () => {
+    expectFail({ Dockerfile: dockerfile(['RUN ["sh", "-c", "cat /run/secrets/qzx4774mark"]']) },
+      /^CHECK Dockerfile:6 FAIL: a RUN reads \/run\/secrets/);
+  });
+  test("m6 PIN: /run/secrets in a heredoc RUN FAILs", () => {
+    expectFail({ Dockerfile: dockerfile(["RUN <<EOF", "cat /run/secrets/qzx4774mark", "EOF"]) },
+      /^CHECK Dockerfile:6 FAIL: a RUN reads \/run\/secrets/);
+  });
+  test("m6 PIN: an anchor in a flow sequence FAILs as F1", () => {
+    expectFail({ ".github/workflows/m6.yml": workflow(["      - run: echo built", "        with: [a, &q b]"]) },
+      /^CHECK \.github\/workflows\/m6\.yml:11 yaml FAIL: F1 YAML anchor: an anchor '&q' in a flow sequence/);
+  });
+  test("m6 PIN: a workflow env that is no block map FAILs as F3", () => {
+    expectFail({ ".github/workflows/m6.yml": workflow(["      - run: npm ci"], { top: ["env: ${{ fromJSON(vars.QZX) }}"] }) },
+      /^CHECK \.github\/workflows\/m6\.yml:5 F3 FAIL: .*not a block map/);
+  });
+  test("m6 PIN: a job env row that is no one NAME: value FAILs as F4", () => {
+    expectFail({ ".github/workflows/m6.yml": workflow(["      - run: npm ci"], { job: ["    env:", "      QZX_A:", "        QZX_B: plain"] }) },
+      /^CHECK \.github\/workflows\/m6\.yml:8 F4 FAIL: .*the row at :9 is not one NAME: value/);
+  });
+  test("m6 PIN: a YAML directive FAILs as UNREADABLE", () => {
+    expectFail({ ".github/workflows/m6.yml": "%YAML 1.2\n" + workflow(["      - run: npm ci"]) },
+      /^CHECK \.github\/workflows\/m6\.yml:1 yaml FAIL: UNREADABLE: a directive/);
+  });
+  test("m6 PIN: a block scalar header it does not read FAILs as UNREADABLE", () => {
+    expectFail({ ".github/workflows/m6.yml": workflow(["      - run: |2", "          echo built"]) },
+      /^CHECK \.github\/workflows\/m6\.yml:10 yaml FAIL: UNREADABLE: a block scalar header/);
+  });
+  test("m6 PIN: a second document FAILs as UNREADABLE", () => {
+    expectFail({ ".github/workflows/m6.yml": workflow(["      - run: npm ci"]) + "---\nname: second\n" },
+      /^CHECK \.github\/workflows\/m6\.yml:11 yaml FAIL: UNREADABLE: a second document/);
+  });
+
+  // X-R2 (OpenAI R2): a quoted literal executable path is npm by path (F8)
+  test('R2-a: RUN "/usr/bin/npm" install FAILs as F8', () => {
+    expectFail({ Dockerfile: dockerfile([`RUN "/usr/bin/npm" install ${P}`]) },
+      /^SITE Dockerfile:6 FAIL: .*'\/usr\/bin\/npm install \(F8 npm by path\)' can fetch/);
+  });
+  test("R2-a: RUN '/usr/bin/npm' install FAILs as F8", () => {
+    expectFail({ Dockerfile: dockerfile([`RUN '/usr/bin/npm' install ${P}`]) },
+      /^SITE Dockerfile:6 FAIL: .*'\/usr\/bin\/npm install \(F8 npm by path\)' can fetch/);
+  });
+  test("R2-b PIN: RUN ./node_modules/.bin/npm install FAILs as F8", () => {
+    expectFail({ Dockerfile: dockerfile([`RUN ./node_modules/.bin/npm install ${P}`]) },
+      /^SITE Dockerfile:6 FAIL: .*'\.\/node_modules\/\.bin\/npm install \(F8 npm by path\)' can fetch/);
+  });
+  test('R2-c: RUN "./node_modules/.bin/npm" install FAILs as F8', () => {
+    expectFail({ Dockerfile: dockerfile([`RUN "./node_modules/.bin/npm" install ${P}`]) },
+      /^SITE Dockerfile:6 FAIL: .*'\.\/node_modules\/\.bin\/npm install \(F8 npm by path\)' can fetch/);
+  });
+  test('R2-d: a workflow run line "/usr/bin/npm" install FAILs as F8', () => {
+    expectFail({ ".github/workflows/r2.yml": workflow(["      - run: |", `          "/usr/bin/npm" install ${P}`]) },
+      /^SITE \.github\/workflows\/r2\.yml:11 FAIL: .*'\/usr\/bin\/npm install \(F8 npm by path\)'/);
+  });
+  test("R2-e: a scripts/*.sh line './node_modules/.bin/npm' install FAILs as F8", () => {
+    expectFail({ "scripts/r2.sh": sh([`'./node_modules/.bin/npm' install ${P}`]) },
+      /^SITE scripts\/r2\.sh:3 FAIL: .*'\.\/node_modules\/\.bin\/npm install \(F8 npm by path\)'/);
+  });
+  test('R2 SAFE twin: "./node_modules/.bin/npm" ci in a workflow prints its SITE OK row', () => {
+    const r = expectPass({ ".github/workflows/r2.yml": workflow(["      - run: |", '          "./node_modules/.bin/npm" ci']) });
+    hasRow(r, /^SITE \.github\/workflows\/r2\.yml:11 OK: /);
+  });
+
+  // X-R2: each U1 SAFE twin again (the U1 case stays byte-equal), now asserting its own row
+  test("U1 F3 SAFE twin + row: a plain workflow env, the run's SITE OK row", () => {
+    const r = expectPass({ ".github/workflows/f3.yml": workflow(["      - run: npm ci"], { top: ["env:", "  QZX_LEVEL: plain"] }) });
+    hasRow(r, /^SITE \.github\/workflows\/f3\.yml:12 OK: "npm ci"/);
+  });
+  test("U1 F4 SAFE twin + row: a plain job env, the run's SITE OK row", () => {
+    const r = expectPass({ ".github/workflows/f4.yml": workflow(["      - run: npm ci"], { job: ["    env:", "      PG_BASE_URL: postgresql://127.0.0.1:5432"] }) });
+    hasRow(r, /^SITE \.github\/workflows\/f4\.yml:12 OK: "npm ci"/);
+  });
+  test("U1 F6 SAFE twin + row: the exec-form RUN reads no SITE, the deps install keeps its OK row", () => {
+    const r = expectPass({ Dockerfile: dockerfile(['RUN ["node", "--version"]']) });
+    hasRow(r, /^SITE Dockerfile:5 OK: /);
+    noRow(r, /^SITE Dockerfile:6 /);
+  });
+  test("U1 F7 SAFE twin + row: the heredoc RUN reads no SITE, the deps install keeps its OK row", () => {
+    const r = expectPass({ Dockerfile: dockerfile(["RUN <<EOF", "echo built", "EOF"]) });
+    hasRow(r, /^SITE Dockerfile:5 OK: /);
+    noRow(r, /^SITE Dockerfile:6 /);
+  });
+  test("U1 F8 SAFE twin + row: ./node_modules/.bin/npm ci prints its SITE OK row", () => {
+    const r = expectPass({ ".github/workflows/f8.yml": workflow(["      - run: ./node_modules/.bin/npm ci"]) });
+    hasRow(r, /^SITE \.github\/workflows\/f8\.yml:10 OK: "\.\/node_modules\/\.bin\/npm ci"/);
+  });
 });
