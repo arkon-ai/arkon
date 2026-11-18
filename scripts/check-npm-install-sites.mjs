@@ -56,9 +56,6 @@ function read(rel) {
   return existsSync(p) ? readFileSync(p, "utf8") : null;
 }
 
-// npm/npx/yarn/pnpm calls in one shell command string. F8 (WI-4774): a call by a path
-// (/usr/bin/npm, ./node_modules/.bin/npm) or by npm's own npm-cli.js / npx-cli.js is a call too.
-// WI-4774 F1: a quote or a backtick before the tool is a boundary too (sh -c "npm install x").
 // WI-4774 F1 (m5): npm's sub-command after flags that take a separate value (npm --prefix /app
 // install x): the first word that is an npm command, each word before it a flag or a flag's value
 function npmSub(tail) {
@@ -77,6 +74,10 @@ const WHICH = /\$\(\s*(?:which|command\s+-v|type\s+-[pP])\s+([^\s)]+)\s*\)|`\s*(
 // WI-4774 F1 (m5): an env var as the command word, its name holding npm or npx ($NPM_BIN install,
 // ${NPM} ci): undecidable statically, so it FAILs closed as UNREADABLE
 const VAR_CMD = /(?:^|[;&|(`"'\n])\s*\$(?:\{([A-Za-z_]\w*)[^}]*\}|([A-Za-z_]\w*))(?=[\s"'`;&|)]|$)/g;
+// npm/npx/yarn/pnpm calls in one shell command string. F8 (WI-4774): a call by a path
+// (/usr/bin/npm, ./node_modules/.bin/npm) or by npm's own npm-cli.js / npx-cli.js is a call too.
+// WI-4774 F1: a quote or a backtick before the tool is a boundary too (sh -c "npm install x"), and a
+// quoted literal path is a path: "/usr/bin/npm" install x, './node_modules/.bin/npm' install x (F8).
 function npmCalls(cmd, top = true) {
   const out = [];
   cmd = cmd.replace(WHICH, (_, a, b) => a || b);
@@ -86,7 +87,7 @@ function npmCalls(cmd, top = true) {
       if (/np[mx]/i.test(name)) out.push({ kind: "fetch", tool: "npm", text: `UNREADABLE: the command word '$${name}' is an env var named for npm or npx (undecidable statically: fail closed)` });
     }
   }
-  const re = /(?:^|[\s;&|(`"'])((?:[\w.~${}@+-]*\/)+)?(npm|npx|yarn|pnpm|npm-cli\.js|npx-cli\.js)(?=\s|$)((?:\s+-{1,2}[\w-]+(?:=\S+)?)*)\s*([\w@./:-]*)/g;
+  const re = /(?:^|[\s;&|(`"'])((?:[\w.~${}@+-]*\/)+)?(npm|npx|yarn|pnpm|npm-cli\.js|npx-cli\.js)["']?(?=\s|$)((?:\s+-{1,2}[\w-]+(?:=\S+)?)*)\s*([\w@./:-]*)/g;
   let m;
   while ((m = re.exec(cmd)) !== null) {
     const byPath = !!m[1] || m[2].endsWith(".js");
