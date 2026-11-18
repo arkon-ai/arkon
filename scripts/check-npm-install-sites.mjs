@@ -609,7 +609,21 @@ const foldLines = (body) => {
   }
   return out;
 };
-const cmdLines = (n) => (n.body ? (/^>/.test(n.value) ? foldLines(n.body) : joinCont(runLines(n).map((b) => (/^\s*#/.test(b.text) ? { ...b, text: "" } : b)))) : [{ line: n.line, text: unquote(n.value) }]);
+// WI-4774 F4 (O1): a whole-line comment closes a pending continuation and adds nothing, as sh
+// reads it, ONLY where its '#' starts a word after the join: no join pending, or the pending
+// line has a blank before its '\', or the '#' line is indented past the block's first line.
+// Else the '\'-newline glues the '#' inside a word: it is no comment, so its text joins (fail closed).
+const commentLines = (ls) => {
+  const ind = ls.length ? ls[0].text.search(/\S/) : 0;
+  let pend = null;
+  return ls.map((b) => {
+    const word = !pend || /\s\\\s*$/.test(pend) || b.text.search(/\S/) > ind;
+    const r = /^\s*#/.test(b.text) && word ? { ...b, text: "" } : b;
+    pend = /\\\s*$/.test(r.text) ? r.text : null;
+    return r;
+  });
+};
+const cmdLines = (n) => (n.body ? (/^>/.test(n.value) ? foldLines(n.body) : joinCont(commentLines(runLines(n)))) : [{ line: n.line, text: unquote(n.value) }]);
 const expr = (v) => v.replace(/^\$\{\{\s*/, "").replace(/\s*\}\}$/, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "");
 
 // ---------- workflows ----------
