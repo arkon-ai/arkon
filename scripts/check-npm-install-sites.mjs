@@ -270,18 +270,74 @@ if (entry !== null) {
 }
 
 // ---------- a tiny YAML reader (block mappings and sequences, block scalars) ----------
+// It models block mappings, block sequences, one-line scalars, one-line flow sequences and
+// '|' or '>' block scalars. Each other construct is a FAIL row, never a silent skip
+// (transformate WI-4774): F1 an anchor, F2 an alias or a merge key, F5 a multi-line flow
+// scalar, UNREADABLE (a tab in the indent, a flow mapping or an unclosed flow sequence, a
+// tag, a directive, a complex key, a second document, a block scalar header it does not
+// read, or a line that is no key, item or block scalar).
+const F1 = "F1 YAML anchor";
+const F2 = "F2 YAML alias or merge key";
+const F5 = "F5 multi-line flow scalar";
+const UNREADABLE = "UNREADABLE";
 function yamlTree(text) {
   const lines = text.split(/\r?\n/);
   const rootNode = { col: -1, key: "(root)", children: [], line: 0 };
   const stack = [rootNode];
   const all = [];
+  const bad = [];
+  const flag = (form, line, what) => bad.push({ form, line, what });
   const stripComment = (s) => s.replace(/(^|\s)#.*$/, "");
+  // node properties in front of a node: '&a' (F1), '*a' (F2), '!tag' (UNREADABLE)
+  const props = (s, line) => {
+    let p;
+    while ((p = s.match(/^([&*!])(\S*)\s*/)) !== null) {
+      if (p[1] === "&") flag(F1, line, `an anchor '&${p[2]}'`);
+      else if (p[1] === "*") flag(F2, line, `an alias '*${p[2]}'`);
+      else flag(UNREADABLE, line, `a tag '!${p[2]}'`);
+      s = s.slice(p[0].length);
+    }
+    return s;
+  };
+  // a one-line flow sequence is read as text; a flow mapping or an unclosed flow is not
+  const flow = (s, line) => {
+    if (!/^[[{]/.test(s)) return;
+    const opens = (s.match(/\[/g) || []).length;
+    const closes = (s.match(/\]/g) || []).length;
+    if (s.startsWith("{") || /\{/.test(s) || opens !== closes || !s.endsWith("]")) {
+      flag(UNREADABLE, line, "a flow mapping or an unclosed flow collection");
+    }
+    for (const a of s.matchAll(/[[,]\s*([&*])([^\s,\]]*)/g)) {
+      if (a[1] === "&") flag(F1, line, `an anchor '&${a[2]}' in a flow sequence`);
+      else flag(F2, line, `an alias '*${a[2]}' in a flow sequence`);
+    }
+  };
+  let seen = false;
+  let last = null; // the last node that holds a one-line scalar: a deeper line after it continues it (F5)
   for (let i = 0; i < lines.length; i++) {
     const rawLine = lines[i];
     const content = stripComment(rawLine).replace(/\s+$/, "");
-    if (content.trim() === "" || content.trim() === "---") continue;
+    if (content.trim() === "") continue;
+    if (/^ *\t/.test(rawLine)) {
+      flag(UNREADABLE, i + 1, "a tab in the indent");
+      continue;
+    }
+    if (content.trim() === "---" || content.trim() === "...") {
+      if (seen || content.trim() === "...") flag(UNREADABLE, i + 1, "a second document or a document end");
+      continue;
+    }
+    if (content.startsWith("%")) {
+      flag(UNREADABLE, i + 1, "a directive");
+      continue;
+    }
+    seen = true;
     let col = content.search(/\S/);
     let rest = content.slice(col);
+    if (last && col > last.col) {
+      flag(F5, i + 1, `the scalar of :${last.line} goes on over this line`);
+      continue;
+    }
+    last = null;
     let item = null;
     if (rest === "-" || rest.startsWith("- ")) {
       while (stack.length > 1) {
@@ -301,15 +357,32 @@ function yamlTree(text) {
     } else {
       while (stack.length > 1 && stack[stack.length - 1].col >= col) stack.pop();
     }
-    const m = rest.match(/^("[^"]*"|'[^']*'|[^\s:][^:]*?):(?:\s+(.*))?$/);
-    if (!m) {
-      if (item) item.value = rest;
+    rest = props(rest, i + 1);
+    if (rest === "") continue;
+    if (rest === "?" || rest.startsWith("? ")) {
+      flag(UNREADABLE, i + 1, "a complex key '?'");
       continue;
     }
-    const node = { col, isItem: false, key: m[1].replace(/^["']|["']$/g, ""), value: (m[2] || "").trim(), children: [], line: i + 1, parent: stack[stack.length - 1] };
+    const m = /^[[{|>]/.test(rest) ? null : rest.match(/^("[^"]*"|'[^']*'|[^\s:][^:]*?):(?:\s+(.*))?$/);
+    if (!m) {
+      if (item && /^[[{]/.test(rest)) flow(rest, i + 1);
+      else if (item && /^[|>]/.test(rest)) flag(UNREADABLE, i + 1, "a block scalar as a sequence item");
+      else if (!item) flag(UNREADABLE, i + 1, "a line that is no key, item or block scalar");
+      if (item) item.value = rest;
+      if (item) last = item;
+      continue;
+    }
+    if (m[1] === "<<") flag(F2, i + 1, "a merge key '<<'");
+    const value = props((m[2] || "").trim(), i + 1);
+    flow(value, i + 1);
+    const node = { col, isItem: false, key: m[1].replace(/^["']|["']$/g, ""), value, children: [], line: i + 1, parent: stack[stack.length - 1] };
     node.parent.children.push(node);
     all.push(node);
     stack.push(node);
+    if (/^[|>]/.test(node.value) && !/^[|>][-+]?$/.test(node.value)) {
+      flag(UNREADABLE, i + 1, `a block scalar header '${node.value}' it does not read`);
+    }
+    if (node.value !== "" && !/^[|>]/.test(node.value)) last = node;
     if (/^[|>][-+]?$/.test(node.value)) {
       node.body = [];
       let j = i + 1;
@@ -325,7 +398,7 @@ function yamlTree(text) {
       i = j - 1;
     }
   }
-  return { root: rootNode, all };
+  return { root: rootNode, all, bad };
 }
 const kid = (n, k) => (n ? n.children.find((c) => !c.isItem && c.key === k) : undefined);
 const runLines = (n) => (n.body ? n.body.filter((b) => b.text.trim() !== "") : [{ line: n.line, text: n.value }]);
@@ -341,7 +414,8 @@ for (const f of wfFiles) {
   line("CHECK", `${rel} pull_request_target`, ptt === 0, `count ${ptt}`);
   const rrh = (text.match(/replace-registry-host/g) || []).length;
   if (rrh) line("CHECK", `${rel} replace-registry-host`, false, `count ${rrh}`);
-  const { all } = yamlTree(text);
+  const { all, bad } = yamlTree(text);
+  for (const b of bad) line("CHECK", `${rel}:${b.line} yaml`, false, `${b.form}: ${b.what} (the reader does not model it: fail closed)`);
   for (const n of all.filter((x) => x.key === "run")) {
     for (const b of runLines(n)) {
       if (/^\s*#/.test(b.text)) continue;
