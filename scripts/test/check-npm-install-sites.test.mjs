@@ -577,6 +577,14 @@ describe("F1 fix round", () => {
     hasRow(r, /^SITE \.github\/workflows\/r2\.yml:11 OK: /);
   });
 
+  // X-NW (this unit's own NEVER WEAKEN sweep): the U1 tab root lost the SITE row THE BASE prints
+  test("NW-a: a tab-indented run keeps THE BASE's SITE FAIL row beside its UNREADABLE row", () => {
+    const r = expectFail({
+      ".github/workflows/t.yml": workflow(["      - name: tab", "\t\trun: npm install qzx4774mark-pkg"]),
+    }, /^CHECK \.github\/workflows\/t\.yml:11 .*UNREADABLE/);
+    hasRow(r, /^SITE \.github\/workflows\/t\.yml:11 FAIL: "npm install qzx4774mark-pkg": 'npm install' can fetch a package by name \(not from the lock\)$/);
+  });
+
   // X-R2: each U1 SAFE twin again (the U1 case stays byte-equal), now asserting its own row
   test("U1 F3 SAFE twin + row: a plain workflow env, the run's SITE OK row", () => {
     const r = expectPass({ ".github/workflows/f3.yml": workflow(["      - run: npm ci"], { top: ["env:", "  QZX_LEVEL: plain"] }) });
