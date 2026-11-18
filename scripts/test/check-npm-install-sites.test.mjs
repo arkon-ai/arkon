@@ -843,3 +843,170 @@ describe("F4 pin round", () => {
     assert.equal(rows(r, /FAIL: .*npm install qzx4774mark-pkg/).length, 1, `want one FAIL row naming the install\n${r.brief}`);
   });
 });
+
+describe("F5 final repair", () => {
+  // transformate WI-4774 F5 (THE FINAL REPAIR CONTRACT, sha16 988f3772879ccb27): the quote and escape
+  // state is read over the whole logical command. Each case name starts with its STABLE ID, and its
+  // SOURCE is in a comment on its line. UNSAFE: rc 1 and EXACTLY one FAIL row at the logical command's
+  // first line. SAFE TWIN: rc 0 and zero FAIL rows. P = qzx4774mark-pkg (synthetic). Fixtures carry QZX4774MARK.
+  const P = "qzx4774mark-pkg";
+  const WF = ".github/workflows/probe.yml";
+  const AC = ".github/actions/qzx4774mark/action.yml";
+  const SH = "scripts/qzx4774mark.sh";
+  const row = (f, ln, cmd) => `SITE ${f}:${ln} FAIL: "${cmd}": 'npm install' can fetch a package by name (not from the lock)`;
+  const unsup = (f, ln, cmd, form) => `SITE ${f}:${ln} FAIL: "${cmd}": unsupported shell form: ${form} (the check cannot establish what it means: fail closed)`;
+  const fails = (r) => r.out.split("\n").filter((l) => /^(SITE|CHECK) .* FAIL: /.test(l));
+  // the F1 block's composite action helper, the same lines (that helper is scoped to its block)
+  const action = (run) => [
+    "# QZX4774MARK synthetic fixture",
+    "name: a",
+    "description: QZX4774MARK synthetic composite action",
+    "runs:",
+    "  using: composite",
+    "  steps:",
+    `    - run: ${run}`,
+    "      shell: bash",
+    "",
+  ].join("\n");
+  // a `run: |` block of a workflow step: its k-th line is probe.yml line 10 + k (an empty line stays empty)
+  const wfRun = (ls) => ({ [WF]: workflow(["      - run: |", ...ls.map((l) => (l === "" ? "" : `          ${l}`))]) });
+  // the same lines as a `run: |` block of a composite action: its k-th line is action.yml line 7 + k
+  const acRun = (ls) => ({ [AC]: action(["|", ...ls.map((l) => (l === "" ? "" : `        ${l}`))].join("\n")) });
+  // a shell script under scripts/: its k-th line is line 2 + k
+  const shRun = (ls) => ({ [SH]: ["#!/bin/sh", "# QZX4774MARK synthetic fixture", ...ls, ""].join("\n") });
+  // rc 1 and EXACTLY these FAIL rows (each by file, line and quoted command or reason), in order
+  const expectRows = (files, want) => {
+    const r = run(files);
+    assert.equal(r.rc, 1, `want rc 1, got ${r.rc}\n${r.brief}`);
+    assert.deepEqual(fails(r), want, `want FAIL rows ${JSON.stringify(want)}\n${r.brief}`);
+    return r;
+  };
+  // rc 0 and zero FAIL row
+  const expectNoRow = (files) => {
+    const r = run(files);
+    assert.equal(r.rc, 0, `want rc 0, got ${r.rc}\n${r.brief}`);
+    assert.equal(fails(r).length, 0, `want 0 FAIL rows, got ${fails(r).length}\n${r.brief}`);
+    assert.match(r.out, /^T1 RESULT: PASS /m);
+    return r;
+  };
+  // UNSAFE (F4-R1): an escaped blank or tab before the '\' is part of the word; the '\'-newline glues the '#'
+  test("F5-R1-esc_blank-wf: echo a\\ \\ then '#; npm install' FAILs with the joined row at line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R1
+    expectRows(wfRun(["echo a\\ \\", `#; npm install ${P}`]), [row(WF, 11, `echo a\\  #; npm install ${P}`)]);
+  });
+  test("F5-R1-esc_blank-ac: the action form of esc_blank FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R1
+    expectRows(acRun(["echo a\\ \\", `#; npm install ${P}`]), [row(AC, 8, `echo a\\  #; npm install ${P}`)]);
+  });
+  test("F5-R1-esc_tab-wf: echo a\\<TAB>\\ then '#; npm install' FAILs with the joined row at line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R1
+    expectRows(wfRun(["echo a\\\t\\", `#; npm install ${P}`]), [row(WF, 11, `echo a\\\t #; npm install ${P}`)]);
+  });
+  test("F5-R1-esc_tab-ac: the action form of esc_tab FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R1
+    expectRows(acRun(["echo a\\\t\\", `#; npm install ${P}`]), [row(AC, 8, `echo a\\\t #; npm install ${P}`)]);
+  });
+  // UNSAFE (F4-R2): a quote open across the '\'-newline: the blank or indent is quoted text, the '#' too
+  test('F5-R2-dq_blank-wf: echo "a \\ then \'#"; npm install\' FAILs with the joined row at line 1', () => { // SOURCE: CONFIRM-OPUS f4 F4-R2
+    expectRows(wfRun(['echo "a \\', `#"; npm install ${P}`]), [row(WF, 11, `echo "a  #"; npm install ${P}`)]);
+  });
+  test("F5-R2-dq_blank-ac: the action form of dq_blank FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R2
+    expectRows(acRun(['echo "a \\', `#"; npm install ${P}`]), [row(AC, 8, `echo "a  #"; npm install ${P}`)]);
+  });
+  test("F5-R2-sq_blank-wf: echo 'a \\ then '#'; npm install' FAILs with the joined row at line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R2
+    expectRows(wfRun(["echo 'a \\", `#'; npm install ${P}`]), [row(WF, 11, `echo 'a \\ #'; npm install ${P}`)]);
+  });
+  test("F5-R2-sq_blank-ac: the action form of sq_blank FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R2
+    expectRows(acRun(["echo 'a \\", `#'; npm install ${P}`]), [row(AC, 8, `echo 'a \\ #'; npm install ${P}`)]);
+  });
+  test('F5-R2-dq_ind-wf: echo "a\\ then an indented \'#"; npm install\' FAILs with the joined row at line 1', () => { // SOURCE: CONFIRM-OPUS f4 F4-R2
+    expectRows(wfRun(['echo "a\\', `  #"; npm install ${P}`]), [row(WF, 11, `echo "a #"; npm install ${P}`)]);
+  });
+  test("F5-R2-dq_ind-ac: the action form of dq_ind FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R2
+    expectRows(acRun(['echo "a\\', `  #"; npm install ${P}`]), [row(AC, 8, `echo "a #"; npm install ${P}`)]);
+  });
+  test("F5-R2-sq_ind-wf: echo 'a\\ then an indented '#'; npm install' FAILs with the joined row at line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R2
+    expectRows(wfRun(["echo 'a\\", `  #'; npm install ${P}`]), [row(WF, 11, `echo 'a\\ #'; npm install ${P}`)]);
+  });
+  test("F5-R2-sq_ind-ac: the action form of sq_ind FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 F4-R2
+    expectRows(acRun(["echo 'a\\", `  #'; npm install ${P}`]), [row(AC, 8, `echo 'a\\ #'; npm install ${P}`)]);
+  });
+  // UNSAFE (m1): a '#' line inside a multi-line quote with no '\' at all is quoted text, never a comment
+  test('F5-m1-dq_nobs-wf: echo "a then \'#"; npm install\' FAILs with the joined row at line 1', () => { // SOURCE: CONFIRM-OPUS f4 m1
+    expectRows(wfRun(['echo "a', `#"; npm install ${P}`]), [row(WF, 11, `echo "a #"; npm install ${P}`)]);
+  });
+  test("F5-m1-dq_nobs-ac: the action form of dq_nobs FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 m1
+    expectRows(acRun(['echo "a', `#"; npm install ${P}`]), [row(AC, 8, `echo "a #"; npm install ${P}`)]);
+  });
+  test("F5-m1-sq_nobs-wf: echo 'a then '#'; npm install' FAILs with the joined row at line 1", () => { // SOURCE: CONFIRM-OPUS f4 m1
+    expectRows(wfRun(["echo 'a", `#'; npm install ${P}`]), [row(WF, 11, `echo 'a #'; npm install ${P}`)]);
+  });
+  test("F5-m1-sq_nobs-ac: the action form of sq_nobs FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 m1
+    expectRows(acRun(["echo 'a", `#'; npm install ${P}`]), [row(AC, 8, `echo 'a #'; npm install ${P}`)]);
+  });
+  test("F5-m1-bt_nobs-wf: x=`echo a then '#`; npm install' FAILs with the joined row at line 1", () => { // SOURCE: CONFIRM-OPUS f4 m1
+    expectRows(wfRun(["x=`echo a", `#\`; npm install ${P}`]), [row(WF, 11, `x=\`echo a #\`; npm install ${P}`)]);
+  });
+  test("F5-m1-bt_nobs-ac: the action form of bt_nobs FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 m1
+    expectRows(acRun(["x=`echo a", `#\`; npm install ${P}`]), [row(AC, 8, `x=\`echo a #\`; npm install ${P}`)]);
+  });
+  // UNSAFE (the longer-lived state): the quote opened two continued lines before the '#' still holds
+  test('F5-LONG-dq-wf: echo "a \\, b \\, then \'#"; npm install\' FAILs with the joined row at line 1', () => { // SOURCE: CONFIRM-OPUS f4 FINDINGS F4-R2 last row
+    expectRows(wfRun(['echo "a \\', "b \\", `#"; npm install ${P}`]), [row(WF, 11, `echo "a  b #"; npm install ${P}`)]);
+  });
+  test("F5-LONG-dq-ac: the action form of LONG-dq FAILs with the joined row at the action's line 1", () => { // SOURCE: CONFIRM-OPUS f4 FINDINGS F4-R2 last row
+    expectRows(acRun(['echo "a \\', "b \\", `#"; npm install ${P}`]), [row(AC, 8, `echo "a  b #"; npm install ${P}`)]);
+  });
+  test("F5-LONG-sq-wf: echo 'a \\, b \\, then '#'; npm install' FAILs with the joined row at line 1", () => { // SOURCE: CONFIRM-OPUS f4 FINDINGS F4-R2 last row
+    expectRows(wfRun(["echo 'a \\", "b \\", `#'; npm install ${P}`]), [row(WF, 11, `echo 'a \\ b \\ #'; npm install ${P}`)]);
+  });
+  // SAFE TWINS: the '#' starts a word, so it is a comment; sh and bash run no install
+  test("F5-T-esc_blank_ctrl-wf: echo a\\ b \\ then '#; npm install' is a comment: rc 0, zero FAIL row", () => { // SOURCE: CONFIRM-OPUS f4 NIT 2
+    expectNoRow(wfRun(["echo a\\ b \\", `#; npm install ${P}`]));
+  });
+  test('F5-T-dq_closed_blank-wf: echo "a" \\ then \'#; npm install\' is a comment: rc 0, zero FAIL row', () => { // SOURCE: CONFIRM-OPUS f4 NIT 2
+    expectNoRow(wfRun(['echo "a" \\', `#; npm install ${P}`]));
+  });
+  test("F5-T-midword_ind-wf: echo a\\ then an indented '#; npm install' is a comment: rc 0, zero FAIL row", () => { // SOURCE: CONFIRM-OPUS f4 CHECK 2 control
+    expectNoRow(wfRun(["echo a\\", `  #; npm install ${P}`]));
+  });
+  test("F5-T-sq_closed-wf: echo 'a' \\ then '#; npm install' is a comment: rc 0, zero FAIL row", () => { // SOURCE: CONFIRM-OPUS f4 CHECK 2 control
+    expectNoRow(wfRun(["echo 'a' \\", `#; npm install ${P}`]));
+  });
+  // THE OTHER SITES (THE CONTRACT 1, last row): each shares the state helper, proven by its own case
+  test('F5-S580-dq_blankline-wf: echo "a, an empty line, then \'#"; npm install\' FAILs with the joined row at line 1', () => { // SOURCE: CONTRACT 1 the :580 blank drop
+    expectRows(wfRun(['echo "a', "", `#"; npm install ${P}`]), [row(WF, 11, `echo "a #"; npm install ${P}`)]);
+  });
+  test('F5-S670-fold_dq-wf: run: > echo "a then a more-indented \'#"; npm install\' FAILs with the joined row at line 1', () => { // SOURCE: CONTRACT 1 the :670 skip
+    expectRows({ [WF]: workflow(["      - run: >", '          echo "a', `            #"; npm install ${P}`]) }, [row(WF, 11, `echo "a #"; npm install ${P}`)]);
+  });
+  test('F5-S670-one_dq-wf: run: "echo \\"a\\n#\\"; npm install" FAILs with the joined row at its line', () => { // SOURCE: CONTRACT 1 the :670 skip
+    expectRows({ [WF]: workflow([`      - run: "echo \\"a\\n#\\"; npm install ${P}"`]) }, [row(WF, 10, `echo "a #"; npm install ${P}`)]);
+  });
+  test('F5-S436-dq_nobs: docker-entrypoint.sh echo "a then \'#"; npm install\' FAILs at its line 3', () => { // SOURCE: CONTRACT 1 the :436 filter
+    expectRows({ "docker-entrypoint.sh": ["#!/bin/sh", "# QZX4774MARK synthetic fixture", 'echo "a', `#"; npm install ${P}`, 'exec "$@"', ""].join("\n") },
+      [`SITE docker-entrypoint.sh:3 FAIL: 'npm install' at container start can fetch from a registry (echo "a #"; npm install ${P})`]);
+  });
+  test('F5-S701-dq_nobs: a scripts/*.sh echo "a then \'#"; npm install\' FAILs at its line 3', () => { // SOURCE: CONTRACT 1 the :701 filter
+    expectRows(shRun(['echo "a', `#"; npm install ${P}`]), [row(SH, 3, `echo "a #"; npm install ${P}`)]);
+  });
+  test("F5-S701-esc_blank: a scripts/*.sh echo a\\ \\ then '#; npm install' FAILs at its line 3", () => { // SOURCE: CONTRACT 1 the :701 filter
+    expectRows(shRun(["echo a\\ \\", `#; npm install ${P}`]), [row(SH, 3, `echo a\\  #; npm install ${P}`)]);
+  });
+  // FAIL CLOSED (THE CONTRACT 1): a form the check cannot establish gets ONE unsupported row at the command's first line
+  test("F5-U-bs_trailing_sp-wf: echo a\\ with trailing blanks, then '#; npm install' FAILs closed as unsupported", () => { // SOURCE: CONFIRM-OPUS f4 NIT 1
+    expectRows(wfRun(["echo a\\   ", `#; npm install ${P}`]), [unsup(WF, 11, `echo a #; npm install ${P}`, "a '\\' with trailing blanks")]);
+  });
+  test("F5-U-ansic-wf: echo $'a then '#'; npm install' FAILs closed as unsupported", () => { // SOURCE: CONTRACT 1 ($'...')
+    expectRows(wfRun(["echo $'a", `#'; npm install ${P}`]), [unsup(WF, 11, `echo $'a #'; npm install ${P}`, "an ANSI-C quote $'...'")]);
+  });
+  test("F5-U-heredoc-wf: cat <<QZX, '#; npm install', QZX FAILs closed as unsupported", () => { // SOURCE: CONTRACT 1 (here-document)
+    expectRows(wfRun(["cat <<QZX", `#; npm install ${P}`, "QZX"]), [unsup(WF, 11, "cat <<QZX", "a here-document '<<'")]);
+  });
+  test("F5-U-cs-wf: x=$(echo a then '#); npm install' FAILs closed as unsupported", () => { // SOURCE: CONTRACT 1 (nested command substitution)
+    expectRows(wfRun(["x=$(echo a", `#); npm install ${P}`]), [unsup(WF, 11, "x=$(echo a", "a command substitution $( ) open across lines")]);
+  });
+  test('F5-U-unbalanced-wf: echo "a then npm install with no closing quote FAILs closed as unsupported', () => { // SOURCE: CONTRACT 1 (an unbalanced quote at the block's end)
+    expectRows(wfRun(['echo "a', `npm install ${P}`]), [unsup(WF, 11, `echo "a npm install ${P}`, "an unbalanced quote or substitution (\") at the block's end")]);
+  });
+  // a SAFE control: one-line nested substitutions, a here-string and arithmetic (the live repo's forms) stay supported
+  test("F5-T-nested_subst-wf: one-line $( ) inside quotes, <<< and $(( )) read no unsupported form: rc 0, zero FAIL row", () => { // SOURCE: CONTRACT 5 the live check forms
+    expectNoRow(wfRun(['x="$(echo "a" | tr a b)"', `y="$(grep -c '^a' <<<"$x" || true)"`, "z=$(( ( $(date +%s) - 1 ) / 2 ))", 'echo "$x $y $z" # it\'s done']));
+  });
+});
