@@ -3,8 +3,7 @@
 Every place in this repo that installs npm packages, and how each one keeps the
 private scope `@arkon-ai` on `npm.pkg.github.com`.
 
-Why: an install without the scope pin or without the lock resolves `@arkon-ai/*`
-on the public registry, where anyone can publish that name (dependency confusion).
+An install with no lock AND no scope pin (the old runtime stage) resolves @arkon-ai/* publicly; both defences stay required.
 Until 2026-11-16 the runtime stage ran `npm install --no-save tsx pg web-push`
 beside `package.json` with no lock and no `.npmrc`.
 
