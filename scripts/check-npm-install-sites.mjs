@@ -433,8 +433,13 @@ if (dockerfile === null) {
 const entry = read("docker-entrypoint.sh");
 if (entry !== null) {
   let n = 0;
-  joinCont(entry.split(/\r?\n/).map((t, i) => ({ line: i + 1, text: t })).filter((b) => !/^\s*#/.test(b.text))).forEach(({ line: ln, text: l }) => {
+  shellCmds(entry.split(/\r?\n/).map((t, i) => ({ line: i + 1, text: t }))).forEach(({ line: ln, text: l, bad }) => {
     const i = ln - 1;
+    if (bad) {
+      n++;
+      line("SITE", `docker-entrypoint.sh:${ln}`, false, unsupported(l, bad));
+      return;
+    }
     for (const c of npmCalls(l)) {
       n++;
       line("SITE", `docker-entrypoint.sh:${i + 1}`, false, `'${c.text}' at container start can fetch from a registry (${l.trim()})`);
@@ -609,21 +614,105 @@ const foldLines = (body) => {
   }
   return out;
 };
-// WI-4774 F4 (O1): a whole-line comment closes a pending continuation and adds nothing, as sh
-// reads it, ONLY where its '#' starts a word after the join: no join pending, or the pending
-// line has a blank before its '\', or the '#' line is indented past the block's first line.
-// Else the '\'-newline glues the '#' inside a word: it is no comment, so its text joins (fail closed).
-const commentLines = (ls) => {
-  const ind = ls.length ? ls[0].text.search(/\S/) : 0;
-  let pend = null;
-  return ls.map((b) => {
-    const word = !pend || /\s\\\s*$/.test(pend) || b.text.search(/\S/) > ind;
-    const r = /^\s*#/.test(b.text) && word ? { ...b, text: "" } : b;
-    pend = /\\\s*$/.test(r.text) ? r.text : null;
-    return r;
-  });
+// WI-4774 F5 (THE BOUNDARY): the logical commands of shell lines, read by ONE character scan of the
+// quote and escape state over the WHOLE logical command: from its first line across every
+// '\'-newline and every line an open quote keeps open, never the pending line alone.
+// (i) a '\' continues the line only when unescaped (an even run of '\' before it) and outside '...';
+// (ii) a blank breaks a word only when unescaped and outside every quote, and a '#' starts a comment
+// only at a word start; (iii) a '#' read inside an open ' " or ` is quoted text, never a comment, so
+// its line is neither blanked nor skipped; (iv) the state carries across every continued or quoted line.
+// A continued or quote-held line joins its command (one blank, at the command's first line). A line
+// whose first word is a comment adds nothing and ends the command. A blank line holds no character:
+// the state is kept. A form outside (i) to (iv) FAILS CLOSED: the command gets `bad` (an unsupported row).
+function shellCmds(ls) {
+  const out = [];
+  const ctx = []; // what is open, innermost last: ' " ` or $( (with its paren depth)
+  const q = () => (ctx.length ? ctx[ctx.length - 1].k : "");
+  let cur = null;
+  let cont = false;
+  let word = true;
+  const bad = (what) => {
+    if (!cur.bad) cur.bad = what;
+  };
+  for (const b of ls) {
+    if (b.text.trim() === "") continue;
+    if (!cont && !ctx.length) {
+      cur = null;
+      word = true;
+    }
+    if (!cur) {
+      cur = { line: b.line, text: null, bad: "" };
+      out.push(cur);
+    }
+    const s = b.text;
+    let lead = -1; // where a comment starts
+    let end = false; // the line ends in a continuation
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i];
+      const k = q();
+      if (k === "'") {
+        if (c === "'") ctx.pop();
+      } else if (c === "\\") {
+        if (i === s.length - 1) end = true;
+        else if ((k === "" || k === "$(") && /^\\\s+$/.test(s.slice(i))) {
+          bad("a '\\' with trailing blanks");
+          end = true;
+        } else if (k === "" || k === "$(") word = false;
+        if (end) break;
+        i++;
+      } else if (k === '"' || k === "`") {
+        if (c === k) ctx.pop();
+        else if (k === '"' && c === "`") ctx.push({ k: "`" });
+        else if (k === '"' && c === "$" && s[i + 1] === "(") ctx.push({ k: "$(", d: 1 }), i++;
+      } else if (/\s/.test(c)) {
+        word = true;
+      } else if (c === "#" && word) {
+        lead = i;
+        break;
+      } else if (c === "$" && s[i + 1] === "'") {
+        bad("an ANSI-C quote $'...'");
+        ctx.push({ k: "'" });
+        word = false;
+        i++;
+      } else if (c === "$" && s[i + 1] === "(") {
+        ctx.push({ k: "$(", d: 1 });
+        word = true;
+        i++;
+      } else if (c === "'" || c === '"' || c === "`") {
+        ctx.push({ k: c });
+        word = false;
+      } else if (k === "$(" && c === ")" && --ctx[ctx.length - 1].d === 0) {
+        ctx.pop();
+        word = false;
+      } else {
+        if (k === "$(" && c === "(") ctx[ctx.length - 1].d++;
+        if (c === "<" && s[i + 1] === "<" && s[i + 2] !== "<" && s[i - 1] !== "<") bad("a here-document '<<'");
+        word = /[;&|()<>]/.test(c);
+      }
+    }
+    const t = end ? s.replace(/\\\s*$/, "") : lead >= 0 && s.slice(0, lead).trim() === "" ? "" : s;
+    if (cur.text === null) cur.text = t;
+    else cur.text += " " + t.trim();
+    cont = end;
+    if (!end && q() === "$(") {
+      bad("a command substitution $( ) open across lines");
+      word = true;
+    }
+  }
+  if (ctx.length) bad(`an unbalanced quote or substitution (${q()}) at the block's end`);
+  return out;
+}
+// the reason of a SITE FAIL row for a command the scan cannot establish (unsupported is never safe)
+function unsupported(cmd, form) {
+  return `"${cmd.trim()}": unsupported shell form: ${form} (the check cannot establish what it means: fail closed)`;
+}
+// a block body as the shell gets it: the block indent removed (a folded line is already trimmed)
+const dedent = (body, ls) => {
+  const ne = body.find((b) => b.text.trim() !== "");
+  const ind = ne ? ne.text.search(/\S/) : 0;
+  return ls.map((b) => ({ ...b, text: b.text.slice(0, ind).trim() === "" ? b.text.slice(ind) : b.text.trimStart() }));
 };
-const cmdLines = (n) => (n.body ? (/^>/.test(n.value) ? foldLines(n.body) : joinCont(commentLines(runLines(n)))) : [{ line: n.line, text: unquote(n.value) }]);
+const cmdLines = (n) => shellCmds(n.body ? dedent(n.body, /^>/.test(n.value) ? foldLines(n.body) : n.body) : unquote(n.value).split("\n").map((text) => ({ line: n.line, text })));
 const expr = (v) => v.replace(/^\$\{\{\s*/, "").replace(/\s*\}\}$/, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "");
 
 // ---------- workflows ----------
@@ -667,7 +756,10 @@ for (const rel of wfRels) {
   }
   for (const n of all.filter((x) => x.key === "run")) {
     for (const b of cmdLines(n)) {
-      if (/^\s*#/.test(b.text)) continue;
+      if (b.bad) {
+        line("SITE", `${rel}:${b.line}`, false, unsupported(b.text, b.bad));
+        continue;
+      }
       for (const c of npmCalls(b.text)) {
         if (c.kind === "ci") {
           const ok = npmrc !== null;
@@ -698,8 +790,12 @@ for (const p of walk(join(root, "scripts")).sort()) {
   const rel = relative(root, p).split("\\").join("/");
   if (SELF.has(rel) || !/\.(sh|bash)$/.test(rel)) continue;
   const text = readFileSync(p, "utf8");
-  joinCont(text.split(/\r?\n/).map((t, i) => ({ line: i + 1, text: t })).filter((b) => !/^\s*#/.test(b.text))).forEach(({ line: ln, text: l }) => {
+  shellCmds(text.split(/\r?\n/).map((t, i) => ({ line: i + 1, text: t }))).forEach(({ line: ln, text: l, bad }) => {
     const i = ln - 1;
+    if (bad) {
+      line("SITE", `${rel}:${ln}`, false, unsupported(l, bad));
+      return;
+    }
     for (const c of npmCalls(l)) {
       if (c.kind === "ci") {
         const pins = /\.npmrc/.test(text) || !/\bcd\s/.test(text);
