@@ -609,3 +609,59 @@ describe("F1 fix round", () => {
     hasRow(r, /^SITE \.github\/workflows\/f8\.yml:10 OK: "\.\/node_modules\/\.bin\/npm ci"/);
   });
 });
+
+// WI-4774 F2 (N1, the Opus confirm of F1): a comment line in a workflow or composite action
+// `run: |` block that ends in `\` continues nothing in sh or bash (a comment ends at the
+// newline), so the next line still runs. Each want row is the row THE U1 TIP prints for the root.
+describe("F2 fix round", () => {
+  const P = "qzx4774mark-pkg";
+  const WF = ".github/workflows/probe.yml";
+  const AC = ".github/actions/qzx4774mark/action.yml";
+  const why = `"npm install ${P}": 'npm install' can fetch a package by name (not from the lock)`;
+  const rows = (r, re) => r.out.split("\n").filter((l) => re.test(l));
+  // the F1 block's composite action helper, the same lines (that helper is scoped to its block)
+  const action = (run) => [
+    "# QZX4774MARK synthetic fixture",
+    "name: a",
+    "description: QZX4774MARK synthetic composite action",
+    "runs:",
+    "  using: composite",
+    "  steps:",
+    `    - run: ${run}`,
+    "      shell: bash",
+    "",
+  ].join("\n");
+  const expectRow = (files, row) => {
+    const r = run(files);
+    assert.equal(r.rc, 1, `want rc 1, got ${r.rc}\n${r.brief}`);
+    assert.ok(r.out.split("\n").includes(row), `no row ${row}\n${r.brief}`);
+    return r;
+  };
+  test("N1-a NG_wf_comment_cont: a comment ending in \\ then npm install FAILs at the install line", () => {
+    expectRow({ [WF]: workflow(["      - run: |", "          # install deps \\", `          npm install ${P}`]) },
+      `SITE ${WF}:12 FAIL: ${why}`);
+  });
+  test("N1-b NG_wf_comment_cont_mid: echo, a comment ending in \\, then npm install FAILs at the install line", () => {
+    expectRow({ [WF]: workflow(["      - run: |", "          echo start", "          # install deps \\", `          npm install ${P}`]) },
+      `SITE ${WF}:13 FAIL: ${why}`);
+  });
+  test("N1-c the action form: a composite action's comment ending in \\ then npm install FAILs at the install line", () => {
+    expectRow({ [AC]: action(["|", "        # install deps \\", `        npm install ${P}`].join("\n")) },
+      `SITE ${AC}:9 FAIL: ${why}`);
+  });
+  test("PIN-N1-ctl: a comment with no \\ then npm install FAILs at the install line", () => {
+    expectRow({ [WF]: workflow(["      - run: |", "          # install deps", `          npm install ${P}`]) },
+      `SITE ${WF}:12 FAIL: ${why}`);
+  });
+  test("PIN-N1-cont: a real continuation npm \\ then install joins: ONE SITE FAIL row at the first line", () => {
+    const r = run({ [WF]: workflow(["      - run: |", "          npm \\", `          install ${P}`]) });
+    assert.equal(r.rc, 1, `want rc 1, got ${r.rc}\n${r.brief}`);
+    const fails = rows(r, /^SITE \.github\/workflows\/probe\.yml:\d+ FAIL: /);
+    assert.equal(fails.length, 1, `want ONE SITE FAIL row of probe.yml, got ${fails.length}\n${r.brief}`);
+    assert.match(fails[0], /^SITE \.github\/workflows\/probe\.yml:11 FAIL: .*'npm install' can fetch/);
+  });
+  test("SAFE-N1: a comment that names an install and ends in \\ then echo runs nothing: rc 0", () => {
+    const r = expectPass({ [WF]: workflow(["      - run: |", `          # npm install ${P} \\`, "          echo done"]) });
+    assert.equal(rows(r, /^(SITE|CHECK) \.github\/workflows\/probe\.yml.* FAIL: /).length, 0, `a probe.yml FAIL row\n${r.brief}`);
+  });
+});
