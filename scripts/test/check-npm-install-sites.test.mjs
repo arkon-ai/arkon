@@ -664,4 +664,10 @@ describe("F2 fix round", () => {
     const r = expectPass({ [WF]: workflow(["      - run: |", `          # npm install ${P} \\`, "          echo done"]) });
     assert.equal(rows(r, /^(SITE|CHECK) \.github\/workflows\/probe\.yml.* FAIL: /).length, 0, `a probe.yml FAIL row\n${r.brief}`);
   });
+  // the workflow loop's own comment skip still serves a folded block: YAML keeps a more-indented
+  // line of a `run: >` block on its own line, so the shell reads it as a comment
+  test("SAFE-N1-skip: a more-indented comment line naming an install in a run: > block runs nothing: rc 0", () => {
+    const r = expectPass({ [WF]: workflow(["      - run: >", "          echo a", `            # npm install ${P}`, "          echo b"]) });
+    assert.equal(rows(r, /^(SITE|CHECK) \.github\/workflows\/probe\.yml.* FAIL: /).length, 0, `a probe.yml FAIL row\n${r.brief}`);
+  });
 });
