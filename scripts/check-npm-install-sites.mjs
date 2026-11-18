@@ -494,8 +494,9 @@ function yamlTree(text) {
     const content = stripComment(rawLine).replace(/\s+$/, "");
     if (content.trim() === "") continue;
     if (/^ *\t/.test(rawLine)) {
+      // WI-4774 F1: the line is then read on as the base read it, so the rows the base prints
+      // for it stay (never weaken); the UNREADABLE row FAILs the file either way
       flag(UNREADABLE, i + 1, "a tab in the indent");
-      continue;
     }
     if (content.trim() === "---" || content.trim() === "...") {
       if (seen || content.trim() === "...") flag(UNREADABLE, i + 1, "a second document or a document end");
