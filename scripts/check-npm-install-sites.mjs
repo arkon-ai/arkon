@@ -609,7 +609,7 @@ const foldLines = (body) => {
   }
   return out;
 };
-const cmdLines = (n) => (n.body ? (/^>/.test(n.value) ? foldLines(n.body) : joinCont(runLines(n).filter((b) => !/^\s*#/.test(b.text)))) : [{ line: n.line, text: unquote(n.value) }]);
+const cmdLines = (n) => (n.body ? (/^>/.test(n.value) ? foldLines(n.body) : joinCont(runLines(n).map((b) => (/^\s*#/.test(b.text) ? { ...b, text: "" } : b)))) : [{ line: n.line, text: unquote(n.value) }]);
 const expr = (v) => v.replace(/^\$\{\{\s*/, "").replace(/\s*\}\}$/, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "");
 
 // ---------- workflows ----------
