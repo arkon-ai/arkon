@@ -56,19 +56,23 @@ function read(rel) {
   return existsSync(p) ? readFileSync(p, "utf8") : null;
 }
 
-// npm/npx/yarn/pnpm calls in one shell command string
+// npm/npx/yarn/pnpm calls in one shell command string. F8 (WI-4774): a call by a path
+// (/usr/bin/npm, ./node_modules/.bin/npm) or by npm's own npm-cli.js / npx-cli.js is a call too.
 function npmCalls(cmd) {
   const out = [];
-  const re = /(?:^|[\s;&|(])(npm|npx|yarn|pnpm)(?=\s|$)((?:\s+-{1,2}[\w-]+(?:=\S+)?)*)\s*([\w@./:-]*)/g;
+  const re = /(?:^|[\s;&|(])((?:[\w.~${}@+-]*\/)+)?(npm|npx|yarn|pnpm|npm-cli\.js|npx-cli\.js)(?=\s|$)((?:\s+-{1,2}[\w-]+(?:=\S+)?)*)\s*([\w@./:-]*)/g;
   let m;
   while ((m = re.exec(cmd)) !== null) {
-    const tool = m[1];
-    const sub = m[3] || "";
+    const byPath = !!m[1] || m[2].endsWith(".js");
+    const tool = m[2].replace(/-cli\.js$/, "");
+    const tag = byPath ? " (F8 npm by path)" : "";
+    const name = byPath ? `${m[1] || ""}${m[2]}` : tool;
+    const sub = m[4] || "";
     if (tool === "npm") {
-      if (CI_CMDS.has(sub)) out.push({ kind: "ci", text: `npm ${sub}` });
-      else if (FETCH_CMDS.has(sub)) out.push({ kind: "fetch", text: `npm ${sub}` });
+      if (CI_CMDS.has(sub)) out.push({ kind: "ci", text: `${name} ${sub}${tag}` });
+      else if (FETCH_CMDS.has(sub)) out.push({ kind: "fetch", text: `${name} ${sub}${tag}` });
     } else {
-      out.push({ kind: "fetch", text: `${tool} ${sub}`.trim(), tool, pkg: sub });
+      out.push({ kind: "fetch", text: `${name} ${sub}`.trim() + tag, tool, pkg: sub });
     }
   }
   return out;
@@ -129,7 +133,18 @@ function dockerInstructions(text) {
   const raw = text.split(/\r?\n/);
   const ins = [];
   let cur = null;
+  let here = null; // F7 (WI-4774): an open heredoc; its lines belong to the instruction, not new ones
   raw.forEach((l, i) => {
+    if (here) {
+      const w = here.words[0];
+      if ((w.strip ? l.replace(/^\t+/, "") : l) === w.word) here.words.shift();
+      else here.x.heredoc.push(l);
+      if (here.words.length === 0) {
+        here.x.unterminated = false;
+        here = null;
+      }
+      return;
+    }
     const t = l.trim();
     if (cur === null) {
       if (t === "" || t.startsWith("#")) return;
@@ -141,7 +156,14 @@ function dockerInstructions(text) {
     cur.text += (cur.text ? " " : "") + l.replace(/\\\s*$/, "").trim();
     if (!cont) {
       const m = cur.text.match(/^(\S+)\s*(.*)$/);
-      ins.push({ line: cur.line, op: m[1].toUpperCase(), rest: m[2] });
+      const x = { line: cur.line, op: m[1].toUpperCase(), rest: m[2] };
+      const words = [...m[2].matchAll(/(?<!<)<<(?!<)(-?)(["']?)([A-Za-z_][\w.-]*)\2/g)].map((h) => ({ strip: h[1] === "-", word: h[3] }));
+      if (words.length) {
+        x.heredoc = [];
+        x.unterminated = true;
+        here = { x, words };
+      }
+      ins.push(x);
       cur = null;
     }
   });
@@ -197,6 +219,9 @@ if (dockerfile === null) {
     if ((x.op === "ARG" || x.op === "ENV") && tokenWord.test(x.rest)) {
       line("CHECK", `Dockerfile:${x.line}`, false, `${x.op} names a token (${x.op} ${x.rest.split(/[=\s]/)[0]}): a token in a build arg or env lands in the image history`);
     }
+    if (x.heredoc && (x.op !== "RUN" || x.unterminated)) {
+      line("CHECK", `Dockerfile:${x.line}`, false, `F7 RUN heredoc: ${x.unterminated ? "a heredoc with no end line" : `a heredoc on ${x.op}`} is not modelled (fail closed)`);
+    }
   }
   for (const st of stages) {
     const isRuntime = st === last;
@@ -220,7 +245,28 @@ if (dockerfile === null) {
       const { flags, body } = splitFlags(x.rest);
       const mounts = flags.filter((f) => f.startsWith("--mount=")).map(parseMount);
       const secretMounts = mounts.filter((m) => m.type === "secret");
-      if (/\/run\/secrets/.test(body)) {
+      // F6 exec-form JSON RUN, F7 RUN heredoc (WI-4774): the command is the JSON array's words
+      // or the heredoc's lines, and the matcher reads that. The secret mount row keeps its rule.
+      let cmd = body;
+      const forms = [];
+      if (body.startsWith("[")) {
+        let a = null;
+        try {
+          a = JSON.parse(body);
+        } catch {
+          a = null; // not JSON: Docker runs it in the shell form
+        }
+        if (Array.isArray(a)) {
+          cmd = a.map(String).join(" ");
+          forms.push("F6 exec-form JSON RUN");
+        }
+      }
+      if (x.heredoc) {
+        cmd = `${cmd}\n${x.heredoc.join("\n")}`;
+        forms.push("F7 RUN heredoc");
+      }
+      const shown = forms.length ? `${cmd.replace(/\n/g, " \\n ")}" [${forms.join(", ")}]` : `${body}"`;
+      if (/\/run\/secrets/.test(cmd)) {
         line("CHECK", `Dockerfile:${x.line}`, false, "a RUN reads /run/secrets (the token must reach npm by the mount's env= only)");
       }
       for (const m of secretMounts) {
@@ -233,9 +279,9 @@ if (dockerfile === null) {
         if (/\bset\s+-[a-z]*x|\becho\b|\bprintenv\b|(^|[\s;&|])env(\s|$)/.test(body)) why.push("set -x, echo, printenv or env in the command part");
         line("CHECK", `Dockerfile:${x.line} secret mount`, why.length === 0, why.length ? why.join("; ") : `type=secret id=${SECRET_ID} env=${TOKEN_VAR}; the command part is '${body}'`);
       }
-      for (const c of npmCalls(body)) {
+      for (const c of npmCalls(cmd)) {
         const where = `Dockerfile:${x.line}`;
-        const head = `stage=${st.name} "${body}"`;
+        const head = `stage=${st.name} "${shown}`;
         if (isRuntime) {
           line("SITE", where, false, `${head}: a registry install in the runtime stage (${c.text}${copied.lock ? "" : ", no lock"}${copied.npmrc ? "" : ", no .npmrc"})`);
           continue;
