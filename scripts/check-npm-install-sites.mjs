@@ -129,6 +129,46 @@ if (npmrc === null) {
 }
 
 // ---------- the Dockerfile ----------
+// F7 (WI-4774 F1): an instruction's shell words as BuildKit splits them (on whitespace, raw
+// quotes kept). Only a whole word '<<WORD' or '<<-WORD' outside quotes (fd digits first, the
+// WORD itself may be quoted) opens a heredoc: a '<<WORD' inside quotes opens nothing. `bare`
+// is a word's text outside quotes; `comment` is the text from an unquoted word-start '#' on.
+const HEREDOC_WORD = /^\d*<<(-?)(["']?)([A-Za-z_][\w.-]*)\2$/;
+function shellWords(text) {
+  const words = [];
+  let raw = "";
+  let bare = "";
+  let inWord = false;
+  let q = "";
+  let comment = "";
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) {
+      raw += ch;
+      if (ch === "\\" && q === '"' && i + 1 < text.length) raw += text[++i];
+      else if (ch === q) q = "";
+      continue;
+    }
+    if (/\s/.test(ch)) {
+      if (inWord) words.push({ raw, bare });
+      raw = "";
+      bare = "";
+      inWord = false;
+      continue;
+    }
+    if (ch === "#" && !inWord) {
+      comment = text.slice(i);
+      break;
+    }
+    inWord = true;
+    raw += ch;
+    if (ch === "'" || ch === '"') q = ch;
+    else if (ch === "\\" && i + 1 < text.length) raw += text[++i];
+    else bare += ch;
+  }
+  if (inWord) words.push({ raw, bare });
+  return { words, comment };
+}
 function dockerInstructions(text) {
   const raw = text.split(/\r?\n/);
   const ins = [];
@@ -157,7 +197,14 @@ function dockerInstructions(text) {
     if (!cont) {
       const m = cur.text.match(/^(\S+)\s*(.*)$/);
       const x = { line: cur.line, op: m[1].toUpperCase(), rest: m[2] };
-      const words = [...m[2].matchAll(/(?<!<)<<(?!<)(-?)(["']?)([A-Za-z_][\w.-]*)\2/g)].map((h) => ({ strip: h[1] === "-", word: h[3] }));
+      const sw = shellWords(m[2]);
+      const words = [];
+      for (const w of sw.words) {
+        const h = w.raw.match(HEREDOC_WORD);
+        if (h) words.push({ strip: h[1] === "-", word: h[3] });
+        else if (/(?<!<)<<(?!<)/.test(w.bare)) x.heredocOdd = `a '<<' in the word '${w.raw}' that is no '<<WORD'`;
+      }
+      if (/(?<!<)<<(?!<)/.test(sw.comment)) x.heredocOdd = "a '<<' after a shell comment '#' (BuildKit's word split may open a heredoc there)";
       if (words.length) {
         x.heredoc = [];
         x.unterminated = true;
@@ -221,6 +268,9 @@ if (dockerfile === null) {
     }
     if (x.heredoc && (x.op !== "RUN" || x.unterminated)) {
       line("CHECK", `Dockerfile:${x.line}`, false, `F7 RUN heredoc: ${x.unterminated ? "a heredoc with no end line" : `a heredoc on ${x.op}`} is not modelled (fail closed)`);
+    }
+    if (x.heredocOdd) {
+      line("CHECK", `Dockerfile:${x.line}`, false, `F7 RUN heredoc: ${x.heredocOdd} is not modelled (fail closed)`);
     }
   }
   for (const st of stages) {
