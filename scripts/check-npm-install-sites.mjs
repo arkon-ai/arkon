@@ -59,8 +59,33 @@ function read(rel) {
 // npm/npx/yarn/pnpm calls in one shell command string. F8 (WI-4774): a call by a path
 // (/usr/bin/npm, ./node_modules/.bin/npm) or by npm's own npm-cli.js / npx-cli.js is a call too.
 // WI-4774 F1: a quote or a backtick before the tool is a boundary too (sh -c "npm install x").
-function npmCalls(cmd) {
+// WI-4774 F1 (m5): npm's sub-command after flags that take a separate value (npm --prefix /app
+// install x): the first word that is an npm command, each word before it a flag or a flag's value
+function npmSub(tail) {
+  const words = tail.split(/[;&|()\n`]/)[0].trim().split(/\s+/).filter(Boolean);
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    if (w.startsWith("-")) continue;
+    if (CI_CMDS.has(w) || FETCH_CMDS.has(w)) return w;
+    if (i > 0 && /^-[^=]*$/.test(words[i - 1])) continue; // the value of the flag before it
+    return w;
+  }
+  return "";
+}
+// WI-4774 F1 (m5): $(which npm), $(command -v npm), `which npm` stand for the tool they name
+const WHICH = /\$\(\s*(?:which|command\s+-v|type\s+-[pP])\s+([^\s)]+)\s*\)|`\s*(?:which|command\s+-v|type\s+-[pP])\s+([^\s`]+)\s*`/g;
+// WI-4774 F1 (m5): an env var as the command word, its name holding npm or npx ($NPM_BIN install,
+// ${NPM} ci): undecidable statically, so it FAILs closed as UNREADABLE
+const VAR_CMD = /(?:^|[;&|(`"'\n])\s*\$(?:\{([A-Za-z_]\w*)[^}]*\}|([A-Za-z_]\w*))(?=[\s"'`;&|)]|$)/g;
+function npmCalls(cmd, top = true) {
   const out = [];
+  cmd = cmd.replace(WHICH, (_, a, b) => a || b);
+  if (top) {
+    for (const v of cmd.matchAll(VAR_CMD)) {
+      const name = v[1] || v[2];
+      if (/np[mx]/i.test(name)) out.push({ kind: "fetch", tool: "npm", text: `UNREADABLE: the command word '$${name}' is an env var named for npm or npx (undecidable statically: fail closed)` });
+    }
+  }
   const re = /(?:^|[\s;&|(`"'])((?:[\w.~${}@+-]*\/)+)?(npm|npx|yarn|pnpm|npm-cli\.js|npx-cli\.js)(?=\s|$)((?:\s+-{1,2}[\w-]+(?:=\S+)?)*)\s*([\w@./:-]*)/g;
   let m;
   while ((m = re.exec(cmd)) !== null) {
@@ -68,7 +93,8 @@ function npmCalls(cmd) {
     const tool = m[2].replace(/-cli\.js$/, "");
     const tag = byPath ? " (F8 npm by path)" : "";
     const name = byPath ? `${m[1] || ""}${m[2]}` : tool;
-    const sub = m[4] || "";
+    let sub = m[4] || "";
+    if (tool === "npm" && !CI_CMDS.has(sub) && !FETCH_CMDS.has(sub)) sub = npmSub(`${m[3]} ${cmd.slice(m.index + m[0].length - sub.length)}`) || sub;
     if (tool === "npm") {
       if (CI_CMDS.has(sub)) out.push({ kind: "ci", text: `${name} ${sub}${tag}` });
       else if (FETCH_CMDS.has(sub)) out.push({ kind: "fetch", text: `${name} ${sub}${tag}` });
@@ -78,9 +104,27 @@ function npmCalls(cmd) {
     // WI-4774 F1: the tool's next word is itself npm, npx, yarn or pnpm (npx npm install x):
     // scan again from that word, so the call it runs is read too
     if (/^(?:[\w.~${}@+-]*\/)*(npm|npx|yarn|pnpm|npm-cli\.js|npx-cli\.js)$/.test(sub)) {
-      out.push(...npmCalls(cmd.slice(m.index + m[0].length - sub.length)));
+      out.push(...npmCalls(cmd.slice(m.index + m[0].length - (m[4] || "").length), false));
       break;
     }
+  }
+  return out;
+}
+
+// WI-4774 F1 (m5): a shell line continuation (a line ending in '\') joins the next line, as sh
+// reads it; the joined line is at the line it starts on. A line with no continuation is unchanged.
+function joinCont(ls) {
+  const out = [];
+  let cur = null;
+  for (const b of ls) {
+    const cont = /\\\s*$/.test(b.text);
+    const t = cont ? b.text.replace(/\\\s*$/, "") : b.text;
+    if (cur) cur.text += " " + t.trim();
+    else {
+      cur = { line: b.line, text: t };
+      out.push(cur);
+    }
+    if (!cont) cur = null;
   }
   return out;
 }
@@ -255,6 +299,12 @@ if (dockerfile === null) {
   const syntaxLines = raw.map((l, i) => (/^\s*#\s*syntax\s*=/i.test(l) ? i + 1 : 0)).filter(Boolean);
   line("CHECK", "Dockerfile syntax", syntaxLines.length === 0,
     syntaxLines.length ? `a '# syntax=' frontend line at :${syntaxLines.join(", :")} (it pulls a frontend that sees the secret mount)` : "zero '# syntax=' line (the built-in frontend)");
+  // WI-4774 F1 (m5): the reader joins lines on '\' only; another escape character is not modelled
+  raw.forEach((l, i) => {
+    if (/^\s*#\s*escape\s*=/i.test(l) && !/^\s*#\s*escape\s*=\s*\\\s*$/i.test(l)) {
+      line("CHECK", `Dockerfile:${i + 1}`, false, `UNREADABLE: a '${l.trim()}' parser directive: the reader models only the backslash escape (fail closed)`);
+    }
+  });
   const rrh = raw.map((l, i) => (/replace-registry-host/.test(l) ? i + 1 : 0)).filter(Boolean);
   line("CHECK", "Dockerfile replace-registry-host", rrh.length === 0, rrh.length ? `at :${rrh.join(", :")}` : "zero");
 
@@ -298,6 +348,26 @@ if (dockerfile === null) {
           line("CHECK", `Dockerfile:${x.line}`, false, `stage ${st.name} (runtime) copies .npmrc${wholeCtx ? " (a whole-context COPY)" : ""}`);
         }
       }
+      // WI-4774 F1 (m5): CMD and ENTRYPOINT (exec or shell form) run at container start: any call FAILs
+      if (x.op === "CMD" || x.op === "ENTRYPOINT") {
+        let cmd = x.rest;
+        let form = "shell form";
+        if (cmd.startsWith("[")) {
+          try {
+            const a = JSON.parse(cmd);
+            if (Array.isArray(a)) {
+              cmd = a.map(String).join(" ");
+              form = "exec form";
+            }
+          } catch {
+            // not JSON: Docker runs it in the shell form
+          }
+        }
+        for (const c of npmCalls(cmd)) {
+          line("SITE", `Dockerfile:${x.line}`, false, `stage=${st.name} ${x.op} (${form}) "${cmd}": '${c.text}' at container start can fetch from a registry`);
+        }
+        continue;
+      }
       if (x.op !== "RUN") continue;
       const { flags, body } = splitFlags(x.rest);
       const mounts = flags.filter((f) => f.startsWith("--mount=")).map(parseMount);
@@ -319,7 +389,7 @@ if (dockerfile === null) {
         }
       }
       if (x.heredoc) {
-        cmd = `${cmd}\n${x.heredoc.join("\n")}`;
+        cmd = `${cmd}\n${joinCont(x.heredoc.map((t) => ({ text: t }))).map((b) => b.text).join("\n")}`;
         forms.push("F7 RUN heredoc");
       }
       const shown = forms.length ? `${cmd.replace(/\n/g, " \\n ")}" [${forms.join(", ")}]` : `${body}"`;
@@ -362,8 +432,8 @@ if (dockerfile === null) {
 const entry = read("docker-entrypoint.sh");
 if (entry !== null) {
   let n = 0;
-  entry.split(/\r?\n/).forEach((l, i) => {
-    if (/^\s*#/.test(l)) return;
+  joinCont(entry.split(/\r?\n/).map((t, i) => ({ line: i + 1, text: t })).filter((b) => !/^\s*#/.test(b.text))).forEach(({ line: ln, text: l }) => {
+    const i = ln - 1;
     for (const c of npmCalls(l)) {
       n++;
       line("SITE", `docker-entrypoint.sh:${i + 1}`, false, `'${c.text}' at container start can fetch from a registry (${l.trim()})`);
@@ -537,14 +607,20 @@ const foldLines = (body) => {
   }
   return out;
 };
-const cmdLines = (n) => (n.body ? (/^>/.test(n.value) ? foldLines(n.body) : runLines(n)) : [{ line: n.line, text: unquote(n.value) }]);
+const cmdLines = (n) => (n.body ? (/^>/.test(n.value) ? foldLines(n.body) : joinCont(runLines(n))) : [{ line: n.line, text: unquote(n.value) }]);
 const expr = (v) => v.replace(/^\$\{\{\s*/, "").replace(/\s*\}\}$/, "").replace(/^["']|["']$/g, "").replace(/\s+/g, "");
 
 // ---------- workflows ----------
 const wfDir = join(root, ".github", "workflows");
 const wfFiles = existsSync(wfDir) ? readdirSync(wfDir).filter((f) => /\.ya?ml$/.test(f)).sort() : [];
-for (const f of wfFiles) {
-  const rel = `.github/workflows/${f}`;
+const wfRels = wfFiles.map((f) => `.github/workflows/${f}`);
+// WI-4774 F1 (m5): a local composite action (.github/actions/<dir>/action.yml) is walked like a workflow
+const acDir = join(root, ".github", "actions");
+const acDirs = existsSync(acDir) ? readdirSync(acDir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort() : [];
+for (const d of acDirs) {
+  for (const a of ["action.yml", "action.yaml"]) if (existsSync(join(acDir, d, a))) wfRels.push(`.github/actions/${d}/${a}`);
+}
+for (const rel of wfRels) {
   const text = read(rel);
   const ptt = (text.match(/pull_request_target/g) || []).length;
   line("CHECK", `${rel} pull_request_target`, ptt === 0, `count ${ptt}`);
@@ -557,7 +633,11 @@ for (const f of wfFiles) {
   // map, a row that is no one NAME: value, a secrets or ${{ }} value, or a name npm reads.
   const envs = [];
   if (kid(wf, "env")) envs.push(["F3 workflow env", kid(wf, "env")]);
-  for (const j of (kid(wf, "jobs") || { children: [] }).children) if (kid(j, "env")) envs.push(["F4 job env", kid(j, "env")]);
+  for (const j of (kid(wf, "jobs") || { children: [] }).children) {
+    if (kid(j, "env")) envs.push(["F4 job env", kid(j, "env")]);
+    // WI-4774 F1 (m5): the job's container env reaches every step too
+    if (kid(kid(j, "container"), "env")) envs.push(["F4 job env (container.env)", kid(kid(j, "container"), "env")]);
+  }
   for (const [form, e] of envs) {
     const why = [];
     if (e.value !== "") why.push("not a block map of NAME: value rows");
@@ -602,8 +682,8 @@ for (const p of walk(join(root, "scripts")).sort()) {
   const rel = relative(root, p).split("\\").join("/");
   if (SELF.has(rel) || !/\.(sh|bash)$/.test(rel)) continue;
   const text = readFileSync(p, "utf8");
-  text.split(/\r?\n/).forEach((l, i) => {
-    if (/^\s*#/.test(l)) return;
+  joinCont(text.split(/\r?\n/).map((t, i) => ({ line: i + 1, text: t })).filter((b) => !/^\s*#/.test(b.text))).forEach(({ line: ln, text: l }) => {
+    const i = ln - 1;
     for (const c of npmCalls(l)) {
       if (c.kind === "ci") {
         const pins = /\.npmrc/.test(text) || !/\bcd\s/.test(text);
