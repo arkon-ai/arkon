@@ -414,8 +414,24 @@ for (const f of wfFiles) {
   line("CHECK", `${rel} pull_request_target`, ptt === 0, `count ${ptt}`);
   const rrh = (text.match(/replace-registry-host/g) || []).length;
   if (rrh) line("CHECK", `${rel} replace-registry-host`, false, `count ${rrh}`);
-  const { all, bad } = yamlTree(text);
+  const { root: wf, all, bad } = yamlTree(text);
   for (const b of bad) line("CHECK", `${rel}:${b.line} yaml`, false, `${b.form}: ${b.what} (the reader does not model it: fail closed)`);
+  // F3 workflow env, F4 job env (WI-4774): such an env reaches every step under it. The reader
+  // models it as a block map of plain NAME: text rows only. It FAILs on an env that is no block
+  // map, a row that is no one NAME: value, a secrets or ${{ }} value, or a name npm reads.
+  const envs = [];
+  if (kid(wf, "env")) envs.push(["F3 workflow env", kid(wf, "env")]);
+  for (const j of (kid(wf, "jobs") || { children: [] }).children) if (kid(j, "env")) envs.push(["F4 job env", kid(j, "env")]);
+  for (const [form, e] of envs) {
+    const why = [];
+    if (e.value !== "") why.push("not a block map of NAME: value rows");
+    for (const r of e.children) {
+      if (r.isItem || r.children.length || r.body) why.push(`the row at :${r.line} is not one NAME: value`);
+      else if (/secrets\.|\$\{\{/.test(r.value)) why.push(`${r.key} takes a secrets or \${{ }} value`);
+      else if (/^(npm_config_|NODE_AUTH_TOKEN$|NPM_TOKEN$)/i.test(r.key) || r.key === TOKEN_VAR) why.push(`${r.key} is a name npm reads`);
+    }
+    if (why.length) line("CHECK", `${rel}:${e.line} ${form.slice(0, 2)}`, false, `${form}: ${why.join("; ")} (it reaches every step under it: fail closed)`);
+  }
   for (const n of all.filter((x) => x.key === "run")) {
     for (const b of runLines(n)) {
       if (/^\s*#/.test(b.text)) continue;
