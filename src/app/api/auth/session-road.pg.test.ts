@@ -8,6 +8,9 @@ import { resolveRequestCredential } from "@/lib/request-auth";
 import { POST as loginPOST } from "@/app/api/auth/login/route";
 import { POST as verifyMagicPOST } from "@/app/api/auth/verify-magic-link/route";
 import { proxy } from "@/proxy";
+import { GET as costsOverviewGET } from "@/app/api/costs/overview/route";
+import { POST as tasksPOST } from "@/app/api/tools/tasks/route";
+import { GET as contentFactoryGET } from "@/app/api/content-factory/status/route";
 
 /* THE OWNER SESSION ROAD on REAL PostgreSQL (the U5 sign-in set, transformate WI-4492 T3; S3, S5). The auth routes,
    proxy.ts and request-auth.ts run unmocked against a private database on the throwaway cluster (src/lib/auth-test-db.ts):
@@ -134,5 +137,71 @@ describe("both login pages end to end through proxy and handlers (transformate W
     const res = await throughProxy(jsonReq("/api/auth/login", { email: "inactive-owner@example.test", password: FAKE_PASSWORD }), loginPOST);
     expect(res.status).toBe(403);
     expect(setCookieValue(res, "mc_auth")).toBeNull();
+  });
+});
+
+describe("T3 a session sign-in reaches the OWNER-ONLY routes through proxy and route (transformate WI-4498)", () => {
+  async function signIn(email = OWNER_EMAIL) {
+    const res = await loginPOST(jsonReq("/api/auth/login", { email, password: FAKE_PASSWORD }));
+    expect(res.status).toBe(200);
+    return { session: setCookieValue(res, "mc_auth")!, csrf: setCookieValue(res, "mc_csrf")! };
+  }
+  async function gateThenRoute(req: NextRequest, handler: (r: NextRequest) => Promise<Response>) {
+    const gate = await proxy(req);
+    if (gate.status !== 200 || gate.headers.get("location")) return gate;
+    return handler(req);
+  }
+
+  it("T3 the owner session reaches one read: GET /api/costs/overview", async () => {
+    const { session } = await signIn();
+    const res = await gateThenRoute(cookieReq("/api/costs/overview", { mc_auth: session }), costsOverviewGET);
+    expect(res.status).toBe(200);
+  });
+
+  it("T3 the owner session makes one cookie write with a VALID CSRF token: POST /api/tools/tasks passes proxy and route", async () => {
+    const { session, csrf } = await signIn();
+    const req = jsonReq("/api/tools/tasks", { title: "fake task" }, { cookies: { mc_auth: session, mc_csrf: csrf }, headers: { "x-csrf-token": csrf } });
+    const res = await gateThenRoute(req, tasksPOST);
+    expect(res.status).not.toBe(401);
+    expect(res.status).not.toBe(403);
+  });
+
+  // GREEN at the base by design (S10, named): the proxy CSRF gate refused this before the route was reached.
+  it("T3 the same cookie write with an INVALID CSRF token is refused 403 by the proxy", async () => {
+    const { session, csrf } = await signIn();
+    const req = jsonReq("/api/tools/tasks", { title: "fake task" }, { cookies: { mc_auth: session, mc_csrf: csrf }, headers: { "x-csrf-token": "not-the-csrf-token" } });
+    const res = await gateThenRoute(req, tasksPOST);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "CSRF validation failed" });
+  });
+
+  it("T3 the owner session reaches content-factory GET", async () => {
+    const { session } = await signIn();
+    const res = await gateThenRoute(cookieReq("/api/content-factory/status", { mc_auth: session }), contentFactoryGET);
+    expect(res.status).not.toBe(401);
+  });
+
+  // GREEN at the base by design (S10, named): zero widening; an admin session is no owner on an OWNER-ONLY route.
+  it("T3 an admin session is refused 401 by the OWNER-ONLY route", async () => {
+    const { session } = await signIn("admin@example.test");
+    const res = await gateThenRoute(cookieReq("/api/costs/overview", { mc_auth: session }), costsOverviewGET);
+    expect(res.status).toBe(401);
+  });
+
+  // GREEN at the base by design (S10, named): the session SQL refuses an expired row (s.expires_at > NOW()).
+  it("T3 an expired owner session reads 401", async () => {
+    const { session } = await signIn();
+    await db.pool.query("UPDATE user_sessions SET expires_at = NOW() - INTERVAL '1 minute' WHERE token_hash = $1", [hash(session)]);
+    const res = await gateThenRoute(cookieReq("/api/costs/overview", { mc_auth: session }), costsOverviewGET);
+    expect(res.status).toBe(401);
+  });
+
+  // GREEN at the base by design (S10, named): the session SQL refuses an inactive row (u.is_active = TRUE).
+  it("T3 an owner row made inactive after sign-in reads 401", async () => {
+    await db.pool.query("INSERT INTO users (email, password_hash, role, tenant_id, is_active) SELECT 'later-inactive@example.test', password_hash, 'owner', NULL, TRUE FROM users WHERE email = $1", [OWNER_EMAIL]);
+    const { session } = await signIn("later-inactive@example.test");
+    await db.pool.query("UPDATE users SET is_active = FALSE WHERE email = 'later-inactive@example.test'");
+    const res = await gateThenRoute(cookieReq("/api/costs/overview", { mc_auth: session }), costsOverviewGET);
+    expect(res.status).toBe(401);
   });
 });
