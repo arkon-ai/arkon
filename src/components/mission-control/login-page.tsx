@@ -3,11 +3,15 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-type AuthMode = "passphrase" | "email" | "magic";
+type AuthMode = "email" | "magic";
 
+/* The session road only (transformate WI-4493): email and password, or a magic link. Zero key (passphrase)
+   field: the init route is retired (WI-4492). The Magic Link tab is hidden in production until a mailer exists
+   (magic-link/route.ts builds no link there and sends no mail). */
 export default function LoginPage() {
-  const [mode, setMode] = useState<AuthMode>("passphrase");
-  const [passphrase, setPassphrase] = useState("");
+  const magicEnabled = process.env.NODE_ENV !== "production";
+  const modes: AuthMode[] = magicEnabled ? ["email", "magic"] : ["email"];
+  const [mode, setMode] = useState<AuthMode>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [magicEmail, setMagicEmail] = useState("");
@@ -28,7 +32,7 @@ export default function LoginPage() {
   async function verifyMagicLink(token: string, emailAddr: string) {
     setLoading(true);
     setError("");
-    setMode("magic");
+    if (magicEnabled) setMode("magic");
 
     try {
       const res = await fetch("/api/auth/verify-magic-link", {
@@ -48,40 +52,6 @@ export default function LoginPage() {
         const role = data.role || "viewer";
         router.push(role === "owner" || role === "admin" || role === "operator" ? "/" : "/client");
         router.refresh();
-      }
-    } catch {
-      setError("Connection error. Please try again.");
-      setLoading(false);
-    }
-  }
-
-  async function handlePassphraseLogin(e: React.FormEvent) {
-    e.preventDefault();
-    if (!passphrase.trim()) return;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/auth/init", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${passphrase.trim()}` },
-      });
-
-      if (!res.ok) {
-        setError("Invalid passphrase. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      const data = await res.json();
-      if (data.ok) {
-        const role = data.role || "viewer";
-        router.push(role === "owner" ? "/" : "/client");
-        router.refresh();
-      } else {
-        setError("Authentication failed.");
-        setLoading(false);
       }
     } catch {
       setError("Connection error. Please try again.");
@@ -164,41 +134,23 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-[var(--text-secondary)]">AI Workforce Platform</p>
         </div>
 
-        <div className="mb-6 flex rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-1">
-          {(["passphrase", "email", "magic"] as AuthMode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => { setMode(m); setError(""); setMagicSent(false); }}
-              className={`flex-1 rounded-lg py-2 text-xs font-medium transition ${
-                mode === m
-                  ? "bg-[rgba(var(--ion-rgb),0.15)] text-[var(--accent)]"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-              }`}
-            >
-              {m === "passphrase" ? "Passphrase" : m === "email" ? "Email" : "Magic Link"}
-            </button>
-          ))}
-        </div>
-
-        {mode === "passphrase" && (
-          <form onSubmit={handlePassphraseLogin} className="space-y-4">
-            <input
-              type="password"
-              value={passphrase}
-              onChange={(e) => setPassphrase(e.target.value)}
-              placeholder="Passphrase"
-              autoFocus
-              autoComplete="current-password"
-              className={inputClass}
-            />
-            {error && (
-              <p className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
-            )}
-            <button type="submit" disabled={loading || !passphrase.trim()} className={submitClass}>
-              {loading ? "Authenticating..." : "Sign In"}
-            </button>
-          </form>
+        {modes.length > 1 && (
+          <div className="mb-6 flex rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] p-1">
+            {modes.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => { setMode(m); setError(""); setMagicSent(false); }}
+                className={`flex-1 rounded-lg py-2 text-xs font-medium transition ${
+                  mode === m
+                    ? "bg-[rgba(var(--ion-rgb),0.15)] text-[var(--accent)]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                {m === "email" ? "Email" : "Magic Link"}
+              </button>
+            ))}
+          </div>
         )}
 
         {mode === "email" && (
@@ -229,7 +181,7 @@ export default function LoginPage() {
           </form>
         )}
 
-        {mode === "magic" && !magicSent && (
+        {magicEnabled && mode === "magic" && !magicSent && (
           <form onSubmit={handleMagicLink} className="space-y-4">
             <p className="text-sm text-[var(--text-secondary)]">
               Enter your email and we will send you a sign-in link. No password needed.
@@ -252,7 +204,7 @@ export default function LoginPage() {
           </form>
         )}
 
-        {mode === "magic" && magicSent && (
+        {magicEnabled && mode === "magic" && magicSent && (
           <div className="space-y-4 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[rgba(var(--ion-rgb),0.08)]">
               <svg className="h-8 w-8 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
