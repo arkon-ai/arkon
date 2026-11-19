@@ -100,3 +100,102 @@ describe("resolveRequestCredential", () => {
     expect(cred).toBeNull();
   });
 });
+
+/* THE COOKIE RULE (transformate WI-4495, S7): every key compare takes the key from the Bearer header ONLY. A cookie
+   resolves a user session and an ak_live_ key (kept, named: its removal is W03 U6); an agents-table token by cookie
+   is refused; the owner key and an MC_AGENT_TOKENS pair by cookie resolve nothing. Fixed FAKE values only. */
+describe("resolveRequestCredential: key compares by Bearer only (transformate WI-4495)", () => {
+  const FAKE_ENV_KEY = "FAKE-envkey-q7x2m9w4p8";
+  const FAKE_AGENT_TABLE_TOKEN = "fake-u5-agent-table-token-2222";
+
+  beforeEach(() => {
+    process.env.MC_AGENT_TOKENS = `bootstrap-bot:${FAKE_ENV_KEY}`;
+    mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
+      const h = (params as unknown[])?.[0];
+      if (String(sql).includes("JOIN user_sessions") && h === hash("owner-session")) {
+        return { rows: [{ id: 1, email: "owner@example.test", role: "owner", tenant_id: null }] } as never;
+      }
+      if (String(sql).includes("FROM api_keys") && h === hash("ak_live_fake_cookie_key")) return { rows: [{ id: 5, tenant_id: "tenant-a" }] } as never;
+      if (String(sql).includes("FROM agents WHERE token_hash") && h === hash(FAKE_AGENT_TABLE_TOKEN)) {
+        return { rows: [{ id: "agent-t", role: "admin", tenant_id: "tenant-a" }] } as never;
+      }
+      return { rows: [] } as never;
+    });
+  });
+
+  it("T1b the fake owner key in the mc_auth cookie resolves nothing", async () => {
+    expect(await resolveRequestCredential(req({ cookies: { mc_auth: "owner-secret" } }))).toBeNull();
+  });
+
+  // GREEN at the base by design (S10, positive control): the owner key stays a server credential by Bearer.
+  it("T1b the same fake owner key as a Bearer still resolves owner", async () => {
+    expect(await resolveRequestCredential(req({ bearer: "owner-secret" }))).toMatchObject({ type: "owner_token", role: "owner" });
+  });
+
+  it("T1b a fake MC_AGENT_TOKENS key in the mc_auth cookie resolves nothing", async () => {
+    expect(await resolveRequestCredential(req({ cookies: { mc_auth: FAKE_ENV_KEY } }))).toBeNull();
+  });
+
+  // GREEN at the base by design (S10, positive control).
+  it("T1b the same fake MC_AGENT_TOKENS key as a Bearer still resolves the agent", async () => {
+    expect(await resolveRequestCredential(req({ bearer: FAKE_ENV_KEY }))).toMatchObject({ type: "agent_token", role: "agent", agent_id: "bootstrap-bot" });
+  });
+
+  it("an agents-table token in the mc_auth cookie is refused", async () => {
+    expect(await resolveRequestCredential(req({ cookies: { mc_auth: FAKE_AGENT_TABLE_TOKEN } }))).toBeNull();
+  });
+
+  // GREEN at the base by design (S10, positive control).
+  it("an agents-table token as a Bearer still resolves", async () => {
+    expect(await resolveRequestCredential(req({ bearer: FAKE_AGENT_TABLE_TOKEN }))).toMatchObject({ type: "agent_token", agent_id: "agent-t" });
+  });
+
+  // GREEN at the base by design (S10, kept and named): a cookie resolves a user session.
+  it("a user session in the mc_auth cookie still resolves (kept)", async () => {
+    expect(await resolveRequestCredential(req({ cookies: { mc_auth: "owner-session" } }))).toMatchObject({ type: "user_session", role: "owner" });
+  });
+
+  // GREEN at the base by design (S10, kept and named: the ak_live_ cookie read stays; its removal is W03 U6).
+  it("an ak_live_ key in the mc_auth cookie still resolves (kept, W03 U6)", async () => {
+    expect(await resolveRequestCredential(req({ cookies: { mc_auth: "ak_live_fake_cookie_key" } }))).toMatchObject({ type: "api_key", tenant_id: "tenant-a" });
+  });
+
+  // GREEN at the base by design (S10, named): Bearer precedence (request-auth.ts:124-130, proxy.ts:146).
+  it("a junk Bearer with a valid owner session cookie resolves the Bearer path only: nothing", async () => {
+    expect(await resolveRequestCredential(req({ bearer: "junk-bearer", cookies: { mc_auth: "owner-session" } }))).toBeNull();
+  });
+});
+
+/** True when any console row holds the key, its sha256, or any 6-byte window of it (zero byte of the key). */
+function leaksKey(rows: string[], key: string): boolean {
+  const all = rows.join("\n");
+  if (all.includes(hash(key))) return true;
+  for (let i = 0; i + 6 <= key.length; i++) if (all.includes(key.slice(i, i + 6))) return true;
+  return false;
+}
+
+function captureConsole() {
+  const rows: string[] = [];
+  const spies = (["log", "warn", "error", "info", "debug"] as const).map((m) =>
+    vi.spyOn(console, m).mockImplementation((...args: unknown[]) => { rows.push(args.map(String).join(" ")); }));
+  return { rows, restore: () => spies.forEach((s) => s.mockRestore()) };
+}
+
+describe("T6 an MC_AGENT_TOKENS hit logs the agent id and zero byte of the key (transformate WI-4495)", () => {
+  const FAKE_ENV_KEY = "FAKE-envkey-q7x2m9w4p8";
+
+  it("T6 request-auth: one warning row names the agent id, zero byte of the key", async () => {
+    process.env.MC_AGENT_TOKENS = `bootstrap-bot:${FAKE_ENV_KEY}`;
+    mockQuery.mockResolvedValue({ rows: [] } as never);
+    const out = captureConsole();
+    try {
+      expect(await resolveRequestCredential(req({ bearer: FAKE_ENV_KEY }))).toMatchObject({ agent_id: "bootstrap-bot" });
+    } finally {
+      out.restore();
+    }
+    const hits = out.rows.filter((r) => r.includes("bootstrap-bot"));
+    expect(hits).toHaveLength(1);
+    expect(hits[0]).toMatch(/\[auth-legacy\]/);
+    expect(leaksKey(out.rows, FAKE_ENV_KEY)).toBe(false);
+  });
+});

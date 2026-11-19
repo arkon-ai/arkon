@@ -75,13 +75,15 @@ describe("proxy auth and csrf gates", () => {
   });
 
   it("does not let an owner token carried in the mc_auth cookie mutate without CSRF (transformate WI-3990)", async () => {
-    // /api/auth/init stores the owner token in mc_auth: a cookie is ambient authority whatever token it holds
+    // FLIPPED (transformate WI-4495): was 403 (CSRF). The owner key in a cookie now resolves nothing at all
+    // (key compares by Bearer only), so the request is refused 401 before CSRF, and the stale cookie is expired.
     const res = await proxy(request("/api/workflows", {
       method: "POST",
       cookies: { mc_auth: "owner-secret" },
     }));
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(401);
+    expect(res.headers.getSetCookie().find((c) => c.startsWith("mc_auth="))).toMatch(/^mc_auth=;.*Max-Age=0/i);
   });
 
   it("still lets the owner token as a Bearer HEADER mutate without CSRF (transformate WI-3990 guard)", async () => {
@@ -258,5 +260,61 @@ describe("the stale mc_auth cookie is expired on the refusal (transformate WI-44
     const res = await proxy(request("/api/dashboard/overview"));
     expect(res.status).toBe(401);
     expect(mcAuthSetCookie(res)).toBeUndefined();
+  });
+});
+
+describe("proxy: a key carried in a cookie resolves nothing (transformate WI-4495 T1b, S6, S7)", () => {
+  it("T1b the raw owner key a pre-U5 browser holds in mc_auth: 401 and mc_auth expired", async () => {
+    const res = await proxy(request("/api/dashboard/overview", { cookies: { mc_auth: "owner-secret" } }));
+    expect(res.status).toBe(401);
+    expectMcAuthExpired(res);
+  });
+
+  it("T1b the raw owner key in mc_auth on a page: the /login redirect, mc_auth expired", async () => {
+    const res = await proxy(request("/", { cookies: { mc_auth: "owner-secret" } }));
+    expect(res.status).toBe(307);
+    expectMcAuthExpired(res);
+  });
+
+  it("T1b a fake MC_AGENT_TOKENS key in mc_auth: 401 and mc_auth expired", async () => {
+    process.env.MC_AGENT_TOKENS = "bootstrap-bot:FAKE-envkey-q7x2m9w4p8";
+    const res = await proxy(request("/api/dashboard/overview", { cookies: { mc_auth: "FAKE-envkey-q7x2m9w4p8" } }));
+    expect(res.status).toBe(401);
+    expectMcAuthExpired(res);
+  });
+
+  it("an agents-table token in mc_auth is refused: 401 and mc_auth expired", async () => {
+    mockQuery.mockImplementation(async (sql: string, params?: unknown[]) => {
+      if (sql.includes("FROM agents WHERE token_hash") && params?.[0] === hash("agent-table-token")) {
+        return { rows: [{ id: "agent-t", role: "admin", tenant_id: "transformate" }] } as never;
+      }
+      return { rows: [] } as never;
+    });
+    const res = await proxy(request("/api/dashboard/overview", { cookies: { mc_auth: "agent-table-token" } }));
+    expect(res.status).toBe(401);
+    expectMcAuthExpired(res);
+  });
+
+  // GREEN at the base by design (S10, positive control).
+  it("the same owner key as a Bearer passes the proxy", async () => {
+    const res = await proxy(request("/api/dashboard/overview", { headers: { authorization: "Bearer owner-secret" } }));
+    expect(res.status).toBe(200);
+  });
+
+  // GREEN at the base by design (S10, named): Bearer precedence (proxy.ts:146, request-auth.ts:124-130).
+  it("a junk Bearer with a valid owner session cookie is refused: the Bearer path only", async () => {
+    const res = await proxy(request("/api/dashboard/overview", {
+      headers: { authorization: "Bearer junk" },
+      cookies: { mc_auth: "valid-session" },
+    }));
+    expect(res.status).toBe(401);
+  });
+
+  // GREEN at the base by design (S10, kept and named): the ak_live_ cookie read stays until W03 U6.
+  it("an ak_live_ key in mc_auth still passes the proxy (kept, W03 U6) and needs CSRF to mutate", async () => {
+    const read = await proxy(request("/api/dashboard/overview", { cookies: { mc_auth: "ak_live_valid" } }));
+    expect(read.status).toBe(200);
+    const write = await proxy(request("/api/workflows", { method: "POST", cookies: { mc_auth: "ak_live_valid" } }));
+    expect(write.status).toBe(403);
   });
 });
