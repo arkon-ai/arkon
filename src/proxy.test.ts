@@ -175,3 +175,88 @@ describe("isPublicAsset — root-anchored, does not bypass nested pathnames (pan
     expect(isPublicAsset(pathname)).toBe(false);
   });
 });
+
+/** The Set-Cookie row the answer carries for mc_auth (undefined when it sets none). */
+function mcAuthSetCookie(res: Response): string | undefined {
+  return res.headers.getSetCookie().find((c) => c.startsWith("mc_auth="));
+}
+
+/** mc_auth is expired: an empty value, Max-Age=0, HttpOnly, Path=/ (transformate WI-4494 S6). */
+function expectMcAuthExpired(res: Response) {
+  const row = mcAuthSetCookie(res);
+  expect(row).toBeDefined();
+  expect(row).toMatch(/^mc_auth=;/);
+  expect(row).toMatch(/Max-Age=0/i);
+  expect(row).toMatch(/HttpOnly/i);
+  expect(row).toMatch(/Path=\//i);
+}
+
+describe("/api/auth/init stays reachable so the 410 reaches old clients (transformate WI-4494 S5)", () => {
+  // GREEN at the base by design (S10, named): the row stays in PUBLIC_PATHS (proxy.ts:13); this pins it.
+  it("POST /api/auth/init with no credential passes the proxy gate (public path)", async () => {
+    const res = await proxy(request("/api/auth/init", { method: "POST" }));
+    expect(res.status).toBe(200);
+    expect(mcAuthSetCookie(res)).toBeUndefined();
+  });
+
+  // GREEN at the base by design (S10, named): the row stays in the CSRF exempt list (proxy.ts:134-139).
+  it("POST /api/auth/init with a cookie and no CSRF token is not refused 403 (CSRF exempt)", async () => {
+    const res = await proxy(request("/api/auth/init", {
+      method: "POST",
+      headers: { authorization: "Bearer owner-secret" },
+      cookies: { mc_auth: "stale-cookie-value" },
+    }));
+    expect(res.status).toBe(200);
+  });
+
+  it("the owner key through the proxy and the init handler gets 410 init_retired and zero Set-Cookie", async () => {
+    const { POST } = await import("@/app/api/auth/init/route");
+    const req = request("/api/auth/init", { method: "POST", headers: { authorization: "Bearer owner-secret" } });
+    const gate = await proxy(req);
+    expect(gate.status).toBe(200);
+    const res = await POST(req);
+    expect(res.status).toBe(410);
+    expect(await res.json()).toEqual({ error: "init_retired" });
+    expect(res.headers.getSetCookie()).toEqual([]);
+  });
+});
+
+describe("the stale mc_auth cookie is expired on the refusal (transformate WI-4494 S6)", () => {
+  it("an mc_auth cookie with no Bearer that resolves no credential: the API 401 expires mc_auth (Max-Age=0, HttpOnly)", async () => {
+    const res = await proxy(request("/api/dashboard/overview", { cookies: { mc_auth: "stale-cookie-value" } }));
+    expect(res.status).toBe(401);
+    expectMcAuthExpired(res);
+  });
+
+  it("an mc_auth cookie with no Bearer that resolves no credential: the page redirect to /login expires mc_auth", async () => {
+    const res = await proxy(request("/dashboard", { cookies: { mc_auth: "stale-cookie-value" } }));
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe("https://arkon.test/login");
+    expectMcAuthExpired(res);
+  });
+
+  // GREEN at the base by design (S10, named control): a valid session is never expired.
+  it("a valid session cookie passes and its cookie is left alone", async () => {
+    const res = await proxy(request("/api/dashboard/overview", { cookies: { mc_auth: "valid-session" } }));
+    expect(res.status).toBe(200);
+    expect(mcAuthSetCookie(res)).toBeUndefined();
+  });
+
+  // GREEN at the base by design (S10, named control): with a Bearer present the cookie was never read (Bearer
+  // precedence), so the 401 leaves it alone.
+  it("a junk Bearer with a cookie: 401 and the cookie is left alone (the cookie was not read)", async () => {
+    const res = await proxy(request("/api/dashboard/overview", {
+      headers: { authorization: "Bearer bogus" },
+      cookies: { mc_auth: "valid-session" },
+    }));
+    expect(res.status).toBe(401);
+    expect(mcAuthSetCookie(res)).toBeUndefined();
+  });
+
+  // GREEN at the base by design (S10, named control): no cookie, nothing to expire.
+  it("no cookie and no Bearer: 401 with zero Set-Cookie", async () => {
+    const res = await proxy(request("/api/dashboard/overview"));
+    expect(res.status).toBe(401);
+    expect(mcAuthSetCookie(res)).toBeUndefined();
+  });
+});
