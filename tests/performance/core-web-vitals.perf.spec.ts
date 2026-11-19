@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 5: Performance — Core Web Vitals
@@ -24,9 +24,7 @@ const CLS_THRESHOLD = 0.1;
 
 test.describe("Core Web Vitals @performance @regression", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   // ── LCP Tests ──────────────────────────────────────────────

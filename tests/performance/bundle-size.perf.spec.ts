@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /** WI-1851: networkidle never settles on streaming pages (dashboard SSE holds
  * its connection open) — every budget test used to hit the 45s timeout without
@@ -38,9 +38,7 @@ const MAX_TOTAL_PAGE_WEIGHT = 5 * 1024 * 1024; // 5MB total
 
 test.describe("Bundle Size & Resource Budgets @performance @regression", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("dashboard total JS bundle under 2MB", async ({ page }) => {

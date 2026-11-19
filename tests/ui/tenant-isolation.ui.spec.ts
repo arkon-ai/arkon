@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Tenant Switcher — UI tests ──────────────────────── */
 
 test.describe("Tenant Switcher UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("tenant switcher is visible in header @regression", async ({ page }) => {

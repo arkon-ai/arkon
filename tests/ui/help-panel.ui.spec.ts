@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Phase 3: Help Panel & Glossary — comprehensive UI regression ── */
 
@@ -16,9 +16,7 @@ async function openHelpWithKey(page: Page) {
 
 test.describe("Help Panel", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("help button is visible in header @smoke @regression", async ({ page }) => {
@@ -107,9 +105,7 @@ test.describe("Help Panel", () => {
 
 test.describe("Glossary Page", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("glossary page loads without errors @regression", async ({ page }) => {

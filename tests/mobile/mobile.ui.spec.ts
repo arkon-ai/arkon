@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 test.describe("Mobile — Hamburger Menu", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("hamburger button is visible on mobile @regression @mobile", async ({ page }) => {

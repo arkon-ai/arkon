@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Phase 3: Remaining Pages — comprehensive UI regression ── */
 
 test.describe("Remaining Pages UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   // ── Activity Page ──────────────────────────────────────────

@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Session 4: Dashboard Clarity — health gauge, status summary, tooltips ── */
 
 test.describe("Dashboard Features UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("dashboard renders health gauge @regression", async ({ page }) => {

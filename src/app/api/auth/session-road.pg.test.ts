@@ -6,6 +6,8 @@ import { createAuthDb, type AuthDb } from "@/lib/auth-test-db";
 import { hashPassword } from "@/lib/password";
 import { resolveRequestCredential } from "@/lib/request-auth";
 import { POST as loginPOST } from "@/app/api/auth/login/route";
+import { POST as verifyMagicPOST } from "@/app/api/auth/verify-magic-link/route";
+import { proxy } from "@/proxy";
 
 /* THE OWNER SESSION ROAD on REAL PostgreSQL (the U5 sign-in set, transformate WI-4492 T3; S3, S5). The auth routes,
    proxy.ts and request-auth.ts run unmocked against a private database on the throwaway cluster (src/lib/auth-test-db.ts):
@@ -87,5 +89,50 @@ describe("the owner session road: /api/auth/login, never init (transformate WI-4
     expect(row.rows).toEqual([{ email: OWNER_EMAIL, role: "owner" }]);
     const cred = await resolveRequestCredential(cookieReq("/api/x", { mc_auth: session! }));
     expect(cred).toMatchObject({ type: "user_session", role: "owner", tenant_id: null, email: OWNER_EMAIL });
+  });
+});
+
+describe("both login pages end to end through proxy and handlers (transformate WI-4493, S4, S10)", () => {
+  /** What the page does: its request goes through proxy.ts first (which reads no body), then the route handler. */
+  async function throughProxy(req: NextRequest, handler: (r: NextRequest) => Promise<Response>) {
+    const gate = await proxy(req);
+    if (gate.status !== 200 || gate.headers.get("location")) return gate;
+    return handler(req);
+  }
+
+  // GREEN at the base by design (S10, positive control, named): the password road existed; /login did not mount it
+  // (the page itself is pinned RED-at-base in src/app/login/login-page.test.ts).
+  it("password: /api/auth/login passes the proxy with no credential and no CSRF token, and its session opens a protected page", async () => {
+    const res = await throughProxy(jsonReq("/api/auth/login", { email: OWNER_EMAIL, password: FAKE_PASSWORD }), loginPOST);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ ok: true, role: "owner" });
+    const session = setCookieValue(res, "mc_auth")!;
+    const page = await proxy(cookieReq("/", { mc_auth: session }));
+    expect(page.status).toBe(200);
+    expect(page.headers.get("location")).toBeNull();
+    const bare = await proxy(cookieReq("/", {}));
+    expect(bare.headers.get("location")).toBe("https://arkon.test/login");
+  });
+
+  // GREEN at the base by design (S10, positive control, named): verify-magic-link already made owner sessions. The
+  // mail is mocked: the test writes the magic_link_tokens row the link would carry.
+  it("magic link: a mocked magic-link session through proxy and handlers signs the owner in and opens a protected page", async () => {
+    const linkToken = "fake-u5-magic-link-token-5555";
+    await db.pool.query("INSERT INTO magic_link_tokens (email, token_hash, expires_at) VALUES ($1, $2, NOW() + INTERVAL '15 minutes')", [OWNER_EMAIL, hash(linkToken)]);
+    const res = await throughProxy(jsonReq("/api/auth/verify-magic-link", { token: linkToken, email: OWNER_EMAIL }), verifyMagicPOST);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ ok: true, role: "owner" });
+    const session = setCookieValue(res, "mc_auth")!;
+    expect((await resolveRequestCredential(cookieReq("/api/x", { mc_auth: session })))?.role).toBe("owner");
+    const page = await proxy(cookieReq("/", { mc_auth: session }));
+    expect(page.status).toBe(200);
+    expect(page.headers.get("location")).toBeNull();
+  });
+
+  // GREEN at the base by design (S10, named): login already refused an inactive users row.
+  it("an inactive owner row cannot sign in by password (403 Account disabled, zero cookie)", async () => {
+    const res = await throughProxy(jsonReq("/api/auth/login", { email: "inactive-owner@example.test", password: FAKE_PASSWORD }), loginPOST);
+    expect(res.status).toBe(403);
+    expect(setCookieValue(res, "mc_auth")).toBeNull();
   });
 });

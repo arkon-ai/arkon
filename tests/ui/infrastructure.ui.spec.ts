@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Phase 3: Infrastructure — comprehensive UI regression ── */
 
 test.describe("Infrastructure Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("infrastructure page loads without errors @smoke @regression", async ({ page }) => {

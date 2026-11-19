@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
+import { MC_URL, authHeaders, authenticate } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 4: Large Datasets — Edge & Security Tests
@@ -126,9 +126,7 @@ test.describe("Large Datasets — Concurrent loading", () => {
   });
 
   test("rapid sequential page loads do not leak memory (smoke) @regression @edge", async ({ page }) => {
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     const pages = ["/", "/agents", "/costs", "/workflows", "/security", "/traces"];
     for (const p of pages) {
       await page.goto(`${MC_URL}${p}`);

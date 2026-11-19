@@ -1,14 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Phase 3: ArkonOS (formerly VictoryOS) — comprehensive UI regression ──────── */
 // f1530b9 (2026-04-11) renamed the /victoryos route and component to /arkonos; the old path is a 404.
 
 test.describe("VictoryOS Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("VictoryOS page loads without errors @smoke @regression", async ({ page }) => {

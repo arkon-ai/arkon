@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 5: Accessibility — Forms & Interactive Controls
@@ -88,9 +88,7 @@ test.describe("Forms Accessibility @a11y @regression", () => {
   // ── Authenticated Form Pages ───────────────────────────────
   test.describe("Admin & Settings forms", () => {
     test.beforeEach(async ({ context }) => {
-      await context.request.post(`${MC_URL}/api/auth/init`, {
-        headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-      });
+      await authenticate(context);
     });
 
     test("admin page form inputs have labels", async ({ page }) => {

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 4: Browser Edge Cases — Edge & Security Tests
@@ -9,9 +9,7 @@ import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
    ══════════════════════════════════════════════════════════════ */
 
 test.beforeEach(async ({ context }) => {
-  await context.request.post(`${MC_URL}/api/auth/init`, {
-    headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-  });
+  await authenticate(context);
 });
 
 // ── Back/Forward Navigation ─────────────────────────────────
@@ -152,9 +150,7 @@ test.describe("Browser Edge Cases — Rapid navigation", () => {
 test.describe("Browser Edge Cases — Multiple tabs", () => {
   test("two pages can be open simultaneously @regression @edge", async ({ browser }) => {
     const context = await browser.newContext();
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
     const page1 = await context.newPage();
     const page2 = await context.newPage();
     await page1.goto(`${MC_URL}/`);
@@ -171,9 +167,7 @@ test.describe("Browser Edge Cases — Multiple tabs", () => {
 
   test("auth state is shared across tabs @regression @edge", async ({ browser }) => {
     const context = await browser.newContext();
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
     const page1 = await context.newPage();
     const page2 = await context.newPage();
     // Both tabs should be authenticated

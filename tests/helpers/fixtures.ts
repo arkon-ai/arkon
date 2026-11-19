@@ -1,5 +1,5 @@
 import { test as base, expect, type Page, type BrowserContext } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authenticate } from "./auth";
+import { MC_URL, authenticate, authenticateUser } from "./auth";
 
 /**
  * Custom Arkon test fixtures.
@@ -31,12 +31,8 @@ export const test = base.extend<{
 
   clientContext: async ({ browser }, use) => {
     const context = await browser.newContext();
-    // Client-level auth with limited permissions
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: {
-        Authorization: `Bearer ${process.env.MC_CLIENT_TOKEN || "test-client-token"}`,
-      },
-    });
+    // Client-level auth with limited permissions: a tenant viewer session (transformate WI-4493: init is retired)
+    await authenticateUser(context, "viewer");
     await use(context);
     await context.close();
   },

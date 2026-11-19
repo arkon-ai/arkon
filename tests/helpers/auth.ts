@@ -2,6 +2,10 @@ import { type BrowserContext, type APIRequestContext } from "@playwright/test";
 
 export const MC_URL = process.env.ARKON_BASE_URL || "http://localhost:3000";
 export const ADMIN_TOKEN = process.env.MC_ADMIN_TOKEN || "test-admin-token";
+/** The owner users row scripts/seed-e2e.ts makes (role owner, tenant NULL): a fixed FAKE password, e2e only
+ *  (transformate WI-4493). The browser signs the owner in by this session road; the owner key stays a Bearer. */
+export const OWNER_EMAIL = "e2e-owner@example.test";
+export const OWNER_PASSWORD = "E2e-Owner-Fake-Passw0rd";
 /** Agent token env may be "name:token" format — extract just the token */
 export const AGENT_TOKEN = (() => {
   const raw = process.env.MC_AGENT_TOKEN || "test-agent-token";
@@ -27,13 +31,13 @@ function parseCookieValue(setCookie: string, name: string): string | null {
 }
 
 /**
- * Authenticate a Playwright browser context by hitting /api/auth/init
- * and injecting the returned cookies. Returns the CSRF token for use
- * in mutation requests.
+ * Authenticate a Playwright browser context as the seeded OWNER by the session road (/api/auth/login, email and
+ * password; transformate WI-4493: /api/auth/init is retired) and inject the returned cookies. Returns the CSRF
+ * token for use in mutation requests.
  */
 export async function authenticate(context: BrowserContext): Promise<string> {
-  const response = await context.request.post(`${MC_URL}/api/auth/init`, {
-    headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
+  const response = await context.request.post(`${MC_URL}/api/auth/login`, {
+    data: { email: OWNER_EMAIL, password: OWNER_PASSWORD },
   });
 
   if (!response.ok()) {
@@ -51,7 +55,7 @@ export async function authenticate(context: BrowserContext): Promise<string> {
   }
 
   if (!cookies.some((c) => c.name === "mc_auth")) {
-    // Auth init returns Set-Cookie — manually parse and inject
+    // Auth login returns Set-Cookie - manually parse and inject
     const setCookie = response.headers()["set-cookie"] ?? "";
     if (setCookie.includes("mc_auth")) {
       const authVal = parseCookieValue(setCookie, "mc_auth");
@@ -76,14 +80,14 @@ export async function authenticate(context: BrowserContext): Promise<string> {
 /**
  * Authenticate a context as a real USER session (users + user_sessions rows), not the owner token.
  * Routes that act on "the current user" (e.g. /api/auth/sessions) answer 401 to the owner token by design.
- * Registers a throwaway admin user in the seeded 'transformate' tenant, logs in, returns the CSRF token.
+ * Registers a throwaway user (admin by default) in the seeded 'transformate' tenant, logs in, returns the CSRF token.
  */
-export async function authenticateUser(context: BrowserContext): Promise<string> {
+export async function authenticateUser(context: BrowserContext, role: "admin" | "viewer" = "admin"): Promise<string> {
   const email = `e2e-user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`;
   const password = "E2e-user-Passw0rd";
   const reg = await context.request.post(`${MC_URL}/api/auth/register`, {
     headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    data: { email, password, role: "admin", tenant_id: "transformate" },
+    data: { email, password, role, tenant_id: "transformate" },
   });
   if (!reg.ok()) throw new Error(`Register failed: ${reg.status()} ${await reg.text()}`);
   const login = await context.request.post(`${MC_URL}/api/auth/login`, { data: { email, password } });

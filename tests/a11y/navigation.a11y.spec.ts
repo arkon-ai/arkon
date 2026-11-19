@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 5: Accessibility — Navigation & Keyboard
@@ -10,9 +10,7 @@ import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
 
 test.describe("Navigation Accessibility @a11y @regression", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   // ── Skip Link ──────────────────────────────────────────────

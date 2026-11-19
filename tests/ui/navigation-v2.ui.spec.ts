@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /**
  * Complete page navigation test — covers ALL routes including
@@ -49,9 +49,7 @@ const ALL_PAGES = [
 
 test.describe("All Pages — HTTP 200 + no crash @smoke @regression", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   for (const { path, label } of ALL_PAGES) {
@@ -64,9 +62,7 @@ test.describe("All Pages — HTTP 200 + no crash @smoke @regression", () => {
 
 test.describe("All Pages — no JS errors @regression", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   for (const { path, label } of ALL_PAGES) {
