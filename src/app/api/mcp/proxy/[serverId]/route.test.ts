@@ -1,12 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { query } from "@/lib/db";
+import { constantTimeEqual } from "@/lib/auth-utils";
 import { POST } from "./route";
 
 /* The MCP gateway proxy route (src/app/api/mcp/proxy/[serverId]/route.ts): its own Bearer check admits the server's
    gateway_token or the owner key. Fixed FAKE values only; the upstream MCP server is a stubbed fetch. */
 
 vi.mock("@/lib/db", () => ({ query: vi.fn() }));
+vi.mock("@/lib/auth-utils", async (orig) => {
+  const real = await orig<typeof import("@/lib/auth-utils")>();
+  return { ...real, constantTimeEqual: vi.fn(real.constantTimeEqual) };
+});
 
 const mockQuery = vi.mocked(query);
 const FAKE_OWNER_KEY = "fake-u5-owner-key-0000000000000000";
@@ -69,5 +74,31 @@ describe("mcp proxy: a key by cookie resolves nothing, the same key by Bearer do
     const res = await POST(mcpPost({ bearer: FAKE_OWNER_KEY }), ctx);
     expect(res.status).toBe(200);
     expect(fetch).toHaveBeenCalledOnce();
+  });
+});
+
+/* T7 (transformate WI-4496 (e)): the mcp proxy compares the owner key (route.ts:38-39, plain === at the base) and the
+   server's gateway_token (:42) in constant time, by the canonical auth-utils constantTimeEqual (sha256 digests, then
+   timingSafeEqual: no length branch, no early exit). */
+describe("T7 mcp proxy compares its tokens in constant time (transformate WI-4496)", () => {
+  it("T7 the owner key compare runs through constantTimeEqual", async () => {
+    const res = await POST(mcpPost({ bearer: FAKE_OWNER_KEY }), ctx);
+    expect(res.status).toBe(200);
+    expect(vi.mocked(constantTimeEqual)).toHaveBeenCalledWith(FAKE_OWNER_KEY, FAKE_OWNER_KEY);
+  });
+
+  it("T7 the gateway_token compare runs through constantTimeEqual", async () => {
+    const res = await POST(mcpPost({ bearer: FAKE_GATEWAY_TOKEN }), ctx);
+    expect(res.status).toBe(200);
+    expect(vi.mocked(constantTimeEqual)).toHaveBeenCalledWith(FAKE_GATEWAY_TOKEN, FAKE_GATEWAY_TOKEN);
+  });
+
+  // GREEN at the base by design (S10, named control): a same-length near miss is refused, as before.
+  it("a same-length near miss of the owner key or the gateway token is refused 401", async () => {
+    for (const near of [`${FAKE_OWNER_KEY.slice(0, -1)}X`, `${FAKE_GATEWAY_TOKEN.slice(0, -1)}X`]) {
+      const res = await POST(mcpPost({ bearer: near }), ctx);
+      expect(res.status).toBe(401);
+    }
+    expect(fetch).not.toHaveBeenCalled();
   });
 });
