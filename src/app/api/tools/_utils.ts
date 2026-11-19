@@ -4,6 +4,7 @@ import { query } from "@/lib/db";
 import type { UserRole } from "@/lib/rbac";
 import { constantTimeEqual } from "@/lib/auth-utils";
 import {
+  extractBearerToken,
   extractRequestToken,
   resolveRequestCredential,
 } from "@/lib/request-auth";
@@ -64,10 +65,11 @@ export async function validateRole(req: NextRequest, required: Role): Promise<Ro
   return role;
 }
 
+/** The owner key by the Bearer header ONLY (transformate WI-4495): a key carried by a cookie is never compared. */
 export function validateAdmin(req: NextRequest): boolean {
   const adminToken = process.env.MC_ADMIN_TOKEN ?? "";
   if (!adminToken) return false;
-  const token = extractRequestToken(req);
+  const token = extractBearerToken(req);
   if (!token) return false;
   return constantTimeEqual(token, adminToken);
 }

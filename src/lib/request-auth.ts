@@ -1,5 +1,5 @@
 import { type NextRequest } from "next/server";
-import { constantTimeEqual, hashToken } from "@/lib/auth-utils";
+import { constantTimeEqual, hashToken, warnLegacyAgentToken } from "@/lib/auth-utils";
 import { query } from "@/lib/db";
 
 export type RequestCredentialType = "user_session" | "owner_token" | "api_key" | "agent_token";
@@ -28,6 +28,11 @@ export function extractRequestToken(req: NextRequest): string | null {
 export async function resolveRequestCredential(req: NextRequest): Promise<RequestCredential | null> {
   const token = extractRequestToken(req);
   if (!token) return null;
+  // THE COOKIE RULE (transformate WI-4495, S7): every key compare takes the key from the Bearer header ONLY. A cookie
+  // resolves a user session or an ak_live_ key (kept, named: its removal is W03 U6); the owner key, an agents-table
+  // token and an MC_AGENT_TOKENS key carried by a cookie resolve nothing. Bearer precedence is unchanged: a Bearer
+  // that is present but junk never falls through to the cookie (extractRequestToken; proxy.ts, csrfValidForCookieAuth).
+  const viaBearer = extractBearerToken(req) !== null;
 
   const tokenHash = hashToken(token);
 
@@ -54,7 +59,7 @@ export async function resolveRequestCredential(req: NextRequest): Promise<Reques
   }
 
   const adminToken = process.env.MC_ADMIN_TOKEN ?? "";
-  if (adminToken && constantTimeEqual(token, adminToken)) {
+  if (viaBearer && adminToken && constantTimeEqual(token, adminToken)) {
     return { type: "owner_token", role: "owner", tenant_id: "*" };
   }
 
@@ -76,6 +81,8 @@ export async function resolveRequestCredential(req: NextRequest): Promise<Reques
       // Fall through.
     }
   }
+
+  if (!viaBearer) return null;
 
   try {
     const agentResult = await query(
@@ -99,6 +106,7 @@ export async function resolveRequestCredential(req: NextRequest): Promise<Reques
   for (const pair of agentTokens.split(",")) {
     const [agentId, legacyToken] = pair.split(":");
     if (agentId && legacyToken && constantTimeEqual(token, legacyToken.trim())) {
+      warnLegacyAgentToken(agentId.trim());
       return { type: "agent_token", role: "agent", tenant_id: null, agent_id: agentId.trim() };
     }
   }
