@@ -6,11 +6,11 @@ import {
   parseJsonRecord,
   parseTextArray,
   unauthorized,
-  validateAdmin,
+  validateOwner,
 } from "../_utils";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   try {
     const search = req.nextUrl.searchParams.get("search");
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   try {
     const body = await req.json();

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
 
 const FLEET_SLUGS = ["warden", "codesmith", "lumina", "sentinel"] as const;
 type FleetSlug = (typeof FLEET_SLUGS)[number];
@@ -70,7 +70,7 @@ interface WorkEntryRow {
 }
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  if (!(await validateOwner(req))) {
     return unauthorized();
   }
 

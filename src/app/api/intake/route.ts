@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
 import { sendNotification } from "@/lib/notifications";
 
 const CORS_HEADERS = {
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   const result = await query(
     `SELECT id, full_name, email, client_label, processed, submitted_at,
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   const { searchParams } = req.nextUrl;
   const id = parseInt(searchParams.get("id") ?? "0", 10);

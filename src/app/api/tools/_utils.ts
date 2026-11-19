@@ -74,6 +74,19 @@ export function validateAdmin(req: NextRequest): boolean {
   return constantTimeEqual(token, adminToken);
 }
 
+/**
+ * THE OWNER-ONLY CHECK (transformate WI-4498): admits exactly two credentials: the owner key by the Bearer header
+ * (validateAdmin, Bearer only since WI-4495), or an active, unexpired session of a users row with role owner
+ * (resolveRequestCredential type user_session, role owner: its SQL refuses an expired session and an inactive row).
+ * Nothing else: not an admin, operator or viewer session (zero widening; this is NOT isOwnerOrAdmin), not an agent
+ * or api key. ASYNC: every call is awaited (a Promise is truthy; owner-only-census.test.ts fails on an un-awaited call).
+ */
+export async function validateOwner(req: NextRequest): Promise<boolean> {
+  if (validateAdmin(req)) return true;
+  const credential = await resolveRequestCredential(req);
+  return credential?.type === "user_session" && credential.role === "owner";
+}
+
 export async function isOwnerOrAdmin(req: NextRequest): Promise<boolean> {
   if (validateAdmin(req)) return true;
   const role = await resolveRole(req);

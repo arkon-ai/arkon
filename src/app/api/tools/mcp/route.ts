@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { unauthorized, validateAdmin, forbidden, validateRole } from "../_utils";
+import { unauthorized, validateOwner, forbidden, validateRole } from "../_utils";
 import * as net from "net";
 
 /* ─── TCP Health Check ───────────────────────────────────── */
@@ -26,7 +26,7 @@ function tcpCheck(host: string, port: number, timeoutMs = 5000): Promise<"online
 
 /* ─── GET — list all MCP servers ────────────────────────── */
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   // Optional: run live health check
   const check = req.nextUrl.searchParams.get("check") === "1";
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
 
 /* ─── POST — add MCP server ─────────────────────────────── */
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   const body = await req.json() as {
     name?: string; url?: string; host?: string; port?: number;
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
 
 /* ─── PATCH — update MCP server ─────────────────────────── */
 export async function PATCH(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   const { searchParams } = req.nextUrl;
   const id = parseInt(searchParams.get("id") ?? "0", 10);

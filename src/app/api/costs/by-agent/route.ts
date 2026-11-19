@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  if (!(await validateOwner(req))) {
   return unauthorized();
   }
 

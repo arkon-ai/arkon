@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateAdmin(request)) {
+  if (!(await validateOwner(request))) {
     return unauthorized();
   }
 

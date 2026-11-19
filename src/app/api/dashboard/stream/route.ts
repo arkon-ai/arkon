@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
-import { validateAdmin } from "@/app/api/tools/_utils";
+import { validateOwner } from "@/app/api/tools/_utils";
 import { addListener, listenerCount } from "@/lib/event-bus";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  if (!(await validateOwner(req))) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },

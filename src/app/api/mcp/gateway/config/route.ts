@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
 
 /**
  * GET /api/mcp/gateway/config
@@ -8,7 +8,7 @@ import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
  * Query: ?format=claude-code|cursor|raw&servers=1,2,3 (optional, defaults to all gateway-enabled)
  */
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   const format = req.nextUrl.searchParams.get("format") || "claude-code";
   const serverIds = req.nextUrl.searchParams.get("servers")?.split(",").map(Number).filter(Boolean);

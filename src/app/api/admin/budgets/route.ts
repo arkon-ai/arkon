@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  if (!(await validateOwner(req))) {
   return unauthorized();
   }
 
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  if (!(await validateOwner(req))) {
   return unauthorized();
   }
 
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  if (!(await validateOwner(req))) {
   return unauthorized();
   }
 
@@ -103,7 +103,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  if (!(await validateOwner(req))) {
   return unauthorized();
   }
 

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { csrfValidForCookieAuth } from "@/lib/request-auth";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
   // WI-1849: cookie-session mutations need the double-submit CSRF token.
   if (!csrfValidForCookieAuth(req)) {
     return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });

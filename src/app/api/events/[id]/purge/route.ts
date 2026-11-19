@@ -1,7 +1,7 @@
 // POST /api/events/:id/purge — Delete a threat event from Arkon DB
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
 import { createHash } from "crypto";
 
 type RouteContext = {
@@ -9,7 +9,7 @@ type RouteContext = {
 };
 
 export async function POST(req: NextRequest, context: RouteContext) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   try {
     const { id } = await context.params;

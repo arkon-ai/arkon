@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { query } from "@/lib/db";
+import { unauthorized, validateOwner } from "@/app/api/tools/_utils";
 
 export const dynamic = "force-dynamic";
-
 // Content Factory status — receives push from Dell reporter or serves cached data
 // POST: Dell pushes status JSON (Bearer auth)
-// GET: Dashboard reads latest status (admin auth)
+// GET: Dashboard reads latest status (the OWNER-ONLY check: an owner session or the owner key by Bearer)
 
 let cachedStatus: Record<string, unknown> | null = null;
 let cachedAt: Date | null = null;
@@ -57,22 +57,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  const token = authHeader?.startsWith("Bearer ")
-    ? authHeader.slice(7).trim()
-    : null;
-  const cookieToken = req.cookies.get("mc_token")?.value;
-  const validToken = process.env.MC_ADMIN_TOKEN;
-
-  const checkToken = token || cookieToken;
-  if (
-    !checkToken ||
-    !validToken ||
-    Buffer.byteLength(checkToken) !== Buffer.byteLength(validToken) ||
-    !timingSafeEqual(Buffer.from(checkToken), Buffer.from(validToken))
-  ) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!(await validateOwner(req))) return unauthorized(); // transformate WI-4498: no key read from a cookie
 
   // Return cached if fresh (< 5 min)
   if (cachedStatus && cachedAt) {

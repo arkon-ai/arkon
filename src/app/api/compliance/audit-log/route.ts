@@ -1,10 +1,10 @@
 // src/app/api/compliance/audit-log/route.ts — Audit trail log viewer
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized, parseInteger } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized, parseInteger } from "@/app/api/tools/_utils";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   const url = new URL(req.url);
   const limit = parseInteger(url.searchParams.get("limit"), 50);
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
 
 // POST: Record an audit log entry
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   try {
     const body = (await req.json()) as {

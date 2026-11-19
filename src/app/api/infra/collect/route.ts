@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { query } from "@/lib/db";
-import { unauthorized, validateAdmin } from "@/app/api/tools/_utils";
+import { unauthorized, validateOwner } from "@/app/api/tools/_utils";
 import { broadcast } from "@/lib/event-bus";
 import { sshRun, isValidIp, isValidUnixUser, isValidPort } from "@/lib/ssh-exec";
 
@@ -218,7 +218,7 @@ export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const providedSecret = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
   const isValidCron = cronSecret && providedSecret === cronSecret;
-  const isAdmin = !isValidCron && validateAdmin(req);
+  const isAdmin = !isValidCron && (await validateOwner(req));
 
   if (!isValidCron && !isAdmin) return unauthorized("Cron secret or admin token required");
 

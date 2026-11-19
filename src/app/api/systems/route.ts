@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as net from "net";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
 
 interface ServiceDef {
   name: string;
@@ -51,7 +51,7 @@ function checkPort(host: string, port: number, timeoutMs = 2000): Promise<{ late
 }
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  if (!(await validateOwner(req))) {
     return unauthorized();
   }
 

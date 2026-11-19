@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { parseSerialId, unauthorized, validateAdmin } from "@/app/api/tools/_utils";
+import { parseSerialId, unauthorized, validateOwner } from "@/app/api/tools/_utils";
 
 // GET /api/dashboard/anomalies?limit=20&unacknowledged=true
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   const limit = Math.min(parseInt(req.nextUrl.searchParams.get("limit") ?? "20", 10), 100);
   const unackOnly = req.nextUrl.searchParams.get("unacknowledged") === "true";
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 
 // PATCH /api/dashboard/anomalies — acknowledge alert
 export async function PATCH(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   const { id: rawId } = await req.json() as { id?: string };
   if (!rawId) return NextResponse.json({ error: "id required" }, { status: 400 });

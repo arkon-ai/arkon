@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { unauthorized, validateAdmin } from "@/app/api/tools/_utils";
+import { unauthorized, validateOwner } from "@/app/api/tools/_utils";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return unauthorized();
 
   // Get all nodes with their latest metrics
   const nodesResult = await query(`
