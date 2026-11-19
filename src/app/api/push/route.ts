@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 /**
  * POST /api/push — Save a push subscription
@@ -8,7 +8,7 @@ import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
  */
 
 export async function POST(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const body = await req.json();
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const body = await req.json();

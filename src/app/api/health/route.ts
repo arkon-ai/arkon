@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateOwner } from "@/app/api/tools/_utils";
+import { validateOwner, forbidden, isTenantBoundOwner } from "@/app/api/tools/_utils";
 import * as os from "os";
 
 export const dynamic = "force-dynamic";
@@ -80,6 +80,7 @@ export async function GET(req: NextRequest) {
 
   // Authenticated requests get full details
   const isAdmin = await validateOwner(req);
+  if (!isAdmin && (await isTenantBoundOwner(req))) return forbidden(); // owner answer F3: a tenant-bound owner session
   if (isAdmin) {
     // System info
     const totalMem = os.totalmem();

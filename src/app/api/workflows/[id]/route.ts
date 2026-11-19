@@ -1,14 +1,14 @@
 // src/app/api/workflows/[id]/route.ts — Get, Update, Delete single workflow
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateOwner, unauthorized, resolveUser, parseSerialId } from "@/app/api/tools/_utils";
+import { validateOwner, resolveUser, parseSerialId, ownerRefusal } from "@/app/api/tools/_utils";
 import { logAudit, getClientIp } from "@/lib/audit";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const id = parseSerialId((await params).id);
@@ -36,7 +36,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const { id } = await params;
@@ -110,7 +110,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const { id } = await params;

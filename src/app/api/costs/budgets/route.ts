@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 export async function GET(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
   const result = await query(`SELECT * FROM budget_limits ORDER BY created_at DESC`);
   return NextResponse.json({ budgets: result.rows });
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
   const body = await req.json();
   const { scope_type, scope_id, daily_limit_usd, monthly_limit_usd, alert_threshold_pct, action_on_exceed, tenant_id } = body;
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
   const body = await req.json();
   const { id, daily_limit_usd, monthly_limit_usd, alert_threshold_pct, action_on_exceed } = body;
 
@@ -46,7 +46,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
 

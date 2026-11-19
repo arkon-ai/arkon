@@ -4,7 +4,7 @@ import { sanitizeDocumentContent } from "@/lib/html-sanitize";
 import {
   parseJsonRecord,
   parseTextArray,
-  unauthorized,
+  ownerRefusal,
   validateOwner,
 } from "../../_utils";
 
@@ -13,7 +13,7 @@ type RouteContext = {
 };
 
 export async function GET(req: NextRequest, context: RouteContext) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const { id } = await context.params;
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
 }
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const { id } = await context.params;
@@ -86,7 +86,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(req: NextRequest, context: RouteContext) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const { id } = await context.params;

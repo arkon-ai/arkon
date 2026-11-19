@@ -1,11 +1,11 @@
 // src/app/api/workflows/scheduler/route.ts — Scheduler status API
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 import { getSchedulerStatus, getNextCronRun, describeCron } from "@/lib/workflow-scheduler";
 
 export async function GET(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const scheduler = getSchedulerStatus();

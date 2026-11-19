@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { query } from "@/lib/db";
-import { unauthorized, validateOwner } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 import { broadcast } from "@/lib/event-bus";
 import { sshRun, isValidIp, isValidUnixUser } from "@/lib/ssh-exec";
 
@@ -41,7 +41,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const { id } = await params;
   const body = await req.json() as { action: string };

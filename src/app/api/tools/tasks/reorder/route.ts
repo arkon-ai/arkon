@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { unauthorized, validateOwner } from "../../_utils";
+import { validateOwner, ownerRefusal } from "../../_utils";
 
 export async function POST(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const body = await req.json();

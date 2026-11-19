@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 export async function GET(req: NextRequest) {
   if (!(await validateOwner(req))) {
-  return unauthorized();
+  return ownerRefusal(req);
   }
 
   try {
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!(await validateOwner(req))) {
-  return unauthorized();
+  return ownerRefusal(req);
   }
 
   try {
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   if (!(await validateOwner(req))) {
-  return unauthorized();
+  return ownerRefusal(req);
   }
 
   try {
@@ -104,7 +104,7 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   if (!(await validateOwner(req))) {
-  return unauthorized();
+  return ownerRefusal(req);
   }
 
   try {

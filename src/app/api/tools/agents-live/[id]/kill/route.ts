@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { parseSerialId, unauthorized, validateOwner } from "../../../_utils";
+import { parseSerialId, validateOwner, ownerRefusal } from "../../../_utils";
 import { removeRun, getRunById } from "@/lib/active-runs";
 import { broadcast } from "@/lib/event-bus";
 
@@ -9,7 +9,7 @@ type RouteContext = {
 };
 
 export async function POST(req: NextRequest, context: RouteContext) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const { id } = await context.params;

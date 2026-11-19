@@ -1,14 +1,14 @@
 // POST /api/events/:id/dismiss — Mark a threat event as false positive
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
 export async function POST(req: NextRequest, context: RouteContext) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const { id } = await context.params;

@@ -80,11 +80,29 @@ export function validateAdmin(req: NextRequest): boolean {
  * (resolveRequestCredential type user_session, role owner: its SQL refuses an expired session and an inactive row).
  * Nothing else: not an admin, operator or viewer session (zero widening; this is NOT isOwnerOrAdmin), not an agent
  * or api key. ASYNC: every call is awaited (a Promise is truthy; owner-only-census.test.ts fails on an un-awaited call).
+ * PLATFORM-WIDE (owner answer F3, 2026-11-20): an OWNER-ONLY row is platform-wide and the owner key means tenant "*",
+ * so the owner session is admitted ONLY when its users row has tenant_id NULL. A tenant-bound owner session (any
+ * tenant_id, "" included) is an owner of one tenant: refused, 403 (ownerRefusal below).
  */
 export async function validateOwner(req: NextRequest): Promise<boolean> {
   if (validateAdmin(req)) return true;
   const credential = await resolveRequestCredential(req);
-  return credential?.type === "user_session" && credential.role === "owner";
+  return credential?.type === "user_session" && credential.role === "owner" && credential.tenant_id === null;
+}
+
+/** A users session with role owner bound to a tenant (tenant_id not NULL): refused by the OWNER-ONLY check with 403. */
+export async function isTenantBoundOwner(req: NextRequest): Promise<boolean> {
+  const credential = await resolveRequestCredential(req);
+  return credential?.type === "user_session" && credential.role === "owner" && credential.tenant_id !== null;
+}
+
+/**
+ * THE OWNER-ONLY REFUSAL (owner answer F3): called only after validateOwner refused. A tenant-bound owner session is
+ * authenticated but not the platform owner: 403. Anything else keeps the route's own 401 (`message`, default
+ * "Unauthorized").
+ */
+export async function ownerRefusal(req: NextRequest, message?: string): Promise<NextResponse> {
+  return (await isTenantBoundOwner(req)) ? forbidden() : unauthorized(message);
 }
 
 export async function isOwnerOrAdmin(req: NextRequest): Promise<boolean> {

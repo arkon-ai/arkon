@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { unauthorized, validateOwner } from "../../_utils";
+import { validateOwner, ownerRefusal } from "../../_utils";
 
 type DocumentRow = {
   file_path: string | null;
@@ -21,7 +21,7 @@ type TreeNode = {
 };
 
 export async function GET(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const result = (await query(

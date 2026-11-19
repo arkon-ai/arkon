@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 import { getRuns, getRunsByAgent } from "@/lib/active-runs";
 import { query } from "@/lib/db";
 
@@ -7,7 +7,7 @@ import { query } from "@/lib/db";
 const LIVE_THRESHOLD_MS = 5 * 60 * 1000;
 
 export async function GET(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const agentId = req.nextUrl.searchParams.get("agent_id");
 

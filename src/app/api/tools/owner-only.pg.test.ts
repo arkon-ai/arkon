@@ -8,11 +8,13 @@ import { OWNER_ONLY_ROWS, CONTENT_FACTORY_GET, routePath, type OwnerOnlyRow } fr
 
 /* T10, TABLE-DRIVEN (transformate WI-4498, S8): EVERY exported handler and method with a validateAdmin call row (the
    101 census rows of owner-only-rows.ts, each named by file, line and method) plus content-factory/status GET, each
-   driven with twelve credentials. The owner session and the owner key by Bearer pass; a non-owner session (admin,
-   operator, viewer), an agents-table token (role agent, and role admin), an ak_live_ api key, an MC_AGENT_TOKENS key,
-   an INACTIVE owner row's session, an EXPIRED owner session and no credential read the route's current refusal
-   (401; /api/health is PUBLIC and refuses by omitting its system details) and each refusal comes BEFORE any side
-   effect: zero non-credential SQL, zero fetch, zero exec, zero ssh, zero broadcast, zero notification.
+   driven with thirteen credentials. The owner session (tenant_id NULL) and the owner key by Bearer pass; a non-owner
+   session (admin, operator, viewer), an agents-table token (role agent, and role admin), an ak_live_ api key, an
+   MC_AGENT_TOKENS key, an INACTIVE owner row's session, an EXPIRED owner session and no credential read the route's
+   current refusal (401; /api/health is PUBLIC and refuses by omitting its system details); a TENANT-BOUND owner
+   session (role owner, tenant_id set) reads 403 on every row, /api/health included (owner answer F3, 2026-11-20: an
+   OWNER-ONLY row is platform-wide). Each refusal comes BEFORE any side effect: zero non-credential SQL, zero fetch,
+   zero exec, zero ssh, zero broadcast, zero notification.
    The credential reads (request-auth.ts) run on REAL PostgreSQL (src/lib/auth-test-db.ts), so the inactive row and
    the expired session are refused by the SQL itself. Every other statement is recorded and answered with zero rows.
    Fixed FAKE values only. */
@@ -62,7 +64,8 @@ const FAKE_OWNER_KEY = "fake-t10-owner-key-0000000000000000";
 const FAKE_ENV_KEY = "FAKE-t10-envkey-q7x2m9w4p8";
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
 
-interface Cred { name: string; bearer?: string; cookie?: string; passes: boolean }
+/** `refusal`: the status a refused credential must read (default 401, the route's current refusal). */
+interface Cred { name: string; bearer?: string; cookie?: string; passes: boolean; refusal?: number }
 const CREDS: Cred[] = [
   { name: "owner session", cookie: "fake-t10-owner-session", passes: true },
   { name: "owner key by Bearer", bearer: FAKE_OWNER_KEY, passes: true },
@@ -76,6 +79,8 @@ const CREDS: Cred[] = [
   { name: "inactive owner row session", cookie: "fake-t10-inactive-owner-session", passes: false },
   { name: "expired owner session", cookie: "fake-t10-expired-owner-session", passes: false },
   { name: "no credential", passes: false },
+  // Owner answer F3: role owner bound to a tenant is no platform owner: 403 on every OWNER-ONLY row.
+  { name: "tenant-bound owner session", cookie: "fake-t10-tenant-owner-session", passes: false, refusal: 403 },
 ];
 
 function request(row: OwnerOnlyRow, cred: Cred): NextRequest {
@@ -93,6 +98,10 @@ function request(row: OwnerOnlyRow, cred: Cred): NextRequest {
 type Handler = (req: NextRequest, ctx: { params: Promise<Record<string, string>> }) => Promise<Response>;
 const isHealth = (row: OwnerOnlyRow) => row.file === "src/app/api/health/route.ts";
 
+/** The OWNER-ONLY 403 is forbidden()'s own body; a later check's 403 (a route's CSRF check, "CSRF token missing or
+ *  invalid") would mean the tenant-bound owner got PAST the check, so it does not count. */
+const isOwnerOnly403 = (body: unknown) => JSON.stringify(body) === JSON.stringify({ error: "Forbidden" });
+
 /** Drives one row with every credential; returns each mismatch (empty = the row holds the rule). */
 async function driveRow(row: OwnerOnlyRow): Promise<string[]> {
   const mod = (await import(resolve(row.file))) as Record<string, Handler>;
@@ -107,6 +116,7 @@ async function driveRow(row: OwnerOnlyRow): Promise<string[]> {
       const res = await handler(request(row, cred), { params: Promise.resolve({ id: "1", serverId: "1" }) });
       status = res.status;
       if (isHealth(row)) body = await res.json();
+      else if (cred.refusal === 403 && status === 403) body = await res.json().catch(() => null);
       else await res.body?.cancel().catch(() => {});
     } catch (e) {
       status = -1; // a throw after the check: the handler went past authorization
@@ -116,10 +126,16 @@ async function driveRow(row: OwnerOnlyRow): Promise<string[]> {
     if (isHealth(row)) {
       const hasSystem = !!body && typeof body === "object" && "system" in body;
       if (hasSystem !== cred.passes) wrong.push(`${cred.name}: system details ${hasSystem ? "shown" : "withheld"}`);
+      // PUBLIC: only the tenant-bound owner session reads 403 there (F3); every other caller keeps its 200 or 503.
+      if (cred.refusal === 403 && status !== 403) wrong.push(`${cred.name}: answered ${status}, not the refusal 403`);
+      if (cred.refusal !== 403 && status === 403) wrong.push(`${cred.name}: answered 403 on the PUBLIC health route`);
+      if (cred.refusal === 403 && status === 403 && !isOwnerOnly403(body)) wrong.push(`${cred.name}: a 403 that is not the OWNER-ONLY refusal: ${JSON.stringify(body)}`);
       continue;
     }
+    const refusal = cred.refusal ?? 401;
     if (cred.passes && status === 401) wrong.push(`${cred.name}: refused 401`);
-    if (!cred.passes && status !== 401) wrong.push(`${cred.name}: answered ${status}, not the refusal 401`);
+    if (!cred.passes && status !== refusal) wrong.push(`${cred.name}: answered ${status}, not the refusal ${refusal}`);
+    if (cred.refusal === 403 && status === 403 && !isOwnerOnly403(body)) wrong.push(`${cred.name}: a 403 that is not the OWNER-ONLY refusal: ${JSON.stringify(body)}`);
     if (!cred.passes && h.effects.length > 0) wrong.push(`${cred.name}: side effect before authorization: ${h.effects.join(" | ")}`);
   }
   return wrong;
@@ -141,7 +157,7 @@ beforeAll(async () => {
     `INSERT INTO users (email, password_hash, role, tenant_id, is_active) VALUES
        ('owner@t10.test', 'x', 'owner', NULL, TRUE), ('inactive-owner@t10.test', 'x', 'owner', NULL, FALSE),
        ('admin@t10.test', 'x', 'admin', 'tenant-a', TRUE), ('operator@t10.test', 'x', 'operator', 'tenant-a', TRUE),
-       ('viewer@t10.test', 'x', 'viewer', 'tenant-a', TRUE)
+       ('viewer@t10.test', 'x', 'viewer', 'tenant-a', TRUE), ('tenant-owner@t10.test', 'x', 'owner', 'tenant-a', TRUE)
      RETURNING id, email`,
   );
   const id = (email: string) => users.rows.find((r) => r.email === email).id as number;
@@ -152,6 +168,7 @@ beforeAll(async () => {
     ["admin@t10.test", "fake-t10-admin-session", "1 day"],
     ["operator@t10.test", "fake-t10-operator-session", "1 day"],
     ["viewer@t10.test", "fake-t10-viewer-session", "1 day"],
+    ["tenant-owner@t10.test", "fake-t10-tenant-owner-session", "1 day"],
   ];
   for (const [email, token, ttl] of sessions) {
     await db.pool.query("INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES ($1, $2, NOW() + $3::interval)", [id(email), hash(token), ttl]);

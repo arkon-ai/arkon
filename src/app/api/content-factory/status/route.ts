@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { query } from "@/lib/db";
-import { unauthorized, validateOwner } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 export const dynamic = "force-dynamic";
 // Content Factory status — receives push from Dell reporter or serves cached data
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized(); // transformate WI-4498: no key read from a cookie
+  if (!(await validateOwner(req))) return ownerRefusal(req); // transformate WI-4498: no key read from a cookie
 
   // Return cached if fresh (< 5 min)
   if (cachedStatus && cachedAt) {

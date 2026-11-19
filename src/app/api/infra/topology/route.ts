@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { unauthorized, validateOwner } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +36,7 @@ function derivePositions(nodes: Array<{ id: string; metadata: Record<string, unk
 }
 
 export async function GET(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   // Get all nodes with latest metrics
   const nodesResult = await query(`

@@ -1,10 +1,10 @@
 // src/app/api/benchmarks/compare/route.ts — Compare models side-by-side
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateOwner, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 export async function GET(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const url = new URL(req.url);
   const modelsParam = url.searchParams.get("models"); // comma-separated model_ids

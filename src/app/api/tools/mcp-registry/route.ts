@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { mcpRegistryBase } from "@/lib/mcp-registry-base";
-import { unauthorized, validateOwner } from "../_utils";
+import { validateOwner, ownerRefusal } from "../_utils";
 
 /* ─── GET — search/list the official MCP registry ───────── */
 export async function GET(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const { searchParams } = req.nextUrl;
   const search = searchParams.get("search") ?? "";
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
 
 /* ─── POST — import selected servers from registry into MC ─ */
 export async function POST(req: NextRequest) {
-  if (!(await validateOwner(req))) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const body = await req.json() as { servers: Array<Record<string, unknown>> };
   if (!Array.isArray(body.servers) || body.servers.length === 0) {

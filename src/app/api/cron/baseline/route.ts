@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAnomalies, recomputeBaselines } from "@/lib/anomaly-detector";
-import { unauthorized, validateOwner } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 /**
  * POST /api/cron/baseline
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const isValidCron = cronSecret && providedSecret === cronSecret;
   const isAdmin = !isValidCron && (await validateOwner(req));
 
-  if (!isValidCron && !isAdmin) return unauthorized("Cron secret or admin token required");
+  if (!isValidCron && !isAdmin) return ownerRefusal(req, "Cron secret or admin token required");
 
   const { action = "check" } = await req.json().catch(() => ({ action: "check" })) as { action?: string };
 
