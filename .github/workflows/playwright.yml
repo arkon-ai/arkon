@@ -30,7 +30,9 @@ jobs:
 
   test:
     name: Playwright E2E
-    runs-on: ubuntu-latest
+    # ubuntu-24.04, not ubuntu-latest: ubuntu-latest moved to 26.04 and Playwright refuses
+    # it ("Playwright does not support chromium on ubuntu26.04-x64"; transformate WI-4900).
+    runs-on: ubuntu-24.04
     # 45 (was 30): headroom so the report artifact still uploads on a bad run
     # instead of the job dying mid-suite with no diagnostics.
     timeout-minutes: 45
