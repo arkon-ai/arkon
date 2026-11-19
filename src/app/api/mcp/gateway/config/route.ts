@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
     const servers = serversResult.rows as Array<{
       id: number; name: string; url: string; host: string; port: number;
-      server_type: string; gateway_enabled: boolean; gateway_token: string;
+      server_type: string; gateway_enabled: boolean; gateway_token: string | null;
     }>;
 
     const gatewayBase = process.env.MC_GATEWAY_URL || process.env.ARKON_BASE_URL || "http://localhost:3000";
@@ -41,14 +41,10 @@ export async function GET(req: NextRequest) {
       for (const server of servers) {
         const slug = server.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "");
         const proxyUrl = `${gatewayBase}/api/mcp/proxy/${server.id}`;
-        const token = server.gateway_token || process.env.MC_ADMIN_TOKEN || "";
 
-        mcpServers[slug] = {
-          url: proxyUrl,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
+        mcpServers[slug] = server.gateway_token
+          ? { url: proxyUrl, headers: { Authorization: `Bearer ${server.gateway_token}` } }
+          : { url: proxyUrl, note: NO_GATEWAY_TOKEN_NOTE };
       }
 
       return NextResponse.json({
@@ -73,6 +69,7 @@ export async function GET(req: NextRequest) {
         direct_url: s.url || `http://${s.host}:${s.port}`,
         proxy_url: `${gatewayBase}/api/mcp/proxy/${s.id}`,
         gateway_enabled: s.gateway_enabled,
+        ...(s.gateway_token ? {} : { note: NO_GATEWAY_TOKEN_NOTE }),
       })),
     });
   } catch (err) {
@@ -80,3 +77,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+// Zero byte of the owner key in any export (transformate WI-4496 (f)): a server's own gateway_token is its header; a
+// server with none is listed with this note and zero header (deck-main PICK D.U5.2 (a)). Shown words (RECORD 7491):
+// they ship only on the owner's approve of the exact text (the Desk words row).
+const NO_GATEWAY_TOKEN_NOTE =
+  "No gateway token is set for this server, so this entry carries no Authorization header. Set a gateway token for this server, then generate this config again.";

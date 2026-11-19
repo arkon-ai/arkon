@@ -9,6 +9,11 @@ import {
 } from "@/lib/review-mode";
 
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
+// The MCP gateway proxy authenticates its own Bearer: a server's gateway_token or the owner key, in constant time
+// (src/app/api/mcp/proxy/[serverId]/route.ts validateGatewayAuth), and refuses any other token 401. So a request there
+// WITH a Bearer passes this gate to the route; a Bearer carries no ambient browser authority, so no CSRF either
+// (transformate WI-4496 (f): an exported MCP client config sends its server's gateway_token, which this gate refused).
+const MCP_GATEWAY_PROXY_PREFIX = "/api/mcp/proxy/";
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/docs/"];
 // Root-relative static brand assets (public/*) — always safe to serve unauthenticated;
@@ -118,6 +123,10 @@ export async function proxy(request: NextRequest) {
       reviewResponse.headers.set("X-Arkon-Review-Mode", "1");
       return reviewResponse;
     }
+  }
+
+  if (!reviewMode && pathname.startsWith(MCP_GATEWAY_PROXY_PREFIX) && extractBearerToken(request)) {
+    return response;
   }
 
   if (
