@@ -62,6 +62,7 @@ test.describe("Forms Accessibility @a11y @regression", () => {
       await expect(pwd).toBeVisible();
       await expect(submitBtn).toBeVisible();
 
+      await page.locator("input[type='email']").first().fill("no-such-user@example.invalid");
       await pwd.fill("definitely-wrong-passphrase-a11y-probe");
       await expect(submitBtn).toBeEnabled();
       await submitBtn.click();
