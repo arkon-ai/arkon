@@ -145,7 +145,7 @@ docker compose logs db
 
 ```bash
 # Re-run migrations
-docker compose exec arkon npx tsx scripts/migrate.ts
+docker compose exec arkon node scripts/migrate.js
 # Or check the logs
 docker compose logs arkon | grep -i migration
 ```

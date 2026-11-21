@@ -12,6 +12,36 @@
 // It prints one line per site (SITE), one per repo-wide check (CHECK), notes that do
 // not fail (NOTE), then "T1 RESULT: ...". Exit 0 when every SITE and CHECK is OK,
 // 1 when any FAILs, 2 on a usage error. It never prints a line of any .npmrc (counts only).
+//
+// THE STRICT CHECK (transformate WI-4821): two stages.
+// STAGE 1 reads the preserved bytes of every container and decides SUPPORTED or UNSUPPORTED
+// before any install matching; STAGE 2 is the readers and policy below, run only on SUPPORTED
+// containers. A container it cannot read in the supported forms is refused with one row,
+// "UNSUPPORTED <file>:<line> FAIL: <kind> at :<line>", and rc 1; that row never claims an install.
+// The containers (the manifest): docker-entrypoint.sh and scripts/**/*.sh|*.bash (one file each);
+// each step's run value in .github/workflows/*.yml|*.yaml and .github/actions/<name>/action.yml|
+// action.yaml; each RUN of the root Dockerfile; each scripts value of the root package.json.
+// The supported forms: G1, one line at a time, every line starting and ending with no open quote
+// and no continuation (no CR or control byte; outside quotes no #, \, `, non-ASCII byte or <<, a
+// # only as a line's first non-blank byte; quotes open and close on one line, at word edges; in
+// "..." no `, $(, escaping \ or ' inside ${...}; no ${{ in a run value); G1-PM on a line with npm, npx, pnpm, yarn
+// or corepack (the plain lower-case word where npmCalls reads it, its sub-command one plain word,
+// no ${ or $( on the line); Y1, the YAML subset (block style under jobs: or runs:, no anchor,
+// alias, tag or merge key, a run value plain on one line or a | or |- block, shell: bash or sh);
+// D1, the Dockerfile (no parser directive, SHELL, ONBUILD or exec-form RUN, no package-manager
+// word in CMD, ENTRYPOINT or HEALTHCHECK). docs/npm-install-sites.md lists them with each reason.
+// A build-shaped file outside the manifest gives "CHECK <path> FAIL: UNLISTED: ...".
+// NAMED EXCLUSIONS (not read, each with its reason): lefthook.yml and .lefthook/** (developer-
+// machine git hooks, not CI and not the image); docker-compose.yml (the self-host runtime of the
+// built image; a CHECK row FAILs if it holds a package-manager word); .github/ISSUE_TEMPLATE/** and
+// .github/dependabot.yml (never executed); program files (*.mjs, *.js, *.ts, *.py and their kin);
+// INSTALL.md and docs/** (text a human reads).
+// NOT GUARANTEED (the honest limits): a command name built at run time (from a variable, a $(...)
+// result, eval, an sh -c argument held in a variable); a program file that spawns a package
+// manager; a third-party action's insides (a remote uses:, pinned by SHA where image-build.yml says
+// so); a command name made by glob or brace expansion (/usr/bin/np[m]); a package manager outside
+// the words above (bun, bunx, deno); everything in the named exclusions.
+// This check is a lint against honest mistakes by the repo's own authors, not a sandbox against an attacker.
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, basename, relative } from "node:path";
 
@@ -55,6 +85,342 @@ function read(rel) {
   const p = join(root, rel);
   return existsSync(p) ? readFileSync(p, "utf8") : null;
 }
+
+// ---------- STAGE 1: the supported-form gate (transformate WI-4821) ----------
+// It reads the PRESERVED bytes of every container (split on \n only: no comment strip, no
+// line join, no blank-line drop, no trim) and decides SUPPORTED or UNSUPPORTED before any
+// install matching. It looks for no install: G1-PM only adds misses. An UNSUPPORTED container
+// gives ONE row and none of its lines reach STAGE 2 (the readers and policy below).
+const refused = new Set();
+const supported = (...keys) => keys.every((k) => !refused.has(k));
+const PM_WORD = /(?<![A-Za-z0-9_.-])(npm|npx|pnpm|yarn|corepack)(?![A-Za-z0-9_-])/gi;
+const PM_READ = new Set(["npm", "npx", "yarn", "pnpm"]);
+const OPEN_AFTER = " \t=(;|&<>";
+const CLOSE_BEFORE = " \t;|&)<>";
+// G1 and G1-PM for one line; the first miss, or null when the line passes
+function shellMiss(s, inRun) {
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c === 13) return "G1.1 a CR byte";
+    if ((c < 32 && c !== 9) || c === 127) return "G1.1 a control byte";
+  }
+  if (inRun && s.includes("${{")) return "G1.5 a ${{ expression in a run value";
+  if (/^[ \t]*(#|$)/.test(s)) return null; // a blank line or a standalone comment line
+  const quoted = [];
+  let q = "";
+  let depth = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (q === "") {
+      if (c === "#") return "G1.2 a # that is not the line's first non-blank byte";
+      if (c === "\\") return "G1.2 a backslash outside quotes";
+      if (c === "`") return "G1.2 a backtick outside quotes";
+      if (s.charCodeAt(i) > 127) return "G1.2 a non-ASCII byte outside quotes";
+      if (c === "<" && s[i + 1] === "<") return "G1.2 a << (a heredoc or a here-string)";
+      if (c === "'" || c === '"') {
+        if (i > 0 && !OPEN_AFTER.includes(s[i - 1])) return "G1.6 a quote that opens inside a word";
+        q = c;
+        depth = 0;
+        quoted[i] = true;
+      }
+      continue;
+    }
+    quoted[i] = true;
+    if (q === "'") {
+      if (c === "'") {
+        if (i + 1 < s.length && !CLOSE_BEFORE.includes(s[i + 1])) return "G1.6 a quote that closes inside a word";
+        q = "";
+      }
+      continue;
+    }
+    if (c === "`") return "G1.4 a backtick inside double quotes";
+    if (c === "$" && s[i + 1] === "(") return "G1.4 a $( inside double quotes";
+    if (c === "\\") {
+      if (i + 1 === s.length) return "G1.4 a double quote open at the line end";
+      if ("$`\"\\".includes(s[i + 1])) return "G1.4 an escaping backslash inside double quotes";
+      continue;
+    }
+    if (c === "$" && s[i + 1] === "{") {
+      depth++;
+      quoted[++i] = true;
+      continue;
+    }
+    if (depth > 0 && c === "}") {
+      depth--;
+      continue;
+    }
+    if (depth > 0 && c === "'") return "C a ' inside a double-quoted ${...} (a quote boundary the rules cannot establish)";
+    if (c === '"') {
+      if (i + 1 < s.length && !CLOSE_BEFORE.includes(s[i + 1])) return "G1.6 a quote that closes inside a word";
+      q = "";
+    }
+  }
+  if (q === "'") return "G1.3 a single quote open at the line end";
+  if (q === '"') return "G1.4 a double quote open at the line end";
+  let sub = -1; // where npmCalls captures the sub-command of the PM word before
+  for (const m of s.matchAll(PM_WORD)) {
+    if (s.includes("${") || s.includes("$(")) return "PM.1 a ${ or $( on a package-manager line";
+    const i = m.index;
+    const w = m[1];
+    if (quoted[i]) return "PM.2 a package-manager word inside quotes";
+    const after = s[i + w.length];
+    if (!PM_READ.has(w) || i === sub || (i > 0 && !" \t;&|(".includes(s[i - 1])) || (after !== undefined && after !== " " && after !== "\t")) {
+      return "PM.3 a package-manager word that npmCalls does not read";
+    }
+    let j = i + w.length;
+    while (s[j] === " " || s[j] === "\t") j++;
+    sub = j;
+    if (s[j] === "-") return "PM.4 an option right after the package-manager word";
+    if (j < s.length && !";&|)".includes(s[j])) {
+      let k = j;
+      while (k < s.length && /[A-Za-z0-9_@./:-]/.test(s[k])) k++;
+      if (k === j || (k < s.length && !CLOSE_BEFORE.slice(0, 6).includes(s[k]))) return "PM.5 a sub-command word that npmCalls does not read whole";
+    }
+  }
+  if (s.includes("${") && /npm|npx|pnpm|yarn|corepack/i.test(s)) return "PM.6 a package-manager name in a line that holds ${";
+  return null;
+}
+// one row per UNSUPPORTED container: its first miss, plus "and <n> more" lines with a miss
+const counts = {};
+function container(type, ok) {
+  counts[type] = counts[type] || { ok: 0, no: 0 };
+  counts[type][ok ? "ok" : "no"]++;
+}
+function refuse(keys, file, at, misses, suffix = "") {
+  const ms = [...misses.entries()].sort((a, b) => a[0] - b[0]);
+  for (const k of keys) refused.add(k);
+  line("UNSUPPORTED", `${file}:${at ?? ms[0][0]}`, false, `${ms[0][1]} at :${ms[0][0]}${ms.length > 1 ? ` and ${ms.length - 1} more` : ""}${suffix}`);
+}
+function addMiss(misses, ln, kind) {
+  if (kind && !misses.has(ln)) misses.set(ln, kind);
+}
+
+// B8: the walk of <repo-root> (skips .git and node_modules) and THE UNLISTED GUARD
+function walkAll(dir, out = []) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (e.isDirectory()) {
+      if (e.name !== ".git" && e.name !== "node_modules") walkAll(join(dir, e.name), out);
+    } else out.push(relative(root, join(dir, e.name)).split("\\").join("/"));
+  }
+  return out;
+}
+const allFiles = walkAll(root).sort();
+const inB1 = (r) => r === "docker-entrypoint.sh" || (r.startsWith("scripts/") && /\.(sh|bash)$/.test(r));
+const inB2 = (r) => /^\.github\/workflows\/[^/]+\.ya?ml$/.test(r);
+const inB3 = (r) => /^\.github\/actions\/[^/]+\/action\.ya?ml$/.test(r);
+const inB7 = (r) => r === "lefthook.yml" || r.startsWith(".lefthook/") || r === "docker-compose.yml" || r.startsWith(".github/ISSUE_TEMPLATE/") ||
+  r === ".github/dependabot.yml" || r === "INSTALL.md" || r.startsWith("docs/");
+for (const r of allFiles) {
+  const b = basename(r);
+  const build = /\.(sh|bash)$/.test(b) || b.startsWith("Dockerfile") || b.endsWith(".Dockerfile") || b.startsWith("Containerfile") ||
+    /compose.*\.ya?ml$/.test(b) || (r.startsWith(".github/") && /\.ya?ml$/.test(b)) || /^action\.ya?ml$/.test(b);
+  if (build && !inB1(r) && !inB2(r) && !inB3(r) && r !== "Dockerfile" && !inB7(r)) line("CHECK", r, false, "UNLISTED: a build file outside the manifest");
+}
+// B7: docker-compose.yml holds no package-manager word
+const compose = read("docker-compose.yml");
+if (compose !== null) {
+  const at = compose.split("\n").map((l, i) => (l.match(PM_WORD) ? i + 1 : 0)).filter(Boolean);
+  if (at.length) line("CHECK", "docker-compose.yml", false, `a package-manager word at :${at.join(", :")} (the compose file is outside the manifest, B7)`);
+}
+
+// B1: each shell file is ONE container
+for (const r of allFiles.filter(inB1)) {
+  const misses = new Map();
+  readFileSync(join(root, r), "utf8").split("\n").forEach((l, i) => addMiss(misses, i + 1, shellMiss(l, false)));
+  container("shell files", misses.size === 0);
+  if (misses.size) refuse([r], r, undefined, misses);
+}
+
+// B2, B3: Y1 over each file as a whole, C0, then G1 over each step's run value
+const acFiles = allFiles.filter(inB3);
+for (const r of [...allFiles.filter(inB2), ...acFiles]) {
+  const text = readFileSync(join(root, r), "utf8");
+  const raw = text.split("\n");
+  const { all } = yamlTree(text);
+  const top = inB3(r) ? "runs" : "jobs";
+  const type = inB3(r) ? "action runs" : "workflow runs";
+  const runs = all.filter((n) => !n.isItem && n.key === "run" && !(n.value === "" && n.children.length && n.parent && n.parent.key === "defaults"));
+  const fileMiss = new Map();
+  const body = new Set();
+  for (const n of all) for (const b of n.body || []) body.add(b.line);
+  let topKey = "";
+  raw.forEach((l, i) => {
+    const ln = i + 1;
+    if (l.includes("\r")) return addMiss(fileMiss, ln, "Y1.1 a CR byte");
+    if (/^[ \t]*/.exec(l)[0].includes("\t")) return addMiss(fileMiss, ln, "Y1.1 a tab in the indentation");
+    if (body.has(ln)) return;
+    if ((/^(---|\.\.\.)([ \t]|$)/.test(l) && !(ln === 1 && /^---[ \t]*$/.test(l))) || l.startsWith("%")) {
+      return addMiss(fileMiss, ln, "Y1.1 a document marker or a directive");
+    }
+    const content = l.replace(/(^|\s)#.*$/, "").replace(/\s+$/, "");
+    if (content.trim() === "") return;
+    const col = content.search(/\S/);
+    let rest = content.slice(col);
+    while (rest === "-" || rest.startsWith("- ")) rest = rest.slice(1).trimStart();
+    const km = rest.match(/^("[^"]*"|'[^']*'|[^\s:][^:]*?):(?:\s+(.*))?$/);
+    const key = km ? km[1].trim() : null;
+    const value = km ? (km[2] || "").trim() : rest;
+    if (col === 0 && key) topKey = key;
+    if (/^[&*!]/.test(value) || (key !== null && (/^[&*!]/.test(key) || key === "<<"))) addMiss(fileMiss, ln, "Y1.2 an anchor, an alias, a tag or a merge key");
+    if (topKey === top && (/^[[{]/.test(value) || /^[[{]/.test(rest) || /^["']/.test(rest) && key !== null || /^\?(\s|$)/.test(rest))) {
+      addMiss(fileMiss, ln, `Y1.3 a flow value, a quoted key or a ? key under ${top}:`);
+    }
+    if (/^[|>]/.test(value) && !/^[|>][-+]?$/.test(value)) addMiss(fileMiss, ln, "Y1.4 a block scalar header the reader does not read");
+  });
+  for (const n of runs) {
+    if (n.value === "") addMiss(fileMiss, n.line, "Y1.4 an empty or a multi-line plain run value");
+    else if (/^[|>]/.test(n.value)) {
+      if (n.value !== "|" && n.value !== "|-") addMiss(fileMiss, n.line, "Y1.4 a folded, keep or indented block run value");
+    } else if (/^['"[{&*!#]/.test(n.value)) addMiss(fileMiss, n.line, "Y1.4 a quoted, flow or tagged run value");
+    else {
+      const next = raw.slice(n.line).find((t) => t.trim() !== "");
+      if (next !== undefined && next.search(/\S/) > n.col) addMiss(fileMiss, n.line, "Y1.4 an empty or a multi-line plain run value");
+    }
+  }
+  for (const n of all.filter((x) => !x.isItem && x.key === "shell")) {
+    if (n.value !== "bash" && n.value !== "sh") addMiss(fileMiss, n.line, "Y1.5 a shell: other than bash or sh");
+  }
+  // C0: every line that names a run key is a run the reader extracted
+  const rawRun = raw.map((l, i) => (/^\s*(-\s+)?run\s*:/.test(l) ? i + 1 : 0)).filter(Boolean);
+  const treeRun = new Set(all.filter((n) => !n.isItem && n.key === "run").map((n) => n.line));
+  for (const ln of [...rawRun.filter((x) => !treeRun.has(x)), ...[...treeRun].filter((x) => !rawRun.includes(x))]) {
+    addMiss(fileMiss, ln, "C0 a run line the reader did not extract");
+  }
+  if (fileMiss.size) {
+    for (const n of runs) container(type, false);
+    refuse([r], r, undefined, fileMiss, " (the whole file: no step read)");
+    continue;
+  }
+  for (const n of runs) {
+    const misses = new Map();
+    if (n.body) {
+      const lines = n.body.filter((b) => raw[b.line - 1].trim() !== "");
+      const ind = lines.length ? raw[lines[0].line - 1].search(/\S/) : 0;
+      for (const b of n.body) {
+        const l = raw[b.line - 1];
+        if (l.trim() !== "" && l.search(/\S/) < ind) addMiss(misses, b.line, "C0 a block line indented less than the block's first line");
+        addMiss(misses, b.line, shellMiss(l, true));
+      }
+    } else {
+      // the preserved text after "run:", then the decoded value STAGE 2 reads (runLines, master :331)
+      const pm = raw[n.line - 1].match(/^\s*(?:-\s+)*run\s*:(.*)$/);
+      if (!pm) addMiss(misses, n.line, "C0 a run line the reader did not extract");
+      else if (pm[1].includes("#")) addMiss(misses, n.line, "C0 a # in a plain run value");
+      else addMiss(misses, n.line, shellMiss(pm[1].trim(), true));
+      addMiss(misses, n.line, shellMiss(n.value, true));
+    }
+    container(type, misses.size === 0);
+    if (misses.size) refuse([`${r}:${n.line}`], r, n.line, misses);
+  }
+}
+
+// B4: D1 over the Dockerfile at the root; each RUN is ONE container
+const dockerText = read("Dockerfile");
+if (dockerText !== null) {
+  const raw = dockerText.split("\n");
+  const spans = [];
+  let cur = null;
+  raw.forEach((l, i) => {
+    const t = l.trim();
+    if (cur === null) {
+      if (t === "" || t.startsWith("#")) return;
+      cur = { line: i + 1, lines: [] };
+    }
+    cur.lines.push(i + 1);
+    if (t.startsWith("#") && cur.lines.length > 1) return;
+    if (!/\\\s*$/.test(l)) {
+      spans.push(cur);
+      cur = null;
+    }
+  });
+  if (cur) spans.push(cur);
+  const fileMiss = new Map();
+  raw.forEach((l, i) => {
+    if (/^\s*#\s*(escape|syntax)\s*=/i.test(l)) addMiss(fileMiss, i + 1, "D1 a parser directive");
+  });
+  for (const sp of spans) {
+    const op = raw[sp.line - 1].trim().split(/\s+/)[0].toUpperCase();
+    const text = sp.lines.map((n) => raw[n - 1]).join("\n");
+    if (op === "SHELL") addMiss(fileMiss, sp.line, "D1 a SHELL instruction");
+    if (op === "ONBUILD") addMiss(fileMiss, sp.line, "D1 an ONBUILD instruction");
+    if (["CMD", "ENTRYPOINT", "HEALTHCHECK"].includes(op) && text.match(PM_WORD)) addMiss(fileMiss, sp.line, "D1 a package-manager word in CMD, ENTRYPOINT or HEALTHCHECK");
+  }
+  const runSpans = spans.filter((sp) => raw[sp.line - 1].trim().split(/\s+/)[0].toUpperCase() === "RUN");
+  if (fileMiss.size) {
+    for (const sp of runSpans) container("Dockerfile RUNs", false);
+    refuse(["Dockerfile"], "Dockerfile", undefined, fileMiss, " (the whole Dockerfile: no RUN read)");
+  } else {
+    const { ins } = dockerInstructions(dockerText);
+    for (const sp of runSpans) {
+      const misses = new Map();
+      const x = ins.find((y) => y.line === sp.line);
+      const { body } = splitFlags(x ? x.rest : "");
+      if (body.startsWith("[")) addMiss(misses, sp.line, "D1 an exec-form RUN");
+      for (const n of sp.lines) addMiss(misses, n, shellMiss(raw[n - 1], false));
+      addMiss(misses, sp.line, shellMiss(body, false));
+      container("Dockerfile RUNs", misses.size === 0);
+      if (misses.size) refuse([`Dockerfile:${sp.line}`], "Dockerfile", sp.line, misses);
+    }
+  }
+}
+
+// B5: each package.json scripts value is ONE container; its raw JSON string must hold no escape
+const pjRaw = read("package.json");
+let pjScripts = null;
+try {
+  pjScripts = pjRaw === null ? null : JSON.parse(pjRaw).scripts || null;
+} catch {
+  pjScripts = null; // an unreadable package.json fails below, in master's own read
+}
+if (pjScripts && typeof pjScripts === "object") {
+  const entries = Object.entries(pjScripts);
+  const raw = pjRaw.split("\n");
+  const start = raw.findIndex((l) => /^\s*"scripts"\s*:\s*\{\s*$/.test(l));
+  const rows = [];
+  let shape = start >= 0;
+  for (let i = start + 1; shape && i < raw.length; i++) {
+    if (/^\s*\}\s*,?\s*$/.test(raw[i])) break;
+    const m = raw[i].match(/^\s*"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,?\s*$/);
+    if (!m) shape = false;
+    else rows.push({ line: i + 1, k: m[1], v: m[2] });
+  }
+  const dec = (s) => {
+    try {
+      return JSON.parse(`"${s}"`);
+    } catch {
+      return null;
+    }
+  };
+  shape = shape && rows.length === entries.length && rows.every((x, i) => dec(x.k) === entries[i][0] && dec(x.v) === entries[i][1]);
+  if (!shape) {
+    for (const e of entries) container("package.json scripts", false);
+    const at = start >= 0 ? start + 1 : raw.findIndex((l) => /"scripts"/.test(l)) + 1 || 1;
+    refuse(["package.json scripts"], "package.json", at, new Map([[at, "C0 the scripts block is not one \"key\": \"value\" string per line"]]), " (every scripts value: none read)");
+  } else {
+    for (const x of rows) {
+      const misses = new Map();
+      if (x.v.includes("\\")) addMiss(misses, x.line, "C0 a backslash escape in the package.json string");
+      else addMiss(misses, x.line, shellMiss(x.v, false));
+      container("package.json scripts", misses.size === 0);
+      if (misses.size) refuse([`package.json scripts.${dec(x.k)}`], "package.json", x.line, misses, ` (scripts.${dec(x.k)})`);
+    }
+  }
+}
+// a workflow or action step `uses: ./<path>` names a B3 file, or it is UNLISTED
+for (const r of [...allFiles.filter(inB2), ...acFiles]) {
+  const { all } = yamlTree(readFileSync(join(root, r), "utf8"));
+  for (const n of all.filter((x) => !x.isItem && x.key === "uses")) {
+    const v = n.value.replace(/^["']|["']$/g, "");
+    if (!v.startsWith("./")) continue;
+    const p = v.slice(2).replace(/\/+$/, "");
+    if (!acFiles.includes(`${p}/action.yml`) && !acFiles.includes(`${p}/action.yaml`)) {
+      line("CHECK", `${r}:${n.line} uses ./${p}`, false, "UNLISTED: a build file outside the manifest");
+    }
+  }
+}
+const total = Object.values(counts).reduce((a, c) => a + c.ok + c.no, 0);
+line("NOTE", "manifest", true, `${total} containers: ` + ["shell files", "workflow runs", "action runs", "Dockerfile RUNs", "package.json scripts"]
+  .map((t) => `${t} ${(counts[t] || { ok: 0 }).ok} SUPPORTED, ${(counts[t] || { no: 0 }).no} UNSUPPORTED`).join("; "));
 
 // npm/npx/yarn/pnpm calls in one shell command string
 function npmCalls(cmd) {
@@ -217,6 +583,7 @@ if (dockerfile === null) {
         }
       }
       if (x.op !== "RUN") continue;
+      if (!supported("Dockerfile", `Dockerfile:${x.line}`)) continue; // STAGE 1 refused this RUN
       const { flags, body } = splitFlags(x.rest);
       const mounts = flags.filter((f) => f.startsWith("--mount=")).map(parseMount);
       const secretMounts = mounts.filter((m) => m.type === "secret");
@@ -257,7 +624,7 @@ if (dockerfile === null) {
 
 // ---------- docker-entrypoint.sh (runs at container start: zero fetch) ----------
 const entry = read("docker-entrypoint.sh");
-if (entry !== null) {
+if (entry !== null && supported("docker-entrypoint.sh")) {
   let n = 0;
   entry.split(/\r?\n/).forEach((l, i) => {
     if (/^\s*#/.test(l)) return;
@@ -334,8 +701,7 @@ const expr = (v) => v.replace(/^\$\{\{\s*/, "").replace(/\s*\}\}$/, "").replace(
 // ---------- workflows ----------
 const wfDir = join(root, ".github", "workflows");
 const wfFiles = existsSync(wfDir) ? readdirSync(wfDir).filter((f) => /\.ya?ml$/.test(f)).sort() : [];
-for (const f of wfFiles) {
-  const rel = `.github/workflows/${f}`;
+for (const rel of [...wfFiles.map((f) => `.github/workflows/${f}`), ...acFiles]) {
   const text = read(rel);
   const ptt = (text.match(/pull_request_target/g) || []).length;
   line("CHECK", `${rel} pull_request_target`, ptt === 0, `count ${ptt}`);
@@ -343,6 +709,7 @@ for (const f of wfFiles) {
   if (rrh) line("CHECK", `${rel} replace-registry-host`, false, `count ${rrh}`);
   const { all } = yamlTree(text);
   for (const n of all.filter((x) => x.key === "run")) {
+    if (!supported(rel, `${rel}:${n.line}`)) continue; // STAGE 1 refused this file or this run
     for (const b of runLines(n)) {
       if (/^\s*#/.test(b.text)) continue;
       for (const c of npmCalls(b.text)) {
@@ -374,6 +741,7 @@ function walk(dir) {
 for (const p of walk(join(root, "scripts")).sort()) {
   const rel = relative(root, p).split("\\").join("/");
   if (SELF.has(rel) || !/\.(sh|bash)$/.test(rel)) continue;
+  if (!supported(rel)) continue; // STAGE 1 refused this file
   const text = readFileSync(p, "utf8");
   text.split(/\r?\n/).forEach((l, i) => {
     if (/^\s*#/.test(l)) return;
@@ -397,6 +765,7 @@ if (pjText !== null) {
   const scripts = JSON.parse(pjText).scripts || {};
   let n = 0;
   for (const [k, v] of Object.entries(scripts)) {
+    if (!supported("package.json scripts", `package.json scripts.${k}`)) continue; // STAGE 1 refused it
     for (const c of npmCalls(String(v))) {
       if (c.kind === "fetch" && c.tool !== "npx") {
         n++;

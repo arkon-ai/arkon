@@ -10,21 +10,11 @@
 #
 # Exit 0 only when that resize succeeds. Needs the same npm auth as `npm ci`.
 set -euo pipefail
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+HERE=$(dirname "$0"); ROOT=$(cd "$HERE/.." && pwd)
 W=$(mktemp -d)
 trap 'rm -rf "$W"' EXIT
 cp "$ROOT/package.json" "$ROOT/package-lock.json" "$W/"
 [ -f "$ROOT/.npmrc" ] && cp "$ROOT/.npmrc" "$W/"
 cd "$W"
 npm ci --omit=dev --no-audit --no-fund
-node -e '
-const sharp = require(require.resolve("sharp", { paths: [require.resolve("next")] }));
-sharp({ create: { width: 64, height: 64, channels: 4, background: "#3366ff" } })
-  .png().toBuffer()
-  .then((png) => sharp(png).resize(16, 16).png().toBuffer({ resolveWithObject: true }))
-  .then(({ info }) => {
-    if (info.width !== 16 || info.height !== 16) throw new Error("resize gave " + info.width + "x" + info.height);
-    console.log("prod sharp OK", sharp.versions.sharp, "libvips", sharp.versions.vips, process.platform, process.arch);
-  })
-  .catch((e) => { console.error("prod sharp FAILED:", e.message); process.exit(1); });
-'
+node "$ROOT/scripts/check-prod-sharp.mjs"

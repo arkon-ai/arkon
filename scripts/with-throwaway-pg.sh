@@ -22,12 +22,12 @@ unset DATABASE_URL
 for v in $(compgen -e); do case $v in PG*) unset "$v" ;; esac; done
 
 dir=$(mktemp -d "${TMPDIR:-/tmp}/arkon-pg.XXXXXX")
-case $dir in *"'"*) echo "with-throwaway-pg: refused: temp dir '$dir' holds a ' (pg_ctl -o cannot quote it)" >&2; exit 1 ;; esac
+q="'"
+case $dir in *$q*) echo "with-throwaway-pg: refused: temp dir '$dir' holds a ' (pg_ctl -o cannot quote it)" >&2; exit 1 ;; esac
 "$pg_bin/initdb" -D "$dir/data" -U arkon --auth=trust -E UTF8 >/dev/null
 mkdir "$dir/s"
 # pg_ctl hands -o to a shell: the socket dir is single-quoted so a space in it survives
-"$pg_bin/pg_ctl" -D "$dir/data" -o "-c listen_addresses= -k '$dir/s' -p 55433 -c fsync=off" -w -l "$dir/pg.log" start >/dev/null \
-  || { cat "$dir/pg.log" >&2; exit 1; }
+"$pg_bin/pg_ctl" -D "$dir/data" -o "-c listen_addresses= -k '$dir/s' -p 55433 -c fsync=off" -w -l "$dir/pg.log" start >/dev/null || { cat "$dir/pg.log" >&2; exit 1; }
 "$pg_bin/createdb" -h "$dir/s" -p 55433 -U arkon arkon_test
 echo "with-throwaway-pg: PostgreSQL 16 in $dir (unix socket only), removed on exit"
 # ponytail: only a space is URL-encoded in host=; other URL-special characters in TMPDIR are not handled
