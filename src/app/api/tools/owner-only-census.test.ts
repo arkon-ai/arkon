@@ -63,12 +63,12 @@ describe("THE OWNER-ONLY CENSUS at this tree (transformate WI-4498)", () => {
     expect(text).not.toContain("mc_token");
   });
 
-  it("THE ASYNC TRAP: every validateOwner call in src is awaited, and there are exactly 102 route calls", () => {
+  it("THE ASYNC TRAP: every validateOwner call in src is awaited, and there are exactly 103 route calls", () => {
     const unawaited = srcFiles.flatMap((f) => unawaitedOwnerCalls(readFileSync(f, "utf8")).map((b) => `${f}:${b}`));
     expect(unawaited).toEqual([]);
     const routeCalls = srcFiles.filter((f) => f.startsWith("src/app/api/") && f.endsWith("/route.ts"))
       .reduce((n, f) => n + (readFileSync(f, "utf8").split(`await ${CALL}`).length - 1), 0);
-    expect(routeCalls).toBe(102);
+    expect(routeCalls).toBe(103);
   });
 
   it("zero route file calls validateAdmin( any more (the census at the tip: only tools/_utils.ts keeps it)", () => {
