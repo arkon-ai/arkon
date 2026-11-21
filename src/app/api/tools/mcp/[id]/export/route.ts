@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 /* ─── GET — export MCP config for AI clients ────────────── */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const { id } = await params;
   const serverId = parseInt(id, 10);

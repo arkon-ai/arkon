@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Client Portal — UI + API tests ──────────────────────────── */
 
 test.describe("Client Portal Pages", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("client dashboard loads @smoke @regression", async ({ page }) => {
@@ -46,9 +44,7 @@ test.describe("Client Portal Pages", () => {
 
 test.describe("Client Portal Navigation", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("client portal has navigation tabs @regression", async ({ page }) => {

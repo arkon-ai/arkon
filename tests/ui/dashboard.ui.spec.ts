@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Phase 3: Dashboard — comprehensive UI regression ──────── */
 
@@ -9,9 +9,7 @@ const EVENTS_CELL = "text=/^Events · 24h$/";
 
 test.describe("Dashboard Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   // ── Render & Error-Free ────────────────────────────────────

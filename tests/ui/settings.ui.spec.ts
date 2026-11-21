@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Phase 3: Settings — comprehensive UI regression ───────── */
 
 test.describe("Settings Redirect", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("settings root redirects to notifications @regression", async ({ page }) => {
@@ -22,9 +20,7 @@ test.describe("Settings Redirect", () => {
 
 test.describe("Settings Appearance Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("appearance page loads without errors @regression", async ({ page }) => {
@@ -155,9 +151,7 @@ test.describe("Settings Appearance Page UI", () => {
 
 test.describe("Settings Sessions Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("sessions page loads without errors @regression", async ({ page }) => {

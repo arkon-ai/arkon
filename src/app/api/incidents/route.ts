@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { csrfValidForCookieAuth } from "@/lib/request-auth";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 const SLA_HOURS: Record<string, number> = { P1: 1, P2: 4, P3: 24, P4: 72 };
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const sp = req.nextUrl.searchParams;
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
   // WI-1849: cookie-session mutations need the double-submit CSRF token.
   if (!csrfValidForCookieAuth(req)) {
     return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });

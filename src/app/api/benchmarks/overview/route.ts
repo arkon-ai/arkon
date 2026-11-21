@@ -1,10 +1,10 @@
 // src/app/api/benchmarks/overview/route.ts — Benchmark overview stats
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const url = new URL(req.url);
   const range = url.searchParams.get("range") || "30d";
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
 
 // POST: Record a new benchmark run
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const body = (await req.json()) as {

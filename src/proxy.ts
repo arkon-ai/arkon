@@ -9,6 +9,11 @@ import {
 } from "@/lib/review-mode";
 
 const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"];
+// The MCP gateway proxy authenticates its own Bearer: a server's gateway_token or the owner key, in constant time
+// (src/app/api/mcp/proxy/[serverId]/route.ts validateGatewayAuth), and refuses any other token 401. So a request there
+// WITH a Bearer passes this gate to the route; a Bearer carries no ambient browser authority, so no CSRF either
+// (transformate WI-4496 (f): an exported MCP client config sends its server's gateway_token, which this gate refused).
+const MCP_GATEWAY_PROXY_PREFIX = "/api/mcp/proxy/";
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/docs/"];
 // Root-relative static brand assets (public/*) — always safe to serve unauthenticated;
@@ -83,6 +88,23 @@ function setReviewCookies(response: NextResponse, request: NextRequest) {
   response.cookies.set("mc_csrf", "review-mode-csrf", cookieOptions);
 }
 
+/**
+ * THE STALE COOKIE (transformate WI-4494, S6): an mc_auth cookie that came with no Bearer and resolved no credential
+ * is expired on the refusal. A pre-U5 browser holds the raw owner key there for up to 7 days (the retired
+ * /api/auth/init set it), and /api/auth/logout cannot clear it: logout is not public, so it answers 401 here.
+ * With a Bearer present the cookie was never read (Bearer precedence), so it is left alone.
+ */
+function expireStaleAuthCookie(denied: NextResponse, request: NextRequest) {
+  if (extractBearerToken(request) || !request.cookies.get("mc_auth")?.value) return;
+  denied.cookies.set("mc_auth", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 0,
+    path: "/",
+  });
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
@@ -103,6 +125,10 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  if (!reviewMode && pathname.startsWith(MCP_GATEWAY_PROXY_PREFIX) && extractBearerToken(request)) {
+    return response;
+  }
+
   if (
     !reviewMode &&
     !isPublicPath(pathname) &&
@@ -112,15 +138,19 @@ export async function proxy(request: NextRequest) {
   ) {
     credential = await resolveRequestCredential(request);
     if (!credential) {
+      let denied: NextResponse;
       if (pathname.startsWith("/api/")) {
-        return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+        denied = new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { "Content-Type": "application/json" },
         });
+      } else {
+        const loginUrl = request.nextUrl.clone();
+        loginUrl.pathname = "/login";
+        denied = NextResponse.redirect(loginUrl);
       }
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = "/login";
-      return NextResponse.redirect(loginUrl);
+      expireStaleAuthCookie(denied, request);
+      return denied;
     }
   }
 
@@ -131,6 +161,7 @@ export async function proxy(request: NextRequest) {
   if (CSRF_PROTECTED_METHODS.includes(request.method)) {
     if (reviewMode) return response;
 
+    // /api/auth/init stays here and in PUBLIC_PATHS so an old client reaches its 410 (transformate WI-4492/WI-4494).
     if (
       pathname === "/api/auth/init" ||
       pathname === "/api/auth/login" ||
@@ -141,8 +172,9 @@ export async function proxy(request: NextRequest) {
     const csrfHeader = request.headers.get("x-csrf-token");
     const csrfCookie = request.cookies.get("mc_csrf")?.value;
     credential ??= await resolveRequestCredential(request);
-    // Exempt only a credential sent as a Bearer header: the same token in the mc_auth cookie is ambient
-    // browser authority (/api/auth/init stores the owner token there), so it needs CSRF (transformate WI-3990).
+    // Exempt only a credential sent as a Bearer header. A cookie is ambient browser authority whatever it holds (a
+    // user session or an ak_live_ key; no key resolves from a cookie, transformate WI-4495), so a cookie-carried
+    // write needs CSRF (transformate WI-3990). /api/auth/init sets no cookie any more (transformate WI-4492).
     const hasValidatedApiCredential = !!credential && isNonBrowserCredential(credential) && !!extractBearerToken(request);
 
     const csrfMatch = !!(csrfHeader && csrfCookie && decodeURIComponent(csrfHeader) === decodeURIComponent(csrfCookie));

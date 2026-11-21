@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders, authenticate } from "../helpers/auth";
+import { MC_URL, authHeaders, authenticate } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 4: Empty States — Edge & Security Tests
@@ -142,9 +142,7 @@ test.describe("Empty States — UI rendering", () => {
         body: JSON.stringify({ events: [] }),
       })
     );
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     // Should render without crashing — check no JS errors
@@ -168,9 +166,7 @@ test.describe("Empty States — UI rendering", () => {
         body: JSON.stringify({ agents: [] }),
       })
     );
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/agents`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(1500);
@@ -187,9 +183,7 @@ test.describe("Empty States — UI rendering", () => {
         body: JSON.stringify({ workflows: [] }),
       })
     );
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/workflows`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(1500);

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 // All pages use client-side auth check — they render the shell, then
 // the JS reads the cookie. We test that pages return HTTP 200 and render
@@ -33,10 +33,7 @@ const PAGES = [
 test.describe("Page Navigation", () => {
   test.beforeEach(async ({ context }) => {
     // Set auth cookie before each test
-    const res = await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
-    expect(res.ok()).toBeTruthy();
+    await authenticate(context);
   });
 
   for (const { path, label } of PAGES) {

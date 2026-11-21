@@ -147,9 +147,7 @@ test.describe("XSS — Rendered page content", () => {
   test("dashboard does not execute injected scripts @regression @edge @security", async ({ page }) => {
     // Authenticate and navigate
     const context = page.context();
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${authHeaders().Authorization.split(" ")[1]}` },
-    });
+    await authenticate(context);
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     // Check for XSS by monitoring for alert dialogs

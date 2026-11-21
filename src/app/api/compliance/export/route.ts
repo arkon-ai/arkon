@@ -1,7 +1,7 @@
 // src/app/api/compliance/export/route.ts — Data export (CSV/JSON)
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 function toCsv(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return "";
@@ -22,7 +22,7 @@ function toCsv(rows: Record<string, unknown>[]): string {
 }
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const url = new URL(req.url);
   const dataType = url.searchParams.get("type") || "events"; // events, costs, agents, audit_log, benchmarks

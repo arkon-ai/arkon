@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
+import { MC_URL, authHeaders, authenticate } from "../helpers/auth";
 
 /* ── Phase 3: Tools Hub + Sub-Pages — comprehensive UI regression ── */
 
 test.describe("Tools Hub Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("tools hub page loads without errors @smoke @regression", async ({ page }) => {
@@ -37,9 +35,7 @@ test.describe("Tools Hub Page UI", () => {
 
 test.describe("Docs Viewer Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("docs page loads without errors @regression", async ({ page }) => {
@@ -135,9 +131,7 @@ test.describe("Docs Viewer Page UI", () => {
 
 test.describe("MCP Servers Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("MCP page loads without errors @regression", async ({ page }) => {
@@ -264,9 +258,7 @@ test.describe("MCP Servers Page UI", () => {
 
 test.describe("Tools Sub-Pages UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   const toolPages = [

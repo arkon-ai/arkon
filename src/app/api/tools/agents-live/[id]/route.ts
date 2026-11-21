@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { parseJsonRecord, unauthorized, validateAdmin } from "../../_utils";
+import { parseJsonRecord, validateOwner, ownerRefusal } from "../../_utils";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const { id } = await context.params;

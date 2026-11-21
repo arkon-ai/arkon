@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { unauthorized, validateAdmin } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 // GET /api/dashboard/activity?limit=50&since=<iso>
 // Returns recent events across all agents for the activity feed
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const limit = Math.min(
     parseInt(req.nextUrl.searchParams.get("limit") ?? "50", 10),

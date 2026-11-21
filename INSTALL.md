@@ -36,8 +36,8 @@ Edit `.env` with your preferred editor. At minimum, set these:
 # Database password (also used by Docker Compose to create the DB)
 POSTGRES_PASSWORD=your-secure-password
 
-# Admin login passphrase (min 12 characters)
-MC_ADMIN_TOKEN=your-admin-passphrase-here
+# Owner key for server-to-server Bearer calls only (min 12 characters); sign-in is by email and password
+MC_ADMIN_TOKEN=your-owner-key-here
 
 # Agent authentication tokens (tenant:token pairs)
 MC_AGENT_TOKENS=default:your-agent-token-here

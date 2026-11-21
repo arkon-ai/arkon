@@ -1,110 +1,15 @@
-"use client";
+import { Suspense } from "react";
+import LoginPage from "@/components/mission-control/login-page";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-
-export default function LoginPage() {
-  const [passphrase, setPassphrase] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!passphrase.trim()) return;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/auth/init", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${passphrase.trim()}`,
-        },
-      });
-
-      if (!res.ok) {
-        setError("Invalid passphrase. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      const data = await res.json();
-      if (data.ok) {
-        router.push("/");
-        router.refresh();
-      } else {
-        setError("Authentication failed.");
-        setLoading(false);
-      }
-    } catch {
-      setError("Connection error. Please try again.");
-      setLoading(false);
-    }
-  }
-
+/**
+ * /login (transformate WI-4493): everyone, the owner included, signs in by a user session: email and password
+ * (/api/auth/login), or a magic link outside production. Zero key field: the init route is retired (WI-4492) and the owner key
+ * is a server-to-server Bearer credential only. Suspense: login-page.tsx reads useSearchParams (the ?magic= link).
+ */
+export default function Login() {
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[var(--bg-primary)] px-4">
-      {/* Dot grid background */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: "radial-gradient(circle, rgba(var(--ion-rgb), 0.06) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
-      />
-
-      {/* Subtle green radial glow */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: "radial-gradient(ellipse at 50% 30%, rgba(var(--ion-rgb), 0.04), transparent 60%)",
-        }}
-      />
-
-      <div className="relative z-10 w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[16px] border border-[var(--border)] bg-[var(--bg-surface)]">
-            <span className="text-2xl font-bold text-[var(--accent)]">A</span>
-          </div>
-          <h1 className="text-2xl font-bold text-white">Arkon</h1>
-          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--text-tertiary)]">AI Workforce Platform</p>
-          <p className="mt-2 text-sm text-[var(--text-secondary)]">Enter your passphrase to continue</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="password"
-              value={passphrase}
-              onChange={(e) => setPassphrase(e.target.value)}
-              placeholder="Passphrase"
-              autoFocus
-              autoComplete="current-password"
-              className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-3 text-white placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent)]/50 focus:outline-none focus:ring-1 focus:ring-[var(--ion)]/50 transition"
-            />
-          </div>
-
-          {error && (
-            <p role="alert" className="rounded-lg bg-danger/10 border border-danger/30 px-3 py-2 text-sm text-danger">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading || !passphrase.trim()}
-            className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--accent-foreground)] transition hover:bg-[var(--accent-dim)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-          >
-            {loading ? "Authenticating..." : "Sign In"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-xs text-[var(--text-tertiary)]">
-          Secured by Arkon
-        </p>
-      </div>
-    </div>
+    <Suspense fallback={null}>
+      <LoginPage />
+    </Suspense>
   );
 }

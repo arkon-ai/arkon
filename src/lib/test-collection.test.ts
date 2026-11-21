@@ -66,8 +66,10 @@ describe("npm test + npm run test:pg: every tracked src test file runs in exactl
     expect(r.neither).toEqual([]);
     expect(r.both).toEqual([]);
     expect(pg).toEqual([
+      "src/app/api/auth/session-road.pg.test.ts",
       "src/app/api/setup/complete/route.pg.hooks.test.ts",
       "src/app/api/setup/complete/route.pg.test.ts",
+      "src/app/api/tools/owner-only.pg.test.ts",
       "src/lib/with-throwaway-pg.pg.test.ts",
     ]);
     expect(r.ok).toBe(true);

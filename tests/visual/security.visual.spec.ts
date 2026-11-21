@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 5: Visual Regression — Security Page
@@ -8,9 +8,7 @@ import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
 
 test.describe("Security Visual Regression @visual @regression", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("security page full layout matches baseline", async ({ page }) => {

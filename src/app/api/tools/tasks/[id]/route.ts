@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { parseJsonRecord, parseSerialId, unauthorized, validateAdmin } from "../../_utils";
+import { parseJsonRecord, parseSerialId, validateOwner, ownerRefusal } from "../../_utils";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const id = parseSerialId((await context.params).id);
@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(req: NextRequest, context: RouteContext) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const id = parseSerialId((await context.params).id);

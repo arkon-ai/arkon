@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { createIdleAndHardAbort } from "@/lib/abort-helpers";
+import { constantTimeEqual } from "@/lib/auth-utils";
 
 /**
  * MCP Gateway Proxy — /api/mcp/proxy/[serverId]
@@ -34,12 +35,12 @@ function validateGatewayAuth(req: NextRequest, server: McpServer): boolean {
   const token = extractToken(req);
   if (!token) return false;
 
-  // Accept MC admin token
+  // Accept MC admin token (constant time, transformate WI-4496 (e): was a plain ===)
   const adminToken = process.env.MC_ADMIN_TOKEN ?? "";
-  if (adminToken && token === adminToken) return true;
+  if (adminToken && constantTimeEqual(token, adminToken)) return true;
 
-  // Accept server-specific gateway token
-  if (server.gateway_token && token === server.gateway_token) return true;
+  // Accept server-specific gateway token (constant time)
+  if (server.gateway_token && constantTimeEqual(token, server.gateway_token)) return true;
 
   return false;
 }

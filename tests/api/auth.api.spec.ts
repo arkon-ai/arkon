@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authenticate, csrfHeaders, authHeaders } from "../helpers/auth";
+import { MC_URL, ADMIN_TOKEN, AGENT_TOKEN, OWNER_EMAIL, OWNER_PASSWORD, authenticate, csrfHeaders, authHeaders } from "../helpers/auth";
 
 // API specs authenticate explicitly per-request — run without the ambient
 // admin storageState so negative-auth tests are genuinely unauthenticated.
@@ -11,62 +11,87 @@ test.use({ storageState: { cookies: [], origins: [] } });
            magic-link, verify-magic-link, sessions
    ══════════════════════════════════════════════════════════════ */
 
-// ── POST /api/auth/init ─────────────────────────────────────
+// -- POST /api/auth/init (retired, transformate WI-4492/WI-4493) --
+// Init no longer makes a browser credential: 410 {"error":"init_retired"} with any Bearer, 401 with none, and
+// zero Set-Cookie on every answer. The owner signs in by /api/auth/login (authenticate() below).
+
+function initSetCookies(headers: { name: string; value: string }[]): string[] {
+  return headers.filter((h) => h.name.toLowerCase() === "set-cookie").map((h) => h.value);
+}
 
 test.describe("POST /api/auth/init", () => {
-  test("valid admin token returns 200 with role @regression @smoke", async ({ request }) => {
+  // FLIPPED (WI-4493): was "valid admin token returns 200 with role".
+  test("the owner key answers 410 init_retired, never a role @regression @smoke", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/auth/init`, {
       headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
     });
-    expect(res.status()).toBe(200);
-    const body = await res.json();
-    expect(body.ok).toBeTruthy();
-    expect(body.role).toBeDefined();
-    expect(["owner", "admin", "agent", "viewer", "operator"]).toContain(body.role);
+    expect(res.status()).toBe(410);
+    expect(await res.json()).toEqual({ error: "init_retired" });
   });
 
-  test("sets mc_auth cookie @regression", async ({ request }) => {
-    const res = await request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
-    const cookieHeader = res.headers()["set-cookie"] ?? "";
-    expect(cookieHeader).toContain("mc_auth");
-  });
-
-  test("sets mc_csrf cookie @regression", async ({ request }) => {
+  // FLIPPED (WI-4493): was "sets mc_auth cookie" (:28).
+  test("the owner key sets zero mc_auth cookie @regression", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/auth/init`, {
       headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
     });
     const cookieHeader = res.headers()["set-cookie"] ?? "";
-    expect(cookieHeader).toContain("mc_csrf");
+    expect(cookieHeader).not.toContain("mc_auth");
   });
 
-  test("sets mc_role cookie @regression", async ({ request }) => {
+  // FLIPPED (WI-4493): was "sets mc_csrf cookie".
+  test("the owner key sets zero mc_csrf cookie @regression", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/auth/init`, {
       headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
     });
     const cookieHeader = res.headers()["set-cookie"] ?? "";
-    expect(cookieHeader).toContain("mc_role");
+    expect(cookieHeader).not.toContain("mc_csrf");
   });
 
-  test("sets mc_tenant cookie @regression", async ({ request }) => {
+  // FLIPPED (WI-4493): was "sets mc_role cookie".
+  test("the owner key sets zero mc_role cookie @regression", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/auth/init`, {
       headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
     });
     const cookieHeader = res.headers()["set-cookie"] ?? "";
-    expect(cookieHeader).toContain("mc_tenant");
+    expect(cookieHeader).not.toContain("mc_role");
   });
 
-  test("invalid token returns 401 @regression", async ({ request }) => {
+  // FLIPPED (WI-4493): was "sets mc_tenant cookie".
+  test("the owner key sets zero mc_tenant cookie @regression", async ({ request }) => {
+    const res = await request.post(`${MC_URL}/api/auth/init`, {
+      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
+    });
+    const cookieHeader = res.headers()["set-cookie"] ?? "";
+    expect(cookieHeader).not.toContain("mc_tenant");
+  });
+
+  test("the owner key sets zero cookie of any name @regression", async ({ request }) => {
+    const res = await request.post(`${MC_URL}/api/auth/init`, {
+      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
+    });
+    expect(initSetCookies(res.headersArray())).toEqual([]);
+  });
+
+  test("an agent key answers 410 and sets zero cookie @regression", async ({ request }) => {
+    const res = await request.post(`${MC_URL}/api/auth/init`, {
+      headers: { Authorization: `Bearer ${AGENT_TOKEN}` },
+    });
+    expect(res.status()).toBe(410);
+    expect(initSetCookies(res.headersArray())).toEqual([]);
+  });
+
+  // FLIPPED (WI-4493): was "invalid token returns 401"; any presented Bearer gets the one retired answer.
+  test("an invalid token answers the same 410 @regression", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/auth/init`, {
       headers: { Authorization: "Bearer bad-token-xyz" },
     });
-    expect(res.status()).toBe(401);
+    expect(res.status()).toBe(410);
   });
 
   test("missing Authorization header returns 401 @regression", async ({ request }) => {
     const res = await request.post(`${MC_URL}/api/auth/init`);
     expect(res.status()).toBe(401);
+    expect(initSetCookies(res.headersArray())).toEqual([]);
   });
 
   test("empty Bearer token returns 401 @regression", async ({ request }) => {
@@ -89,6 +114,17 @@ test.describe("POST /api/auth/init", () => {
     expect(csrfToken).toBeTruthy();
     expect(csrfToken.length).toBeGreaterThan(10);
     await context.close();
+  });
+
+  test("authenticate signs the seeded owner in by /api/auth/login: a session cookie, role owner @regression", async ({ request }) => {
+    const res = await request.post(`${MC_URL}/api/auth/login`, {
+      data: { email: OWNER_EMAIL, password: OWNER_PASSWORD },
+    });
+    expect(res.status()).toBe(200);
+    expect(await res.json()).toMatchObject({ ok: true, role: "owner" });
+    const auth = initSetCookies(res.headersArray()).find((c) => c.startsWith("mc_auth="));
+    expect(auth).toBeTruthy();
+    expect(auth).not.toContain(ADMIN_TOKEN);
   });
 });
 

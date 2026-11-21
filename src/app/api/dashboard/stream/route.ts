@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
-import { validateAdmin } from "@/app/api/tools/_utils";
+import { validateOwner, forbidden, isTenantBoundOwner } from "@/app/api/tools/_utils";
 import { addListener, listenerCount } from "@/lib/event-bus";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
+  if (!(await validateOwner(req))) {
+    if (await isTenantBoundOwner(req)) return forbidden(); // owner answer F3: a tenant-bound owner session
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) {
-  return unauthorized();
+  if (!(await validateOwner(req))) {
+  return ownerRefusal(req);
   }
 
   const url = new URL(req.url);

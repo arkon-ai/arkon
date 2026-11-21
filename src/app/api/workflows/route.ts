@@ -1,12 +1,12 @@
 // src/app/api/workflows/route.ts — List + Create workflows
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized, resolveUser } from "@/app/api/tools/_utils";
+import { validateOwner, resolveUser, ownerRefusal } from "@/app/api/tools/_utils";
 import { csrfValidForCookieAuth } from "@/lib/request-auth";
 import { logAudit, getClientIp } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const status = req.nextUrl.searchParams.get("status");
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
   // WI-1849: cookie-session mutations need the double-submit CSRF token.
   if (!csrfValidForCookieAuth(req)) {
     return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });

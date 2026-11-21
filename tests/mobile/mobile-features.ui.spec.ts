@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ── Session 11: Mobile Dashboard + PWA — UI regression ────────── */
 
@@ -11,9 +11,7 @@ test.describe("Mobile Dashboard", () => {
   test.beforeEach(async ({ context }, testInfo) => {
     // Skip mobile-specific UI tests on desktop project
     test.skip(testInfo.project.name === "chromium-desktop", "Mobile-only test");
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("mobile dashboard renders health content @regression @mobile", async ({ page }) => {
@@ -85,9 +83,7 @@ test.describe("PWA Manifest", () => {
   });
 
   test("service worker is registered @regression @mobile", async ({ page, context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     // Check if service worker is registered

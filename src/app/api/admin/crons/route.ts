@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { unauthorized, validateAdmin, forbidden, validateRole } from "@/app/api/tools/_utils";
+import { unauthorized, validateOwner, forbidden, validateRole, ownerRefusal } from "@/app/api/tools/_utils";
 import { csrfValidForCookieAuth } from "@/lib/request-auth";
 
 interface CronJob {
@@ -87,7 +87,7 @@ async function sendToGateway(text: string, meta: Record<string, unknown>): Promi
 
 // GET /api/admin/crons — list all synced cron jobs
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const result = await query(`
     SELECT id, name, enabled, schedule_kind, schedule_expr, schedule_tz,
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
 // POST /api/admin/crons — sync jobs from gateway (called by sync script)
 // Also used to send a message to the agent about a specific cron job
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
   // WI-1849: cookie-session mutations need the double-submit CSRF token.
   if (!csrfValidForCookieAuth(req)) {
     return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });

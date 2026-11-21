@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders } from "../helpers/auth";
+import { MC_URL, ADMIN_TOKEN, authenticate } from "../helpers/auth";
 
 /* ── Phase 3: Agent Profile / Detail — comprehensive UI regression ── */
 
 test.describe("Agents List Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("agents page loads without errors @regression", async ({ page }) => {
@@ -74,9 +72,7 @@ test.describe("Agents List Page UI", () => {
 
 test.describe("Agent Detail Page UI", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   test("agent detail page loads for first agent @regression", async ({ page, request }) => {

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { MC_URL, ADMIN_TOKEN, authHeaders, sseHead } from "../helpers/auth";
+import { MC_URL, authHeaders, sseHead, authenticate } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 4: Network Failures — Edge & Security Tests
@@ -15,9 +15,7 @@ test.describe("Network Failures — Timeout handling", () => {
     await page.route("**/api/dashboard/overview", (route) =>
       route.abort("timedout")
     );
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(3000);
@@ -34,9 +32,7 @@ test.describe("Network Failures — Timeout handling", () => {
         body: JSON.stringify({ error: "Internal Server Error" }),
       })
     );
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(2000);
@@ -48,9 +44,7 @@ test.describe("Network Failures — Timeout handling", () => {
     await page.route("**/api/dashboard/overview", (route) =>
       route.abort("connectionrefused")
     );
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(2000);
@@ -71,9 +65,7 @@ test.describe("Network Failures — Slow responses", () => {
         body: JSON.stringify({ agents: [], events: [], total_events: 0 }),
       });
     });
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     // Should show loading state initially
@@ -113,9 +105,7 @@ test.describe("Network Failures — Malformed API responses", () => {
         body: "this is not valid json{{{",
       })
     );
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(2000);
@@ -132,9 +122,7 @@ test.describe("Network Failures — Malformed API responses", () => {
         body: "",
       })
     );
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(2000);
@@ -150,9 +138,7 @@ test.describe("Network Failures — Malformed API responses", () => {
         body: "<html><body>Unexpected HTML</body></html>",
       })
     );
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(2000);
@@ -173,9 +159,7 @@ test.describe("Network Failures — Navigation during load", () => {
         body: JSON.stringify({ agents: [] }),
       });
     });
-    await page.context().request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(page.context());
     await page.goto(`${MC_URL}/`);
     // Navigate away before API responds
     await page.waitForTimeout(500);

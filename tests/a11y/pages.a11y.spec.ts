@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { MC_URL, ADMIN_TOKEN } from "../helpers/auth";
+import { MC_URL, authenticate } from "../helpers/auth";
 
 /* ══════════════════════════════════════════════════════════════
    Phase 5: Accessibility — All Pages (WCAG 2.1 AA)
@@ -49,9 +49,7 @@ const EXCLUDED_RULES: string[] = [];
 
 test.describe("Accessibility — Authenticated Pages @a11y @regression", () => {
   test.beforeEach(async ({ context }) => {
-    await context.request.post(`${MC_URL}/api/auth/init`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-    });
+    await authenticate(context);
   });
 
   for (const { path, name } of AUTHED_PAGES) {

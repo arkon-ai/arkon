@@ -23,6 +23,7 @@
  * (DATABASE_URL must point at the target Postgres instance, same as migrate.ts)
  */
 import { Pool } from "pg";
+import bcrypt from "bcryptjs";
 
 const SEED_MARKER = "arkon-e2e-seed";
 
@@ -57,6 +58,23 @@ async function seedTenants() {
      ON CONFLICT (id) DO NOTHING`
   );
   console.log("[seed-e2e] tenants: ensured 'transformate'");
+}
+
+// The owner signs in to the browser by the session road only (transformate WI-4493; /api/auth/init is retired):
+// ONE owner users row, unbound (tenant_id NULL, like the production owner row S3 names), with a fixed FAKE
+// password that tests/helpers/auth.ts OWNER_EMAIL / OWNER_PASSWORD carry. E2E fixture only, never a real credential.
+const E2E_OWNER_EMAIL = "e2e-owner@example.test";
+const E2E_OWNER_PASSWORD = "E2e-Owner-Fake-Passw0rd";
+
+async function seedOwner() {
+  const passwordHash = await bcrypt.hash(E2E_OWNER_PASSWORD, 12);
+  await pool.query(
+    `INSERT INTO users (email, password_hash, display_name, role, tenant_id, is_active)
+     VALUES ($1, $2, 'E2E Owner', 'owner', NULL, TRUE)
+     ON CONFLICT (email) DO NOTHING`,
+    [E2E_OWNER_EMAIL, passwordHash]
+  );
+  console.log("[seed-e2e] users: ensured the e2e owner row (role owner, tenant NULL, fake password)");
 }
 
 // External tables: ArkonOS (vos_*) and the Warden fleet layer (worker_activity_events,
@@ -406,6 +424,7 @@ async function seedIncidents() {
 async function run() {
   console.log("[seed-e2e] Starting E2E fixture seed...");
   await seedTenants();
+  await seedOwner();
   await seedExternalSchema();
   await seedAgents();
   await seedEvents();

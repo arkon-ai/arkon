@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 /**
  * GET /api/mcp/gateway/stats
@@ -8,7 +8,7 @@ import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
  * Query: ?range=1h|24h|7d|30d (default 24h)
  */
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   const range = req.nextUrl.searchParams.get("range") || "24h";
   const interval = range === "1h" ? "1 hour" : range === "7d" ? "7 days" : range === "30d" ? "30 days" : "24 hours";

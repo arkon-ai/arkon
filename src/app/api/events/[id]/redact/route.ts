@@ -1,7 +1,7 @@
 // POST /api/events/:id/redact — Redact sensitive content but keep event for audit
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { validateAdmin, unauthorized } from "@/app/api/tools/_utils";
+import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -29,7 +29,7 @@ const REDACTION_PATTERNS: Array<{ label: string; re: RegExp; class: string }> = 
 ];
 
 export async function POST(req: NextRequest, context: RouteContext) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const { id } = await context.params;

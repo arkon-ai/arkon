@@ -12,7 +12,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Edit `.env` first — at minimum set `MC_ADMIN_TOKEN` to a passphrase you'll remember.
+Edit `.env` first: at minimum set `MC_ADMIN_TOKEN`, the owner key for server-to-server Bearer calls only. Sign-in is by email and password.
 
 ## 2. Run the Setup Wizard
 

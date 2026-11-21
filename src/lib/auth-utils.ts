@@ -38,6 +38,15 @@ export function constantTimeEqual(a: string, b: string): boolean {
 }
 
 /**
+ * ONE warning row per MC_AGENT_TOKENS hit, naming the agent id only (transformate WI-4495; the Helm bridge-auth
+ * line 517 form), so each env pair's move to an agents row (admin/agents rotate_token) can be named pair by pair.
+ * Zero byte of the key: not the key, its hash, a prefix or a length.
+ */
+export function warnLegacyAgentToken(agentId: string): void {
+  console.warn(`[auth-legacy] arkon MC_AGENT_TOKENS env agent token used: agent ${agentId}`);
+}
+
+/**
  * Validate bearer token from request header.
  * Returns agent_id if valid, null otherwise.
  */
@@ -48,7 +57,9 @@ export function validateToken(authHeader: string | null): string | null {
 
   const tokenMap = parseAgentTokens();
   const hash = hashToken(token);
-  return tokenMap.get(hash) || null;
+  const agentId = tokenMap.get(hash) || null;
+  if (agentId) warnLegacyAgentToken(agentId);
+  return agentId;
 }
 
 export async function validateAgentToken(authHeader: string | null): Promise<string | null> {
@@ -71,6 +82,7 @@ export async function validateAgentToken(authHeader: string | null): Promise<str
   for (const pair of raw.split(",")) {
     const [agentId, bootstrapToken] = pair.split(":");
     if (agentId && bootstrapToken && constantTimeEqual(token, bootstrapToken.trim())) {
+      warnLegacyAgentToken(agentId.trim());
       return agentId.trim();
     }
   }

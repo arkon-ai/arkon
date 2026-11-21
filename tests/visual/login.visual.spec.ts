@@ -36,6 +36,7 @@ test.describe("Login Visual Regression @visual @regression", () => {
     await page.waitForLoadState("domcontentloaded");
     // Trigger the error with an invalid secret: submit is disabled while the field is empty,
     // so an empty submit never produced an error state (click() waited on a disabled button).
+    await page.locator("input[type='email']").first().fill("no-such-user@example.invalid");
     await page.locator("input[type='password']").first().fill("wrong-password-12345");
     await page.getByRole("button", { name: /sign in|log in|submit/i }).first().click();
     await expect(page.locator("[role='alert']").or(page.locator("text=/invalid|incorrect|failed|error/i")).first())

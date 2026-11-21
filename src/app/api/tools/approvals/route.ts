@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { parseJsonRecord, parseInteger, unauthorized, validateAdmin } from "../_utils";
+import { parseJsonRecord, parseInteger, validateOwner, ownerRefusal } from "../_utils";
 import { fireApprovalAlert } from "@/lib/alert-fire";
 
 export async function GET(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const status = req.nextUrl.searchParams.get("status");
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!validateAdmin(req)) return unauthorized();
+  if (!(await validateOwner(req))) return ownerRefusal(req);
 
   try {
     const body = await req.json();

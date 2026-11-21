@@ -9,6 +9,8 @@ vi.mock("../_utils", () => ({
   parseTextArray: (value: unknown) => value,
   unauthorized: () => new Response("Unauthorized", { status: 401 }),
   validateAdmin: () => true,
+  // the docs routes move to the async OWNER-ONLY check (transformate WI-4498); both mocks admit, as the one did
+  validateOwner: async () => true,
 }));
 
 const mockQuery = vi.mocked(query);
