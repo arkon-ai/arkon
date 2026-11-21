@@ -148,7 +148,7 @@ afterAll(async () => {
   await db?.drop();
 });
 
-// ── R201: the platform owner creates every listed role in every tenant form ──────────────────────────────────────
+// -- R201: the platform owner creates every listed role in every tenant form --
 
 type TenantForm = { label: string; field: Record<string, unknown>; stored: string | null };
 const TENANT_FORMS: TenantForm[] = [
@@ -211,7 +211,7 @@ describe("R201: the platform owner (owner key by Bearer, or an owner session wit
   }
 });
 
-// ── R403: every caller other than the platform owner, refused before the body is read ───────────────────────────
+// -- R403: every caller other than the platform owner, refused before the body is read --
 
 interface RefusalCase {
   id: string;
@@ -261,7 +261,7 @@ describe("R403: every other caller gets 403 and zero users row, before the body 
   }
 });
 
-// ── R400: the platform owner, a body outside the accepted set ───────────────────────────────────────────────────
+// -- R400: the platform owner, a body outside the accepted set --
 
 const R400_BODIES: Array<{ id: string; body: () => string }> = [
   { id: "tenant-id-empty-string", body: asBody({ role: "viewer", tenant_id: "" }) },

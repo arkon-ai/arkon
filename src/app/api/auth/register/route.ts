@@ -13,7 +13,7 @@ function badRequest(error: string) {
 }
 
 /**
- * POST /api/auth/register — Create a new user account (platform owner only; transformate WI-4994).
+ * POST /api/auth/register - Create a new user account (platform owner only; transformate WI-4994).
  * THE GATE: only the platform owner (validateOwner: the owner key by Bearer, or an active session of a users row with
  * role owner and tenant_id NULL). Every other caller, a tenant-bound owner included (tenant_id "" too), gets 403 and
  * zero users row before the body is read.
