@@ -173,7 +173,7 @@ export default function LoginPage() {
               className={inputClass}
             />
             {error && (
-              <p className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
+              <p role="alert" className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
             )}
             <button type="submit" disabled={loading || !email.trim() || !password} className={submitClass}>
               {loading ? "Authenticating..." : "Sign In"}
@@ -196,7 +196,7 @@ export default function LoginPage() {
               className={inputClass}
             />
             {error && (
-              <p className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
+              <p role="alert" className="rounded-lg bg-[var(--danger)]/10 border border-[var(--danger)]/30 px-3 py-2 text-sm text-[var(--danger)]">{error}</p>
             )}
             <button type="submit" disabled={loading || !magicEmail.trim()} className={submitClass}>
               {loading ? "Sending..." : "Send Magic Link"}
