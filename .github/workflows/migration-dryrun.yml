@@ -120,13 +120,14 @@ jobs:
       #                                     failing CLOSED except verifiable bootstrap.
       - name: Use prod snapshot from the base ref (PRs cannot self-attest)
         if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
         run: |
           set -euo pipefail
-          BASE="${{ github.base_ref }}"
           git fetch --depth=1 origin "$BASE"
-          changed="$(git diff --name-only "origin/$BASE" HEAD --)"
-          snap="$(grep -c '^db/prod-snapshot/' <<<"$changed" || true)"
-          mig="$(grep -c '^migrations/.*\.sql$' <<<"$changed" || true)"
+          changed=$(git diff --name-only "origin/$BASE" HEAD --)
+          snap=$(printf '%s\n' "$changed" | grep -c '^db/prod-snapshot/' || true)
+          mig=$(printf '%s\n' "$changed" | grep -c '^migrations/.*\.sql$' || true)
           if [ "$snap" -gt 0 ] && [ "$mig" -gt 0 ]; then
             echo "::error title=Snapshot and migrations changed in one PR::a PR must not modify db/prod-snapshot/ and migrations/*.sql together (the snapshot could pre-attest the very migrations under test). Split the refresh into its own PR — see db/prod-snapshot/README.md."
             exit 1
