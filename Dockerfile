@@ -38,8 +38,7 @@ ENV HOSTNAME=0.0.0.0
 RUN apk add --no-cache wget
 
 # Create non-root user
-RUN addgroup --system --gid 1001 arkon && \
-    adduser --system --uid 1001 arkon
+RUN addgroup --system --gid 1001 arkon && adduser --system --uid 1001 arkon
 
 # Copy standalone build output
 COPY --from=build /app/.next/standalone ./

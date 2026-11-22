@@ -25,7 +25,7 @@ case "$MODE" in
   real|selftest) ;;
   *) echo "usage: migration-dryrun.sh real|selftest (got '$MODE')" >&2; exit 2 ;;
 esac
-ROOT="$(git rev-parse --show-toplevel)"
+ROOT=$(git rev-parse --show-toplevel)
 SNAP_DIR="$ROOT/db/prod-snapshot"
 PG_BASE_URL="${PG_BASE_URL:-postgresql://arkon:arkon@localhost:5432}"
 DB_NAME="dryrun_${MODE}"
@@ -38,8 +38,8 @@ DB_URL="${PG_BASE_URL}/${DB_NAME}"
 }
 
 # ── Staleness guard: warn (never fail) past 14 days ──
-captured_at="$(grep -m1 '^captured_at=' "$SNAP_DIR/META.txt" | cut -d= -f2- || true)"
-if [ -n "$captured_at" ] && captured_epoch="$(date -u -d "$captured_at" +%s 2>/dev/null)"; then
+captured_at=$(grep -m1 '^captured_at=' "$SNAP_DIR/META.txt" | cut -d= -f2- || true)
+if [ -n "$captured_at" ] && captured_epoch=$(date -u -d "$captured_at" +%s 2>/dev/null); then
   age_days=$(( ( $(date -u +%s) - captured_epoch ) / 86400 ))
   echo "prod snapshot captured_at=${captured_at} (${age_days}d old)"
   if [ "$age_days" -gt 14 ]; then
@@ -56,30 +56,24 @@ psql "$ADMIN_URL" -v ON_ERROR_STOP=1 -q -c "DROP DATABASE IF EXISTS ${DB_NAME};"
 # first CI run aborted on `role "arkonhelm" does not exist`. Extract the TO-lists
 # dynamically (future refreshes may add roles), allowlist each token (lowercase
 # identifier only — skips PUBLIC/CURRENT_USER and anything weird), create NOLOGIN.
-gunzip -c "$SNAP_DIR/schema.sql.gz" | grep -E '^CREATE POLICY ' \
-  | sed -nE 's/^CREATE POLICY .* TO ([A-Za-z0-9_, ]+) (USING|WITH CHECK).*/\1/p' \
-  | tr ',' '\n' | sed 's/^ *//; s/ *$//' | sort -u \
-  | while read -r role; do
+gunzip -c "$SNAP_DIR/schema.sql.gz" | grep -E '^CREATE POLICY ' | sed -nE 's/^CREATE POLICY .* TO ([A-Za-z0-9_, ]+) (USING|WITH CHECK).*/\1/p' | tr ',' '\n' | sed 's/^ *//; s/ *$//' | sort -u | while read -r role; do
       [ -n "$role" ] || continue
       if [[ "$role" =~ ^[a-z_][a-z0-9_]*$ ]]; then
-        psql "$DB_URL" -v ON_ERROR_STOP=1 -q -c \
-          "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$role') THEN CREATE ROLE \"$role\" NOLOGIN; END IF; END \$\$;"
+        sql=$(printf 'DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = %s) THEN CREATE ROLE "%s" NOLOGIN; END IF; END $$;' "'$role'" "$role")
+        psql "$DB_URL" -v ON_ERROR_STOP=1 -q -c "$sql"
         echo "pre-created policy role: $role"
       else
         echo "skipping non-identifier policy role token: '$role'" >&2
       fi
     done
 # Idempotent extension creation: the CI image may pre-create timescaledb in new DBs.
-gunzip -c "$SNAP_DIR/schema.sql.gz" \
-  | sed -E 's/^CREATE EXTENSION (IF NOT EXISTS )?/CREATE EXTENSION IF NOT EXISTS /' \
-  | psql "$DB_URL" -v ON_ERROR_STOP=1 -q
+gunzip -c "$SNAP_DIR/schema.sql.gz" | sed -E 's/^CREATE EXTENSION (IF NOT EXISTS )?/CREATE EXTENSION IF NOT EXISTS /' | psql "$DB_URL" -v ON_ERROR_STOP=1 -q
 psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f "$SNAP_DIR/seed.sql"
 # seed.sql carries explicit _migrations.id values; realign the serial so the
 # migrator's INSERT (name only) doesn't collide on the primary key.
-psql "$DB_URL" -v ON_ERROR_STOP=1 -q -c \
-  "SELECT setval(pg_get_serial_sequence('_migrations','id'), COALESCE((SELECT MAX(id) FROM _migrations), 1));"
-applied="$(psql "$DB_URL" -tAc 'SELECT COUNT(*) FROM _migrations;')"
-tenants="$(psql "$DB_URL" -tAc 'SELECT COUNT(*) FROM tenants;')"
+psql "$DB_URL" -v ON_ERROR_STOP=1 -q -c "SELECT setval(pg_get_serial_sequence('_migrations','id'), COALESCE((SELECT MAX(id) FROM _migrations), 1));"
+applied=$(psql "$DB_URL" -tAc 'SELECT COUNT(*) FROM _migrations;')
+tenants=$(psql "$DB_URL" -tAc 'SELECT COUNT(*) FROM tenants;')
 echo "restored prod snapshot into ${DB_NAME}: ${applied} applied migrations recorded, ${tenants} tenants seeded"
 
 if [ "$MODE" = "selftest" ]; then

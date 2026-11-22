@@ -22,6 +22,8 @@ jobs:
           persist-credentials: false
       - name: Check every npm install site
         run: node scripts/check-npm-install-sites.mjs .
+      - name: Test the npm install site check
+        run: node --test scripts/test/check-npm-install-sites.test.mjs
       - name: Fork pull request, no registry token
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
         run: echo "Fork pull request, so the registry-token build stage is skipped (a fork gets no token)."
