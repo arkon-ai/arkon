@@ -14,6 +14,11 @@ const AGENT_ROUTES = ["/api/ingest", "/api/purge", "/api/intake", "/api/health"]
 // WITH a Bearer passes this gate to the route; a Bearer carries no ambient browser authority, so no CSRF either
 // (transformate WI-4496 (f): an exported MCP client config sends its server's gateway_token, which this gate refused).
 const MCP_GATEWAY_PROXY_PREFIX = "/api/mcp/proxy/";
+// THE CRON ROUTES (transformate WI-5647): the scheduler POSTs here with its CRON_SECRET as a Bearer, and the route checks
+// that secret itself in constant time (src/app/api/cron/baseline/cron-secret.ts) or the owner (validateOwner). This
+// gate knows no CRON_SECRET, so a plain Bearer POST to an EXACT path here passes it to the route (see proxy() below).
+// Not PUBLIC_PATHS: its startsWith would also pass a request with no Bearer and every path under the prefix.
+const CRON_ROUTE_PATHS = ["/api/cron/baseline"];
 const CSRF_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 const PUBLIC_PATHS = ["/login", "/setup", "/api/auth/init", "/api/auth/login", "/api/auth/magic-link", "/api/auth/verify-magic-link", "/api/health", "/api/intake", "/api/setup", "/docs/"];
 // Root-relative static brand assets (public/*) — always safe to serve unauthenticated;
@@ -37,6 +42,11 @@ function isDashboardApiRoute(pathname: string): boolean {
 
 function isAgentRoute(pathname: string): boolean {
   return AGENT_ROUTES.some((r) => pathname.startsWith(r));
+}
+
+/** One Bearer token as extractBearerToken reads it: present, with no comma and no whitespace (transformate WI-5647). */
+function isPlainBearerToken(token: string | null): boolean {
+  return !!token && !/[,\s]/.test(token);
 }
 
 function isPublicPath(pathname: string): boolean {
@@ -126,6 +136,20 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!reviewMode && pathname.startsWith(MCP_GATEWAY_PROXY_PREFIX) && extractBearerToken(request)) {
+    return response;
+  }
+
+  // THE CRON GATE (transformate WI-5647): before any credential read and before CSRF. ONLY a POST, outside review
+  // mode, with no basePath or locale, to an exact CRON_ROUTE_PATHS path, with one plain Bearer token (no comma, so not
+  // two joined headers; no whitespace). Anything else goes on through the gate as before.
+  if (
+    request.method === "POST" &&
+    !reviewMode &&
+    request.nextUrl.basePath === "" &&
+    request.nextUrl.locale === "" &&
+    CRON_ROUTE_PATHS.includes(pathname) &&
+    isPlainBearerToken(extractBearerToken(request))
+  ) {
     return response;
   }
 

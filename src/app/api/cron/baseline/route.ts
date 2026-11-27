@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAnomalies, recomputeBaselines } from "@/lib/anomaly-detector";
 import { validateOwner, ownerRefusal } from "@/app/api/tools/_utils";
-
+import { cronSecretMatches } from "./cron-secret";
 /**
  * POST /api/cron/baseline
  * Called every 5 minutes by PM2 cron.
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const providedSecret = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
 
-  const isValidCron = cronSecret && providedSecret === cronSecret;
+  const isValidCron = cronSecretMatches(providedSecret, cronSecret);
   const isAdmin = !isValidCron && (await validateOwner(req));
 
   if (!isValidCron && !isAdmin) return ownerRefusal(req, "Cron secret or admin token required");
