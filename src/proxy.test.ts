@@ -318,3 +318,127 @@ describe("proxy: a key carried in a cookie resolves nothing (transformate WI-449
     expect(write.status).toBe(403);
   });
 });
+
+/* THE CRON GATE (transformate WI-5647). The scheduler POSTs /api/cron/baseline with its secret as a Bearer; the route
+   checks that secret itself (cron-secret.ts, constant time) or the owner (validateOwner). The gate let no such call
+   through: it knows no CRON_SECRET, so it answered 401 first. proxy.ts now hands exactly ONE shape to the route: POST,
+   not review mode, no basePath or locale, the exact path, and one plain Bearer token. Everything else keeps the gate.
+   RED at the base: T1 only. GREEN at the base and the tip, as controls: T2, T3, T3a, T3c, T4, T5, T6b, T8. */
+describe("proxy: the cron route gate (transformate WI-5647)", () => {
+  const CRON_PATH = "/api/cron/baseline";
+  const CRON_BEARER = "Bearer cron-test-not-a-credential";
+  const GATE_401 = JSON.stringify({ error: "Unauthorized" });
+
+  /** The gate's refusal: exactly 401 and exactly the gate's body (never the route's text). */
+  async function expectGate401(res: Response) {
+    expect(res.status).toBe(401);
+    expect(await res.text()).toBe(GATE_401);
+  }
+
+  it("T1 POST /api/cron/baseline with a plain Bearer and no cookie passes the gate to the route", async () => {
+    const res = await proxy(request(CRON_PATH, { method: "POST", headers: { authorization: CRON_BEARER } }));
+    // One object, so a failure shows every field (the base reads 401 with the gate's body).
+    expect({
+      status: res.status,
+      body: await res.text(),
+      next: res.headers.get("x-middleware-next"),
+      location: res.headers.get("location"),
+      setCookie: res.headers.getSetCookie(),
+      dbCalls: mockQuery.mock.calls.length,
+    }).toEqual({ status: 200, body: "", next: "1", location: null, setCookie: [], dbCalls: 0 });
+  });
+
+  it("T2 POST /api/cron/baseline with no Authorization header and no cookie: the gate's 401", async () => {
+    const res = await proxy(request(CRON_PATH, { method: "POST" }));
+    await expectGate401(res);
+  });
+
+  it.each([
+    "/api/cron/baseline/",
+    "/api/cron/baseline.",
+    "/api/cron/other",
+    "/api/cron",
+    "/api/cron/%62aseline",
+    "/api//cron/baseline",
+  ])("T3 POST %s with the T1 Bearer is not the exact path: the gate's 401", async (path) => {
+    const req = request(path, { method: "POST", headers: { authorization: CRON_BEARER } });
+    expect(req.nextUrl.pathname).toBe(path);
+    await expectGate401(await proxy(req));
+  });
+
+  // These two do not start with "/api/", so the gate refuses them as a page: the /login redirect (proxy.ts :147-:150).
+  it.each(["/API/CRON/BASELINE", "//api/cron/baseline"])(
+    "T3 POST %s with the T1 Bearer is not the exact path: the gate's /login redirect",
+    async (path) => {
+      const req = request(path, { method: "POST", headers: { authorization: CRON_BEARER } });
+      expect(req.nextUrl.pathname).toBe(path);
+      const res = await proxy(req);
+      expect(res.status).toBe(307);
+      expect(res.headers.get("location")).toBe("https://arkon.test/login");
+      expect(res.headers.get("x-middleware-next")).toBeNull();
+    },
+  );
+
+  it.each([
+    ["an empty Bearer", "Bearer "],
+    ["a whitespace Bearer", "Bearer    "],
+    ["a lowercase scheme", "bearer cron-test-not-a-credential"],
+    ["another scheme", "Basic cron-test-not-a-credential"],
+  ])("T3a POST /api/cron/baseline with %s: the gate's 401", async (_name, authorization) => {
+    const res = await proxy(request(CRON_PATH, { method: "POST", headers: { authorization } }));
+    await expectGate401(res);
+  });
+
+  it("T3a POST /api/cron/baseline with two Authorization headers (one joined value with a comma): the gate's 401", async () => {
+    const req = request(CRON_PATH, {
+      method: "POST",
+      headers: [
+        ["authorization", "Bearer QZX5647MARK-a"],
+        ["authorization", "Bearer QZX5647MARK-b"],
+      ],
+    });
+    expect(req.headers.get("authorization")).toBe("Bearer QZX5647MARK-a, Bearer QZX5647MARK-b");
+    await expectGate401(await proxy(req));
+  });
+
+  it.each(["GET", "HEAD", "OPTIONS", "PUT", "PATCH", "DELETE"])(
+    "T3c %s /api/cron/baseline with the T1 Bearer: the gate's 401",
+    async (method) => {
+      const res = await proxy(request(CRON_PATH, { method, headers: { authorization: CRON_BEARER } }));
+      await expectGate401(res);
+    },
+  );
+
+  it("T4 POST /api/audit (a dashboard path) with the T1 Bearer: the gate's 401", async () => {
+    const res = await proxy(request("/api/audit", { method: "POST", headers: { authorization: CRON_BEARER } }));
+    await expectGate401(res);
+  });
+
+  it("T5 POST /api/cron/baseline with a valid session cookie, no Bearer and no CSRF token: the CSRF 403", async () => {
+    const res = await proxy(request(CRON_PATH, { method: "POST", cookies: { mc_auth: "valid-session" } }));
+    expect(res.status).toBe(403);
+    expect(await res.text()).toBe(JSON.stringify({ error: "CSRF validation failed" }));
+  });
+
+  it("T6b POST /api/mcp/proxy/x with the T1 Bearer still passes the MCP gateway branch", async () => {
+    const res = await proxy(request("/api/mcp/proxy/x", { method: "POST", headers: { authorization: CRON_BEARER } }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-middleware-next")).toBe("1");
+    expect(mockQuery).not.toHaveBeenCalled();
+  });
+
+  it("T8 review mode on: POST /api/cron/baseline with the T1 Bearer reads as at the base (the review CSRF pass)", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    try {
+      const res = await proxy(request(CRON_PATH, {
+        method: "POST",
+        headers: { authorization: CRON_BEARER, cookie: "arkon_review_mode=1" },
+      }));
+      expect(res.status).toBe(200);
+      expect(res.headers.get("x-middleware-next")).toBe("1");
+      expect(mockQuery).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+});
